@@ -1,0 +1,102 @@
+@import 'tailwindcss';
+
+/* ────────────────────────────────────────────────────────────
+ * Tokens de marca Veline — paleta 2b, tipografía 1e.
+ * Espejo de brand/tokens.css, expuesto como theme de Tailwind v4:
+ * cada variable genera sus utilidades (bg-brand, text-ink, font-display…).
+ * ──────────────────────────────────────────────────────────── */
+@theme {
+  --color-brand: #a96a3e;
+  --color-brand-dark: #935a33;
+  --color-ink: #2e2119;
+  --color-ink-2: #3b2a1f;
+  --color-accent: #d9a441;
+  --color-cream: #f2e7d6;
+  --color-canvas: #ede1cd;
+  --color-surface: #ffffff;
+
+  --color-line: #e4d5be;
+  --color-line-strong: #dcc9ac;
+  --color-line-dark: #4a3826;
+
+  --color-body: #5c4a34;
+  --color-body-2: #4a3826;
+  --color-muted: #8a7255;
+  --color-subtle: #9b8567;
+  --color-disabled: #c4ae8d;
+
+  --color-ondark: #f2e7d6;
+  --color-ondark-muted: #c9b698;
+  --color-ondark-muted-2: #d8c6ad;
+
+  --color-ph-bg: #e4d5be;
+  --color-ph-border: #b79a76;
+  --color-ph-text: #7a664d;
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-pop: 0 8px 28px rgba(169, 106, 62, 0.14);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+/* "Apertura de inicio limpia y suave" — entrada escalonada, muy contenida.
+   Se anula por completo si el sistema pide menos movimiento. */
+@keyframes veline-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer components {
+  .rise {
+    animation: veline-rise 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rise {
+      animation: none;
+    }
+  }
+
+  /* Placeholder con borde punteado, igual que en los mockups.
+     Se sustituye por fotografía real cuando la haya. */
+  .ph {
+    background: var(--color-ph-bg);
+    border: 1px dashed var(--color-ph-border);
+    color: var(--color-ph-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 8px;
+  }
+}

@@ -1,0 +1,192 @@
+// Veline — modelo de datos
+// Mercado España: importes en céntimos de euro, horarios en minutos desde
+// medianoche (hora local de Europe/Madrid), fechas de cita en UTC.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  GRATIS
+  NEGOCIO
+  EQUIPOS
+}
+
+enum BookingStatus {
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+/// De dónde viene la reserva. Determina si se cobra la comisión del 15%.
+enum BookingSource {
+  MARKETPLACE
+  DIRECTO
+  INSTAGRAM
+  GOOGLE
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  /// slug de CATEGORIES en @veline/shared
+  category    String
+  description String?
+  phone       String?
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  plan        Plan     @default(GRATIS)
+  createdAt   DateTime @default(now())
+
+  locations Location[]
+  services  Service[]
+  staff     Staff[]
+  bookings  Booking[]
+
+  @@index([category])
+}
+
+model Location {
+  id         String  @id @default(cuid())
+  businessId String
+  name       String  @default("Principal")
+  street     String
+  city       String
+  postalCode String
+  lat        Float?
+  lng        Float?
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  openingHours OpeningHour[]
+  closures     Closure[]
+  staff        Staff[]
+  bookings     Booking[]
+
+  @@index([businessId])
+  @@index([city])
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  businessId  String
+  name        String
+  description String?
+  /// Duración de la cita en minutos
+  durationMin Int
+  /// Margen posterior reservado para el negocio (limpieza, papeleo…)
+  bufferMin   Int     @default(0)
+  priceCents  Int
+  active      Boolean @default(true)
+  position    Int     @default(0)
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([businessId])
+}
+
+/// Persona o recurso que atiende. El límite por plan (1 / 3 / ilimitado) se
+/// aplica sobre esta tabla.
+model Staff {
+  id         String  @id @default(cuid())
+  businessId String
+  locationId String?
+  name       String
+  active     Boolean @default(true)
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  bookings Booking[]
+
+  @@index([businessId])
+}
+
+/// Horario de atención semanal. Varias franjas por día = varias filas
+/// (p. ej. mañana y tarde con cierre al mediodía).
+model OpeningHour {
+  id         String @id @default(cuid())
+  locationId String
+  /// 0 = domingo … 6 = sábado (igual que Date#getDay)
+  weekday    Int
+  /// Minutos desde medianoche, hora local
+  startMin   Int
+  endMin     Int
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId, weekday])
+}
+
+/// Excepción puntual: festivo, vacaciones o cierre parcial de un día.
+model Closure {
+  id         String   @id @default(cuid())
+  locationId String
+  date       DateTime @db.Date
+  /// null = el día entero
+  startMin   Int?
+  endMin     Int?
+  reason     String?
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId, date])
+}
+
+/// Cliente que reserva. Sin cuenta: se identifica por teléfono.
+/// Cuando entre el login con Apple/Google se le añade authProvider + authSubject.
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  email     String?
+  createdAt DateTime @default(now())
+
+  bookings Booking[]
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  /// Código legible que se le da al cliente: VL-7F3K2
+  code       String        @unique
+  businessId String
+  locationId String?
+  serviceId  String
+  staffId    String?
+  customerId String
+  startsAt   DateTime
+  endsAt     DateTime
+  /// Fin real ocupado en agenda = endsAt + buffer del servicio
+  blockedTo  DateTime
+  status     BookingStatus @default(CONFIRMADA)
+  priceCents Int
+  notes      String?
+
+  // ── Atribución: de esto depende la comisión del 15% ──
+  source                 BookingSource @default(MARKETPLACE)
+  /// true solo la primera vez que este cliente reserva en este negocio vía marketplace
+  isFirstFromMarketplace Boolean       @default(false)
+  commissionCents        Int           @default(0)
+
+  createdAt   DateTime  @default(now())
+  cancelledAt DateTime?
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  service  Service   @relation(fields: [serviceId], references: [id])
+  staff    Staff?    @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  customer Customer  @relation(fields: [customerId], references: [id])
+
+  /// El solapamiento se valida en una transacción SERIALIZABLE: Postgres
+  /// detecta el write-skew de dos reservas simultáneas sobre el mismo hueco y
+  /// aborta una. No usamos un índice único [staffId, startsAt] porque dejaría
+  /// el hueco bloqueado después de cancelar.
+  @@index([businessId, startsAt])
+  @@index([staffId, startsAt])
+  @@index([customerId])
+}

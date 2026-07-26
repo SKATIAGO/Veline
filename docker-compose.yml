@@ -1,0 +1,65 @@
+name: veline
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-veline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-veline}
+      POSTGRES_DB: ${POSTGRES_DB:-veline}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - veline-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      TZ: Europe/Madrid
+      DATABASE_URL: postgresql://${POSTGRES_USER:-veline}:${POSTGRES_PASSWORD:-veline}@db:5432/${POSTGRES_DB:-veline}?schema=public
+    ports:
+      - "${API_PORT:-3001}:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      # Volúmenes anónimos: el node_modules del contenedor (Linux) no se pisa
+      # con el del host (macOS) — los binarios nativos son de arquitecturas distintas.
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/shared/node_modules
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      TZ: Europe/Madrid
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    depends_on:
+      - api
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/shared/node_modules
+
+volumes:
+  veline-db:

@@ -1,0 +1,61 @@
+/* Veline — design tokens
+ * Extraídos del proyecto Claude Design (paleta 2b, tipografía 1e).
+ * Framework-agnóstico: cuando elijamos stack, esto se mapea a Tailwind theme /
+ * CSS modules / lo que sea, pero los valores no cambian.
+ */
+
+:root {
+  /* ── Marca ─────────────────────────────────────────────── */
+  --v-brand:            #A96A3E; /* Canela — primario */
+  --v-brand-ink:        #FFFFFF; /* texto sobre canela */
+  --v-ink:              #2E2119; /* Marrón oscuro — texto y superficies dark */
+  --v-accent:           #D9A441; /* Mostaza — acento, nunca texto chico sobre crema */
+  --v-cream:            #F2E7D6; /* Crema — fondo general */
+
+  /* ── Superficies ───────────────────────────────────────── */
+  --v-surface:          #FFFFFF;
+  --v-canvas:           #EDE1CD; /* fondo de lienzo / secciones alternas */
+  --v-ink-2:            #3B2A1F; /* superficie oscura secundaria */
+  --v-fill-muted:       #E4D5BE; /* chips inactivos, botón volver, placeholders */
+
+  /* ── Bordes ────────────────────────────────────────────── */
+  --v-border:           #E4D5BE;
+  --v-border-strong:    #DCC9AC;
+  --v-border-dark:      #4A3826; /* dentro de secciones oscuras */
+
+  /* ── Texto sobre claro ─────────────────────────────────── */
+  --v-text:             #2E2119;
+  --v-text-body:        #5C4A34;
+  --v-text-body-2:      #4A3826;
+  --v-text-muted:       #8A7255;
+  --v-text-subtle:      #9B8567;
+  --v-text-disabled:    #C4AE8D;
+
+  /* ── Texto sobre oscuro ────────────────────────────────── */
+  --v-on-dark:          #F2E7D6;
+  --v-on-dark-muted:    #C9B698;
+  --v-on-dark-muted-2:  #D8C6AD;
+
+  /* ── Placeholders (mientras no haya fotos reales) ──────── */
+  --v-ph-bg:            #E4D5BE;
+  --v-ph-border:        #B79A76;
+  --v-ph-text:          #7A664D;
+
+  /* ── Tipografía ────────────────────────────────────────── */
+  --v-font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --v-font-ui:      'Public Sans', system-ui, sans-serif;
+
+  /* ── Radios (normalizados desde los mockups) ───────────── */
+  --v-radius-sm:  8px;
+  --v-radius-md:  12px;
+  --v-radius-lg:  16px;
+  --v-radius-pill: 999px;
+
+  /* ── Layout ────────────────────────────────────────────── */
+  --v-page-max:    1440px;
+  --v-page-pad:      64px; /* desktop */
+  --v-aside-w:      340px; /* widget de reserva, desktop */
+
+  /* ── Sombra (solo la del plan destacado, es la única del sistema) ── */
+  --v-shadow-pop: 0 8px 28px rgba(169, 106, 62, .14);
+}
