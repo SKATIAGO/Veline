@@ -1,65 +1,33 @@
-import { ButtonLink, Card } from '../components/ui'
+import { formatPrice } from '@veline/shared'
+import { ButtonLink, Card, Eyebrow } from '../components/ui'
+import { EXTRAS, FAQ, PLANES, PRUEBA_DIAS } from '../content/precios'
 
-const PLANS = [
-  {
-    name: 'Gratis',
-    tagline: 'Para probar sin compromiso',
-    price: '0 €',
-    period: '/mes',
-    cta: { label: 'Crear mi perfil', variant: 'ghost' as const },
-    features: [
-      'Perfil en el marketplace',
-      'Reservas ilimitadas desde tu web, Instagram o Google',
-      '1 persona en el calendario',
-      'Notificaciones por email',
-    ],
-  },
-  {
-    name: 'Negocio',
-    tagline: 'Para el día a día de tu local',
-    price: '19 €',
-    period: '/mes',
-    popular: true,
-    cta: { label: 'Empezar prueba de 14 días', variant: 'primary' as const },
-    features: [
-      'Todo lo de Gratis',
-      'Hasta 3 personas en el calendario',
-      'Recordatorios por WhatsApp y SMS',
-      'Cobro de señales online',
-      'Estadísticas del negocio',
-      'Soporte prioritario',
-    ],
-  },
-  {
-    name: 'Equipos',
-    tagline: 'Para más de un local o equipo grande',
-    price: '+9 €',
-    period: '/mes por persona',
-    cta: { label: 'Hablar con ventas', variant: 'ghost' as const },
-    features: [
-      'Todo lo de Negocio',
-      'Personas y locales ilimitados',
-      'Panel multi-sucursal',
-      'Soporte dedicado',
-    ],
-  },
-]
+function Feature({ children }: { children: string }) {
+  return (
+    <li className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-body-2">
+      <span className="shrink-0 font-bold text-brand">✓</span>
+      {children}
+    </li>
+  )
+}
 
 export function Pricing() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
+      {/* HERO */}
       <div className="text-center">
         <h1 className="text-[32px] leading-tight font-semibold text-ink sm:text-[42px]">
           Un precio simple, sin sorpresas
         </h1>
         <p className="mx-auto mt-4 max-w-[560px] text-base leading-relaxed text-body">
-          Empieza gratis. Paga solo cuando tu negocio empieza a crecer con nosotros — nunca por
-          adelantado, nunca algo que no entiendes.
+          Pruébalo {PRUEBA_DIAS} días sin compromiso. Después, una cuota mes a mes que entiendes de
+          una lectura — nunca por adelantado, nunca letra pequeña.
         </p>
       </div>
 
+      {/* PLANES */}
       <div className="mt-14 flex flex-col items-stretch gap-6 lg:flex-row">
-        {PLANS.map((plan) => (
+        {PLANES.map((plan) => (
           <Card
             key={plan.name}
             className={
@@ -75,24 +43,26 @@ export function Pricing() {
             <div className="font-display text-lg font-semibold text-ink">{plan.name}</div>
             <div className="mt-1.5 mb-6 text-[13.5px] text-subtle">{plan.tagline}</div>
             <div className="mb-6 flex items-baseline gap-1.5">
-              <span className="font-display text-[40px] font-semibold text-ink">{plan.price}</span>
+              <span className="font-display text-[40px] font-semibold text-ink">
+                {'priceCents' in plan && plan.priceCents !== undefined
+                  ? `${'pricePrefix' in plan ? plan.pricePrefix : ''}${formatPrice(plan.priceCents)}`
+                  : plan.price}
+              </span>
               <span className="text-sm font-medium text-subtle">{plan.period}</span>
             </div>
-            <ButtonLink to="/panel" variant={plan.cta.variant} className="mb-7 w-full">
-              {plan.cta.label}
+            <ButtonLink to="/panel" variant={plan.variant} className="mb-7 w-full">
+              {plan.cta}
             </ButtonLink>
             <ul className="flex flex-col gap-3">
               {plan.features.map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-body-2">
-                  <span className="shrink-0 font-bold text-brand">✓</span>
-                  {f}
-                </li>
+                <Feature key={f}>{f}</Feature>
               ))}
             </ul>
           </Card>
         ))}
       </div>
 
+      {/* COMISIÓN */}
       <Card className="mx-auto mt-8 flex max-w-[1000px] items-center gap-6 p-8">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-xl font-semibold text-accent">
           %
@@ -103,6 +73,117 @@ export function Pricing() {
           llega por tu Instagram, Google o boca a boca — es gratis, siempre.
         </p>
       </Card>
+
+      {/* EXTRAS */}
+      <section className="mt-24">
+        <Eyebrow>Servicios aparte</Eyebrow>
+        <h2 className="mb-4 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          Si quieres que hagamos más
+        </h2>
+        <p className="mb-10 max-w-[560px] text-[15.5px] leading-relaxed text-body">
+          Se contratan cuando los necesitas y se quitan cuando no. Nada de esto es obligatorio para
+          empezar a recibir reservas.
+        </p>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          {EXTRAS.map((extra) => (
+            <Card key={extra.name} className="flex flex-col p-7">
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-display text-lg font-semibold text-ink">{extra.name}</span>
+                <span className="rounded-full bg-cream px-3 py-1 text-[13px] font-semibold text-brand">
+                  {extra.price}
+                </span>
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {extra.items.map((item) => (
+                  <Feature key={item}>{item}</Feature>
+                ))}
+              </ul>
+              <p className="mt-4 text-[12.5px] text-subtle">{extra.note}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* RESEÑAS */}
+      <section className="mt-24">
+        <Eyebrow>Reseñas</Eyebrow>
+        <h2 className="mb-4 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          Lo que dicen los negocios que ya lo usan
+        </h2>
+        <p className="mb-10 max-w-[620px] text-[15.5px] leading-relaxed text-body">
+          Aquí van las opiniones reales de los primeros negocios. El espacio está montado y
+          maquetado: en cuanto tengamos sus frases y su permiso, se colocan tal cual.
+        </p>
+
+        <div className="grid gap-5 sm:grid-cols-3">
+          {[
+            'Reseña de un negocio — cita textual',
+            'Reseña de un negocio — cita textual',
+            'Reseña de un negocio — cita textual',
+          ].map((label, i) => (
+            <div
+              key={i}
+              className="flex min-h-[190px] flex-col justify-between rounded-xl border border-dashed border-ph-border bg-ph-bg/40 p-6"
+            >
+              <p className="text-[15px] leading-relaxed text-ph-text">“{label}”</p>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="size-10 shrink-0 rounded-full border border-dashed border-ph-border bg-ph-bg" />
+                <div>
+                  <div className="text-[13.5px] font-semibold text-ph-text">Nombre y negocio</div>
+                  <div className="text-[12.5px] text-ph-text/80">Sector · Ciudad</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PREGUNTAS */}
+      <section className="mt-24">
+        <Eyebrow>Preguntas frecuentes</Eyebrow>
+        <h2 className="mb-10 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          Lo que suelen preguntarnos
+        </h2>
+
+        <div className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface">
+          {FAQ.map((item) => (
+            <details key={item.q} className="group border-b border-line last:border-b-0">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[15.5px] font-semibold text-ink marker:hidden hover:bg-cream/60">
+                {item.q}
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 text-xl leading-none text-brand transition-transform group-open:rotate-45"
+                >
+                  +
+                </span>
+              </summary>
+              <p className="px-6 pb-5 text-[14.5px] leading-relaxed text-body">{item.a}</p>
+            </details>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-sm text-muted">
+          ¿Te queda alguna duda?{' '}
+          <a href="mailto:hola@veline.es" className="font-semibold text-brand hover:text-ink">
+            Escríbenos
+          </a>{' '}
+          y te contestamos.
+        </p>
+      </section>
+
+      {/* CIERRE */}
+      <section className="mt-24 text-center">
+        <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          Pruébalo {PRUEBA_DIAS} días. Sin tarjeta.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <ButtonLink to="/panel">Empezar la prueba</ButtonLink>
+          <ButtonLink to="/" variant="ghost">
+            Ver todo lo que incluye
+          </ButtonLink>
+        </div>
+      </section>
     </div>
   )
 }

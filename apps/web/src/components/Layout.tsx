@@ -17,9 +17,11 @@ function Header() {
         <nav className="hidden items-center gap-9 text-[14.5px] font-medium text-body-2 lg:flex">
           {NAV.map((item) =>
             item.to.startsWith('/#') ? (
-              <a key={item.to} href={item.to} className="hover:text-ink">
+              // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
+              // desde otra página. El scroll hasta la sección lo hace ScrollToTop.
+              <Link key={item.to} to={item.to} className="hover:text-ink">
                 {item.label}
-              </a>
+              </Link>
             ) : (
               <NavLink
                 key={item.to}
@@ -91,17 +93,11 @@ function Footer() {
             <div key={col.title}>
               <div className="mb-3.5 text-[12.5px] font-semibold text-ink">{col.title}</div>
               <div className="flex flex-col gap-2.5 text-[13.5px] text-subtle">
-                {col.links.map((l) =>
-                  l.to.startsWith('/#') ? (
-                    <a key={l.label} href={l.to} className="hover:text-brand">
-                      {l.label}
-                    </a>
-                  ) : (
-                    <Link key={l.label} to={l.to} className="hover:text-brand">
-                      {l.label}
-                    </Link>
-                  ),
-                )}
+                {col.links.map((l) => (
+                  <Link key={l.label} to={l.to} className="hover:text-brand">
+                    {l.label}
+                  </Link>
+                ))}
               </div>
             </div>
           ))}

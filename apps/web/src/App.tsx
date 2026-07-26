@@ -12,8 +12,18 @@ import { PanelAgenda } from './pages/panel/PanelAgenda'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
 import { EmptyState } from './components/ui'
+import { ScrollToTop } from './components/ScrollToTop'
 
 export function App() {
+  return (
+    <>
+      <ScrollToTop />
+      <AppRoutes />
+    </>
+  )
+}
+
+function AppRoutes() {
   return (
     <Routes>
       {/* Panel del negocio — layout propio, sin la cabecera pública */}

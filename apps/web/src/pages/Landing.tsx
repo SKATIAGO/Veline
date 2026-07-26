@@ -9,6 +9,7 @@ import {
   ESLOGAN_NEGOCIO,
   SERVICIOS_EMPRESA,
 } from '../content/negocio'
+import { PRUEBA_DIAS } from '../content/precios'
 
 /**
  * Home orientada al negocio. El marketplace dejó de ser la portada: aparece
@@ -84,7 +85,7 @@ export function Landing() {
               </ButtonLink>
             </div>
             <p className="mt-5 text-[13px] font-medium text-ondark-muted">
-              Empieza gratis · Sin permanencia
+              {PRUEBA_DIAS} días de prueba · Sin tarjeta · Sin permanencia
             </p>
           </div>
           <div
@@ -215,7 +216,7 @@ export function Landing() {
           {ESLOGAN}
         </p>
         <p className="mx-auto mt-4 mb-8 max-w-[460px] text-[15.5px] leading-relaxed text-muted">
-          Empieza gratis y súbete de plan solo cuando tu negocio lo pida.
+          Pruébalo {PRUEBA_DIAS} días sin tarjeta y decide después.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <ButtonLink to="/precios">Ver planes y precios</ButtonLink>
