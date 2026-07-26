@@ -50,6 +50,10 @@ services:
     environment:
       NODE_ENV: development
       TZ: Europe/Madrid
+      # TUNNEL=true cuando la web se expone por ngrok (ajusta el HMR a wss:443)
+      TUNNEL: ${TUNNEL:-}
+      # Lista separada por comas para sobrescribir los hosts permitidos por Vite
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
     ports:
       - "${WEB_PORT:-5173}:5173"
     depends_on:
