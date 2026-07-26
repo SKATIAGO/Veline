@@ -42,6 +42,9 @@ model Business {
   rating      Float    @default(0)
   reviewCount Int      @default(0)
   plan        Plan     @default(GRATIS)
+  /// URLs base de las fotos (sin parámetros de tamaño). La primera es la
+  /// portada; el resto rellena la galería del perfil.
+  photos      String[]
   createdAt   DateTime @default(now())
 
   locations Location[]

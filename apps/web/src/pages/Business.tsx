@@ -9,7 +9,8 @@ import {
   WEEKDAYS_LONG,
 } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, ButtonLink, Card, EmptyState, Placeholder, Spinner, Stars } from '../components/ui'
+import { Button, ButtonLink, Card, EmptyState, Spinner, Stars } from '../components/ui'
+import { Photo } from '../components/Photo'
 
 const TABS = ['Servicios', 'Reseñas', 'Info'] as const
 
@@ -63,10 +64,39 @@ export function Business() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         {/* Columna principal */}
         <div className="min-w-0 flex-[1.6]">
-          <div className="mb-7 grid grid-cols-3 grid-rows-2 gap-2" style={{ height: 288 }}>
-            <Placeholder label="Foto principal" className="col-span-2 row-span-2 h-full" />
-            <Placeholder label="Foto 2" className="h-full" />
-            <Placeholder label="Foto 3" className="h-full" />
+          <div className="mb-7 grid h-[220px] grid-cols-3 grid-rows-2 gap-2 sm:h-[288px]">
+            <Photo
+              src={business.photos[0]}
+              alt={business.name}
+              width={900}
+              height={620}
+              priority
+              className="col-span-3 row-span-2 rounded-xl sm:col-span-2"
+              fallback="Foto principal"
+            />
+            <Photo
+              src={business.photos[1]}
+              alt={`${business.name}, foto 2`}
+              width={460}
+              height={300}
+              className="hidden rounded-xl sm:block"
+              fallback="Foto 2"
+            />
+            <div className="relative hidden sm:block">
+              <Photo
+                src={business.photos[2]}
+                alt={`${business.name}, foto 3`}
+                width={460}
+                height={300}
+                className="size-full rounded-xl"
+                fallback="Foto 3"
+              />
+              {business.photos.length > 3 && (
+                <span className="pointer-events-none absolute right-2 bottom-2 rounded-full bg-ink/85 px-2.5 py-1 text-[11.5px] font-semibold text-cream">
+                  +{business.photos.length - 3}
+                </span>
+              )}
+            </div>
           </div>
 
           <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{business.name}</h1>

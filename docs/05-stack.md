@@ -140,5 +140,8 @@ mismo negocio → 0 €.
   contenido real.
 - **`<input type="time">`** muestra am/pm si el navegador está en locale inglés; en un
   navegador en español sale en 24 h.
+- **Las fotos son de stock y externas.** `Business.photos` guarda URLs base de Unsplash y el
+  front pide el recorte al CDN (`?auto=format&fit=crop&w=…`). Sirve para el boceto, pero
+  depende de un tercero: no hay subida de imágenes desde el panel ni copia propia.
 - **Una sola sede por negocio** en la práctica: el modelo soporta varias (`Location`), pero el
   front siempre usa la primera.

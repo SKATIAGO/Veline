@@ -49,7 +49,7 @@ transacción de creación y anulados al cancelar.
 2. ✅ **Radios de borde**: normalizados en `sm 8 / md 12 / lg 16`.
 3. **Fecha de los mockups**: "Marzo 2026" y "Mar 15" eran datos de ejemplo, no una fecha de lanzamiento.
 4. ⛔ **Iconografía**: sigue sin set elegido. Los chips son solo texto y se usan glifos sueltos (`‹`, `›`, `%`, `★`, `✓`). Falta elegir familia (Lucide, Phosphor…) coherente con Bricolage.
-5. ⛔ **Fotografía**: todo siguen siendo placeholders con borde punteado. Sin fotos reales la landing no convence.
+5. 🟡 **Fotografía**: los seis negocios de ejemplo llevan fotos de stock de Unsplash (portada + galería de 4). Falta la fotografía real de cada negocio y la subida de imágenes desde el panel. Siguen con placeholder el mapa del hero y la vista previa del panel.
 6. ✅ **Accesibilidad de la mostaza**: `#D9A441` solo se usa sobre marrón oscuro o como acento gráfico, nunca como texto pequeño sobre crema.
 
 ## Lo siguiente, por orden de valor

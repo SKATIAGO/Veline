@@ -19,11 +19,24 @@ const day = (weekday: number, from: number, to: number) => ({
   endMin: to,
 })
 
+/**
+ * Fotos de ejemplo (Unsplash, licencia libre). Se guardan sin parámetros de
+ * tamaño: el front añade el recorte que necesita en cada sitio.
+ * Sustituir por fotografía real de cada negocio cuando la haya.
+ */
+const U = (id: string) => `https://images.unsplash.com/photo-${id}`
+
 const SEED = [
   {
     slug: 'taller-mecanico-rivas',
     name: 'Taller Mecánico Rivas',
     category: 'talleres',
+    photos: [
+      U('1619642751034-765dfdf7c58e'),
+      U('1599256872237-5dcc0fbe9668'),
+      U('1613214150132-9606e332d68e'),
+      U('1631720040176-0d789a643a78'),
+    ],
     description:
       'Taller de barrio de toda la vida. Mecánica general, revisiones y pre-ITV sin cita telefónica.',
     phone: '915 55 01 92',
@@ -49,6 +62,12 @@ const SEED = [
     slug: 'academia-de-ingles-central',
     name: 'Academia de Inglés Central',
     category: 'academias',
+    photos: [
+      U('1577896851231-70ef18881754'),
+      U('1544776193-352d25ca82cd'),
+      U('1523240795612-9a054b0db644'),
+      U('1567057420215-0afa9aa9253a'),
+    ],
     description: 'Clases particulares y preparación de exámenes oficiales de Cambridge.',
     phone: '914 22 18 40',
     rating: 4.9,
@@ -73,6 +92,12 @@ const SEED = [
     slug: 'clinica-veterinaria-los-alamos',
     name: 'Clínica Veterinaria Los Álamos',
     category: 'veterinarias',
+    photos: [
+      U('1551076805-e1869033e561'),
+      U('1553688738-a278b9f063e0'),
+      U('1602052577122-f73b9710adba'),
+      U('1654895716780-b4664497420d'),
+    ],
     description: 'Consulta, vacunación y peluquería canina. Urgencias concertadas.',
     phone: '915 71 33 20',
     rating: 4.7,
@@ -97,6 +122,12 @@ const SEED = [
     slug: 'estudio-de-yoga-norte',
     name: 'Estudio de Yoga Norte',
     category: 'bienestar',
+    photos: [
+      U('1506126613408-eca07ce68773'),
+      U('1552196563-55cd4e45efb3'),
+      U('1588286840104-8957b019727f'),
+      U('1575052814086-f385e2e2ad1b'),
+    ],
     description: 'Hatha y Vinyasa en grupos reducidos, con sesiones privadas bajo demanda.',
     phone: '910 45 66 71',
     rating: 4.9,
@@ -121,6 +152,12 @@ const SEED = [
     slug: 'autoescuela-rapida',
     name: 'Autoescuela Rápida',
     category: 'autoescuelas',
+    photos: [
+      U('1580582932707-520aed937b7b'),
+      U('1449965408869-eaa3f722e40d'),
+      U('1553782097-130fef5d3e27'),
+      U('1516862523118-a3724eb136d7'),
+    ],
     description: 'Prácticas del permiso B con recogida en el centro de Madrid.',
     phone: '913 08 77 12',
     rating: 4.6,
@@ -145,6 +182,12 @@ const SEED = [
     slug: 'ferreteria-el-tornillo',
     name: 'Ferretería El Tornillo',
     category: 'tiendas',
+    photos: [
+      U('1631856954655-966f97d809de'),
+      U('1519520104014-df63821cb6f9'),
+      U('1601598851547-4302969d0614'),
+      U('1605371924599-2d0365da1ae0'),
+    ],
     description: 'Copias de llaves, afilado y asesoramiento a domicilio con cita previa.',
     phone: '913 66 90 05',
     rating: 4.8,
@@ -187,7 +230,17 @@ function nextWeekday(offsetDays: number, hour: number, minute = 0) {
 async function main() {
   const existing = await prisma.business.count()
   if (existing > 0) {
-    console.log(`· Seed omitido: ya hay ${existing} negocios en la base.`)
+    // La base ya tiene datos: no se recrea nada, pero sí se ponen al día las
+    // fotos, para no obligar a borrar el volumen (y las reservas) al añadirlas.
+    let updated = 0
+    for (const b of SEED) {
+      const { count } = await prisma.business.updateMany({
+        where: { slug: b.slug },
+        data: { photos: b.photos },
+      })
+      updated += count
+    }
+    console.log(`· Seed omitido: ya hay ${existing} negocios. Fotos actualizadas en ${updated}.`)
     return
   }
 
@@ -202,6 +255,7 @@ async function main() {
         rating: b.rating,
         reviewCount: b.reviewCount,
         plan: b.plan,
+        photos: b.photos,
         locations: {
           create: {
             ...b.location,

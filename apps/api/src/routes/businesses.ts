@@ -59,7 +59,7 @@ export async function businessRoutes(app: FastifyInstance) {
       reviewCount: b.reviewCount,
       city: b.locations[0]?.city ?? '',
       street: b.locations[0]?.street ?? '',
-      photo: null,
+      photo: b.photos[0] ?? null,
       fromPriceCents: b.services[0]?.priceCents ?? null,
     }))
   })
@@ -88,8 +88,8 @@ export async function businessRoutes(app: FastifyInstance) {
       reviewCount: b.reviewCount,
       city: main?.city ?? '',
       street: main?.street ?? '',
-      photo: null,
-      photos: [],
+      photo: b.photos[0] ?? null,
+      photos: b.photos,
       fromPriceCents: b.services.length
         ? Math.min(...b.services.map((s) => s.priceCents))
         : null,

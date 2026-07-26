@@ -5,6 +5,7 @@ import { CATEGORIES, categoryLabel, formatPrice } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, Chip, Eyebrow, Placeholder, Spinner, Stars } from '../components/ui'
 import { DESTACADOS, ESLOGAN } from '../content/negocio'
+import { Photo } from '../components/Photo'
 
 const STEPS = [
   {
@@ -69,12 +70,19 @@ export function BusinessCard({
     rating: number
     reviewCount: number
     city: string
+    photo: string | null
     fromPriceCents: number | null
   }
 }) {
   return (
     <Card className="flex flex-col overflow-hidden">
-      <Placeholder label="Foto del negocio" className="h-[140px] rounded-none" />
+      <Photo
+        src={business.photo}
+        alt={business.name}
+        width={640}
+        height={360}
+        className="h-[140px] shrink-0"
+      />
       <div className="flex flex-1 flex-col p-4">
         <div className="font-semibold text-ink">{business.name}</div>
         <div className="mt-1 mb-3 text-[12.5px] font-medium text-subtle">
