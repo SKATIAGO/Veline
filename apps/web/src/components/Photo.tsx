@@ -6,7 +6,7 @@ import { cx } from './ui'
  * en su CDN, así que cada sitio pide exactamente lo que necesita en vez de
  * bajarse la original.
  */
-function sized(url: string, w: number, h: number) {
+export function photoSrc(url: string, w: number, h: number) {
   if (!url.startsWith('https://images.unsplash.com/')) return url
   return `${url}?auto=format&fit=crop&w=${w}&h=${h}&q=70`
 }
@@ -50,7 +50,7 @@ export function Photo({
     <div className={cx('relative overflow-hidden bg-ph-bg', className)}>
       <img
         ref={ref}
-        src={sized(src, width, height)}
+        src={photoSrc(src, width, height)}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"

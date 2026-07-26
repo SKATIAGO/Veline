@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { CATEGORIES } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, Chip, EmptyState, Spinner } from '../components/ui'
-import { BusinessCard } from './Landing'
+import { BusinessCard } from '../components/BusinessCard'
 
 export function Search() {
   const [params, setParams] = useSearchParams()

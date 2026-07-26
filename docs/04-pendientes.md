@@ -36,7 +36,7 @@ transacción de creación y anulados al cancelar.
 |---|---|
 | **Resultados de búsqueda** | ✅ Construida (`/buscar`) con filtro por categoría, texto y ciudad. Nunca hubo mockup |
 | **Mapa** | ⛔ Fuera de la v1 por decisión. El hero mantiene el placeholder; `Location` ya guarda `lat`/`lng` |
-| **Landing "Para negocios"** | ⛔ Sigue siendo solo una sección de la home. Falta la página de captación y el flujo de alta |
+| **Landing "Para negocios"** | ✅ **Es la home**. Falta el flujo de alta: hoy los negocios solo entran por el seed |
 | **Tabs Reseñas e Info** | 🟡 Info construida (dirección, teléfono, horario semanal). Reseñas solo muestra la media — falta el sistema real |
 | **"Añadir al calendario"** | ✅ Resuelto con `.ics` generado en el navegador |
 | **Estados vacíos, carga y error** | ✅ Cubiertos: sin resultados, sin huecos, hueco recién ocupado (409 con enlace para elegir otra hora), 404 |

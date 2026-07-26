@@ -1,5 +1,10 @@
 # Veline — Inventario de pantallas y flujos
 
+> ⚠️ **Desactualizado en la home.** Este documento describe la home del diseño original,
+> orientada al cliente final. Desde el 26 jul 2026 la home es la del negocio y el buscador
+> vive en `/buscar` — ver [06-brief-gestion-1.md](06-brief-gestion-1.md). El resto (perfil,
+> flujo de reserva, precios) sigue vigente.
+
 > Fuente: `Landing Web.dc.html`, `Precios.dc.html`, `Flujo Reserva Desktop.dc.html`, `Flujo Reserva Movil.dc.html`
 
 Ancho de referencia desktop: **1440px** (contenido a 1440, padding lateral 64px).

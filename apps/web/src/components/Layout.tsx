@@ -4,9 +4,9 @@ import { ESLOGAN } from '../content/negocio'
 
 const NAV = [
   { to: '/#como-funciona', label: 'Cómo funciona' },
-  { to: '/#categorias', label: 'Categorías' },
+  { to: '/#servicios', label: 'Servicios' },
   { to: '/precios', label: 'Precios' },
-  { to: '/negocios', label: 'Para negocios' },
+  { to: '/buscar', label: 'Marketplace' },
 ]
 
 function Header() {
@@ -40,8 +40,8 @@ function Header() {
           >
             Iniciar sesión
           </Link>
-          <ButtonLink to="/buscar" size="sm">
-            Reservar
+          <ButtonLink to="/precios" size="sm">
+            Añadir mi negocio
           </ButtonLink>
         </div>
       </div>
@@ -52,19 +52,19 @@ function Header() {
 function Footer() {
   const columns = [
     {
-      title: 'Producto',
+      title: 'Negocios',
       links: [
         { label: 'Cómo funciona', to: '/#como-funciona' },
-        { label: 'Categorías', to: '/#categorias' },
+        { label: 'Servicios para empresas', to: '/#servicios' },
         { label: 'Precios', to: '/precios' },
+        { label: 'Panel de gestión', to: '/panel' },
       ],
     },
     {
-      title: 'Negocios',
+      title: 'Marketplace',
       links: [
-        { label: 'Añadir mi negocio', to: '/negocios' },
-        { label: 'Servicios para empresas', to: '/negocios' },
-        { label: 'Panel de gestión', to: '/panel' },
+        { label: 'Buscar negocios', to: '/buscar' },
+        { label: 'Consultar mi reserva', to: '/buscar' },
       ],
     },
     {

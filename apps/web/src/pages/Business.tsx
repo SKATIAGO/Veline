@@ -9,15 +9,72 @@ import {
   WEEKDAYS_LONG,
 } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, ButtonLink, Card, EmptyState, Spinner, Stars } from '../components/ui'
+import { Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
 import { Photo } from '../components/Photo'
+import { Lightbox } from '../components/Lightbox'
 
 const TABS = ['Servicios', 'Reseñas', 'Info'] as const
+
+/** Una celda de la galería: abre el visor si hay foto, placeholder si no. */
+function GalleryTile({
+  photos,
+  i,
+  name,
+  onOpen,
+  width,
+  height,
+  className,
+  fallback,
+  priority,
+  extra = 0,
+}: {
+  photos: string[]
+  i: number
+  name: string
+  onOpen: (i: number) => void
+  width: number
+  height: number
+  className?: string
+  fallback: string
+  priority?: boolean
+  extra?: number
+}) {
+  const src = photos[i]
+
+  if (!src) {
+    return <Photo src={null} alt="" width={width} height={height} className={cx('rounded-xl', className)} fallback={fallback} />
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(i)}
+      aria-label={`Ver las fotos de ${name}`}
+      className={cx('group relative cursor-zoom-in overflow-hidden rounded-xl', className)}
+    >
+      <Photo
+        src={src}
+        alt={`${name} — foto ${i + 1}`}
+        width={width}
+        height={height}
+        priority={priority}
+        className="size-full transition-transform duration-500 group-hover:scale-[1.03]"
+        fallback={fallback}
+      />
+      {extra > 0 && (
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/45 text-lg font-semibold text-cream">
+          +{extra}
+        </span>
+      )}
+    </button>
+  )
+}
 
 export function Business() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const [tab, setTab] = useState<(typeof TABS)[number]>('Servicios')
+  const [lightbox, setLightbox] = useState<number | null>(null)
 
   const { data: business, isLoading, isError } = useQuery({
     queryKey: ['business', slug],
@@ -64,39 +121,51 @@ export function Business() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         {/* Columna principal */}
         <div className="min-w-0 flex-[1.6]">
-          <div className="mb-7 grid h-[220px] grid-cols-3 grid-rows-2 gap-2 sm:h-[288px]">
-            <Photo
-              src={business.photos[0]}
-              alt={business.name}
-              width={900}
-              height={620}
-              priority
-              className="col-span-3 row-span-2 rounded-xl sm:col-span-2"
-              fallback="Foto principal"
-            />
-            <Photo
-              src={business.photos[1]}
-              alt={`${business.name}, foto 2`}
-              width={460}
-              height={300}
-              className="hidden rounded-xl sm:block"
-              fallback="Foto 2"
-            />
-            <div className="relative hidden sm:block">
-              <Photo
-                src={business.photos[2]}
-                alt={`${business.name}, foto 3`}
+          <div className="relative mb-7">
+            <div className="grid h-[220px] grid-cols-3 grid-rows-2 gap-2 sm:h-[288px]">
+              <GalleryTile
+                photos={business.photos}
+                i={0}
+                name={business.name}
+                onOpen={setLightbox}
+                width={900}
+                height={620}
+                priority
+                className="col-span-3 row-span-2 sm:col-span-2"
+                fallback="Foto principal"
+              />
+              <GalleryTile
+                photos={business.photos}
+                i={1}
+                name={business.name}
+                onOpen={setLightbox}
                 width={460}
                 height={300}
-                className="size-full rounded-xl"
-                fallback="Foto 3"
+                className="hidden sm:block"
+                fallback="Foto 2"
               />
-              {business.photos.length > 3 && (
-                <span className="pointer-events-none absolute right-2 bottom-2 rounded-full bg-ink/85 px-2.5 py-1 text-[11.5px] font-semibold text-cream">
-                  +{business.photos.length - 3}
-                </span>
-              )}
+              <GalleryTile
+                photos={business.photos}
+                i={2}
+                name={business.name}
+                onOpen={setLightbox}
+                width={460}
+                height={300}
+                className="hidden sm:block"
+                fallback="Foto 3"
+                extra={business.photos.length - 3}
+              />
             </div>
+
+            {business.photos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setLightbox(0)}
+                className="absolute bottom-3 left-3 rounded-lg bg-surface/95 px-3.5 py-2 text-[12.5px] font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
+              >
+                Ver las {business.photos.length} fotos
+              </button>
+            )}
           </div>
 
           <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{business.name}</h1>
@@ -232,6 +301,14 @@ export function Business() {
           </Card>
         </aside>
       </div>
+
+      <Lightbox
+        photos={business.photos}
+        index={lightbox}
+        onIndex={setLightbox}
+        onClose={() => setLightbox(null)}
+        title={business.name}
+      />
     </>
   )
 }
