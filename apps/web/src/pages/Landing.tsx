@@ -19,7 +19,7 @@ import { PRUEBA_DIAS } from '../content/precios'
 const PASOS = [
   {
     title: 'Crea el perfil de tu negocio',
-    text: 'Servicios, precios y horarios en unos minutos. Sin web propia ni conocimientos técnicos.',
+    text: 'Servicios, precios y horarios en unos minutos. Sin conocimientos técnicos.',
   },
   {
     title: 'Comparte tu enlace',
@@ -85,7 +85,7 @@ export function Landing() {
               </ButtonLink>
             </div>
             <p className="mt-5 text-[13px] font-medium text-ondark-muted">
-              {PRUEBA_DIAS} días de prueba · Sin tarjeta · Sin permanencia
+              {PRUEBA_DIAS} días de prueba sin permanencia
             </p>
           </div>
           <div
