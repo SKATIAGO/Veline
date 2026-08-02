@@ -41,12 +41,16 @@ export function Logo({ variant = 'light', size = 22 }: { variant?: 'light' | 'da
 type ButtonVariant = 'primary' | 'ghost' | 'accent'
 
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+  'relative inline-flex items-center justify-center gap-2 font-semibold rounded-lg ' +
+  'transition-[background-color,color,border-color,transform,box-shadow] duration-300 ' +
+  'hover:-translate-y-0.5 active:translate-y-0 active:scale-[.98] ' +
+  'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ' +
+  'motion-reduce:transform-none motion-reduce:transition-colors'
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-dark',
+  primary: 'bg-brand text-white hover:bg-brand-dark hover:shadow-[0_10px_22px_rgba(169,106,62,.28)]',
   ghost: 'border-[1.5px] border-ink text-ink hover:bg-ink hover:text-cream',
-  accent: 'bg-accent text-ink hover:brightness-95',
+  accent: 'bg-accent text-ink hover:brightness-105 hover:shadow-[0_10px_22px_rgba(217,164,65,.32)]',
 }
 
 const buttonSizes = {

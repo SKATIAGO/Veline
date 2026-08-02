@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { ButtonLink, Logo } from './ui'
+import { ButtonLink, Logo, cx } from './ui'
+import { Awning } from './Ornaments'
 import { ESLOGAN } from '../content/negocio'
 
 const NAV = [
@@ -10,16 +12,36 @@ const NAV = [
 ]
 
 function Header() {
+  // La barra se compacta y coge sombra en cuanto empiezas a bajar.
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-cream/95 backdrop-blur">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-6 py-4 lg:px-16">
+    <header
+      className={cx(
+        'sticky top-0 z-20 border-b bg-cream/90 backdrop-blur transition-[box-shadow,background-color,border-color] duration-300',
+        scrolled ? 'border-line-strong shadow-[0_6px_20px_rgba(46,33,25,.07)]' : 'border-line',
+      )}
+    >
+      <div
+        className={cx(
+          'mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-6 transition-[padding] duration-300 lg:px-16',
+          scrolled ? 'py-2.5' : 'py-4',
+        )}
+      >
         <Logo />
         <nav className="hidden items-center gap-9 text-[14.5px] font-medium text-body-2 lg:flex">
           {NAV.map((item) =>
             item.to.startsWith('/#') ? (
               // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
               // desde otra página. El scroll hasta la sección lo hace ScrollToTop.
-              <Link key={item.to} to={item.to} className="hover:text-ink">
+              <Link key={item.to} to={item.to} className="veline-navlink">
                 {item.label}
               </Link>
             ) : (
@@ -27,7 +49,7 @@ function Header() {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  isActive ? 'font-semibold text-ink' : 'hover:text-ink'
+                  cx('veline-navlink', isActive && 'is-active font-semibold text-ink')
                 }
               >
                 {item.label}
@@ -79,8 +101,9 @@ function Footer() {
   ]
 
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 py-14 sm:flex-row lg:px-16">
+    <footer className="relative border-t border-line">
+      <Awning tone="brand" flip className="absolute inset-x-0 -top-px" />
+      <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
           <div className="mb-2.5 font-display text-xl font-semibold text-ink">Veline</div>
           <p className="text-[13.5px] leading-relaxed text-subtle">{ESLOGAN}</p>

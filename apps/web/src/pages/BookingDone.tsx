@@ -74,7 +74,7 @@ export function BookingDone() {
         <div
           className={
             'mb-6 flex size-[72px] items-center justify-center rounded-full ' +
-            (cancelled ? 'bg-fill' : 'bg-ink')
+            (cancelled ? 'bg-fill' : 'veline-success bg-ink')
           }
         >
           {cancelled ? (
@@ -94,6 +94,7 @@ export function BookingDone() {
                 strokeWidth="4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className="veline-check"
               />
             </svg>
           )}

@@ -61,8 +61,10 @@
   }
 }
 
-/* "Apertura de inicio limpia y suave" — entrada escalonada, muy contenida.
-   Se anula por completo si el sistema pide menos movimiento. */
+/* ── Movimiento ──────────────────────────────────────────────
+   Todo lo de aquí se apaga con prefers-reduced-motion: con esta
+   cantidad de animación, respetarlo no es un detalle, es obligatorio. */
+
 @keyframes veline-rise {
   from {
     opacity: 0;
@@ -74,14 +76,230 @@
   }
 }
 
+/* Flotación lenta para los adornos */
+@keyframes veline-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(calc(var(--tilt, 0deg) + 2deg));
+  }
+}
+
+/* Cinta de sectores en bucle */
+@keyframes veline-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* El check de confirmación se dibuja solo */
+@keyframes veline-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Aparición con rebote corto, para el círculo de éxito */
+@keyframes veline-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Onda que se expande tras el círculo de confirmación */
+@keyframes veline-ripple {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Brillo que recorre un elemento de izquierda a derecha */
+@keyframes veline-sheen {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
 @layer components {
   .rise {
     animation: veline-rise 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
 
+  /* Aparición al entrar en pantalla.
+     Aquí solo vive la transición: el estado oculto lo pone el componente como
+     estilo en línea, para que no dependa de ganar la cascada. Sin JS no se
+     oculta nada y la página se ve entera. */
+  .reveal {
+    transition:
+      opacity 0.75s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .float {
+    animation: veline-float 7s ease-in-out infinite;
+  }
+
+  /* Tarjetas que se levantan al pasar por encima */
+  .lift {
+    transition:
+      transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+      border-color 0.35s ease;
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(46, 33, 25, 0.1);
+    border-color: var(--color-line-strong);
+  }
+
+  /* Botón con destello al pasar por encima */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+  }
+  .sheen:hover::after {
+    animation: veline-sheen 0.75s ease-out;
+  }
+
+  /* Subrayado que crece bajo los títulos de sección */
+  .quill::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 4px;
+    margin-top: 14px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--color-brand), var(--color-accent));
+    transition: width 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s;
+  }
+  .is-visible .quill::after,
+  .quill.is-visible::after {
+    width: 72px;
+  }
+
+  /* Enlaces del menú: subrayado que crece desde la izquierda */
+  .veline-navlink {
+    position: relative;
+    padding-bottom: 3px;
+    transition: color 0.25s ease;
+  }
+  .veline-navlink:hover {
+    color: var(--color-ink);
+  }
+  .veline-navlink::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-brand);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .veline-navlink:hover::after,
+  .veline-navlink.is-active::after {
+    transform: scaleX(1);
+  }
+
+  /* Grano de papel sobre los fondos planos */
+  .grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+  }
+
+  /* Confirmación: el círculo entra con rebote y el check se dibuja solo,
+     con una onda que se expande detrás. */
+  .veline-success {
+    position: relative;
+    animation: veline-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+  .veline-success::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-accent);
+    opacity: 0;
+    animation: veline-ripple 1.6s ease-out 0.4s;
+  }
+  .veline-check {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: veline-draw 0.5s cubic-bezier(0.65, 0, 0.35, 1) 0.35s forwards;
+  }
+
+  /* Cinta de sectores */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: veline-marquee 42s linear infinite;
+  }
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .rise {
-      animation: none;
+    .rise,
+    .float,
+    .marquee-track,
+    .veline-success,
+    .veline-success::after {
+      animation: none !important;
+    }
+    .veline-check {
+      stroke-dashoffset: 0;
+      animation: none !important;
+    }
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .lift:hover {
+      transform: none;
+    }
+    .sheen::after {
+      display: none;
+    }
+    .quill::after {
+      width: 72px;
+      transition: none;
     }
   }
 
