@@ -8,6 +8,7 @@
     "db:push": "prisma db push --skip-generate",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "mail:preview": "tsx src/mail/preview.ts",
     "start:docker": "npm run db:push && npm run db:generate && npm run db:seed && npm run dev",
     "typecheck": "tsc --noEmit"
   },

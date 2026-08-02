@@ -39,6 +39,8 @@ model Business {
   category    String
   description String?
   phone       String?
+  /// Dónde se avisa al negocio de las citas nuevas y las cancelaciones.
+  email       String?
   rating      Float    @default(0)
   reviewCount Int      @default(0)
   plan        Plan     @default(GRATIS)

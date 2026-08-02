@@ -236,7 +236,7 @@ async function main() {
     for (const b of SEED) {
       const { count } = await prisma.business.updateMany({
         where: { slug: b.slug },
-        data: { photos: b.photos },
+        data: { photos: b.photos, email: `reservas@${b.slug}.test` },
       })
       updated += count
     }
@@ -252,6 +252,9 @@ async function main() {
         category: b.category,
         description: b.description,
         phone: b.phone,
+        // Dominio .test: reservado por la RFC, nunca entregable. El envío real
+        // se prueba con MAIL_OVERRIDE_TO.
+        email: `reservas@${b.slug}.test`,
         rating: b.rating,
         reviewCount: b.reviewCount,
         plan: b.plan,

@@ -28,6 +28,13 @@ services:
       PORT: 3001
       TZ: Europe/Madrid
       DATABASE_URL: postgresql://${POSTGRES_USER:-veline}:${POSTGRES_PASSWORD:-veline}@db:5432/${POSTGRES_DB:-veline}?schema=public
+      # Correo — ver docs/08-correo.md. La clave vive en .env, nunca en el repo.
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_MODE: ${MAIL_MODE:-dry}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Veline}
+      MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:5173}
     ports:
       - "${API_PORT:-3001}:3001"
     depends_on:

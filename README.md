@@ -28,6 +28,7 @@ Para empezar de cero: `docker compose down -v && docker compose up --build`.
 | [docs/05-stack.md](docs/05-stack.md) | Stack, motor de disponibilidad, comisión, verificación y limitaciones |
 | [docs/06-brief-gestion-1.md](docs/06-brief-gestion-1.md) | Brief de Eli: eslogan, destacados de la home y servicios para empresas |
 | [docs/07-ngrok.md](docs/07-ngrok.md) | Enseñar el boceto fuera de localhost con un túnel — y qué mirar antes |
+| [docs/08-correo.md](docs/08-correo.md) | Correo transaccional con Brevo: qué se envía, los tres modos y qué falta |
 
 ## Código
 

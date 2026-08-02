@@ -3,6 +3,13 @@ import { Prisma } from '@prisma/client'
 import { cancelBookingSchema, createBookingSchema, type BookingDTO } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
+import { sendMailSafely } from '../mail/brevo.js'
+import {
+  bookingCancelled,
+  bookingConfirmedToCustomer,
+  bookingCreatedToBusiness,
+  type BookingMailData,
+} from '../mail/templates.js'
 
 /** Comisión de marketplace: 15% y solo en la primera reserva del cliente. */
 const COMMISSION_RATE = 0.15
@@ -13,7 +20,7 @@ const bookingCode = () =>
   Array.from({ length: 5 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join('')
 
 const bookingInclude = {
-  business: { select: { id: true, slug: true, name: true } },
+  business: { select: { id: true, slug: true, name: true, email: true } },
   location: { select: { name: true, street: true, city: true } },
   service: { select: { id: true, name: true, durationMin: true } },
   staff: { select: { id: true, name: true } },
@@ -21,6 +28,22 @@ const bookingInclude = {
 } satisfies Prisma.BookingInclude
 
 type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclude }>
+
+/** Datos que necesitan las plantillas de correo. */
+const toMailData = (b: BookingRow): BookingMailData => ({
+  code: b.code,
+  startsAt: b.startsAt,
+  priceCents: b.priceCents,
+  serviceName: b.service.name,
+  businessName: b.business.name,
+  businessSlug: b.business.slug,
+  staffName: b.staff?.name ?? null,
+  address: b.location ? `${b.location.street}, ${b.location.city}` : null,
+  customerName: b.customer.name,
+  customerPhone: b.customer.phone,
+  customerEmail: b.customer.email,
+  notes: b.notes,
+})
 
 const toDTO = (b: BookingRow): BookingDTO => ({
   id: b.id,
@@ -31,7 +54,7 @@ const toDTO = (b: BookingRow): BookingDTO => ({
   priceCents: b.priceCents,
   notes: b.notes,
   source: b.source,
-  business: b.business,
+  business: { id: b.business.id, slug: b.business.slug, name: b.business.name },
   location: b.location,
   service: b.service,
   staff: b.staff,
@@ -137,6 +160,15 @@ export async function bookingRoutes(app: FastifyInstance) {
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
 
+      // El correo no bloquea la respuesta: la cita ya está hecha y confirmada.
+      const mailData = toMailData(booking)
+      if (booking.customer.email) {
+        void sendMailSafely(bookingConfirmedToCustomer(mailData))
+      }
+      if (booking.business.email) {
+        void sendMailSafely(bookingCreatedToBusiness(mailData, booking.business.email))
+      }
+
       return reply.code(201).send(toDTO(booking))
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -191,6 +223,19 @@ export async function bookingRoutes(app: FastifyInstance) {
       },
       include: bookingInclude,
     })
+
+    const mailData = toMailData(booking)
+    if (booking.customer.email) {
+      void sendMailSafely(
+        bookingCancelled(mailData, { email: booking.customer.email, name: booking.customer.name }, 'cliente'),
+      )
+    }
+    if (booking.business.email) {
+      void sendMailSafely(
+        bookingCancelled(mailData, { email: booking.business.email, name: booking.business.name }, 'negocio'),
+      )
+    }
+
     return toDTO(booking)
   })
 }
