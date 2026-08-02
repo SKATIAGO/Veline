@@ -48,10 +48,15 @@ con distintivo **Plus** en lo que se contrata aparte.
 | Web personalizada | Plus *(marcado en el brief)* |
 | Aplicación para su local | Plus ⚠️ **asumido, no marcado en el brief** |
 | Análisis de rendimiento y fidelidad | — |
-| Herramientas de facturación | — |
+| ~~Herramientas de facturación~~ | **Retirado el 2 ago 2026** — no se va a ofrecer |
 
 El "Se puede añadir ideas" del brief se ha convertido en una tarjeta abierta —
 *"¿Echas algo en falta?"*— al final de los destacados.
+
+Con la facturación fuera, el titular de la sección pasa de *"Desde la agenda hasta la factura"*
+a *"Desde la agenda hasta el último detalle"*, y la métrica del panel deja de llamarse
+"Facturación 7 días" para no confundirse con una función que ya no existe: ahora es
+"Ingresos 7 días".
 
 ## Precios / tarifas
 

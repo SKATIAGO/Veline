@@ -118,7 +118,7 @@ export function PanelAgenda() {
         <Stat label="Citas hoy" value={String(summary?.todayCount ?? 0)} />
         <Stat label="Próximos 7 días" value={String(summary?.weekCount ?? 0)} />
         <Stat
-          label="Facturación 7 días"
+          label="Ingresos 7 días"
           value={formatPrice(summary?.weekRevenueCents ?? 0)}
           hint={
             summary?.weekCommissionCents

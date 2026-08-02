@@ -44,6 +44,9 @@ export const DESTACADOS = [
  * "Servicios para ofrecer a las empresas".
  * `plus` marca lo que el brief señala explícitamente como extra —
  * la app a medida está pendiente de confirmar si también lo es.
+ *
+ * Las herramientas de facturación estaban en el brief original pero se
+ * retiraron el 2 ago 2026: no se van a ofrecer.
  */
 export const SERVICIOS_EMPRESA = [
   {
@@ -76,9 +79,5 @@ export const SERVICIOS_EMPRESA = [
   {
     title: 'Análisis de rendimiento',
     text: 'Rendimiento del trabajo y fidelidad de los clientes, en datos claros.',
-  },
-  {
-    title: 'Herramientas de facturación',
-    text: 'Facturas y cobros conectados con las citas, sin duplicar trabajo.',
   },
 ] as const

@@ -150,7 +150,7 @@ export function Landing() {
       <section id="servicios" className="mx-auto max-w-[1440px] scroll-mt-24 px-6 py-20 lg:px-16">
         <Eyebrow>Servicios para empresas</Eyebrow>
         <h2 className="mb-4 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-          Desde la agenda hasta la factura
+          Desde la agenda hasta el último detalle
         </h2>
         <p className="mb-10 max-w-[560px] text-[15.5px] leading-relaxed text-body">
           Lo básico entra con la suscripción. Lo marcado como{' '}
