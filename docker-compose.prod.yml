@@ -1,0 +1,87 @@
+name: veline
+
+# Despliegue de producción. Diferencias clave frente a docker-compose.yml
+# (desarrollo):
+#   - db y api NO exponen puertos al host: solo son alcanzables dentro de la
+#     red interna de docker compose, por su nombre de servicio.
+#   - Caddy es el único contenedor con puertos publicados (80 y 443) y hace
+#     de reverse proxy + TLS automático hacia web y api.
+#   - api y web usan los Dockerfile.prod (sin bind mounts, sin watch/hot
+#     reload; el código va copiado dentro de la imagen).
+#
+# Uso: docker compose -f docker-compose.prod.yml up -d --build
+# Guía completa: docs/09-despliegue.md
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-veline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env — no uses el valor de ejemplo en producción}
+      POSTGRES_DB: ${POSTGRES_DB:-veline}
+    volumes:
+      - veline-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      TZ: Europe/Madrid
+      DATABASE_URL: postgresql://${POSTGRES_USER:-veline}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-veline}?schema=public
+      # Correo — ver docs/08-correo.md. La clave vive en .env, nunca en el repo.
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_MODE: ${MAIL_MODE:-dry}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Veline}
+      MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?define PUBLIC_WEB_URL en .env, p.ej. https://veline.es}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks: [internal]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?define DOMAIN en .env, p.ej. veline.es}
+      ACME_EMAIL: ${ACME_EMAIL:?define ACME_EMAIL en .env — Let's Encrypt necesita un contacto}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+      - api
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  veline-db:
+  caddy-data:
+  caddy-config:

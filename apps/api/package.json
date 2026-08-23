@@ -10,7 +10,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "mail:preview": "tsx src/mail/preview.ts",
     "start:docker": "npm run db:push && npm run db:generate && npm run db:seed && npm run dev",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "start:prod": "npm run db:migrate:deploy && npm run db:generate && npm run db:seed && tsx src/index.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

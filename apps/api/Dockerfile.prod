@@ -1,0 +1,33 @@
+# Imagen de producción de la API.
+# Diferencias con apps/api/Dockerfile (desarrollo):
+#   - Sin bind mount del repo: el código va copiado dentro de la imagen, así
+#     que cada despliegue es una imagen inmutable, no "lo que haya en el host".
+#   - Arranca con `start:prod` (prisma migrate deploy, no db:push) en vez de
+#     `tsx watch`.
+FROM node:22-slim
+
+# Prisma necesita openssl en las imágenes slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Instalamos dependencias con el manifiesto de todos los workspaces.
+# npm install completo (no --omit=dev): tsx y prisma son devDependencies y
+# hacen falta en tiempo de ejecución para levantar la API y aplicar
+# migraciones. Ver docs/09-despliegue.md para la posible optimización futura
+# de compilar a JS y correr con node a secas.
+COPY package.json package-lock.json* ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+RUN npm install
+
+COPY . .
+
+RUN npx prisma generate --schema apps/api/prisma/schema.prisma
+
+ENV NODE_ENV=production
+EXPOSE 3001
+CMD ["npm", "run", "start:prod", "-w", "@veline/api"]

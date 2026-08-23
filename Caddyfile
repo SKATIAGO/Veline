@@ -1,0 +1,25 @@
+# Caddy es el único servicio expuesto a Internet (puertos 80 y 443). Todo lo
+# demás — Postgres y la API — vive solo en la red interna de docker compose.
+#
+# HTTPS es automático: Caddy pide y renueva el certificado de Let's Encrypt
+# él solo, en cuanto el dominio resuelve a esta máquina por el puerto 80.
+# No hay nada que configurar a mano para el TLS.
+
+{
+	# Recibe avisos de Let's Encrypt si un certificado tuviera problemas.
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} www.{$DOMAIN} {
+	encode gzip
+
+	# Todo lo que empiece por /api va al contenedor de la API.
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	# El resto lo sirve el contenedor de la web (nginx con el build de Vite).
+	handle {
+		reverse_proxy web:80
+	}
+}

@@ -10,3 +10,6 @@ apps/api/prisma/*.db
 
 # Vistas previas de correo generadas por npm run mail:preview
 apps/web/public/preview-correo/
+
+# Copias de seguridad locales de scripts/backup-db.sh
+backups/
