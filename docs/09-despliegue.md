@@ -79,7 +79,7 @@ Edita `.env` y rellena, como mínimo:
 DOMAIN=tu-dominio.es
 PUBLIC_WEB_URL=https://tu-dominio.es
 ACME_EMAIL=tu-email@tu-dominio.es
-POSTGRES_PASSWORD=$(openssl rand -base64 24)   # genera una y pégala
+POSTGRES_PASSWORD=$(openssl rand -hex 24)   # genera una y pégala
 ```
 
 El correo (Brevo) puede quedarse en `MAIL_MODE=dry` hasta que verifiques el
