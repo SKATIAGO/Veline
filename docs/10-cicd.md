@@ -93,6 +93,42 @@ no al atender una reserva. Cerrarlo exige saltar a **Prisma 7**, un cambio
 mayor que merece su propia tarea. Por eso `npm audit` está en el pipeline como
 paso **informativo**: se ve en cada ejecución, pero no bloquea el despliegue.
 
+## Una trampa del propio despliegue: el script que se ejecuta es el viejo
+
+`deploy.sh` se lee **antes** del `git pull`, porque es el propio script quien
+lo hace. Consecuencia: **un arreglo dentro de `deploy.sh` no surte efecto en el
+despliegue que lo trae, sino en el siguiente.**
+
+Y hay algo peor, que pasó de verdad: si el script tiene un fallo que tumba el
+sitio, la reversión automática hace `git reset --hard` al commit anterior — y
+con él **vuelve la versión rota del script**. El siguiente despliegue ejecuta
+otra vez el script defectuoso, falla igual, y revierte otra vez. Un bucle del
+que no se sale solo.
+
+Para romperlo hay que entrar por SSH y poner el repositorio al día a mano:
+
+```bash
+cd Veline
+git fetch origin main && git merge --ff-only origin/main
+# Entorno limpio, por si el script anterior dejó variables contaminadas
+env -i PATH=/usr/bin:/bin docker compose -f docker-compose.prod.yml up -d --force-recreate
+```
+
+**La lección:** los cambios en `deploy.sh` merecen probarse en el servidor
+antes de subirlos, porque el mecanismo que debería salvarte es justo el que
+está roto.
+
+### El fallo concreto que lo provocó
+
+Al quitar el dominio a fuego, el script pasó a leer el `.env` con
+`. ./.env` para sacar `PUBLIC_WEB_URL`. Eso vuelca **todo** el `.env` al
+entorno, y ahí está el hash bcrypt escapado como `$$2a$$14$$...`. Bash expande
+`$$` como el PID del proceso, así que el hash llegaba convertido en basura; y
+como las variables de entorno tienen prioridad sobre el `.env` en Compose, esa
+basura ganaba y Caddy no arrancaba.
+
+Ahora se lee solo la línea necesaria con `sed`, sin tocar el entorno.
+
 ## Lo que este pipeline NO hace todavía
 
 - **No hay tests.** El typecheck detecta errores de tipos, pero nada comprueba
