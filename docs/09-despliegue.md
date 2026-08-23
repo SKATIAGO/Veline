@@ -161,7 +161,7 @@ saber de cada cosa:
 | **Copia de seguridad diaria a las 4:00**                                                  | Cron que llama a `scripts/backup-db.sh`                                                                                                                             |
 | **Cabeceras de seguridad en Caddy**                                                       | HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, y se ocultan las versiones de servidor                                                                       |
 
-### Tres trampas que costaron encontrar
+### Cuatro trampas que costaron encontrar
 
 **1. `sshd_config.d` y el orden alfabetico.** Las imagenes de Ubuntu en la nube
 traen `/etc/ssh/sshd_config.d/50-cloud-init.conf` con `PasswordAuthentication yes`.
@@ -203,6 +203,26 @@ Y comprobar el resultado de verdad, mirando las cabeceras que devuelve:
 
 ```bash
 curl -sI https://veline.es/ | grep -i strict-transport
+```
+
+**4. Un hash bcrypt en `.env` necesita los `$` escapados.** Docker Compose
+interpreta `$VAR` en los valores del `.env`, y un hash bcrypt (`$2a$14$Y...`)
+está lleno de `$`. Resultado: Compose avisa con un discreto
+`The "Y" variable is not set` y a Caddy le llega el hash mutilado, así que
+_ninguna_ contraseña funciona — ni la correcta. Hay que doblarlos:
+
+```bash
+HASH=$(docker run --rm caddy:2-alpine caddy hash-password --plaintext 'la-contraseña')
+# Doblar los $ antes de escribirlo en .env
+printf 'PANEL_PASSWORD_HASH=%s\n' "$(printf '%s' "$HASH" | sed 's/\$/$$/g')" >> .env
+```
+
+Y comprobar que el contenedor recibe el hash entero, no que el comando no
+diera error:
+
+```bash
+docker compose -f docker-compose.prod.yml exec caddy sh -c 'echo $PANEL_PASSWORD_HASH' | head -c 7
+# debe imprimir  $2a$14$
 ```
 
 ### Al cambiar la configuracion de SSH en remoto
