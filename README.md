@@ -30,6 +30,7 @@ Para empezar de cero: `docker compose down -v && docker compose up --build`.
 | [docs/07-ngrok.md](docs/07-ngrok.md) | Enseñar el boceto fuera de localhost con un túnel — y qué mirar antes |
 | [docs/08-correo.md](docs/08-correo.md) | Correo transaccional con Brevo: qué se envía, los tres modos y qué falta |
 | [docs/09-despliegue.md](docs/09-despliegue.md) | Desplegar en un VPS con dominio propio: DNS, Docker Compose de producción, HTTPS, backups |
+| [docs/10-cicd.md](docs/10-cicd.md) | Despliegue automático desde GitHub: qué verifica, cómo revierte y por qué el repo público exige cuidado |
 
 ## Código
 
