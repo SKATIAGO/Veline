@@ -12,14 +12,20 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 COMPOSE="docker compose -f docker-compose.prod.yml"
-# El dominio sale del .env, no va a fuego: el script debe servir igual en
-# un entorno de pruebas con otro dominio.
-if [ -f .env ]; then
-  set -a
-  . ./.env
-  set +a
-fi
-SALUD="${PUBLIC_WEB_URL:-https://veline.es}/api/health"
+# El dominio sale del .env, no va a fuego: el script debe servir igual en un
+# entorno de pruebas con otro dominio.
+#
+# Se lee SOLO esa línea, sin volcar el .env al entorno con `source`. El .env
+# contiene un hash bcrypt escapado para Docker Compose ($$), y bash expande
+# $$ como el PID del proceso: al hacer source, el hash se convierte en basura
+# y Caddy deja de arrancar. Además, las variables de entorno tienen prioridad
+# sobre el .env en Compose, así que la basura ganaría.
+leer_env() {
+  [ -f .env ] || return 0
+  sed -n "s/^$1=//p" .env | tail -1
+}
+SALUD="$(leer_env PUBLIC_WEB_URL || true)"
+SALUD="${SALUD:-https://veline.es}/api/health"
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
