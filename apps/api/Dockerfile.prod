@@ -18,11 +18,11 @@ WORKDIR /app
 # hacen falta en tiempo de ejecución para levantar la API y aplicar
 # migraciones. Ver docs/09-despliegue.md para la posible optimización futura
 # de compilar a JS y correr con node a secas.
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
-RUN npm install
+RUN npm ci
 
 COPY . .
 

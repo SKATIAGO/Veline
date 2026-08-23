@@ -1,0 +1,88 @@
+name: Verificar y desplegar
+
+# SEGURIDAD (el repositorio es público):
+# Solo se dispara con push a main y a mano. NUNCA con pull_request: en un
+# repo público, un PR desde un fork podría ejecutar código de un desconocido,
+# y si el workflow tuviera acceso a los secretos se llevaría la clave SSH del
+# servidor. Con "push" los secretos solo son accesibles a quien ya puede
+# escribir en main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Dos despliegues a la vez dejarían el servidor a medias. Si llega un push
+# mientras hay otro en curso, este espera; no se cancela para no interrumpir
+# un despliegue a mitad.
+concurrency:
+  group: despliegue-produccion
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    name: Verificar el código
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobar tipos de la API
+        run: npm run typecheck -w @veline/api
+
+      - name: Comprobar tipos de la web
+        run: npm run typecheck -w @veline/web
+
+      - name: Compilar la web
+        # Si el build falla aquí, no llega a producción.
+        run: npm run build -w @veline/web
+
+      - name: Auditoría de dependencias
+        # Informativo: hoy hay un aviso alto en el CLI de prisma que solo se
+        # resuelve saltando a Prisma 7. No debe bloquear el despliegue, pero
+        # sí quedar a la vista en cada ejecución.
+        run: npm audit --audit-level=high || true
+
+  desplegar:
+    name: Desplegar en el VPS
+    needs: verificar
+    runs-on: ubuntu-latest
+    # Doble cinturón: aunque alguien cambie los disparadores, esto solo
+    # despliega desde main del repositorio original.
+    if: github.ref == 'refs/heads/main' && github.repository == 'SKATIAGO/Veline'
+    steps:
+      - name: Preparar la clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Se fija la huella del servidor en vez de aceptar cualquiera:
+          # sin esto, un ataque de intermediario podría hacerse pasar por el VPS.
+          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Desplegar
+        run: |
+          ssh -i ~/.ssh/id_deploy \
+              -o BatchMode=yes \
+              -o ConnectTimeout=15 \
+              root@${{ secrets.VPS_HOST }} 2>&1
+
+      - name: Comprobar que el sitio responde
+        run: |
+          for i in $(seq 1 10); do
+            if curl -sf --max-time 8 https://veline.es/api/health; then
+              echo ""
+              echo "El sitio responde correctamente."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "El sitio no responde tras el despliegue."
+          exit 1
