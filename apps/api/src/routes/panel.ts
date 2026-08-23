@@ -28,12 +28,21 @@ const hoursBody = z.object({
       }),
     )
     .max(30)
-    .refine((rows) => rows.every((r) => r.endMin > r.startMin), 'Cada franja debe terminar después de empezar'),
+    .refine(
+      (rows) => rows.every((r) => r.endMin > r.startMin),
+      'Cada franja debe terminar después de empezar',
+    ),
 })
 
 const rangeQuery = z.object({
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 })
 
 async function requireBusiness(slug: string) {
@@ -89,7 +98,12 @@ export async function panelRoutes(app: FastifyInstance) {
       ])
 
       return {
-        business: { id: business.id, slug: business.slug, name: business.name, plan: business.plan },
+        business: {
+          id: business.id,
+          slug: business.slug,
+          name: business.name,
+          plan: business.plan,
+        },
         todayCount,
         weekCount: weekBookings.length,
         weekRevenueCents: weekBookings.reduce((acc, b) => acc + b.priceCents, 0),
@@ -111,7 +125,9 @@ export async function panelRoutes(app: FastifyInstance) {
     try {
       const business = await requireBusiness(slug)
       const start = startOfDay(from)
-      const end = to ? new Date(startOfDay(to).getTime() + 86_400_000) : new Date(start.getTime() + 14 * 86_400_000)
+      const end = to
+        ? new Date(startOfDay(to).getTime() + 86_400_000)
+        : new Date(start.getTime() + 14 * 86_400_000)
 
       const rows = await prisma.booking.findMany({
         where: { businessId: business.id, startsAt: { gte: start, lt: end } },

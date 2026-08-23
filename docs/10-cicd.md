@@ -25,8 +25,8 @@ y el script en [`scripts/deploy.sh`](../scripts/deploy.sh).
 
 ## Desplegar a mano
 
-Desde el repositorio, sin tocar código: pestaña **Actions** → *Verificar y
-desplegar* → **Run workflow**.
+Desde el repositorio, sin tocar código: pestaña **Actions** → _Verificar y
+desplegar_ → **Run workflow**.
 
 O directamente en el VPS:
 
@@ -76,13 +76,13 @@ Esto importa más de lo normal porque cualquiera puede abrir un PR.
 
 ### Secretos configurados
 
-| Secreto | Qué es |
-|---|---|
-| `VPS_SSH_KEY` | Clave privada del CI (la restringida) |
-| `VPS_HOST` | IP del VPS |
+| Secreto           | Qué es                                        |
+| ----------------- | --------------------------------------------- |
+| `VPS_SSH_KEY`     | Clave privada del CI (la restringida)         |
+| `VPS_HOST`        | IP del VPS                                    |
 | `VPS_KNOWN_HOSTS` | Huella del servidor, para evitar suplantación |
 
-Se gestionan en *Settings → Secrets and variables → Actions*.
+Se gestionan en _Settings → Secrets and variables → Actions_.
 
 ## Aviso conocido de `npm audit`
 

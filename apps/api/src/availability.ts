@@ -1,39 +1,34 @@
-import { formatMinutes, toDateKey, type DayAvailabilityDTO, type SlotDTO } from '@veline/shared'
+import { toDateKey, type DayAvailabilityDTO } from '@veline/shared'
 import { prisma } from './prisma.js'
+import {
+  atLocalMinutes,
+  calcularDisponibilidad,
+  MAX_RANGE_DAYS,
+  MIN_LEAD_MIN,
+  SLOT_STEP_MIN,
+  type Cierre,
+} from './availability-core.js'
+
+export { MAX_RANGE_DAYS, MIN_LEAD_MIN, SLOT_STEP_MIN }
 
 /**
- * Motor de disponibilidad.
+ * Acceso a datos del motor de disponibilidad. La lógica de cálculo vive en
+ * availability-core.ts, sin base de datos, para poder probarla.
  *
- * Reglas:
- *  - Los huecos se ofrecen cada SLOT_STEP_MIN minutos dentro de cada franja
- *    de atención (los mockups muestran :00 y :30).
- *  - Una cita ocupa la agenda desde `startsAt` hasta `blockedTo`, es decir
- *    duración del servicio + buffer del servicio.
- *  - Un hueco está libre si al menos una persona activa del negocio no tiene
- *    nada solapado. Se devuelve cuál.
- *  - El hueco tiene que caber entero (duración + buffer) dentro de la franja.
- *  - No se ofrecen huecos con menos de MIN_LEAD_MIN minutos de antelación.
- *
- * El contenedor corre con TZ=Europe/Madrid, así que trabajamos con Date
- * locales y Postgres los guarda en UTC.
+ * El contenedor corre con TZ=Europe/Madrid, así que se trabaja con fechas
+ * locales y Postgres las guarda en UTC.
  */
 
-export const SLOT_STEP_MIN = 30
-export const MIN_LEAD_MIN = 60
-export const MAX_RANGE_DAYS = 62
-
 /** Medianoche UTC del día indicado — así se guardan las columnas @db.Date. */
-const utcMidnight = (d: Date) =>
-  new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+const utcMidnight = (d: Date) => new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
 
-const atLocalMinutes = (day: Date, minutes: number) => {
-  const d = new Date(day)
-  d.setHours(0, minutes, 0, 0)
-  return d
-}
-
-const overlaps = (aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) =>
-  aStart < bEnd && bStart < aEnd
+/**
+ * Las columnas @db.Date llegan como medianoche UTC. Interpretarlas en local
+ * desplazaría el día al oeste de Greenwich, así que se compensa el desfase
+ * antes de sacar la clave.
+ */
+const claveDeFechaUtc = (d: Date) =>
+  toDateKey(new Date(d.getTime() + d.getTimezoneOffset() * 60_000))
 
 export interface AvailabilityRange {
   businessId: string
@@ -59,20 +54,13 @@ export async function getAvailability({
   })
   if (!location) throw Object.assign(new Error('El negocio no tiene local'), { statusCode: 404 })
 
-  const staff = await prisma.staff.findMany({
-    where: { businessId, active: true },
-    orderBy: { name: 'asc' },
-  })
-
   const rangeStart = atLocalMinutes(from, 0)
   const rangeEnd = atLocalMinutes(to, 24 * 60)
 
-  const [closures, bookings] = await Promise.all([
+  const [staff, closures, bookings] = await Promise.all([
+    prisma.staff.findMany({ where: { businessId, active: true }, orderBy: { name: 'asc' } }),
     prisma.closure.findMany({
-      where: {
-        locationId: location.id,
-        date: { gte: utcMidnight(from), lte: utcMidnight(to) },
-      },
+      where: { locationId: location.id, date: { gte: utcMidnight(from), lte: utcMidnight(to) } },
     }),
     prisma.booking.findMany({
       where: {
@@ -85,58 +73,26 @@ export async function getAvailability({
     }),
   ])
 
-  const occupancy = service.durationMin + service.bufferMin
-  const earliest = new Date(Date.now() + MIN_LEAD_MIN * 60_000)
-  const days: DayAvailabilityDTO[] = []
+  const cierres: Cierre[] = closures.map((c) => ({
+    dateKey: claveDeFechaUtc(c.date),
+    startMin: c.startMin,
+    endMin: c.endMin,
+  }))
 
-  for (
-    let cursor = new Date(rangeStart);
-    cursor <= to;
-    cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000)
-  ) {
-    const day = atLocalMinutes(cursor, 0)
-    const dateKey = toDateKey(day)
-    const dayClosures = closures.filter((c) => toDateKey(new Date(c.date.getTime() + c.date.getTimezoneOffset() * 60_000)) === dateKey)
-    const fullDayClosed = dayClosures.some((c) => c.startMin === null)
-    const windows = location.openingHours.filter((w) => w.weekday === day.getDay())
-
-    if (fullDayClosed || windows.length === 0) {
-      days.push({ date: dateKey, closed: true, slots: [] })
-      continue
-    }
-
-    const slots: SlotDTO[] = []
-    for (const w of windows.sort((a, b) => a.startMin - b.startMin)) {
-      for (let m = w.startMin; m + occupancy <= w.endMin; m += SLOT_STEP_MIN) {
-        const start = atLocalMinutes(day, m)
-        const end = new Date(start.getTime() + occupancy * 60_000)
-
-        // Cierre parcial (p. ej. la tarde de un día concreto)
-        const inClosure = dayClosures.some(
-          (c) => c.startMin !== null && c.endMin !== null && m < c.endMin && c.startMin < m + occupancy,
-        )
-
-        const tooSoon = start < earliest
-        const freeStaff = staff.find(
-          (s) =>
-            !bookings.some(
-              (b) => b.staffId === s.id && overlaps(start, end, b.startsAt, b.blockedTo),
-            ),
-        )
-
-        slots.push({
-          startsAt: start.toISOString(),
-          label: formatMinutes(m),
-          available: !inClosure && !tooSoon && Boolean(freeStaff),
-          staffId: freeStaff?.id ?? null,
-        })
-      }
-    }
-
-    days.push({ date: dateKey, closed: false, slots })
-  }
-
-  return days
+  return calcularDisponibilidad({
+    from,
+    to,
+    occupancyMin: service.durationMin + service.bufferMin,
+    franjas: location.openingHours.map((w) => ({
+      weekday: w.weekday,
+      startMin: w.startMin,
+      endMin: w.endMin,
+    })),
+    cierres,
+    citas: bookings,
+    staffIds: staff.map((s) => s.id),
+    ahora: new Date(),
+  })
 }
 
 /**
@@ -173,11 +129,7 @@ export async function pickStaffForSlot(
 }
 
 /** Comprueba que el inicio cae dentro del horario de atención y no en un cierre. */
-export async function isWithinOpeningHours(
-  businessId: string,
-  start: Date,
-  occupancyMin: number,
-) {
+export async function isWithinOpeningHours(businessId: string, start: Date, occupancyMin: number) {
   const location = await prisma.location.findFirst({
     where: { businessId },
     include: { openingHours: true, closures: true },
@@ -186,14 +138,14 @@ export async function isWithinOpeningHours(
 
   const minutes = start.getHours() * 60 + start.getMinutes()
   const fits = location.openingHours.some(
-    (w) => w.weekday === start.getDay() && minutes >= w.startMin && minutes + occupancyMin <= w.endMin,
+    (w) =>
+      w.weekday === start.getDay() && minutes >= w.startMin && minutes + occupancyMin <= w.endMin,
   )
   if (!fits) return false
 
   const dateKey = toDateKey(start)
   const blocked = location.closures.some((c) => {
-    const key = toDateKey(new Date(c.date.getTime() + c.date.getTimezoneOffset() * 60_000))
-    if (key !== dateKey) return false
+    if (claveDeFechaUtc(c.date) !== dateKey) return false
     if (c.startMin === null || c.endMin === null) return true
     return minutes < c.endMin && c.startMin < minutes + occupancyMin
   })

@@ -17,8 +17,19 @@ export function Pricing() {
   return (
     <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
       <Glow className="-top-32 left-1/2 -translate-x-1/2" color="rgba(217,164,65,.2)" size={620} />
-      <DoorMotif className="top-40 left-[-3%] hidden xl:block" size={170} opacity={0.05} tilt={-12} />
-      <DoorMotif className="top-[52%] right-[-2%] hidden xl:block" size={140} opacity={0.05} tilt={10} delay={900} />
+      <DoorMotif
+        className="top-40 left-[-3%] hidden xl:block"
+        size={170}
+        opacity={0.05}
+        tilt={-12}
+      />
+      <DoorMotif
+        className="top-[52%] right-[-2%] hidden xl:block"
+        size={140}
+        opacity={0.05}
+        tilt={10}
+        delay={900}
+      />
 
       {/* HERO */}
       <Reveal className="relative text-center">
@@ -171,7 +182,10 @@ export function Pricing() {
           </h2>
         </Reveal>
 
-        <Reveal delay={80} className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface">
+        <Reveal
+          delay={80}
+          className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface"
+        >
           {FAQ.map((item) => (
             <details key={item.q} className="group border-b border-line last:border-b-0">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-[15.5px] font-semibold text-ink marker:hidden hover:bg-cream/60">

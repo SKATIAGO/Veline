@@ -39,6 +39,15 @@ jobs:
         # porque el Dockerfile ya lo ejecuta.
         run: npx prisma generate --schema apps/api/prisma/schema.prisma
 
+      - name: Formato del código
+        run: npm run format:check
+
+      - name: Linter
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
       - name: Comprobar tipos de la API
         run: npm run typecheck -w @veline/api
 

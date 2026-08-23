@@ -12,7 +12,10 @@ const TABS = [
 /** /panel sin negocio: entra en el primero. Sustituir por el negocio de la
  *  sesión cuando exista login con Apple/Google. */
 export function PanelIndex() {
-  const { data, isLoading } = useQuery({ queryKey: ['panel', 'businesses'], queryFn: api.panelBusinesses })
+  const { data, isLoading } = useQuery({
+    queryKey: ['panel', 'businesses'],
+    queryFn: api.panelBusinesses,
+  })
   if (isLoading) return <Spinner />
   if (!data?.length) return <p className="p-16 text-muted">No hay negocios dados de alta.</p>
   return <Navigate to={`/panel/${data[0].slug}`} replace />

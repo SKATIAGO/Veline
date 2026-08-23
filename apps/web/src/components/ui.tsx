@@ -8,7 +8,13 @@ export const cx = (...parts: (string | false | null | undefined)[]) =>
  * Isotipo "puertas gemelas" (opción 2a del proyecto de marca):
  * dos hojas apenas entornadas hacia afuera = abrir el local.
  */
-export function LogoMark({ size = 22, variant = 'light' }: { size?: number; variant?: 'light' | 'dark' }) {
+export function LogoMark({
+  size = 22,
+  variant = 'light',
+}: {
+  size?: number
+  variant?: 'light' | 'dark'
+}) {
   const left = variant === 'dark' ? '#D9A441' : '#A96A3E'
   const right = variant === 'dark' ? '#F2E7D6' : '#2E2119'
   return (
@@ -19,7 +25,13 @@ export function LogoMark({ size = 22, variant = 'light' }: { size?: number; vari
   )
 }
 
-export function Logo({ variant = 'light', size = 22 }: { variant?: 'light' | 'dark'; size?: number }) {
+export function Logo({
+  variant = 'light',
+  size = 22,
+}: {
+  variant?: 'light' | 'dark'
+  size?: number
+}) {
   return (
     <Link to="/" className="flex items-center gap-2.5" aria-label="Veline — inicio">
       <LogoMark size={size} variant={variant} />
@@ -48,7 +60,8 @@ const buttonBase =
   'motion-reduce:transform-none motion-reduce:transition-colors'
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-dark hover:shadow-[0_10px_22px_rgba(169,106,62,.28)]',
+  primary:
+    'bg-brand text-white hover:bg-brand-dark hover:shadow-[0_10px_22px_rgba(169,106,62,.28)]',
   ghost: 'border-[1.5px] border-ink text-ink hover:bg-ink hover:text-cream',
   accent: 'bg-accent text-ink hover:brightness-105 hover:shadow-[0_10px_22px_rgba(217,164,65,.32)]',
 }
@@ -63,7 +76,10 @@ export function Button({
   size = 'md',
   className,
   ...props
-}: ComponentPropsWithoutRef<'button'> & { variant?: ButtonVariant; size?: keyof typeof buttonSizes }) {
+}: ComponentPropsWithoutRef<'button'> & {
+  variant?: ButtonVariant
+  size?: keyof typeof buttonSizes
+}) {
   return (
     <button
       {...props}
@@ -95,9 +111,7 @@ export function ButtonLink({
 /* ── Contenedores ───────────────────────────────────────────── */
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return (
-    <div className={cx('bg-surface border border-line rounded-xl', className)}>{children}</div>
-  )
+  return <div className={cx('bg-surface border border-line rounded-xl', className)}>{children}</div>
 }
 
 export function Chip({ children, active }: { children: ReactNode; active?: boolean }) {
@@ -119,7 +133,13 @@ export function Placeholder({ label, className }: { label: string; className?: s
   return <div className={cx('ph rounded-xl', className)}>{label}</div>
 }
 
-export function Eyebrow({ children, tone = 'brand' }: { children: ReactNode; tone?: 'brand' | 'accent' }) {
+export function Eyebrow({
+  children,
+  tone = 'brand',
+}: {
+  children: ReactNode
+  tone?: 'brand' | 'accent'
+}) {
   return (
     <p
       className={cx(

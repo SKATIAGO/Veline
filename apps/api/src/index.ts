@@ -1,13 +1,46 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import rateLimit from '@fastify/rate-limit'
 import { prisma } from './prisma.js'
 import { businessRoutes } from './routes/businesses.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { panelRoutes } from './routes/panel.js'
 
-const app = Fastify({ logger: { level: 'info' } })
+const esProduccion = process.env.NODE_ENV === 'production'
 
-await app.register(cors, { origin: true })
+const app = Fastify({
+  logger: { level: process.env.LOG_LEVEL ?? 'info' },
+  // Ningún cuerpo legítimo se acerca a esto. Explícito para que quede claro
+  // que no aceptamos cargas grandes.
+  bodyLimit: 64 * 1024,
+  // Detrás de Caddy: sin esto, el limitador vería siempre la IP del proxy y
+  // limitaría a todos los visitantes como si fueran uno solo.
+  trustProxy: true,
+})
+
+/**
+ * CORS. En producción la web y la API comparten origen (Caddy sirve ambas
+ * bajo el mismo dominio), así que no hace falta permitir orígenes externos.
+ * En desarrollo se deja abierto para poder llamar a la API desde otro puerto.
+ */
+await app.register(cors, {
+  origin: esProduccion ? [process.env.PUBLIC_WEB_URL ?? 'https://veline.es'] : true,
+})
+
+/**
+ * Límite de peticiones. Sin esto, los endpoints públicos quedan abiertos a
+ * abuso: crear reservas en masa o recorrer códigos de reserva hasta dar con
+ * uno válido y leer los datos del cliente.
+ */
+await app.register(rateLimit, {
+  max: Number(process.env.RATE_LIMIT_MAX ?? 120),
+  timeWindow: '1 minute',
+  // La salud la consulta el despliegue en bucle: no debe agotar el cupo.
+  allowList: (req) => req.url === '/api/health',
+  errorResponseBuilder: () => ({
+    error: 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.',
+  }),
+})
 
 app.get('/api/health', async () => {
   await prisma.$queryRaw`SELECT 1`
@@ -18,11 +51,17 @@ await app.register(businessRoutes)
 await app.register(bookingRoutes)
 await app.register(panelRoutes)
 
-app.setErrorHandler((error, _req, reply) => {
+app.setErrorHandler((error, req, reply) => {
   const err = error as Error & { statusCode?: number }
-  app.log.error(err)
   const status = err.statusCode ?? 500
+
+  // Los 5xx son fallos nuestros: se registran enteros. Los 4xx son peticiones
+  // mal formadas del cliente y solo ensucian el log.
+  if (status >= 500) app.log.error({ err, url: req.url }, 'error no controlado')
+
   reply.code(status >= 400 && status < 600 ? status : 500).send({
+    // Nunca devolver el mensaje interno de un 500: puede filtrar rutas de
+    // archivos, nombres de tablas o detalles de la base de datos.
     error: status === 500 ? 'Error interno del servidor' : err.message,
   })
 })
@@ -31,7 +70,6 @@ const port = Number(process.env.PORT ?? 3001)
 
 try {
   await app.listen({ port, host: '0.0.0.0' })
-  app.log.info(`Veline API en http://localhost:${port}`)
 } catch (err) {
   app.log.error(err)
   process.exit(1)
@@ -39,6 +77,7 @@ try {
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, async () => {
+    app.log.info(`recibido ${signal}, cerrando`)
     await app.close()
     await prisma.$disconnect()
     process.exit(0)

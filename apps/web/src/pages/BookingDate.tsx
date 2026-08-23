@@ -78,7 +78,7 @@ export function BookingDate() {
     return map
   }, [availability])
 
-  const hasFree = (key: string) => (byDate.get(key)?.slots.some((s) => s.available) ?? false)
+  const hasFree = (key: string) => byDate.get(key)?.slots.some((s) => s.available) ?? false
 
   // Primer día con hueco libre
   useEffect(() => {
@@ -110,7 +110,10 @@ export function BookingDate() {
   const leading = mondayIndex(first)
   const cells: (Date | null)[] = [
     ...Array<null>(leading).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => new Date(month.getFullYear(), month.getMonth(), i + 1)),
+    ...Array.from(
+      { length: daysInMonth },
+      (_, i) => new Date(month.getFullYear(), month.getMonth(), i + 1),
+    ),
   ]
 
   const nextDays = Array.from({ length: 14 }, (_, i) => addDays(today, i))
@@ -176,7 +179,9 @@ export function BookingDate() {
                           : 'bg-cream text-disabled',
                     )}
                   >
-                    <span className="text-[11px] font-medium opacity-80">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                    <span className="text-[11px] font-medium opacity-80">
+                      {WEEKDAYS_SHORT[d.getDay()]}
+                    </span>
                     <span className="text-[15px] font-semibold">{d.getDate()}</span>
                   </button>
                 )
@@ -259,7 +264,9 @@ export function BookingDate() {
             {!isLoading && !isError && (
               <>
                 <div className="mb-4 font-display text-base font-semibold text-ink first-letter:uppercase">
-                  {selectedKey ? formatLongDate(fromDateKey(selectedKey)) : 'Sin huecos disponibles'}
+                  {selectedKey
+                    ? formatLongDate(fromDateKey(selectedKey))
+                    : 'Sin huecos disponibles'}
                 </div>
 
                 {!selectedKey && (
@@ -308,7 +315,9 @@ export function BookingDate() {
                         {service.name}
                         {slot && ` · ${slot.label}`}
                       </span>
-                      <span className="font-semibold text-ink">{formatPrice(service.priceCents)}</span>
+                      <span className="font-semibold text-ink">
+                        {formatPrice(service.priceCents)}
+                      </span>
                     </div>
 
                     <Button

@@ -6,7 +6,7 @@
 
 Fresha y Booksy migraron a **suscripción mensual**: USD 19.95–29.99 de base, **+USD 9–20 por persona**, más una comisión de **20–30% sobre el primer turno de cada cliente nuevo** captado por el marketplace.
 
-*Fuentes citadas en el deck: fresha.com/pricing · comparativas Pabau, GoodCall y SchedulingKit (2026).*
+_Fuentes citadas en el deck: fresha.com/pricing · comparativas Pabau, GoodCall y SchedulingKit (2026)._
 
 ## Nuestra decisión
 
@@ -17,11 +17,11 @@ Fresha y Booksy migraron a **suscripción mensual**: USD 19.95–29.99 de base, 
 > Sustituyen a los del diseño original. El cambio de fondo: **desaparece el plan gratuito
 > permanente** y pasa a ser una **prueba de 8 días**.
 
-| | **Prueba gratis** | **Negocio** ⭐ Más elegido | **Equipo** |
-|---|---|---|---|
-| Para | Sin compromiso | El día a día de tu local | Cuando sois más de dos |
-| Precio | **Gratis**, 8 días | **18,95 €** /mes | **+10,95 €** /mes por persona de más |
-| CTA | Empezar la prueba | Empezar prueba de 8 días | Hablar con ventas |
+|        | **Prueba gratis**  | **Negocio** ⭐ Más elegido | **Equipo**                           |
+| ------ | ------------------ | -------------------------- | ------------------------------------ |
+| Para   | Sin compromiso     | El día a día de tu local   | Cuando sois más de dos               |
+| Precio | **Gratis**, 8 días | **18,95 €** /mes           | **+10,95 €** /mes por persona de más |
+| CTA    | Empezar la prueba  | Empezar prueba de 8 días   | Hablar con ventas                    |
 
 **Negocio** incluye **2 personas** en el calendario, reservas ilimitadas desde tu web, Instagram
 o Google, recordatorios por SMS/email/WhatsApp, cobro de señales online, estadísticas, reseñas y
@@ -31,12 +31,12 @@ soporte prioritario.
 
 ### Servicios aparte
 
-| Servicio | Precio | Qué incluye |
-|---|---|---|
-| Creación de web y app móvil | **Desde 250 €** (pago único) | Imagen propia, motor de reservas, administrador propio, gestión de varios locales. Correo corporativo *a consultar* |
-| Gestión administrativa | **50 € /mes** | Cambios de horarios y precios, información del negocio, altas y bajas de personas y miembros |
-| Reseñas | **Gratis** | Recogida y publicación de reseñas de clientes |
-| Recordatorios | **Incluidos** | SMS, email y WhatsApp en la misma tarifa, sin coste por mensaje |
+| Servicio                    | Precio                       | Qué incluye                                                                                                         |
+| --------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Creación de web y app móvil | **Desde 250 €** (pago único) | Imagen propia, motor de reservas, administrador propio, gestión de varios locales. Correo corporativo _a consultar_ |
+| Gestión administrativa      | **50 € /mes**                | Cambios de horarios y precios, información del negocio, altas y bajas de personas y miembros                        |
+| Reseñas                     | **Gratis**                   | Recogida y publicación de reseñas de clientes                                                                       |
+| Recordatorios               | **Incluidos**                | SMS, email y WhatsApp en la misma tarifa, sin coste por mensaje                                                     |
 
 ### Interpretaciones que hay que confirmar
 

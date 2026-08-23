@@ -33,7 +33,8 @@ export function PanelHours() {
     if (!hours) return
     const next: Record<number, Range[]> = {}
     for (const wd of ORDER) next[wd] = []
-    for (const h of hours) next[h.weekday] = [...(next[h.weekday] ?? []), { startMin: h.startMin, endMin: h.endMin }]
+    for (const h of hours)
+      next[h.weekday] = [...(next[h.weekday] ?? []), { startMin: h.startMin, endMin: h.endMin }]
     setWeek(next)
     setDirty(false)
   }, [hours])
@@ -107,7 +108,9 @@ export function PanelHours() {
                       onChange={(e) =>
                         mutate(
                           wd,
-                          ranges.map((x, j) => (j === i ? { ...x, startMin: toMinutes(e.target.value) } : x)),
+                          ranges.map((x, j) =>
+                            j === i ? { ...x, startMin: toMinutes(e.target.value) } : x,
+                          ),
                         )
                       }
                       className="rounded-lg border border-line bg-surface px-2.5 py-2 text-sm"
@@ -120,7 +123,9 @@ export function PanelHours() {
                       onChange={(e) =>
                         mutate(
                           wd,
-                          ranges.map((x, j) => (j === i ? { ...x, endMin: toMinutes(e.target.value) } : x)),
+                          ranges.map((x, j) =>
+                            j === i ? { ...x, endMin: toMinutes(e.target.value) } : x,
+                          ),
                         )
                       }
                       className="rounded-lg border border-line bg-surface px-2.5 py-2 text-sm"
@@ -128,7 +133,12 @@ export function PanelHours() {
                     <button
                       type="button"
                       aria-label="Quitar franja"
-                      onClick={() => mutate(wd, ranges.filter((_, j) => j !== i))}
+                      onClick={() =>
+                        mutate(
+                          wd,
+                          ranges.filter((_, j) => j !== i),
+                        )
+                      }
                       className="px-1 text-lg leading-none text-muted hover:text-brand"
                     >
                       ×
@@ -140,7 +150,12 @@ export function PanelHours() {
               <button
                 type="button"
                 onClick={() =>
-                  mutate(wd, [...ranges, ranges.length ? { startMin: 16 * 60, endMin: 20 * 60 } : { startMin: 9 * 60, endMin: 14 * 60 }])
+                  mutate(wd, [
+                    ...ranges,
+                    ranges.length
+                      ? { startMin: 16 * 60, endMin: 20 * 60 }
+                      : { startMin: 9 * 60, endMin: 14 * 60 },
+                  ])
                 }
                 className="text-[12.5px] font-semibold text-brand underline"
               >

@@ -2,30 +2,30 @@
 
 ## Decisiones de producto que fijan el resto
 
-| Pregunta | Respuesta |
-|---|---|
-| Mercado y moneda | **España** · EUR · locale `es-ES` · zona `Europe/Madrid` |
-| Alcance v1 | **Flujo completo pero básico**, incluido el panel del negocio |
-| Cuentas | **Reserva sin cuenta** (se identifica por teléfono). Apple y Google después |
-| Mapa | **Fuera de la v1** — el hero mantiene el placeholder del mockup |
+| Pregunta         | Respuesta                                                                   |
+| ---------------- | --------------------------------------------------------------------------- |
+| Mercado y moneda | **España** · EUR · locale `es-ES` · zona `Europe/Madrid`                    |
+| Alcance v1       | **Flujo completo pero básico**, incluido el panel del negocio               |
+| Cuentas          | **Reserva sin cuenta** (se identifica por teléfono). Apple y Google después |
+| Mapa             | **Fuera de la v1** — el hero mantiene el placeholder del mockup             |
 
 ### Consecuencia lingüística: voseo → tuteo
 
 Los mockups estaban escritos en **voseo rioplatense** con direcciones de CABA y precios en
 pesos. Al fijar España se ha reescrito todo el copy:
 
-| Diseño original | Implementación (es-ES) |
-|---|---|
-| "Encontrá y reservá…" | "Encuentra y reserva…" |
-| "Buscá / Elegí / Recibí" | "Busca / Elige / Recibe" |
-| "vos atendés" | "tú atiendes" |
-| **"turno"** | **"cita"** ← el cambio de vocabulario más importante |
-| "Sumar mi negocio" | "Añadir mi negocio" |
-| "Sin costo" | "No cuesta nada" |
-| "boca en boca" | "boca a boca" |
-| "$8.500" | "59,00 €" |
-| "Av. San Martín 452, CABA" | "Calle de San Bernardo 42, Madrid" |
-| "Alineación y balanceo" | "Alineación y equilibrado" |
+| Diseño original            | Implementación (es-ES)                               |
+| -------------------------- | ---------------------------------------------------- |
+| "Encontrá y reservá…"      | "Encuentra y reserva…"                               |
+| "Buscá / Elegí / Recibí"   | "Busca / Elige / Recibe"                             |
+| "vos atendés"              | "tú atiendes"                                        |
+| **"turno"**                | **"cita"** ← el cambio de vocabulario más importante |
+| "Sumar mi negocio"         | "Añadir mi negocio"                                  |
+| "Sin costo"                | "No cuesta nada"                                     |
+| "boca en boca"             | "boca a boca"                                        |
+| "$8.500"                   | "59,00 €"                                            |
+| "Av. San Martín 452, CABA" | "Calle de San Bernardo 42, Madrid"                   |
+| "Alineación y balanceo"    | "Alineación y equilibrado"                           |
 
 ## Stack
 
@@ -95,7 +95,7 @@ Está en [`apps/api/src/availability.ts`](../apps/api/src/availability.ts) y es 
 
 Dos personas pidiendo el mismo hueco a la vez se resuelven con una transacción
 **SERIALIZABLE**: Postgres detecta el write-skew y aborta una, que recibe un `409` con
-*"Ese hueco acaba de ocuparse"*.
+_"Ese hueco acaba de ocuparse"_.
 
 No se usa un índice único `[staffId, startsAt]` a propósito: dejaría el hueco bloqueado
 para siempre después de cancelar una cita.

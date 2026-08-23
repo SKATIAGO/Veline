@@ -62,9 +62,7 @@ export async function sendMail(message: MailMessage): Promise<MailResult> {
   if (cfg.mode === 'off') return { sent: false, reason: 'MAIL_MODE=off' }
 
   const recipient = cfg.overrideTo ?? message.to
-  const subject = cfg.overrideTo
-    ? `[para ${message.to}] ${message.subject}`
-    : message.subject
+  const subject = cfg.overrideTo ? `[para ${message.to}] ${message.subject}` : message.subject
 
   if (cfg.mode === 'dry') {
     console.log(

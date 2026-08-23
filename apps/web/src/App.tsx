@@ -50,7 +50,10 @@ function AppRoutes() {
           path="*"
           element={
             <div className="mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
-              <EmptyState title="Esta página no existe" hint="Vuelve al inicio y prueba de nuevo." />
+              <EmptyState
+                title="Esta página no existe"
+                hint="Vuelve al inicio y prueba de nuevo."
+              />
             </div>
           }
         />

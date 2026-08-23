@@ -8,14 +8,14 @@ de la API sin romper nada — ver el resumen al final de este documento.
 
 ## 0. Lo que cambia frente al `docker-compose.yml` de desarrollo
 
-| | Desarrollo (`docker-compose.yml`) | Producción (`docker-compose.prod.yml`) |
-|---|---|---|
-| Web | `vite` en modo dev, hot-reload | Build estático (`vite build`) servido por nginx |
-| API | `tsx watch`, con bind mount del código | `tsx` sin watch, código copiado dentro de la imagen |
-| Esquema de BD | `prisma db push` en cada arranque | `prisma migrate deploy` (migraciones versionadas) |
+|                   | Desarrollo (`docker-compose.yml`)                 | Producción (`docker-compose.prod.yml`)                               |
+| ----------------- | ------------------------------------------------- | -------------------------------------------------------------------- |
+| Web               | `vite` en modo dev, hot-reload                    | Build estático (`vite build`) servido por nginx                      |
+| API               | `tsx watch`, con bind mount del código            | `tsx` sin watch, código copiado dentro de la imagen                  |
+| Esquema de BD     | `prisma db push` en cada arranque                 | `prisma migrate deploy` (migraciones versionadas)                    |
 | Puertos expuestos | `db:5432`, `api:3001`, `web:5173` — todos al host | **Solo Caddy** (80/443). `db` y `api` no son alcanzables desde fuera |
-| HTTPS | No | Automático, vía Caddy + Let's Encrypt |
-| Cómo se accede | `http://localhost:5173` o el túnel de ngrok | `https://tu-dominio` |
+| HTTPS             | No                                                | Automático, vía Caddy + Let's Encrypt                                |
+| Cómo se accede    | `http://localhost:5173` o el túnel de ngrok       | `https://tu-dominio`                                                 |
 
 Nunca mezcles los dos: son `-f docker-compose.yml` y `-f docker-compose.prod.yml`
 por separado, con `.env` distintos.
@@ -151,22 +151,22 @@ cambio. Se sube al repo como cualquier otro archivo — es lo que
 Lo aplicado en el VPS tras la primera puesta en marcha, con lo que hay que
 saber de cada cosa:
 
-| Qué | Por qué |
-|---|---|
+| Qué                                                                                       | Por qué                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **SSH solo por clave** (`PasswordAuthentication no`, `PermitRootLogin prohibit-password`) | La contraseña inicial de root que da IONOS acaba circulando por paneles y mensajes. Con acceso por clave funcionando, la contraseña solo añade superficie de ataque |
-| **UFW: solo 22, 80 y 443** | Comprobado desde fuera: 5432 y 3001 no responden |
-| **`.env` en modo 600** | Contiene la contraseña de Postgres; venía como 644, legible por cualquier usuario del sistema |
-| **Rotación de logs de Docker** (10 MB × 3) | Fastify registra cada petición. Sin límite, los logs llenan el disco con el tiempo |
-| **2 GB de swap** | 3,7 GB de RAM y cero swap: un `docker build` puede quedarse sin memoria |
-| **Copia de seguridad diaria a las 4:00** | Cron que llama a `scripts/backup-db.sh` |
-| **Cabeceras de seguridad en Caddy** | HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, y se ocultan las versiones de servidor |
+| **UFW: solo 22, 80 y 443**                                                                | Comprobado desde fuera: 5432 y 3001 no responden                                                                                                                    |
+| **`.env` en modo 600**                                                                    | Contiene la contraseña de Postgres; venía como 644, legible por cualquier usuario del sistema                                                                       |
+| **Rotación de logs de Docker** (10 MB × 3)                                                | Fastify registra cada petición. Sin límite, los logs llenan el disco con el tiempo                                                                                  |
+| **2 GB de swap**                                                                          | 3,7 GB de RAM y cero swap: un `docker build` puede quedarse sin memoria                                                                                             |
+| **Copia de seguridad diaria a las 4:00**                                                  | Cron que llama a `scripts/backup-db.sh`                                                                                                                             |
+| **Cabeceras de seguridad en Caddy**                                                       | HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, y se ocultan las versiones de servidor                                                                       |
 
 ### Tres trampas que costaron encontrar
 
 **1. `sshd_config.d` y el orden alfabetico.** Las imagenes de Ubuntu en la nube
 traen `/etc/ssh/sshd_config.d/50-cloud-init.conf` con `PasswordAuthentication yes`.
 En SSH **gana la primera aparicion** de cada opcion, y los archivos se leen en
-orden alfabetico. Un archivo `99-hardening.conf` se lee *despues* y **no surte
+orden alfabetico. Un archivo `99-hardening.conf` se lee _despues_ y **no surte
 efecto**, sin ningun aviso: `sshd -t` pasa, el reload funciona, y `sshd -T`
 sigue diciendo `yes`. Por eso el nuestro se llama `01-veline-hardening.conf`.
 
@@ -186,7 +186,7 @@ docker inspect veline-api-1 --format '{{.HostConfig.LogConfig.Config}}'
 ```
 
 **3. Cambiar el `Caddyfile` no basta con `git pull`.** El archivo va montado
-como volumen *de archivo suelto* (`./Caddyfile:/etc/caddy/Caddyfile`). Docker
+como volumen _de archivo suelto_ (`./Caddyfile:/etc/caddy/Caddyfile`). Docker
 ata el montaje al **inodo**, y `git pull` no edita el archivo: escribe uno
 nuevo y lo renombra encima, con inodo distinto. Resultado: el host tiene la
 version nueva, el contenedor sigue viendo la vieja, y `caddy reload` recarga

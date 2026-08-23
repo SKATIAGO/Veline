@@ -17,6 +17,20 @@
     "logs": "docker compose logs -f",
     "db:studio": "docker compose exec api npx prisma studio --port 5555",
     "db:seed": "docker compose exec api npm run db:seed",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "TZ=Europe/Madrid vitest run",
+    "test:watch": "TZ=Europe/Madrid vitest"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.8"
   }
 }

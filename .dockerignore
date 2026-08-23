@@ -1,0 +1,40 @@
+# Qué NO debe entrar en el contexto de build de Docker.
+#
+# Sin este archivo, "COPY . ." mete dentro de la imagen el .env con la
+# contraseña de la base de datos y la clave de Brevo. Una imagen es un
+# artefacto que se copia y se comparte: los secretos no pueden viajar en ella.
+
+# Secretos — lo más importante de esta lista
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Dependencias: se instalan dentro con npm ci
+node_modules
+**/node_modules
+
+# Historial de git: pesa y no aporta nada en tiempo de ejecución
+.git
+.gitignore
+.github
+
+# Salidas de build y cachés
+dist
+build
+.vite
+**/dist
+**/.vite
+
+# Copias de seguridad de la base de datos
+backups
+
+# Documentación y material de marca: no hacen falta para ejecutar
+docs
+brand
+README.md
+
+# Basura del sistema
+.DS_Store
+**/.DS_Store
+*.log

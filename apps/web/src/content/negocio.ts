@@ -11,10 +11,7 @@ export const ESLOGAN = 'Donde cada cita encuentra su lugar'
 export const ESLOGAN_NEGOCIO = 'Gestiona tu negocio de forma inteligente'
 
 /** Los otros dos candidatos del brief, pendientes de decidir. */
-export const ESLOGANES_ALTERNATIVOS = [
-  'Creado para cuidar cada detalle',
-  'El lujo de la sencillez',
-]
+export const ESLOGANES_ALTERNATIVOS = ['Creado para cuidar cada detalle', 'El lujo de la sencillez']
 
 /** "Qué destacaría en la home" — los cinco puntos del brief. */
 export const DESTACADOS = [

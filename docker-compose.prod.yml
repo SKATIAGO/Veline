@@ -23,7 +23,7 @@ services:
     volumes:
       - veline-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}']
       interval: 3s
       timeout: 3s
       retries: 20
@@ -64,11 +64,15 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     environment:
       DOMAIN: ${DOMAIN:?define DOMAIN en .env, p.ej. veline.es}
       ACME_EMAIL: ${ACME_EMAIL:?define ACME_EMAIL en .env — Let's Encrypt necesita un contacto}
+      # Candado del panel mientras no haya autenticación en la aplicación.
+      # El hash se genera con: docker compose exec caddy caddy hash-password
+      PANEL_USER: ${PANEL_USER:?define PANEL_USER en .env}
+      PANEL_PASSWORD_HASH: ${PANEL_PASSWORD_HASH:?define PANEL_PASSWORD_HASH en .env (hash bcrypt, no la contraseña en claro)}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

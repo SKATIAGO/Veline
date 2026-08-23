@@ -77,7 +77,10 @@ export const api = {
   panelServices: (slug: string) => request<PanelService[]>(`/panel/${slug}/services`),
 
   createService: (slug: string, body: Partial<PanelService>) =>
-    request<PanelService>(`/panel/${slug}/services`, { method: 'POST', body: JSON.stringify(body) }),
+    request<PanelService>(`/panel/${slug}/services`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   updateService: (slug: string, id: string, body: Partial<PanelService>) =>
     request<PanelService>(`/panel/${slug}/services/${id}`, {

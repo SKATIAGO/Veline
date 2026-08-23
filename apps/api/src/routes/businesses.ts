@@ -1,11 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import {
-  CATEGORIES,
-  fromDateKey,
-  type BusinessDTO,
-  type BusinessSummaryDTO,
-} from '@veline/shared'
+import { CATEGORIES, fromDateKey, type BusinessDTO, type BusinessSummaryDTO } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { getAvailability, MAX_RANGE_DAYS } from '../availability.js'
 
@@ -69,7 +64,9 @@ export async function businessRoutes(app: FastifyInstance) {
     const b = await prisma.business.findUnique({
       where: { slug },
       include: {
-        locations: { include: { openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] } } },
+        locations: {
+          include: { openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] } },
+        },
         services: { where: { active: true }, orderBy: { position: 'asc' } },
         staff: { where: { active: true }, orderBy: { name: 'asc' } },
       },
@@ -90,9 +87,7 @@ export async function businessRoutes(app: FastifyInstance) {
       street: main?.street ?? '',
       photo: b.photos[0] ?? null,
       photos: b.photos,
-      fromPriceCents: b.services.length
-        ? Math.min(...b.services.map((s) => s.priceCents))
-        : null,
+      fromPriceCents: b.services.length ? Math.min(...b.services.map((s) => s.priceCents)) : null,
       locations: b.locations.map((l) => ({
         id: l.id,
         name: l.name,
@@ -123,7 +118,9 @@ export async function businessRoutes(app: FastifyInstance) {
     const { slug } = req.params as { slug: string }
     const parsed = availabilityQuery.safeParse(req.query)
     if (!parsed.success) {
-      return reply.code(400).send({ error: 'Parámetros inválidos', details: parsed.error.flatten() })
+      return reply
+        .code(400)
+        .send({ error: 'Parámetros inválidos', details: parsed.error.flatten() })
     }
 
     const business = await prisma.business.findUnique({ where: { slug }, select: { id: true } })

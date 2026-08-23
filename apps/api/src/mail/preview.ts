@@ -47,11 +47,19 @@ async function main() {
     ['reserva-negocio', bookingCreatedToBusiness(EJEMPLO, 'reservas@taller.es')],
     [
       'cancelada-cliente',
-      bookingCancelled(EJEMPLO, { email: 'marina.lopez@mail.com', name: 'Marina López' }, 'cliente'),
+      bookingCancelled(
+        EJEMPLO,
+        { email: 'marina.lopez@mail.com', name: 'Marina López' },
+        'cliente',
+      ),
     ],
     [
       'cancelada-negocio',
-      bookingCancelled(EJEMPLO, { email: 'reservas@taller.es', name: 'Taller Mecánico Rivas' }, 'negocio'),
+      bookingCancelled(
+        EJEMPLO,
+        { email: 'reservas@taller.es', name: 'Taller Mecánico Rivas' },
+        'negocio',
+      ),
     ],
   ] as const
 

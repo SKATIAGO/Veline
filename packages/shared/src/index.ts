@@ -64,11 +64,27 @@ export function formatDistance(meters: number) {
 
 export const WEEKDAYS_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'] as const
 export const WEEKDAYS_LONG = [
-  'domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado',
+  'domingo',
+  'lunes',
+  'martes',
+  'miércoles',
+  'jueves',
+  'viernes',
+  'sábado',
 ] as const
 export const MONTHS_LONG = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
 ] as const
 
 /** Fecha local (no UTC) en formato YYYY-MM-DD. */

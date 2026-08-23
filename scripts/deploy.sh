@@ -12,7 +12,14 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 COMPOSE="docker compose -f docker-compose.prod.yml"
-SALUD="https://veline.es/api/health"
+# El dominio sale del .env, no va a fuego: el script debe servir igual en
+# un entorno de pruebas con otro dominio.
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+SALUD="${PUBLIC_WEB_URL:-https://veline.es}/api/health"
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 

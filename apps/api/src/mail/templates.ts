@@ -33,7 +33,13 @@ export interface BookingMailData {
 }
 
 /** Marco común: cabecera con el logotipo, cuerpo y pie. */
-function layout(opts: { preheader: string; heading: string; intro: string; body: string; cta?: { label: string; url: string } }) {
+function layout(opts: {
+  preheader: string
+  heading: string
+  intro: string
+  body: string
+  cta?: { label: string; url: string }
+}) {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:${CREAM};">
@@ -81,8 +87,7 @@ function detalles(rows: [string, string][]) {
   </table>`
 }
 
-const textoDetalles = (rows: [string, string][]) =>
-  rows.map(([l, v]) => `  ${l}: ${v}`).join('\n')
+const textoDetalles = (rows: [string, string][]) => rows.map(([l, v]) => `  ${l}: ${v}`).join('\n')
 
 /* ── 1. Confirmación al cliente ───────────────────────────────── */
 
@@ -178,7 +183,12 @@ export function bookingCancelled(
     ['Servicio', b.serviceName],
     ['Era el', cuando],
     ['Código', b.code],
-    ...((audience === 'negocio' ? [['Cliente', b.customerName], ['Teléfono', b.customerPhone]] : []) as [string, string][]),
+    ...((audience === 'negocio'
+      ? [
+          ['Cliente', b.customerName],
+          ['Teléfono', b.customerPhone],
+        ]
+      : []) as [string, string][]),
   ]
 
   return {

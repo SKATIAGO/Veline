@@ -16,10 +16,10 @@ Es un **marketplace de dos lados**:
 
 El rubro está partido en dos estéticas y **rechazamos ambas**:
 
-| Referente | Estética | Por qué no |
-|---|---|---|
+| Referente                            | Estética                                                                    | Por qué no                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | Fresha, Booksy, Treatwell, StyleSeat | Rosas, violetas, corales. Tipografía redondeada. Fotografía de spa y salón. | Encasilla en nicho "belleza". Un taller mecánico no se siente representado. |
-| Boulevard, Mangomint | SaaS premium: negro/blanco minimalista o verde menta. | Frío, corporativo, no siente a barrio. |
+| Boulevard, Mangomint                 | SaaS premium: negro/blanco minimalista o verde menta.                       | Frío, corporativo, no siente a barrio.                                      |
 
 **Nuestro lugar:** cercano y confiable, **universal**. Ni nicho de belleza ni frialdad SaaS.
 
@@ -37,7 +37,7 @@ Las categorías se muestran **todas con el mismo peso visual** desde el primer s
 - Autoescuelas
 - Servicios profesionales
 - Tiendas de barrio
-- *(+ más)*
+- _(+ más)_
 
 El negocio de ejemplo en **todos** los mockups es un **taller mecánico** ("Taller Mecánico Rivas"), justamente para no leer como app de belleza.
 
@@ -55,16 +55,16 @@ El negocio de ejemplo en **todos** los mockups es un **taller mecánico** ("Tall
 
 ## Estado de las decisiones
 
-| Tema | Estado |
-|---|---|
-| Nombre de marca | ✅ **Veline** (`veline.es`) |
-| Paleta | ✅ Canela + Marrón oscuro (opción `2b`) |
-| Tipografía | ✅ Bricolage Grotesque + Public Sans (opción `1e`) |
-| Logo / isotipo | ✅ **Puertas gemelas** (`2a`) — ver [01-identidad-visual.md](01-identidad-visual.md) |
-| Landing | ✅ Diseñada (desktop 1440) |
-| Precios (página) | ✅ Diseñada |
-| Flujo de reserva mobile | ✅ 4 pantallas diseñadas |
-| Flujo de reserva desktop | ✅ 4 pantallas diseñadas |
-| Panel del negocio (backoffice) | ⛔ **No diseñado** — solo aparece como placeholder |
-| Iconografía de categorías | ⛔ Pendiente |
-| Fotografía real de negocios | ⛔ Pendiente (todo son placeholders) |
+| Tema                           | Estado                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| Nombre de marca                | ✅ **Veline** (`veline.es`)                                                          |
+| Paleta                         | ✅ Canela + Marrón oscuro (opción `2b`)                                              |
+| Tipografía                     | ✅ Bricolage Grotesque + Public Sans (opción `1e`)                                   |
+| Logo / isotipo                 | ✅ **Puertas gemelas** (`2a`) — ver [01-identidad-visual.md](01-identidad-visual.md) |
+| Landing                        | ✅ Diseñada (desktop 1440)                                                           |
+| Precios (página)               | ✅ Diseñada                                                                          |
+| Flujo de reserva mobile        | ✅ 4 pantallas diseñadas                                                             |
+| Flujo de reserva desktop       | ✅ 4 pantallas diseñadas                                                             |
+| Panel del negocio (backoffice) | ⛔ **No diseñado** — solo aparece como placeholder                                   |
+| Iconografía de categorías      | ⛔ Pendiente                                                                         |
+| Fotografía real de negocios    | ⛔ Pendiente (todo son placeholders)                                                 |

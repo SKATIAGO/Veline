@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { cancelBookingSchema, createBookingSchema, type BookingDTO } from '@veline/shared'
@@ -14,10 +15,20 @@ import {
 /** Comisión de marketplace: 15% y solo en la primera reserva del cliente. */
 const COMMISSION_RATE = 0.15
 
+/**
+ * Código de reserva. Es lo único que protege los datos del cliente en
+ * /reserva/{código}, así que se genera con el generador criptográfico del
+ * sistema, no con Math.random() (predecible con suficientes muestras).
+ *
+ * Alfabeto sin caracteres que se confundan al dictarlo por teléfono: sin
+ * I, O, 0, 1. Con 8 caracteres son 32^8 ≈ 1,1 billones de combinaciones;
+ * junto al límite de peticiones, recorrerlos deja de ser viable.
+ */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+const CODE_LENGTH = 8
+
 const bookingCode = () =>
-  'VL-' +
-  Array.from({ length: 5 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join('')
+  'VL-' + Array.from({ length: CODE_LENGTH }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
 
 const bookingInclude = {
   business: { select: { id: true, slug: true, name: true, email: true } },
@@ -227,12 +238,20 @@ export async function bookingRoutes(app: FastifyInstance) {
     const mailData = toMailData(booking)
     if (booking.customer.email) {
       void sendMailSafely(
-        bookingCancelled(mailData, { email: booking.customer.email, name: booking.customer.name }, 'cliente'),
+        bookingCancelled(
+          mailData,
+          { email: booking.customer.email, name: booking.customer.name },
+          'cliente',
+        ),
       )
     }
     if (booking.business.email) {
       void sendMailSafely(
-        bookingCancelled(mailData, { email: booking.business.email, name: booking.business.name }, 'negocio'),
+        bookingCancelled(
+          mailData,
+          { email: booking.business.email, name: booking.business.name },
+          'negocio',
+        ),
       )
     }
 

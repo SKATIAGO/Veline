@@ -115,12 +115,16 @@ export function BookingDone() {
             ['Servicio', booking.service.name],
             ['Fecha', `${formatLongDate(start)}, ${time}`],
             ...(booking.staff ? [['Te atiende', booking.staff.name] as const] : []),
-            ...(booking.location ? [['Dónde', `${booking.location.street}, ${booking.location.city}`] as const] : []),
+            ...(booking.location
+              ? [['Dónde', `${booking.location.street}, ${booking.location.city}`] as const]
+              : []),
             ['Total', formatPrice(booking.priceCents)],
           ].map(([label, value]) => (
             <div key={label} className="mb-2.5 flex justify-between gap-4 text-[13px]">
               <span className="shrink-0 text-muted">{label}</span>
-              <span className="text-right font-semibold text-ink first-letter:uppercase">{value}</span>
+              <span className="text-right font-semibold text-ink first-letter:uppercase">
+                {value}
+              </span>
             </div>
           ))}
         </div>

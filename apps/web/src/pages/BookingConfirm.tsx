@@ -16,7 +16,16 @@ interface FieldProps {
   multiline?: boolean
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text', error, optional, multiline }: FieldProps) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  error,
+  optional,
+  multiline,
+}: FieldProps) {
   const cls =
     'w-full rounded-lg border bg-surface px-4 py-3.5 text-sm text-ink outline-none placeholder:text-subtle ' +
     (error ? 'border-brand' : 'border-line focus:border-brand')
@@ -203,7 +212,9 @@ export function BookingConfirm() {
 
             <div className="mt-4 mb-5 flex justify-between border-t border-line pt-4">
               <span className="text-sm text-muted">Total</span>
-              <span className="text-base font-semibold text-ink">{formatPrice(service.priceCents)}</span>
+              <span className="text-base font-semibold text-ink">
+                {formatPrice(service.priceCents)}
+              </span>
             </div>
 
             {mutation.isError && (
@@ -225,7 +236,11 @@ export function BookingConfirm() {
               </div>
             )}
 
-            <Button className="w-full" onClick={submit} disabled={mutation.isPending || !validStart}>
+            <Button
+              className="w-full"
+              onClick={submit}
+              disabled={mutation.isPending || !validStart}
+            >
               {mutation.isPending ? 'Confirmando…' : 'Confirmar reserva'}
             </Button>
           </Card>

@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
-import { Button, Card, EmptyState, Spinner, cx } from '../../components/ui'
+import { Card, EmptyState, Spinner, cx } from '../../components/ui'
 
 const SOURCE_LABEL: Record<string, string> = {
   MARKETPLACE: 'Marketplace',
@@ -43,7 +43,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
       )}
     >
       <div className="w-[104px] shrink-0">
-        <div className={cx('font-display text-lg font-semibold text-ink', cancelled && 'line-through')}>
+        <div
+          className={cx('font-display text-lg font-semibold text-ink', cancelled && 'line-through')}
+        >
           {fmt(start)}
         </div>
         <div className="text-[12px] text-subtle">hasta {fmt(end)}</div>
@@ -54,7 +56,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
         <div className="mt-0.5 text-[13px] text-muted">
           {booking.customer.name} · {booking.customer.phone}
         </div>
-        {booking.notes && <div className="mt-1 text-[12.5px] text-subtle italic">{booking.notes}</div>}
+        {booking.notes && (
+          <div className="mt-1 text-[12.5px] text-subtle italic">{booking.notes}</div>
+        )}
       </div>
 
       <div className="hidden w-[140px] text-[13px] text-muted sm:block">

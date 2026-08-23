@@ -52,7 +52,12 @@ export function Landing() {
       <section className="grain relative overflow-hidden bg-ink">
         <Glow className="-top-40 -left-32" color="rgba(169,106,62,.35)" size={620} />
         <Glow className="-right-40 -bottom-52" color="rgba(217,164,65,.18)" size={560} />
-        <DoorMotif className="top-16 right-[8%] hidden lg:block" size={210} tone="#D9A441" opacity={0.08} />
+        <DoorMotif
+          className="top-16 right-[8%] hidden lg:block"
+          size={210}
+          tone="#D9A441"
+          opacity={0.08}
+        />
         <DoorMotif
           className="bottom-10 left-[4%] hidden lg:block"
           size={130}
@@ -92,7 +97,10 @@ export function Landing() {
                 Ver el panel
               </ButtonLink>
             </div>
-            <p className="rise mt-5 text-[13px] font-medium text-ondark-muted" style={{ animationDelay: '320ms' }}>
+            <p
+              className="rise mt-5 text-[13px] font-medium text-ondark-muted"
+              style={{ animationDelay: '320ms' }}
+            >
               {PRUEBA_DIAS} días de prueba sin permanencia
             </p>
           </div>
@@ -113,7 +121,12 @@ export function Landing() {
 
       {/* DESTACADOS */}
       <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
-        <DoorMotif className="-top-6 right-[3%] hidden xl:block" size={150} opacity={0.05} tilt={8} />
+        <DoorMotif
+          className="-top-6 right-[3%] hidden xl:block"
+          size={150}
+          opacity={0.05}
+          tilt={8}
+        />
         <Reveal>
           <Eyebrow>Todo lo que tu negocio necesita</Eyebrow>
           <h2 className="quill mb-10 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
@@ -146,8 +159,15 @@ export function Landing() {
       </section>
 
       {/* CÓMO FUNCIONA */}
-      <section id="como-funciona" className="relative scroll-mt-24 overflow-hidden border-y border-line bg-canvas">
-        <Glow className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" color="rgba(217,164,65,.14)" size={700} />
+      <section
+        id="como-funciona"
+        className="relative scroll-mt-24 overflow-hidden border-y border-line bg-canvas"
+      >
+        <Glow
+          className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          color="rgba(217,164,65,.14)"
+          size={700}
+        />
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
           <Reveal>
             <h2 className="mb-14 text-center text-[26px] font-semibold text-ink sm:text-[32px]">
@@ -176,8 +196,17 @@ export function Landing() {
       </section>
 
       {/* SERVICIOS PARA EMPRESAS */}
-      <section id="servicios" className="relative mx-auto max-w-[1440px] scroll-mt-24 px-6 py-20 lg:px-16">
-        <DoorMotif className="top-24 left-[-2%] hidden xl:block" size={190} opacity={0.045} tilt={-14} delay={800} />
+      <section
+        id="servicios"
+        className="relative mx-auto max-w-[1440px] scroll-mt-24 px-6 py-20 lg:px-16"
+      >
+        <DoorMotif
+          className="top-24 left-[-2%] hidden xl:block"
+          size={190}
+          opacity={0.045}
+          tilt={-14}
+          delay={800}
+        />
         <Reveal>
           <Eyebrow>Servicios para empresas</Eyebrow>
           <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
@@ -224,8 +253,8 @@ export function Landing() {
               </h2>
               <p className="mt-6 max-w-[560px] text-[15.5px] leading-relaxed text-body">
                 Tu negocio entra en el marketplace de Veline, donde la gente de tu zona busca y
-                reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre
-                ahí; si ya era tuyo, es gratis siempre.
+                reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre ahí;
+                si ya era tuyo, es gratis siempre.
               </p>
             </Reveal>
             <Reveal delay={120}>
@@ -234,7 +263,9 @@ export function Landing() {
                 className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-ink"
               >
                 Ver el marketplace
-                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                <span className="transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
               </Link>
             </Reveal>
           </div>
@@ -255,7 +286,11 @@ export function Landing() {
 
       {/* CIERRE */}
       <section className="relative overflow-hidden">
-        <Glow className="bottom-[-220px] left-1/2 -translate-x-1/2" color="rgba(169,106,62,.16)" size={640} />
+        <Glow
+          className="bottom-[-220px] left-1/2 -translate-x-1/2"
+          color="rgba(169,106,62,.16)"
+          size={640}
+        />
         <div className="relative mx-auto max-w-[1440px] px-6 py-24 text-center lg:px-16">
           <Reveal variant="zoom">
             <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">

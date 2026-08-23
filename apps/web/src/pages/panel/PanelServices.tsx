@@ -13,7 +13,13 @@ interface Draft {
   description: string
 }
 
-const emptyDraft: Draft = { name: '', durationMin: '30', bufferMin: '0', price: '', description: '' }
+const emptyDraft: Draft = {
+  name: '',
+  durationMin: '30',
+  bufferMin: '0',
+  price: '',
+  description: '',
+}
 
 /** "59,50" o "59.50" → 5950 céntimos */
 const toCents = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
@@ -33,7 +39,8 @@ function ServiceForm({
   submitLabel: string
   pending: boolean
 }) {
-  const input = 'rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none focus:border-brand'
+  const input =
+    'rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none focus:border-brand'
   return (
     <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
       <input

@@ -3,7 +3,6 @@
 #
 # HTTPS es automático: Caddy pide y renueva el certificado de Let's Encrypt
 # él solo, en cuanto el dominio resuelve a esta máquina por el puerto 80.
-# No hay nada que configurar a mano para el TLS.
 
 {
 	# Recibe avisos de Let's Encrypt si un certificado tuviera problemas.
@@ -18,8 +17,7 @@
 		# ni preload a propósito: si algún día hay un subdominio sin HTTPS, esto
 		# no lo rompe. Añadirlos es fácil; quitarlos, no.
 		Strict-Transport-Security "max-age=31536000"
-		# Impide que el navegador "adivine" el tipo de archivo (evita que un
-		# archivo subido se interprete como script).
+		# Impide que el navegador "adivine" el tipo de archivo.
 		X-Content-Type-Options "nosniff"
 		# Nadie puede meter Veline dentro de un iframe (anti clickjacking).
 		X-Frame-Options "DENY"
@@ -30,12 +28,33 @@
 		-Via
 	}
 
-	# Todo lo que empiece por /api va al contenedor de la API.
+	# ── Panel del negocio ────────────────────────────────────────────
+	# Candado provisional mientras no exista autenticación de verdad en la
+	# aplicación. Sin esto, cualquiera puede leer los datos de los clientes
+	# (nombre, teléfono, email) y cancelar o borrar cosas: los endpoints de
+	# /api/panel no comprueban ninguna credencial.
+	#
+	# Se protege la API además de la interfaz: proteger solo la pantalla no
+	# serviría de nada, porque la API se puede llamar directamente.
+	handle /api/panel/* {
+		basic_auth {
+			{$PANEL_USER} {$PANEL_PASSWORD_HASH}
+		}
+		reverse_proxy api:3001
+	}
+
+	handle /panel* {
+		basic_auth {
+			{$PANEL_USER} {$PANEL_PASSWORD_HASH}
+		}
+		reverse_proxy web:80
+	}
+
+	# ── Público ──────────────────────────────────────────────────────
 	handle /api/* {
 		reverse_proxy api:3001
 	}
 
-	# El resto lo sirve el contenedor de la web (nginx con el build de Vite).
 	handle {
 		reverse_proxy web:80
 	}

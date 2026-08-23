@@ -5,12 +5,12 @@ promete dentro de la misma tarifa, quedan para más adelante.
 
 ## Qué se envía hoy
 
-| Cuándo | A quién | Asunto |
-|---|---|---|
-| Se crea una reserva | Cliente | *Tu cita en {negocio} — {fecha} a las {hora}* |
-| Se crea una reserva | Negocio | *Nueva cita: {servicio} — {fecha} a las {hora}* |
-| Se cancela | Cliente | *Cita cancelada: {servicio} — …* |
-| Se cancela | Negocio | *Cita cancelada: {servicio} — …* |
+| Cuándo              | A quién | Asunto                                          |
+| ------------------- | ------- | ----------------------------------------------- |
+| Se crea una reserva | Cliente | _Tu cita en {negocio} — {fecha} a las {hora}_   |
+| Se crea una reserva | Negocio | _Nueva cita: {servicio} — {fecha} a las {hora}_ |
+| Se cancela          | Cliente | _Cita cancelada: {servicio} — …_                |
+| Se cancela          | Negocio | _Cita cancelada: {servicio} — …_                |
 
 Todos llevan versión HTML con la marca (marrón, canela, mostaza, el lockup de Veline) **y
 versión en texto plano**, que es lo que se ve en clientes que bloquean HTML.
@@ -38,7 +38,7 @@ PUBLIC_WEB_URL=http://localhost:5173
 ### Los tres modos
 
 - **`off`** — no se envía ni se registra nada.
-- **`dry`** *(por defecto)* — se construye el correo y se escribe en el log, pero no sale.
+- **`dry`** _(por defecto)_ — se construye el correo y se escribe en el log, pero no sale.
   Es el valor por defecto a propósito: con la app expuesta por ngrok, cualquiera que reserve
   escribe un email real en el formulario.
 - **`live`** — se envía de verdad.

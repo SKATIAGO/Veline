@@ -6,16 +6,16 @@
 
 ## Inicio web
 
-| Pedido | Estado |
-|---|---|
-| Apertura de inicio limpia y suave | ✅ Entrada escalonada en el hero (`.rise`), 0,75 s, anulada con `prefers-reduced-motion` |
+| Pedido                              | Estado                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| Apertura de inicio limpia y suave   | ✅ Entrada escalonada en el hero (`.rise`), 0,75 s, anulada con `prefers-reduced-motion` |
 | Tipografía más cuadrada que redonda | ⚠️ **Sin resolver** — hoy sigue Bricolage Grotesque, la decidida en el proyecto de marca |
-| Eslogan de inicio | ✅ Se aplica el favorito: **"Donde cada cita encuentra su lugar"** |
+| Eslogan de inicio                   | ✅ Se aplica el favorito: **"Donde cada cita encuentra su lugar"**                       |
 
 ### Esloganes del brief
 
 1. "Gestiona tu negocio de forma inteligente" → usado como **titular de `/negocios`**
-2. **"Donde cada cita encuentra su lugar"** ⭐ *(favorito)* → **eslogan de marca**: hero de la home, cierre de `/negocios` y pie
+2. **"Donde cada cita encuentra su lugar"** ⭐ _(favorito)_ → **eslogan de marca**: hero de la home, cierre de `/negocios` y pie
 3. "Creado para cuidar cada detalle" → sin usar
 4. "El lujo de la sencillez" → sin usar
 
@@ -23,13 +23,13 @@
 
 Implementados como sección propia, tanto en la home como en `/negocios`:
 
-| Destacado | Texto | ¿Real hoy? |
-|---|---|---|
-| Reservas 24/7 | Tus clientes reservan incluso cuando el negocio está cerrado. | ✅ Sí |
-| Recordatorios automáticos | Reduce las ausencias y cancelaciones de última hora. | ⛔ **No construido** |
-| Gestión de clientes | Toda la información en un único lugar. | 🟡 Los clientes se guardan, pero no hay pantalla para gestionarlos |
-| Gestión de empleados | Controla horarios, servicios y disponibilidad. | 🟡 Horarios y servicios sí; el alta/baja de empleados no |
-| Informes y métricas | Conoce el rendimiento real de tu negocio. | 🟡 Métricas básicas de la semana en el panel |
+| Destacado                 | Texto                                                         | ¿Real hoy?                                                         |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Reservas 24/7             | Tus clientes reservan incluso cuando el negocio está cerrado. | ✅ Sí                                                              |
+| Recordatorios automáticos | Reduce las ausencias y cancelaciones de última hora.          | ⛔ **No construido**                                               |
+| Gestión de clientes       | Toda la información en un único lugar.                        | 🟡 Los clientes se guardan, pero no hay pantalla para gestionarlos |
+| Gestión de empleados      | Controla horarios, servicios y disponibilidad.                | 🟡 Horarios y servicios sí; el alta/baja de empleados no           |
+| Informes y métricas       | Conoce el rendimiento real de tu negocio.                     | 🟡 Métricas básicas de la semana en el panel                       |
 
 ⚠️ **Tres de los cinco se prometen por encima de lo que el producto hace hoy.** Está bien para
 enseñar el boceto, pero antes de que la web sea pública hay que construirlos o suavizar el copy.
@@ -39,22 +39,22 @@ enseñar el boceto, pero antes de que la web sea pública hay que construirlos o
 Sección `Servicios para empresas` en [`/negocios`](../apps/web/src/pages/ForBusiness.tsx),
 con distintivo **Plus** en lo que se contrata aparte.
 
-| Servicio | Plus |
-|---|---|
-| Área administrativa cómoda y sencilla | — |
-| Calendario adaptable | — |
-| Gestión administrativa | Plus *(el brief dice "si quisieran")* |
-| Soporte y atención | — |
-| Web personalizada | Plus *(marcado en el brief)* |
-| Aplicación para su local | Plus ⚠️ **asumido, no marcado en el brief** |
-| Análisis de rendimiento y fidelidad | — |
-| ~~Herramientas de facturación~~ | **Retirado el 2 ago 2026** — no se va a ofrecer |
+| Servicio                              | Plus                                            |
+| ------------------------------------- | ----------------------------------------------- |
+| Área administrativa cómoda y sencilla | —                                               |
+| Calendario adaptable                  | —                                               |
+| Gestión administrativa                | Plus _(el brief dice "si quisieran")_           |
+| Soporte y atención                    | —                                               |
+| Web personalizada                     | Plus _(marcado en el brief)_                    |
+| Aplicación para su local              | Plus ⚠️ **asumido, no marcado en el brief**     |
+| Análisis de rendimiento y fidelidad   | —                                               |
+| ~~Herramientas de facturación~~       | **Retirado el 2 ago 2026** — no se va a ofrecer |
 
 El "Se puede añadir ideas" del brief se ha convertido en una tarjeta abierta —
-*"¿Echas algo en falta?"*— al final de los destacados.
+_"¿Echas algo en falta?"_— al final de los destacados.
 
-Con la facturación fuera, el titular de la sección pasa de *"Desde la agenda hasta la factura"*
-a *"Desde la agenda hasta el último detalle"*, y la métrica del panel deja de llamarse
+Con la facturación fuera, el titular de la sección pasa de _"Desde la agenda hasta la factura"_
+a _"Desde la agenda hasta el último detalle"_, y la métrica del panel deja de llamarse
 "Facturación 7 días" para no confundirse con una función que ya no existe: ahora es
 "Ingresos 7 días".
 
@@ -69,13 +69,13 @@ El proyecto de Claude Design definió Veline como un **marketplace de dos lados*
 apuntando al cliente final. Este brief es **íntegramente B2B**, y el 26 jul 2026 se confirmó
 el cambio: **la home pasa a ser la del negocio y el buscador deja de ser la portada**.
 
-| Antes | Ahora |
-|---|---|
-| Home = hero de búsqueda + marketplace | Home = *"Gestiona tu negocio de forma inteligente"*, destacados, cómo funciona y servicios para empresas |
-| `/negocios` = página de captación aparte | `/negocios` redirige a `/`; su contenido **es** la home |
-| Buscador y categorías en portada | Fuera de la home. El marketplace vive en `/buscar` |
-| CTA principal "Reservar" | CTA principal **"Añadir mi negocio"** |
-| Menú: Cómo funciona · Categorías · Precios · Para negocios | Menú: Cómo funciona · Servicios · Precios · **Marketplace** |
+| Antes                                                      | Ahora                                                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Home = hero de búsqueda + marketplace                      | Home = _"Gestiona tu negocio de forma inteligente"_, destacados, cómo funciona y servicios para empresas |
+| `/negocios` = página de captación aparte                   | `/negocios` redirige a `/`; su contenido **es** la home                                                  |
+| Buscador y categorías en portada                           | Fuera de la home. El marketplace vive en `/buscar`                                                       |
+| CTA principal "Reservar"                                   | CTA principal **"Añadir mi negocio"**                                                                    |
+| Menú: Cómo funciona · Categorías · Precios · Para negocios | Menú: Cómo funciona · Servicios · Precios · **Marketplace**                                              |
 
 **"Cómo funciona" se reescribió en clave de negocio**: crear el perfil → compartir el enlace →
 gestionar desde el panel. Antes eran los tres pasos del cliente que reserva.

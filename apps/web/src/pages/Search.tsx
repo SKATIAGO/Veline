@@ -33,8 +33,10 @@ export function Search() {
         onSubmit={(e) => {
           e.preventDefault()
           const next = new URLSearchParams(params)
-          draftQ.trim() ? next.set('q', draftQ.trim()) : next.delete('q')
-          draftCity.trim() ? next.set('donde', draftCity.trim()) : next.delete('donde')
+          if (draftQ.trim()) next.set('q', draftQ.trim())
+          else next.delete('q')
+          if (draftCity.trim()) next.set('donde', draftCity.trim())
+          else next.delete('donde')
           setParams(next)
         }}
         className="flex max-w-[640px] flex-col gap-2 rounded-xl border border-line bg-surface p-2 sm:flex-row sm:items-center"

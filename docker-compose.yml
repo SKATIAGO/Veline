@@ -9,11 +9,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-veline}
       POSTGRES_DB: ${POSTGRES_DB:-veline}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - veline-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-veline} -d ${POSTGRES_DB:-veline}']
       interval: 3s
       timeout: 3s
       retries: 20
@@ -36,7 +36,7 @@ services:
       MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:5173}
     ports:
-      - "${API_PORT:-3001}:3001"
+      - '${API_PORT:-3001}:3001'
     depends_on:
       db:
         condition: service_healthy
@@ -62,7 +62,7 @@ services:
       # Lista separada por comas para sobrescribir los hosts permitidos por Vite
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
     ports:
-      - "${WEB_PORT:-5173}:5173"
+      - '${WEB_PORT:-5173}:5173'
     depends_on:
       - api
     volumes:

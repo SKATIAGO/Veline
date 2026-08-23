@@ -9,39 +9,44 @@ Esto es lo que **no** estaba resuelto en Claude Design. Ordenado por impacto.
 ## ✅ Bloqueantes de arquitectura — resueltos
 
 ### 1. Mercado y moneda → **España, EUR, es-ES**
+
 El copy estaba en **voseo rioplatense**, con direcciones de CABA y precios en pesos. Reescrito a
 tuteo peninsular, con el cambio clave **"turno" → "cita"**. Tabla completa de equivalencias en
 [05-stack.md](05-stack.md).
 
 ### 2. El panel del negocio → **construido, básico**
+
 Agenda agrupada por día con cancelación, métricas de la semana, CRUD de servicios y editor de
 horario con jornada partida. Sigue siendo la mitad del producto y la que menos superficie tiene.
 
 ### 3. Cuentas y autenticación → **reserva sin cuenta**
+
 El cliente se identifica por **teléfono** (`Customer.phone` es único). Apple y Google entran
 después. ⚠️ El panel **no tiene autenticación todavía** — no exponerlo fuera de local.
 
 ### 4. Motor de disponibilidad → **implementado**
+
 Huecos cada 30 min, duración + buffer por servicio, capacidad por plantilla, antelación mínima de
 60 min y excepciones por día completo o parcial. Concurrencia resuelta con transacción
 SERIALIZABLE en lugar de "el último que gana".
 
 ### 5. Atribución de comisión → **en el modelo desde el día uno**
+
 `Booking.source`, `isFirstFromMarketplace` y `commissionCents`, calculados dentro de la
 transacción de creación y anulados al cancelar.
 
 ## 🟡 Pantallas que el diseño dejó a medias
 
-| Hueco | Estado |
-|---|---|
-| **Resultados de búsqueda** | ✅ Construida (`/buscar`) con filtro por categoría, texto y ciudad. Nunca hubo mockup |
-| **Mapa** | ⛔ Fuera de la v1 por decisión. El hero mantiene el placeholder; `Location` ya guarda `lat`/`lng` |
-| **Landing "Para negocios"** | ✅ **Es la home**. Falta el flujo de alta: hoy los negocios solo entran por el seed |
-| **Tabs Reseñas e Info** | 🟡 Info construida (dirección, teléfono, horario semanal). Reseñas solo muestra la media — falta el sistema real |
-| **"Añadir al calendario"** | ✅ Resuelto con `.ics` generado en el navegador |
-| **Estados vacíos, carga y error** | ✅ Cubiertos: sin resultados, sin huecos, hueco recién ocupado (409 con enlace para elegir otra hora), 404 |
-| **Mobile de landing y precios** | ✅ Derivado a partir del diseño de 1440 px |
-| **Cancelar** | ✅ Cliente (desde `/reserva/:code`) y negocio (desde el panel). **Reprogramar sigue pendiente** |
+| Hueco                             | Estado                                                                                                           |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Resultados de búsqueda**        | ✅ Construida (`/buscar`) con filtro por categoría, texto y ciudad. Nunca hubo mockup                            |
+| **Mapa**                          | ⛔ Fuera de la v1 por decisión. El hero mantiene el placeholder; `Location` ya guarda `lat`/`lng`                |
+| **Landing "Para negocios"**       | ✅ **Es la home**. Falta el flujo de alta: hoy los negocios solo entran por el seed                              |
+| **Tabs Reseñas e Info**           | 🟡 Info construida (dirección, teléfono, horario semanal). Reseñas solo muestra la media — falta el sistema real |
+| **"Añadir al calendario"**        | ✅ Resuelto con `.ics` generado en el navegador                                                                  |
+| **Estados vacíos, carga y error** | ✅ Cubiertos: sin resultados, sin huecos, hueco recién ocupado (409 con enlace para elegir otra hora), 404       |
+| **Mobile de landing y precios**   | ✅ Derivado a partir del diseño de 1440 px                                                                       |
+| **Cancelar**                      | ✅ Cliente (desde `/reserva/:code`) y negocio (desde el panel). **Reprogramar sigue pendiente**                  |
 
 ## 🟢 Inconsistencias menores
 

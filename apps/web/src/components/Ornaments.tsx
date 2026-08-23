@@ -18,8 +18,7 @@ export function Awning({
   tone?: 'brand' | 'ink' | 'accent'
   flip?: boolean
 }) {
-  const fill =
-    tone === 'ink' ? '#2E2119' : tone === 'accent' ? '#D9A441' : '#A96A3E'
+  const fill = tone === 'ink' ? '#2E2119' : tone === 'accent' ? '#D9A441' : '#A96A3E'
   const alt = tone === 'ink' ? '#3B2A1F' : tone === 'accent' ? '#C08F32' : '#8E5734'
 
   return (
@@ -35,7 +34,12 @@ export function Awning({
         role="presentation"
       >
         <defs>
-          <pattern id={`awning-${tone}${flip ? '-f' : ''}`} width="20" height="14" patternUnits="userSpaceOnUse">
+          <pattern
+            id={`awning-${tone}${flip ? '-f' : ''}`}
+            width="20"
+            height="14"
+            patternUnits="userSpaceOnUse"
+          >
             <polygon points="0,0 10,0 5,13" fill={fill} />
             <polygon points="10,0 20,0 15,13" fill={alt} />
           </pattern>
@@ -96,7 +100,11 @@ export function Glow({
     <div
       aria-hidden="true"
       className={cx('pointer-events-none absolute rounded-full blur-3xl', className)}
-      style={{ width: size, height: size, background: `radial-gradient(circle, ${color}, transparent 70%)` }}
+      style={{
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color}, transparent 70%)`,
+      }}
     />
   )
 }

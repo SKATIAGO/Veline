@@ -42,7 +42,16 @@ function GalleryTile({
   const src = photos[i]
 
   if (!src) {
-    return <Photo src={null} alt="" width={width} height={height} className={cx('rounded-xl', className)} fallback={fallback} />
+    return (
+      <Photo
+        src={null}
+        alt=""
+        width={width}
+        height={height}
+        className={cx('rounded-xl', className)}
+        fallback={fallback}
+      />
+    )
   }
 
   return (
@@ -76,7 +85,11 @@ export function Business() {
   const [tab, setTab] = useState<(typeof TABS)[number]>('Servicios')
   const [lightbox, setLightbox] = useState<number | null>(null)
 
-  const { data: business, isLoading, isError } = useQuery({
+  const {
+    data: business,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['business', slug],
     queryFn: () => api.getBusiness(slug),
   })
@@ -201,7 +214,9 @@ export function Business() {
                 >
                   <div className="min-w-0">
                     <div className="font-semibold text-ink">{s.name}</div>
-                    <div className="mt-1 text-[13px] text-subtle">{formatDuration(s.durationMin)}</div>
+                    <div className="mt-1 text-[13px] text-subtle">
+                      {formatDuration(s.durationMin)}
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
                     <span className="font-semibold text-ink">{formatPrice(s.priceCents)}</span>
@@ -212,7 +227,9 @@ export function Business() {
                 </div>
               ))}
               {business.services.length === 0 && (
-                <p className="py-8 text-sm text-muted">Este negocio todavía no ha publicado servicios.</p>
+                <p className="py-8 text-sm text-muted">
+                  Este negocio todavía no ha publicado servicios.
+                </p>
               )}
             </div>
           )}
@@ -254,7 +271,10 @@ export function Business() {
                           <span className={rows.length ? '' : 'text-disabled'}>
                             {rows.length
                               ? rows
-                                  .map((r) => `${formatMinutes(r.startMin)}–${formatMinutes(r.endMin)}`)
+                                  .map(
+                                    (r) =>
+                                      `${formatMinutes(r.startMin)}–${formatMinutes(r.endMin)}`,
+                                  )
                                   .join(' · ')
                               : 'Cerrado'}
                           </span>
@@ -271,7 +291,9 @@ export function Business() {
         {/* Widget de reserva — fijo a la derecha en desktop */}
         <aside className="w-full shrink-0 lg:w-[340px]">
           <Card className="p-6 lg:sticky lg:top-24">
-            <div className="mb-4 font-display text-[17px] font-semibold text-ink">Reservar cita</div>
+            <div className="mb-4 font-display text-[17px] font-semibold text-ink">
+              Reservar cita
+            </div>
             {location && (
               <>
                 <div className="mb-1 text-[13px] font-medium text-muted">Dirección</div>
@@ -283,7 +305,9 @@ export function Business() {
             <div className="mb-1 text-[13px] font-medium text-muted">Hoy</div>
             <div className="mb-5 text-[13.5px] text-ink">
               {todayHours.length
-                ? todayHours.map((h) => `${formatMinutes(h.startMin)} – ${formatMinutes(h.endMin)}`).join(' · ')
+                ? todayHours
+                    .map((h) => `${formatMinutes(h.startMin)} – ${formatMinutes(h.endMin)}`)
+                    .join(' · ')
                 : 'Cerrado'}
             </div>
             {business.services[0] ? (
