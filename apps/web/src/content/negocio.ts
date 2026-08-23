@@ -8,7 +8,7 @@
 export const ESLOGAN = 'Donde cada cita encuentra su lugar'
 
 /** Eslogan de la sección para negocios. */
-export const ESLOGAN_NEGOCIO = 'Gestiona tu negocio de forma inteligente'
+export const ESLOGAN_NEGOCIO = 'Gestiona tu negocio de forma inteligentes'
 
 /** Los otros dos candidatos del brief, pendientes de decidir. */
 export const ESLOGANES_ALTERNATIVOS = [
