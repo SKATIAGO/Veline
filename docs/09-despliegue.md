@@ -125,6 +125,10 @@ git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+> **Si el cambio toca el `Caddyfile`**, añade `--force-recreate caddy`: por el
+> montaje de archivo suelto, un `git pull` no llega a verse dentro del
+> contenedor. Ver la trampa 3 más abajo.
+
 Reconstruye solo lo que cambió y reinicia esos contenedores; Caddy y la base
 de datos siguen corriendo sin cortar el servicio de los demás. Si cambiaste
 el esquema de Prisma, la migración nueva se aplica sola al arrancar la API
@@ -157,7 +161,7 @@ saber de cada cosa:
 | **Copia de seguridad diaria a las 4:00** | Cron que llama a `scripts/backup-db.sh` |
 | **Cabeceras de seguridad en Caddy** | HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, y se ocultan las versiones de servidor |
 
-### Dos trampas que costaron encontrar
+### Tres trampas que costaron encontrar
 
 **1. `sshd_config.d` y el orden alfabetico.** Las imagenes de Ubuntu en la nube
 traen `/etc/ssh/sshd_config.d/50-cloud-init.conf` con `PasswordAuthentication yes`.
@@ -179,6 +183,26 @@ configuracion de log que tenian al nacer. Se ve con:
 
 ```bash
 docker inspect veline-api-1 --format '{{.HostConfig.LogConfig.Config}}'
+```
+
+**3. Cambiar el `Caddyfile` no basta con `git pull`.** El archivo va montado
+como volumen *de archivo suelto* (`./Caddyfile:/etc/caddy/Caddyfile`). Docker
+ata el montaje al **inodo**, y `git pull` no edita el archivo: escribe uno
+nuevo y lo renombra encima, con inodo distinto. Resultado: el host tiene la
+version nueva, el contenedor sigue viendo la vieja, y `caddy reload` recarga
+tan feliz... el archivo antiguo. Sin ningun error.
+
+Por eso, despues de tocar el `Caddyfile` hay que **recrear el contenedor**, no
+recargarlo:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --force-recreate caddy
+```
+
+Y comprobar el resultado de verdad, mirando las cabeceras que devuelve:
+
+```bash
+curl -sI https://veline.es/ | grep -i strict-transport
 ```
 
 ### Al cambiar la configuracion de SSH en remoto
@@ -246,6 +270,20 @@ pedir un certificado real) y se comprobó, con peticiones reales:
   idempotentes.
 - La migración inicial de Prisma se generó y se aplicó contra un Postgres
   limpio de verdad antes de darla por buena, no solo se escribió a mano.
+
+Y ya sobre el VPS real, tras el endurecimiento:
+
+- **Prueba de reinicio completo del servidor.** Se reinició a propósito para
+  comprobar que todo vuelve solo: los cuatro contenedores arrancaron en
+  segundos, con el swap montado, el firewall activo, el SSH endurecido y las
+  2 reservas de la base intactas. "Debería sobrevivir a un reboot" y
+  "sobrevive a un reboot" no son lo mismo.
+- **Restauración de copia de seguridad probada de verdad**, no solo el volcado:
+  se restauró en una base desechable y se contaron los registros (6 negocios,
+  2 reservas, 18 servicios). Un backup que nunca se ha restaurado no es un
+  backup.
+- **Contraseña por SSH cerrada y verificada desde fuera**: intentar entrar con
+  contraseña devuelve `Permission denied (publickey)`.
 
 Los contenedores y volúmenes de esa prueba se borraron al terminar; no queda
 nada de eso en el VPS ni en tu Mac.
