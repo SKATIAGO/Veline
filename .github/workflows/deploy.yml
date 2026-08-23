@@ -33,6 +33,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Generar el cliente de Prisma
+        # Sin esto, los tipos que Prisma genera a partir del esquema no
+        # existen y el typecheck de la API falla entero. En Docker no se nota
+        # porque el Dockerfile ya lo ejecuta.
+        run: npx prisma generate --schema apps/api/prisma/schema.prisma
+
       - name: Comprobar tipos de la API
         run: npm run typecheck -w @veline/api
 
