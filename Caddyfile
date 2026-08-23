@@ -13,6 +13,23 @@
 {$DOMAIN} www.{$DOMAIN} {
 	encode gzip
 
+	header {
+		# Obliga al navegador a usar HTTPS durante un año. Sin includeSubDomains
+		# ni preload a propósito: si algún día hay un subdominio sin HTTPS, esto
+		# no lo rompe. Añadirlos es fácil; quitarlos, no.
+		Strict-Transport-Security "max-age=31536000"
+		# Impide que el navegador "adivine" el tipo de archivo (evita que un
+		# archivo subido se interprete como script).
+		X-Content-Type-Options "nosniff"
+		# Nadie puede meter Veline dentro de un iframe (anti clickjacking).
+		X-Frame-Options "DENY"
+		# No filtrar la ruta completa al navegar a sitios externos.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# No anunciar qué servidor y versión hay detrás.
+		-Server
+		-Via
+	}
+
 	# Todo lo que empiece por /api va al contenedor de la API.
 	handle /api/* {
 		reverse_proxy api:3001

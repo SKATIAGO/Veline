@@ -142,6 +142,52 @@ Esto genera una carpeta nueva en `apps/api/prisma/migrations/` con el SQL del
 cambio. Se sube al repo como cualquier otro archivo — es lo que
 `prisma migrate deploy` aplicará en el VPS en el siguiente despliegue.
 
+## 6b. Endurecimiento del servidor
+
+Lo aplicado en el VPS tras la primera puesta en marcha, con lo que hay que
+saber de cada cosa:
+
+| Qué | Por qué |
+|---|---|
+| **SSH solo por clave** (`PasswordAuthentication no`, `PermitRootLogin prohibit-password`) | La contraseña inicial de root que da IONOS acaba circulando por paneles y mensajes. Con acceso por clave funcionando, la contraseña solo añade superficie de ataque |
+| **UFW: solo 22, 80 y 443** | Comprobado desde fuera: 5432 y 3001 no responden |
+| **`.env` en modo 600** | Contiene la contraseña de Postgres; venía como 644, legible por cualquier usuario del sistema |
+| **Rotación de logs de Docker** (10 MB × 3) | Fastify registra cada petición. Sin límite, los logs llenan el disco con el tiempo |
+| **2 GB de swap** | 3,7 GB de RAM y cero swap: un `docker build` puede quedarse sin memoria |
+| **Copia de seguridad diaria a las 4:00** | Cron que llama a `scripts/backup-db.sh` |
+| **Cabeceras de seguridad en Caddy** | HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, y se ocultan las versiones de servidor |
+
+### Dos trampas que costaron encontrar
+
+**1. `sshd_config.d` y el orden alfabetico.** Las imagenes de Ubuntu en la nube
+traen `/etc/ssh/sshd_config.d/50-cloud-init.conf` con `PasswordAuthentication yes`.
+En SSH **gana la primera aparicion** de cada opcion, y los archivos se leen en
+orden alfabetico. Un archivo `99-hardening.conf` se lee *despues* y **no surte
+efecto**, sin ningun aviso: `sshd -t` pasa, el reload funciona, y `sshd -T`
+sigue diciendo `yes`. Por eso el nuestro se llama `01-veline-hardening.conf`.
+
+Comprueba siempre el resultado real, no que el comando no diera error:
+
+```bash
+sshd -T | grep -iE 'passwordauthentication|permitrootlogin'
+```
+
+**2. La rotacion de logs no se aplica a los contenedores ya creados.**
+`/etc/docker/daemon.json` solo afecta a los contenedores **nuevos**. Despues de
+crearlo hay que recrearlos (`up -d --force-recreate`), si no siguen con la
+configuracion de log que tenian al nacer. Se ve con:
+
+```bash
+docker inspect veline-api-1 --format '{{.HostConfig.LogConfig.Config}}'
+```
+
+### Al cambiar la configuracion de SSH en remoto
+
+Si tocas `sshd_config` por SSH, armate una red de seguridad antes: un proceso
+en segundo plano que revierta el cambio en unos minutos salvo que crees un
+archivo testigo. Si te equivocas, el servidor se arregla solo en vez de
+dejarte fuera. Es lo que se hizo aqui.
+
 ## 7. Copias de seguridad
 
 ```bash
