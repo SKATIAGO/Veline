@@ -69,7 +69,13 @@ export async function authRoutes(app: FastifyInstance) {
           businessId: user?.businessId ?? null,
           entity: 'User',
           entityId: user?.id ?? null,
-          metadata: { motivo: !user ? 'email desconocido' : !user.active ? 'cuenta desactivada' : 'contraseña incorrecta' },
+          metadata: {
+            motivo: !user
+              ? 'email desconocido'
+              : !user.active
+                ? 'cuenta desactivada'
+                : 'contraseña incorrecta',
+          },
         })
         return reply.code(401).send({ error: 'Email o contraseña incorrectos' })
       }

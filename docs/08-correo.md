@@ -86,11 +86,11 @@ nombre de", y con bastantes papeletas de acabar en spam.
 `veline.es` ya está dado de alta como dominio en Brevo. Falta añadir estos tres registros TXT
 en Hostinger (DNS del dominio) y pulsar «Verificar» en Brevo:
 
-| Tipo | Host              | Valor                                                       |
-| ---- | ----------------- | ----------------------------------------------------------- |
+| Tipo | Host              | Valor                                                                                                                                                                                                                              |
+| ---- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | TXT  | `mail._domainkey` | `k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB` |
-| TXT  | `@`               | `brevo-code:4aa0775ea819933c14ba1daeaa82d4f6`               |
-| TXT  | `_dmarc`          | `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`          |
+| TXT  | `@`               | `brevo-code:4aa0775ea819933c14ba1daeaa82d4f6`                                                                                                                                                                                      |
+| TXT  | `_dmarc`          | `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`                                                                                                                                                                                 |
 
 Cuando verifique, cambiar en el `.env` del VPS:
 
