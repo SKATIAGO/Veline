@@ -86,12 +86,13 @@ export function Landing() {
               dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.
             </p>
             <div className="rise flex flex-wrap gap-3" style={{ animationDelay: '240ms' }}>
-              <ButtonLink to="/precios" variant="accent" className="sheen">
+              <ButtonLink to="/precios" variant="accent" size="lg" className="sheen">
                 Añadir mi negocio
               </ButtonLink>
               <ButtonLink
                 to="/panel"
-                variant="ghost"
+                variant="secondary"
+                size="lg"
                 className="border-ondark-muted text-ondark hover:bg-ondark hover:text-ink"
               >
                 Ver el panel
@@ -300,10 +301,10 @@ export function Landing() {
               Pruébalo {PRUEBA_DIAS} días sin tarjeta y decide después.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <ButtonLink to="/precios" className="sheen">
+              <ButtonLink to="/precios" size="lg" className="sheen">
                 Ver planes y precios
               </ButtonLink>
-              <ButtonLink to="/panel" variant="ghost">
+              <ButtonLink to="/panel" variant="secondary" size="lg">
                 Ver el panel
               </ButtonLink>
             </div>

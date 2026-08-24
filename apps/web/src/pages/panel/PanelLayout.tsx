@@ -2,7 +2,7 @@ import { Navigate, NavLink, Outlet, useNavigate, useParams } from 'react-router-
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Logo, Spinner } from '../../components/ui'
+import { Button, Logo, Select, Spinner, cx } from '../../components/ui'
 
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
@@ -11,7 +11,18 @@ import { Logo, Spinner } from '../../components/ui'
  *  - ADMIN      → Agenda, Servicios, Horario, Equipo y Actividad de SU negocio.
  *  - SUPERADMIN → todo lo anterior en cualquier negocio, selector para
  *                 cambiar de negocio y acceso a la gestión de la plataforma.
+ *
+ * La barra de pestañas cambia de contenido según dónde estés: dentro de un
+ * negocio muestra las suyas, y en /panel/admin las de la plataforma. Son dos
+ * ámbitos distintos y mezclarlos en una sola fila confunde sobre qué estás
+ * mirando.
  */
+
+const ROL_LABEL = {
+  SUPERADMIN: 'Superadmin',
+  ADMIN: 'Administrador',
+  EMPLEADO: 'Equipo',
+} as const
 
 /** /panel sin más: cada rol aterriza donde le corresponde. */
 export function PanelIndex() {
@@ -32,6 +43,27 @@ export function PanelIndex() {
   return <Navigate to={`/panel/${businesses[0].slug}`} replace />
 }
 
+/** Pestaña con área pulsable de verdad: 44 px de alto y padding lateral. */
+function Tab({ to, label, end }: { to: string; label: string; end?: boolean }) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cx(
+          'inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-body font-medium',
+          'transition-colors duration-200',
+          isActive
+            ? 'border-brand font-semibold text-ink'
+            : 'border-transparent text-subtle hover:border-line-strong hover:text-ink',
+        )
+      }
+    >
+      {label}
+    </NavLink>
+  )
+}
+
 export function PanelLayout() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
@@ -39,6 +71,8 @@ export function PanelLayout() {
 
   const esSuperadmin = user?.role === 'SUPERADMIN'
   const puedeConfigurar = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN'
+  // Sin slug en la URL estamos en /panel/admin: el ámbito es la plataforma.
+  const esPlataforma = !slug
 
   const { data: businesses } = useQuery({
     queryKey: ['panel', 'businesses'],
@@ -55,120 +89,124 @@ export function PanelLayout() {
     return <Navigate to={`/panel/${user.businessSlug}`} replace />
   }
 
-  const tabs = [
-    { to: '', label: 'Agenda', end: true },
-    ...(puedeConfigurar
-      ? [
-          { to: 'servicios', label: 'Servicios', end: false },
-          { to: 'horario', label: 'Horario', end: false },
-          { to: 'equipo', label: 'Equipo', end: false },
-          { to: 'actividad', label: 'Actividad', end: false },
-        ]
-      : []),
-  ]
+  const tabs = esPlataforma
+    ? [
+        { to: '/panel/admin', label: 'Negocios', end: true },
+        { to: '/panel/admin/usuarios', label: 'Cuentas' },
+        { to: '/panel/admin/actividad', label: 'Actividad' },
+      ]
+    : [
+        { to: `/panel/${slug}`, label: 'Agenda', end: true },
+        ...(puedeConfigurar
+          ? [
+              { to: `/panel/${slug}/servicios`, label: 'Servicios' },
+              { to: `/panel/${slug}/horario`, label: 'Horario' },
+              { to: `/panel/${slug}/equipo`, label: 'Equipo' },
+              { to: `/panel/${slug}/actividad`, label: 'Actividad' },
+            ]
+          : []),
+      ]
+
+  const negocioActual = businesses?.find((b) => b.slug === slug)
 
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-cream">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
             <Logo size={20} />
-            <span className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold tracking-wide text-cream uppercase">
+            <span className="rounded-full bg-ink px-2.5 py-1 text-caption font-semibold tracking-wide text-cream uppercase">
               Panel
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2">
             {esSuperadmin && (
               <>
-                <NavLink
-                  to="/panel/admin"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-sm font-semibold text-brand'
-                      : 'text-sm font-medium text-muted hover:text-ink'
-                  }
-                >
-                  Plataforma
-                </NavLink>
-                <NavLink
-                  to="/panel/admin/actividad"
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-sm font-semibold text-brand'
-                      : 'text-sm font-medium text-muted hover:text-ink'
-                  }
-                >
-                  Actividad
-                </NavLink>
-                {businesses && businesses.length > 0 && (
-                  <select
+                {/* El selector solo aparece dentro de un negocio: en la
+                    plataforma no hay ninguno abierto que cambiar. */}
+                {!esPlataforma && businesses && businesses.length > 0 && (
+                  <Select
                     value={slug}
                     onChange={(e) => navigate(`/panel/${e.target.value}`)}
-                    className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
                     aria-label="Cambiar de negocio"
+                    className="h-10 w-auto max-w-[190px] text-meta"
                   >
-                    {!slug && <option value="">— negocio —</option>}
                     {businesses.map((b) => (
                       <option key={b.id} value={b.slug}>
                         {b.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 )}
+                <NavLink
+                  to={esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin'}
+                  className={cx(
+                    'inline-flex min-h-10 items-center rounded-full border border-line-strong',
+                    'bg-surface px-4 text-meta font-semibold text-body-2',
+                    'transition-colors duration-200 hover:border-brand hover:text-brand',
+                  )}
+                >
+                  {esPlataforma ? 'Ir a un negocio' : 'Plataforma'}
+                </NavLink>
               </>
             )}
 
-            <div className="flex items-center gap-3">
-              <NavLink
-                to={slug ? `/panel/${slug}/cuenta` : '/panel/admin/cuenta'}
-                className={({ isActive }) =>
-                  isActive
-                    ? 'hidden text-[12.5px] font-semibold text-brand sm:block'
-                    : 'hidden text-[12.5px] text-muted hover:text-ink sm:block'
-                }
+            <NavLink
+              to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+              className={({ isActive }) =>
+                cx(
+                  'inline-flex min-h-10 max-w-[220px] items-center gap-2 rounded-full px-3',
+                  'text-meta transition-colors duration-200',
+                  isActive ? 'bg-ink text-cream' : 'text-body-2 hover:bg-canvas hover:text-ink',
+                )
+              }
+            >
+              <span
+                aria-hidden
+                className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-caption font-bold text-white"
               >
-                {user.name} ·{' '}
-                {user.role === 'SUPERADMIN'
-                  ? 'Superadmin'
-                  : user.role === 'ADMIN'
-                    ? 'Administrador'
-                    : 'Equipo'}
-              </NavLink>
-              <button
-                type="button"
-                onClick={() => {
-                  void logout().then(() => navigate('/login'))
-                }}
-                className="text-[12.5px] font-semibold text-muted underline hover:text-brand"
-              >
-                Salir
-              </button>
-            </div>
+                {user.name.trim().charAt(0).toUpperCase()}
+              </span>
+              <span className="truncate">
+                <span className="font-semibold">{user.name}</span>
+                <span className="hidden sm:inline"> · {ROL_LABEL[user.role]}</span>
+              </span>
+            </NavLink>
+
+            <Button
+              size="sm"
+              variant="quiet"
+              onClick={() => {
+                void logout().then(() => navigate('/login'))
+              }}
+            >
+              Salir
+            </Button>
           </div>
         </div>
 
-        {slug && (
-          <div className="mx-auto flex max-w-[1200px] gap-7 px-6">
+        {/* Se puede arrastrar en móvil: con cinco pestañas no caben en 375 px,
+            y cortarlas sin scroll esconde las últimas para siempre. */}
+        <div className="mx-auto max-w-[1200px] overflow-x-auto px-4 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="flex gap-1" aria-label="Secciones del panel">
             {tabs.map((tab) => (
-              <NavLink
-                key={tab.label}
-                to={tab.to ? `/panel/${slug}/${tab.to}` : `/panel/${slug}`}
-                end={tab.end}
-                className={({ isActive }) =>
-                  isActive
-                    ? 'border-b-2 border-brand pb-3 text-sm font-semibold text-ink'
-                    : 'pb-3 text-sm font-medium text-subtle hover:text-ink'
-                }
-              >
-                {tab.label}
-              </NavLink>
+              <Tab key={tab.to} {...tab} />
             ))}
-          </div>
-        )}
+          </nav>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-[1200px] px-6 py-8">
+      {negocioActual && (
+        <div className="mx-auto max-w-[1200px] px-4 pt-6 sm:px-6">
+          <p className="text-meta text-muted">
+            Estás gestionando{' '}
+            <span className="font-semibold text-body-2">{negocioActual.name}</span>
+          </p>
+        </div>
+      )}
+
+      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>
     </div>

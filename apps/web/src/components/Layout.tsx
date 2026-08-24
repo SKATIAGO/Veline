@@ -118,14 +118,16 @@ function Footer() {
           {columns.map((col) => (
             <div key={col.title}>
               <div className="mb-3.5 text-[12.5px] font-semibold text-ink">{col.title}</div>
-              <div className="flex flex-col gap-2.5 text-[13.5px] text-subtle">
+              {/* -my-1.5 compensa el padding: el blanco pulsable crece a 32 px
+                  sin que la lista se vea más separada de lo que estaba. */}
+              <div className="-my-1.5 flex flex-col text-body text-subtle">
                 {col.links.map((l) =>
                   l.href ? (
-                    <a key={l.label} href={l.href} className="hover:text-brand">
+                    <a key={l.label} href={l.href} className="py-1.5 hover:text-brand">
                       {l.label}
                     </a>
                   ) : (
-                    <Link key={l.label} to={l.to!} className="hover:text-brand">
+                    <Link key={l.label} to={l.to!} className="py-1.5 hover:text-brand">
                       {l.label}
                     </Link>
                   ),

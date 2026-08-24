@@ -39,7 +39,12 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
             <span className="font-semibold text-ink">{formatPrice(business.fromPriceCents)}</span>
           </div>
         )}
-        <ButtonLink to={`/${business.slug}`} variant="ghost" size="sm" className="mt-auto w-full">
+        <ButtonLink
+          to={`/${business.slug}`}
+          variant="secondary"
+          size="sm"
+          className="mt-auto w-full"
+        >
           Reservar
         </ButtonLink>
       </div>

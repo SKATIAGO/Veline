@@ -262,6 +262,23 @@ async function ensureUsers() {
   }
 
   if (process.env.NODE_ENV !== 'production') {
+    /* Superadmin de desarrollo. Sin esto, las pantallas de plataforma solo se
+       pueden probar en local si alguien define SUPERADMIN_EMAIL a mano, y lo
+       normal es acabar tocando la base de datos para verlas. Va con la misma
+       guarda que los demás usuarios de prueba: en producción no se crea. */
+    const demoSuper = 'super@veline.test'
+    if (!(await prisma.user.findUnique({ where: { email: demoSuper } }))) {
+      await prisma.user.create({
+        data: {
+          email: demoSuper,
+          name: 'Superadmin de prueba',
+          passwordHash: await hashPassword('veline-demo-1234'),
+          role: 'SUPERADMIN',
+        },
+      })
+      console.log(`✓ superadmin demo: ${demoSuper} — contraseña: veline-demo-1234`)
+    }
+
     const taller = await prisma.business.findUnique({ where: { slug: 'taller-mecanico-rivas' } })
     if (taller) {
       const demos = [

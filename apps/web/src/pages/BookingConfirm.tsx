@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { Button, Card, ErrorNote, Spinner } from '../components/ui'
+import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
 
 interface FieldProps {
   label: string
@@ -129,16 +129,9 @@ export function BookingConfirm() {
 
   return (
     <>
-      <div className="border-b border-line">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-6 py-4 text-sm font-medium text-body lg:px-16">
-          <Link to={`/${slug}/reservar/fecha?servicio=${serviceId}`} className="hover:text-brand">
-            ‹
-          </Link>
-          <span>
-            {business.name} · {service.name}
-          </span>
-        </div>
-      </div>
+      <BackBar to={`/${slug}/reservar/fecha?servicio=${serviceId}`}>
+        {business.name} · {service.name}
+      </BackBar>
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-10 lg:flex-row lg:px-16">
         <div className="min-w-0 flex-[1.4]">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   formatDuration,
@@ -13,7 +13,7 @@ import {
   type SlotDTO,
 } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
+import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
@@ -120,16 +120,9 @@ export function BookingDate() {
 
   return (
     <>
-      <div className="border-b border-line">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-6 py-4 text-sm font-medium text-body lg:px-16">
-          <Link to={`/${slug}`} className="hover:text-brand">
-            ‹
-          </Link>
-          <span>
-            {business.name} · {service.name}
-          </span>
-        </div>
-      </div>
+      <BackBar to={`/${slug}`}>
+        {business.name} · {service.name}
+      </BackBar>
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         <div className="min-w-0 flex-[1.4]">
@@ -201,7 +194,7 @@ export function BookingDate() {
                   aria-label="Mes anterior"
                   disabled={month <= startOfMonth(today)}
                   onClick={() => setMonth(addMonths(month, -1))}
-                  className="flex size-9 items-center justify-center rounded-lg border border-line bg-surface text-ink disabled:opacity-40"
+                  className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line"
                 >
                   ‹
                 </button>
@@ -209,7 +202,7 @@ export function BookingDate() {
                   type="button"
                   aria-label="Mes siguiente"
                   onClick={() => setMonth(addMonths(month, 1))}
-                  className="flex size-9 items-center justify-center rounded-lg border border-line bg-surface text-ink"
+                  className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand"
                 >
                   ›
                 </button>
@@ -295,7 +288,8 @@ export function BookingDate() {
                                 disabled={!s.available}
                                 onClick={() => setSlot(s)}
                                 className={cx(
-                                  'rounded-lg border py-2.5 text-[13px] font-semibold transition-colors',
+                                  'inline-flex min-h-11 items-center justify-center rounded-full border',
+                                  'text-body font-semibold transition-colors duration-200',
                                   slot?.startsAt === s.startsAt
                                     ? 'border-brand bg-brand text-white'
                                     : s.available
@@ -310,7 +304,7 @@ export function BookingDate() {
                         </div>
                       ))}
 
-                    <div className="mt-6 flex justify-between border-t border-line pt-4 text-[13.5px]">
+                    <div className="mt-6 flex justify-between border-t border-line pt-4 text-body">
                       <span className="text-muted">
                         {service.name}
                         {slot && ` · ${slot.label}`}

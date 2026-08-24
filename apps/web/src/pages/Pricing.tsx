@@ -75,7 +75,9 @@ export function Pricing() {
               <ButtonLink
                 to="/panel"
                 variant={plan.variant}
-                className={cx('mb-7 w-full', plan.popular && 'sheen')}
+                size="lg"
+                block
+                className={cx('mb-7', plan.popular && 'sheen')}
               >
                 {plan.cta}
               </ButtonLink>
@@ -217,10 +219,10 @@ export function Pricing() {
           Pruébalo {PRUEBA_DIAS} días. Sin tarjeta.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ButtonLink to="/panel" className="sheen">
+          <ButtonLink to="/panel" size="lg" className="sheen">
             Empezar la prueba
           </ButtonLink>
-          <ButtonLink to="/" variant="ghost">
+          <ButtonLink to="/" variant="secondary" size="lg">
             Ver todo lo que incluye
           </ButtonLink>
         </div>

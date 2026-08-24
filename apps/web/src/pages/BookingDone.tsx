@@ -131,7 +131,7 @@ export function BookingDone() {
 
         {!cancelled && (
           <div className="flex w-full flex-col gap-3 sm:flex-row">
-            <Button variant="ghost" className="flex-1" onClick={() => downloadIcs(booking)}>
+            <Button variant="secondary" className="flex-1" onClick={() => downloadIcs(booking)}>
               Añadir al calendario
             </Button>
             <ButtonLink to="/" className="flex-1">

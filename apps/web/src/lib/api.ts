@@ -160,6 +160,15 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  /** Todos los usuarios de la plataforma, con su negocio. */
+  adminUsers: () => request<AdminUser[]>('/admin/users'),
+
+  setAdminUserActive: (id: string, active: boolean) =>
+    request<{ ok: true }>(`/admin/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    }),
+
   createAdminUser: (body: {
     name: string
     email: string
@@ -246,6 +255,16 @@ export interface AdminBusiness {
   email: string | null
   createdAt: string
   counts: { bookings: number; users: number; services: number; staff: number }
+}
+
+export interface AdminUser {
+  id: string
+  name: string
+  email: string
+  role: 'SUPERADMIN' | 'ADMIN' | 'EMPLEADO'
+  active: boolean
+  business: { slug: string; name: string } | null
+  createdAt: string
 }
 
 export interface AuditEntry {

@@ -18,21 +18,23 @@ Para empezar de cero: `docker compose down -v && docker compose up --build`.
 
 ## Documentación
 
-| Doc                                                            | Qué hay adentro                                                                                         |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [docs/00-producto.md](docs/00-producto.md)                     | Qué es Veline, posicionamiento frente a la competencia, tono de voz, estado de cada decisión            |
-| [docs/01-identidad-visual.md](docs/01-identidad-visual.md)     | Paleta, tipografía, logo seleccionado y especificaciones de componentes                                 |
-| [docs/02-pantallas-y-flujos.md](docs/02-pantallas-y-flujos.md) | Inventario completo de pantallas diseñadas y rutas implícitas                                           |
-| [docs/03-modelo-de-negocio.md](docs/03-modelo-de-negocio.md)   | Planes, comisión del marketplace y lo que eso obliga en el modelo de datos                              |
-| [docs/04-pendientes.md](docs/04-pendientes.md)                 | Qué se ha resuelto, qué sigue abierto y por dónde continuar                                             |
-| [docs/05-stack.md](docs/05-stack.md)                           | Stack, motor de disponibilidad, comisión, verificación y limitaciones                                   |
-| [docs/06-brief-gestion-1.md](docs/06-brief-gestion-1.md)       | Brief de Eli: eslogan, destacados de la home y servicios para empresas                                  |
-| [docs/07-ngrok.md](docs/07-ngrok.md)                           | Enseñar el boceto fuera de localhost con un túnel — y qué mirar antes                                   |
-| [docs/08-correo.md](docs/08-correo.md)                         | Correo transaccional con Brevo: qué se envía, los tres modos y qué falta                                |
-| [docs/09-despliegue.md](docs/09-despliegue.md)                 | Desplegar en un VPS con dominio propio: DNS, Docker Compose de producción, HTTPS, backups               |
-| [docs/10-cicd.md](docs/10-cicd.md)                             | Despliegue automático desde GitHub: qué verifica, cómo revierte y por qué el repo público exige cuidado |
-| [docs/11-seguridad.md](docs/11-seguridad.md)                   | Qué está protegido, qué no y cómo comprobarlo                                                           |
-| [docs/12-auditoria.md](docs/12-auditoria.md)                   | Registro de actividad: quién hizo qué, quién puede verlo y por qué nunca guarda secretos                |
+| Doc                                                              | Qué hay adentro                                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [docs/00-producto.md](docs/00-producto.md)                       | Qué es Veline, posicionamiento frente a la competencia, tono de voz, estado de cada decisión            |
+| [docs/01-identidad-visual.md](docs/01-identidad-visual.md)       | Paleta, tipografía, logo seleccionado y especificaciones de componentes                                 |
+| [docs/02-pantallas-y-flujos.md](docs/02-pantallas-y-flujos.md)   | Inventario completo de pantallas diseñadas y rutas implícitas                                           |
+| [docs/03-modelo-de-negocio.md](docs/03-modelo-de-negocio.md)     | Planes, comisión del marketplace y lo que eso obliga en el modelo de datos                              |
+| [docs/04-pendientes.md](docs/04-pendientes.md)                   | Qué se ha resuelto, qué sigue abierto y por dónde continuar                                             |
+| [docs/05-stack.md](docs/05-stack.md)                             | Stack, motor de disponibilidad, comisión, verificación y limitaciones                                   |
+| [docs/06-brief-gestion-1.md](docs/06-brief-gestion-1.md)         | Brief de Eli: eslogan, destacados de la home y servicios para empresas                                  |
+| [docs/07-ngrok.md](docs/07-ngrok.md)                             | Enseñar el boceto fuera de localhost con un túnel — y qué mirar antes                                   |
+| [docs/08-correo.md](docs/08-correo.md)                           | Correo transaccional con Brevo: qué se envía, los tres modos y qué falta                                |
+| [docs/09-despliegue.md](docs/09-despliegue.md)                   | Desplegar en un VPS con dominio propio: DNS, Docker Compose de producción, HTTPS, backups               |
+| [docs/10-cicd.md](docs/10-cicd.md)                               | Despliegue automático desde GitHub: qué verifica, cómo revierte y por qué el repo público exige cuidado |
+| [docs/11-seguridad.md](docs/11-seguridad.md)                     | Qué está protegido, qué no y cómo comprobarlo                                                           |
+| [docs/12-auditoria.md](docs/12-auditoria.md)                     | Registro de actividad: quién hizo qué, quién puede verlo y por qué nunca guarda secretos                |
+| [docs/13-sistema-de-interfaz.md](docs/13-sistema-de-interfaz.md) | Reglas de botones, campos y escala tipográfica — y el problema de zonas pulsables que resolvieron       |
+| [docs/14-panel-superadmin.md](docs/14-panel-superadmin.md)       | Qué puede hacer quien lleva Veline: negocios, cuentas de acceso y actividad                             |
 
 ## Código
 

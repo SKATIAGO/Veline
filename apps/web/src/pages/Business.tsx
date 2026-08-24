@@ -9,7 +9,7 @@ import {
   WEEKDAYS_LONG,
 } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
+import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
 import { Photo } from '../components/Photo'
 import { Lightbox } from '../components/Lightbox'
 
@@ -122,14 +122,7 @@ export function Business() {
 
   return (
     <>
-      <div className="border-b border-line">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-6 py-4 text-sm font-medium text-body lg:px-16">
-          <Link to="/buscar" className="hover:text-brand">
-            ‹
-          </Link>
-          <span>{business.name}</span>
-        </div>
-      </div>
+      <BackBar to="/buscar">{business.name}</BackBar>
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         {/* Columna principal */}
@@ -174,7 +167,7 @@ export function Business() {
               <button
                 type="button"
                 onClick={() => setLightbox(0)}
-                className="absolute bottom-3 left-3 rounded-lg bg-surface/95 px-3.5 py-2 text-[12.5px] font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
+                className="absolute bottom-3 left-3 inline-flex min-h-10 items-center rounded-full bg-surface/95 px-4 text-meta font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
               >
                 Ver las {business.photos.length} fotos
               </button>
@@ -188,17 +181,19 @@ export function Business() {
             {location && ` · ${location.street}, ${location.city}`}
           </div>
 
-          <div className="mt-6 flex gap-7 border-b border-line">
+          <div className="mt-6 flex gap-1 border-b border-line">
             {TABS.map((t) => (
               <button
                 key={t}
                 type="button"
+                aria-pressed={t === tab}
                 onClick={() => setTab(t)}
-                className={
+                className={cx(
+                  'inline-flex min-h-11 items-center border-b-2 px-3 text-body transition-colors duration-200',
                   t === tab
-                    ? 'border-b-2 border-brand pb-2.5 text-sm font-semibold text-ink'
-                    : 'pb-2.5 text-sm font-medium text-subtle hover:text-ink'
-                }
+                    ? 'border-brand font-semibold text-ink'
+                    : 'border-transparent font-medium text-subtle hover:border-line-strong hover:text-ink',
+                )}
               >
                 {t}
               </button>
@@ -220,7 +215,7 @@ export function Business() {
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
                     <span className="font-semibold text-ink">{formatPrice(s.priceCents)}</span>
-                    <Button variant="ghost" size="sm" onClick={() => goBook(s.id)}>
+                    <Button variant="secondary" size="sm" onClick={() => goBook(s.id)}>
                       Reservar
                     </Button>
                   </div>

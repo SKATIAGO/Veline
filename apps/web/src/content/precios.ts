@@ -13,7 +13,7 @@ export const PLANES = [
     price: 'Gratis',
     period: `${PRUEBA_DIAS} días`,
     cta: 'Empezar la prueba',
-    variant: 'ghost' as const,
+    variant: 'secondary' as const,
     features: [
       'Todo lo del plan Negocio',
       'Sin tarjeta y sin permanencia',
@@ -46,7 +46,7 @@ export const PLANES = [
     pricePrefix: '+',
     period: '/mes por persona de más',
     cta: 'Hablar con ventas',
-    variant: 'ghost' as const,
+    variant: 'secondary' as const,
     features: [
       'Todo lo de Negocio',
       'Personas y locales ilimitados',

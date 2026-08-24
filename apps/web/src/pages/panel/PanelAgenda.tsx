@@ -1,8 +1,19 @@
+import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
-import { Card, EmptyState, Spinner, cx } from '../../components/ui'
+import {
+  Badge,
+  Card,
+  ConfirmAction,
+  EmptyState,
+  ErrorNote,
+  FilterChip,
+  PageHeader,
+  Skeleton,
+  cx,
+} from '../../components/ui'
 
 const SOURCE_LABEL: Record<string, string> = {
   MARKETPLACE: 'Marketplace',
@@ -11,12 +22,21 @@ const SOURCE_LABEL: Record<string, string> = {
   GOOGLE: 'Google',
 }
 
+/** Rangos que de verdad se miran: lo de hoy, la semana, y todo. */
+const RANGOS = [
+  { key: 'hoy', label: 'Hoy', dias: 0 },
+  { key: 'semana', label: 'Próximos 7 días', dias: 7 },
+  { key: 'todo', label: 'Todo', dias: null },
+] as const
+
+type RangoKey = (typeof RANGOS)[number]['key']
+
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <Card className="p-5">
-      <div className="text-[12.5px] font-medium text-muted">{label}</div>
-      <div className="mt-1.5 font-display text-[26px] font-semibold text-ink">{value}</div>
-      {hint && <div className="mt-1 text-[12px] text-subtle">{hint}</div>}
+      <div className="text-meta font-medium text-muted">{label}</div>
+      <div className="mt-1.5 font-display text-heading font-semibold text-ink">{value}</div>
+      {hint && <div className="mt-1 text-meta text-subtle">{hint}</div>}
     </Card>
   )
 }
@@ -27,6 +47,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
     mutationFn: () => api.cancelBooking(booking.code, 'Cancelada desde el panel'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['panel', slug] })
+      queryClient.invalidateQueries({ queryKey: ['audit'] })
     },
   })
 
@@ -36,65 +57,78 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   const cancelled = booking.status === 'CANCELADA'
 
   return (
-    <div
-      className={cx(
-        'flex flex-wrap items-center gap-4 border-b border-line px-5 py-4 last:border-b-0',
-        cancelled && 'opacity-55',
-      )}
-    >
-      <div className="w-[104px] shrink-0">
-        <div
-          className={cx('font-display text-lg font-semibold text-ink', cancelled && 'line-through')}
-        >
-          {fmt(start)}
-        </div>
-        <div className="text-[12px] text-subtle">hasta {fmt(end)}</div>
-      </div>
-
-      <div className="min-w-[180px] flex-1">
-        <div className="font-semibold text-ink">{booking.service.name}</div>
-        <div className="mt-0.5 text-[13px] text-muted">
-          {booking.customer.name} · {booking.customer.phone}
-        </div>
-        {booking.notes && (
-          <div className="mt-1 text-[12.5px] text-subtle italic">{booking.notes}</div>
+    <li className="border-b border-line last:border-b-0">
+      <div
+        className={cx(
+          'flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:px-5',
+          cancelled && 'opacity-55',
         )}
-      </div>
-
-      <div className="hidden w-[140px] text-[13px] text-muted sm:block">
-        {booking.staff?.name ?? 'Sin asignar'}
-      </div>
-
-      <div className="w-[120px] text-right">
-        <div className="font-semibold text-ink">{formatPrice(booking.priceCents)}</div>
-        <div className="text-[11.5px] text-subtle">
-          {SOURCE_LABEL[booking.source] ?? booking.source}
-          {booking.isFirstFromMarketplace && ' · nuevo'}
-        </div>
-      </div>
-
-      <div className="w-[110px] text-right">
-        {cancelled ? (
-          <span className="text-[12.5px] font-semibold text-muted">Cancelada</span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirm(`¿Cancelar la cita de ${booking.customer.name}?`)) cancel.mutate()
-            }}
-            disabled={cancel.isPending}
-            className="text-[12.5px] font-semibold text-muted underline hover:text-brand"
+      >
+        <div className="w-[92px] shrink-0">
+          <div
+            className={cx(
+              'font-display text-subheading font-semibold text-ink tabular-nums',
+              cancelled && 'line-through',
+            )}
           >
-            {cancel.isPending ? 'Cancelando…' : 'Cancelar'}
-          </button>
-        )}
+            {fmt(start)}
+          </div>
+          <div className="text-meta text-subtle tabular-nums">hasta {fmt(end)}</div>
+        </div>
+
+        <div className="min-w-[180px] flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-ui font-semibold text-ink">{booking.service.name}</span>
+            {cancelled && <Badge tone="off">Cancelada</Badge>}
+            {!cancelled && booking.isFirstFromMarketplace && <Badge tone="ok">Cliente nuevo</Badge>}
+          </div>
+          <p className="mt-0.5 text-meta text-muted">
+            {booking.customer.name} ·{' '}
+            <a href={`tel:${booking.customer.phone}`} className="hover:text-brand hover:underline">
+              {booking.customer.phone}
+            </a>
+          </p>
+          {booking.notes && <p className="mt-1 text-meta text-subtle italic">{booking.notes}</p>}
+        </div>
+
+        <div className="hidden w-[130px] text-meta text-muted sm:block">
+          {booking.staff?.name ?? 'Sin asignar'}
+        </div>
+
+        <div className="w-[104px] text-right">
+          <div className="text-ui font-semibold text-ink tabular-nums">
+            {formatPrice(booking.priceCents)}
+          </div>
+          <div className="text-caption text-subtle">
+            {SOURCE_LABEL[booking.source] ?? booking.source}
+          </div>
+        </div>
+
+        <div className="ml-auto flex justify-end sm:ml-0 sm:w-[190px]">
+          {!cancelled && (
+            <ConfirmAction
+              label="Cancelar"
+              question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
+              confirmLabel="Sí, cancelar"
+              loading={cancel.isPending}
+              onConfirm={() => cancel.mutate()}
+            />
+          )}
+        </div>
       </div>
-    </div>
+
+      {cancel.isError && (
+        <div className="px-4 pb-4 sm:px-5">
+          <ErrorNote>{(cancel.error as Error).message}</ErrorNote>
+        </div>
+      )}
+    </li>
   )
 }
 
 export function PanelAgenda() {
   const { slug = '' } = useParams()
+  const [rango, setRango] = useState<RangoKey>('semana')
 
   const { data: summary } = useQuery({
     queryKey: ['panel', slug, 'summary'],
@@ -106,19 +140,41 @@ export function PanelAgenda() {
     queryFn: () => api.panelBookings(slug),
   })
 
-  const grouped = new Map<string, PanelBooking[]>()
-  for (const b of bookings ?? []) {
-    const key = toDateKey(new Date(b.startsAt))
-    grouped.set(key, [...(grouped.get(key) ?? []), b])
-  }
+  /* El filtro se aplica en el cliente porque la consulta ya trae los próximos
+     14 días: pedir de nuevo al servidor para acortar la lista sería un viaje
+     de ida y vuelta para no traer nada nuevo. */
+  const grupos = useMemo(() => {
+    const dias = RANGOS.find((r) => r.key === rango)?.dias
+    const hoy = toDateKey(new Date())
+    const limite =
+      dias === null || dias === undefined
+        ? null
+        : toDateKey(new Date(Date.now() + dias * 86_400_000))
+
+    const map = new Map<string, PanelBooking[]>()
+    for (const b of bookings ?? []) {
+      const key = toDateKey(new Date(b.startsAt))
+      if (key < hoy) continue
+      if (limite && key > limite) continue
+      map.set(key, [...(map.get(key) ?? []), b])
+    }
+    return [...map.entries()]
+  }, [bookings, rango])
+
+  const total = grupos.reduce((n, [, filas]) => n + filas.length, 0)
 
   return (
-    <div>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-ink">
-        {summary?.business.name ?? 'Agenda'}
-      </h1>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={summary?.business.name ?? 'Agenda'}
+        hint={
+          summary
+            ? `${summary.serviceCount} servicios · ${summary.staffCount} personas en el equipo`
+            : undefined
+        }
+      />
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Citas hoy" value={String(summary?.todayCount ?? 0)} />
         <Stat label="Próximos 7 días" value={String(summary?.weekCount ?? 0)} />
         <Stat
@@ -137,28 +193,52 @@ export function PanelAgenda() {
         />
       </div>
 
-      <h2 className="mb-4 font-display text-lg font-semibold text-ink">Próximas citas</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-subheading font-semibold text-ink">
+          Próximas citas
+          {!isLoading && total > 0 && (
+            <span className="ml-2 text-body font-normal text-muted">({total})</span>
+          )}
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {RANGOS.map((r) => (
+            <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
+              {r.label}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
 
       {isLoading ? (
-        <Spinner />
-      ) : grouped.size === 0 ? (
+        <Card className="flex flex-col gap-3 p-5">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16" />
+          ))}
+        </Card>
+      ) : grupos.length === 0 ? (
         <EmptyState
-          title="No hay citas en los próximos 14 días"
-          hint="Cuando alguien reserve aparecerá aquí automáticamente."
+          title={rango === 'hoy' ? 'Hoy no hay citas' : 'No hay citas en este periodo'}
+          hint={
+            rango === 'todo'
+              ? 'Cuando alguien reserve aparecerá aquí automáticamente.'
+              : 'Prueba a ampliar el periodo con los filtros de arriba.'
+          }
         />
       ) : (
         <div className="flex flex-col gap-6">
-          {[...grouped.entries()].map(([key, rows]) => (
-            <div key={key}>
-              <div className="mb-2 text-[12.5px] font-semibold tracking-[0.04em] text-muted uppercase">
+          {grupos.map(([key, filas]) => (
+            <section key={key}>
+              <h3 className="mb-2 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
                 {formatLongDate(new Date(`${key}T00:00:00`))}
-              </div>
+              </h3>
               <Card className="overflow-hidden">
-                {rows.map((b) => (
-                  <BookingRow key={b.id} booking={b} slug={slug} />
-                ))}
+                <ul>
+                  {filas.map((b) => (
+                    <BookingRow key={b.id} booking={b} slug={slug} />
+                  ))}
+                </ul>
               </Card>
-            </div>
+            </section>
           ))}
         </div>
       )}
