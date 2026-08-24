@@ -37,7 +37,7 @@ function Header() {
         )}
       >
         <Logo />
-        <nav className="hidden items-center gap-9 text-[14.5px] font-medium text-body-2 lg:flex">
+        <nav className="hidden items-center gap-9 text-body font-medium text-body-2 lg:flex">
           {NAV.map((item) =>
             item.to.startsWith('/#') ? (
               // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
@@ -61,7 +61,7 @@ function Header() {
         <div className="flex items-center gap-3">
           <Link
             to="/login"
-            className="hidden text-[14.5px] font-medium text-ink hover:text-brand sm:block"
+            className="hidden min-h-10 items-center px-1 text-body font-medium text-ink hover:text-brand sm:inline-flex"
           >
             Iniciar sesión
           </Link>
@@ -109,15 +109,15 @@ function Footer() {
       <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
           <div className="mb-2.5 font-display text-xl font-semibold text-ink">Veline</div>
-          <p className="text-[13.5px] leading-relaxed text-subtle">{ESLOGAN}</p>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-subtle">
+          <p className="text-body leading-relaxed text-subtle">{ESLOGAN}</p>
+          <p className="mt-2 text-body leading-relaxed text-subtle">
             Reservas online para cualquier negocio de barrio.
           </p>
         </div>
         <div className="flex flex-wrap gap-10 sm:gap-16">
           {columns.map((col) => (
             <div key={col.title}>
-              <div className="mb-3.5 text-[12.5px] font-semibold text-ink">{col.title}</div>
+              <div className="mb-3.5 text-meta font-semibold text-ink">{col.title}</div>
               {/* -my-1.5 compensa el padding: el blanco pulsable crece a 32 px
                   sin que la lista se vea más separada de lo que estaba. */}
               <div className="-my-1.5 flex flex-col text-body text-subtle">

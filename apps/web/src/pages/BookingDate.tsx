@@ -131,7 +131,7 @@ export function BookingDate() {
           {/* Selector de servicio */}
           {business.services.length > 1 && (
             <label className="mb-6 block">
-              <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Servicio</span>
+              <span className="mb-1.5 block text-meta font-semibold text-body">Servicio</span>
               <select
                 value={service.id}
                 onChange={(e) => {
@@ -172,10 +172,10 @@ export function BookingDate() {
                           : 'bg-cream text-disabled',
                     )}
                   >
-                    <span className="text-[11px] font-medium opacity-80">
+                    <span className="text-caption font-medium opacity-80">
                       {WEEKDAYS_SHORT[d.getDay()]}
                     </span>
-                    <span className="text-[15px] font-semibold">{d.getDate()}</span>
+                    <span className="text-ui font-semibold">{d.getDate()}</span>
                   </button>
                 )
               })}

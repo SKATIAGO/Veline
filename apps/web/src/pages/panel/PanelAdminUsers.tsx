@@ -163,12 +163,12 @@ export function PanelAdminUsers() {
                   {u.business ? (
                     <Link
                       to={`/panel/${u.business.slug}`}
-                      className="text-caption text-subtle hover:text-brand hover:underline"
+                      className="-my-1 inline-flex min-h-8 items-center py-1 text-meta text-subtle hover:text-brand hover:underline"
                     >
                       {u.business.name}
                     </Link>
                   ) : (
-                    <span className="text-caption text-subtle">Toda la plataforma</span>
+                    <span className="text-meta text-subtle">Toda la plataforma</span>
                   )}
                 </div>
 

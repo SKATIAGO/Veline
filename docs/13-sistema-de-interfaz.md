@@ -27,7 +27,12 @@ Medido en el navegador, antes y después:
 
 ## Reglas
 
-**Ningún control baja de 36 px de alto.** 36 para acciones dentro de una fila, 44 para los de
+**Ningún control baja de 30 px, y ninguno accionable de 36.** Comprobado midiendo en el
+navegador las nueve páginas públicas (229 controles) y las nueve del panel (190). La única
+excepción son los enlaces dentro de un párrafo de texto corrido, que **WCAG 2.5.8 exime
+expresamente**: agrandarlos rompería el interlineado de la frase que los contiene.
+
+36 para acciones dentro de una fila, 44 para los de
 página entera, 48 para las llamadas a la acción de la web pública, 40 para los botones
 circulares de icono.
 
@@ -111,6 +116,6 @@ sistema.
 ## Lo que falta
 
 - **Navegación por teclado en las listas.** Se puede tabular, pero no recorrer filas con flechas.
-- **La web pública sigue con tamaños escritos a mano** en Landing, Search y Pricing. El panel y
-  el flujo de reserva ya están migrados; esas tres páginas son sobre todo texto de marketing y
-  no tienen controles pequeños, pero conviene terminarlas.
+- **Los titulares de la web pública siguen a medida** (24–52 px). Es deliberado: la escala de la
+  referencia se corta en 28 px porque describe una aplicación, no una portada, y meter un titular
+  de héroe en ese tope aplanaría la página. Los cuerpos y las etiquetas sí están migrados.

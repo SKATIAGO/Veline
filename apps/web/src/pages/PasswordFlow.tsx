@@ -62,12 +62,12 @@ export function ForgotPassword() {
         title="Revisa tu correo"
         subtitle="Si esa dirección tiene cuenta, le hemos enviado un enlace para elegir una contraseña nueva."
       >
-        <p className="text-center text-[13px] text-muted">
+        <p className="text-center text-meta text-muted">
           El enlace caduca en una hora. Si no llega, mira en spam o vuelve a pedirlo.
         </p>
         <Link
           to="/login"
-          className="mt-6 block text-center text-sm font-semibold text-brand-text hover:text-ink"
+          className="mt-4 flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
         >
           Volver a iniciar sesión
         </Link>
@@ -82,7 +82,7 @@ export function ForgotPassword() {
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Email</span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">Email</span>
           <input
             type="email"
             value={email}
@@ -99,7 +99,7 @@ export function ForgotPassword() {
       </form>
       <Link
         to="/login"
-        className="mt-6 block text-center text-[13px] font-medium text-muted hover:text-brand"
+        className="mt-4 flex min-h-11 items-center justify-center text-body font-medium text-muted hover:text-brand"
       >
         Volver a iniciar sesión
       </Link>
@@ -123,7 +123,7 @@ export function ResetPassword() {
       <AuthCard title="Enlace incompleto" subtitle="Este enlace no trae el código necesario.">
         <Link
           to="/recuperar"
-          className="block text-center text-sm font-semibold text-brand-text hover:text-ink"
+          className="flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
         >
           Pedir un enlace nuevo
         </Link>
@@ -153,9 +153,7 @@ export function ResetPassword() {
     <AuthCard title="Elige una contraseña nueva" subtitle="Al menos 10 caracteres.">
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] font-semibold text-body">
-            Nueva contraseña
-          </span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">Nueva contraseña</span>
           <input
             type="password"
             value={password}
@@ -168,7 +166,7 @@ export function ResetPassword() {
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Repítela</span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">Repítela</span>
           <input
             type="password"
             value={repeat}
@@ -187,7 +185,7 @@ export function ResetPassword() {
           {sending ? 'Guardando…' : 'Guardar contraseña'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-[12.5px] text-subtle">
+      <p className="mt-6 text-center text-meta text-subtle">
         Al cambiarla se cierran todas las sesiones abiertas de tu cuenta.
       </p>
     </AuthCard>

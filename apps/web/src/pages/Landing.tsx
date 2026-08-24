@@ -33,7 +33,7 @@ function Check() {
   return (
     <span
       aria-hidden="true"
-      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] border-[1.5px] border-brand text-[11px] font-bold text-brand-text transition-colors duration-300 group-hover/item:bg-brand group-hover/item:text-white"
+      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] border-[1.5px] border-brand text-caption font-bold text-brand-text transition-colors duration-300 group-hover/item:bg-brand group-hover/item:text-white"
     >
       ✓
     </span>
@@ -69,7 +69,7 @@ export function Landing() {
 
         <div className="relative mx-auto flex max-w-[1440px] flex-col items-center gap-14 px-6 py-20 lg:flex-row lg:px-16 lg:py-24">
           <div className="min-w-0 flex-1">
-            <p className="rise mb-5 text-[13px] font-semibold tracking-[0.08em] text-accent uppercase">
+            <p className="rise mb-5 text-meta font-semibold tracking-[0.08em] text-accent uppercase">
               {ESLOGAN}
             </p>
             <h1
@@ -99,7 +99,7 @@ export function Landing() {
               </ButtonLink>
             </div>
             <p
-              className="rise mt-5 text-[13px] font-medium text-ondark-muted"
+              className="rise mt-5 text-meta font-medium text-ondark-muted"
               style={{ animationDelay: '320ms' }}
             >
               {PRUEBA_DIAS} días de prueba sin permanencia
@@ -213,7 +213,7 @@ export function Landing() {
           <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
             Desde la agenda hasta el último detalle
           </h2>
-          <p className="mb-10 max-w-[560px] text-[15.5px] leading-relaxed text-body">
+          <p className="mb-10 max-w-[560px] text-ui leading-relaxed text-body">
             Lo básico entra con la suscripción. Lo marcado como{' '}
             <span className="font-semibold text-ink">Plus</span> se contrata aparte, según lo que
             cada negocio necesite.
@@ -229,12 +229,12 @@ export function Landing() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-ink">{s.title}</span>
                     {'plus' in s && s.plus && (
-                      <span className="rounded-full bg-accent px-2 py-0.5 text-[10.5px] font-semibold tracking-wide text-ink uppercase">
+                      <span className="rounded-full bg-accent px-2 py-0.5 text-caption font-semibold tracking-wide text-ink uppercase">
                         Plus
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-[14px] leading-relaxed text-muted">{s.text}</p>
+                  <p className="mt-1 text-body leading-relaxed text-muted">{s.text}</p>
                 </div>
               </div>
             </Reveal>
@@ -252,7 +252,7 @@ export function Landing() {
               <h2 className="quill max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
                 Así te ven tus clientes
               </h2>
-              <p className="mt-6 max-w-[560px] text-[15.5px] leading-relaxed text-body">
+              <p className="mt-6 max-w-[560px] text-ui leading-relaxed text-body">
                 Tu negocio entra en el marketplace de Veline, donde la gente de tu zona busca y
                 reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre ahí;
                 si ya era tuyo, es gratis siempre.
@@ -261,7 +261,7 @@ export function Landing() {
             <Reveal delay={120}>
               <Link
                 to="/buscar"
-                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-text hover:text-ink"
+                className="group inline-flex min-h-10 items-center gap-1.5 px-1 text-body font-semibold text-brand-text hover:text-ink"
               >
                 Ver el marketplace
                 <span className="transition-transform duration-300 group-hover:translate-x-1">
@@ -297,7 +297,7 @@ export function Landing() {
             <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">
               {ESLOGAN}
             </p>
-            <p className="mx-auto mt-4 mb-8 max-w-[460px] text-[15.5px] leading-relaxed text-muted">
+            <p className="mx-auto mt-4 mb-8 max-w-[460px] text-ui leading-relaxed text-muted">
               Pruébalo {PRUEBA_DIAS} días sin tarjeta y decide después.
             </p>
             <div className="flex flex-wrap justify-center gap-3">

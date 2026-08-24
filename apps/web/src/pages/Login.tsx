@@ -72,7 +72,7 @@ export function Login() {
 
         <form onSubmit={submit} className="flex flex-col gap-4">
           <label className="block">
-            <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Email</span>
+            <span className="mb-1.5 block text-meta font-semibold text-body">Email</span>
             <input
               type="email"
               value={email}
@@ -84,7 +84,7 @@ export function Login() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Contraseña</span>
+            <span className="mb-1.5 block text-meta font-semibold text-body">Contraseña</span>
             <input
               type="password"
               value={password}
@@ -105,12 +105,12 @@ export function Login() {
 
         <Link
           to="/recuperar"
-          className="mt-5 block text-center text-[13px] font-medium text-muted hover:text-brand"
+          className="mt-5 block text-center text-meta font-medium text-muted hover:text-brand"
         >
           ¿Olvidaste la contraseña?
         </Link>
 
-        <p className="mt-5 text-center text-[12.5px] text-subtle">
+        <p className="mt-5 text-center text-meta text-subtle">
           ¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a{' '}
           <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand-text">
             {CONTACT_EMAIL}

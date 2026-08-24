@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, ButtonLink, Card, EmptyState, Spinner } from '../components/ui'
+import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
 
 const icsStamp = (iso: string) => `${iso.replace(/[-:]/g, '').split('.')[0]}Z`
 
@@ -120,7 +120,7 @@ export function BookingDone() {
               : []),
             ['Total', formatPrice(booking.priceCents)],
           ].map(([label, value]) => (
-            <div key={label} className="mb-2.5 flex justify-between gap-4 text-[13px]">
+            <div key={label} className="mb-2.5 flex justify-between gap-4 text-meta">
               <span className="shrink-0 text-muted">{label}</span>
               <span className="text-right font-semibold text-ink first-letter:uppercase">
                 {value}
@@ -147,21 +147,24 @@ export function BookingDone() {
         )}
 
         {!cancelled && (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirm('¿Seguro que quieres cancelar esta reserva?')) cancel.mutate()
-            }}
-            disabled={cancel.isPending}
-            className="mt-5 text-[13px] font-medium text-muted underline hover:text-brand"
-          >
-            {cancel.isPending ? 'Cancelando…' : 'Cancelar la reserva'}
-          </button>
+          <div className="mt-5">
+            <ConfirmAction
+              label="Cancelar la reserva"
+              question="¿Seguro?"
+              confirmLabel="Sí, cancelar"
+              size="md"
+              loading={cancel.isPending}
+              onConfirm={() => cancel.mutate()}
+            />
+          </div>
         )}
 
-        <p className="mt-6 text-[12px] text-subtle">
+        <p className="mt-6 text-meta text-subtle">
           Guarda este enlace para consultar o cancelar tu cita:{' '}
-          <Link to={`/reserva/${booking.code}`} className="text-brand-text">
+          <Link
+            to={`/reserva/${booking.code}`}
+            className="inline-flex min-h-9 items-center px-1 font-semibold text-brand-text"
+          >
             /reserva/{booking.code}
           </Link>
         </p>

@@ -66,7 +66,7 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
     >
       {/* Barra superior */}
       <div className="flex shrink-0 items-center justify-between px-5 py-4">
-        <span className="text-[13px] font-medium text-ondark-muted">
+        <span className="text-meta font-medium text-ondark-muted">
           {index + 1} / {photos.length} · {title}
         </span>
         <button

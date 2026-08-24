@@ -91,9 +91,12 @@ export function Search() {
         />
       )}
 
-      <p className="mt-10 text-sm text-muted">
+      <p className="mt-10 text-body text-muted">
         ¿Tu negocio no está?{' '}
-        <Link to="/precios" className="font-semibold text-brand-text hover:text-ink">
+        <Link
+          to="/precios"
+          className="inline-flex min-h-10 items-center px-1 font-semibold text-brand-text hover:text-ink"
+        >
           Añádelo gratis
         </Link>
         .

@@ -249,6 +249,12 @@
   /* Enlaces del menú: subrayado que crece desde la izquierda */
   .veline-navlink {
     position: relative;
+    /* 40 px de alto: el subrayado animado se dibuja sobre el texto, no en el
+       borde de la caja, así que el enlace puede tener zona pulsable de sobra
+       sin que se despegue la línea. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
     padding-bottom: 3px;
     transition: color 0.25s ease;
   }
@@ -259,7 +265,7 @@
     content: '';
     position: absolute;
     inset-inline: 0;
-    bottom: 0;
+    bottom: 9px;
     height: 2px;
     border-radius: 2px;
     background: var(--color-brand);

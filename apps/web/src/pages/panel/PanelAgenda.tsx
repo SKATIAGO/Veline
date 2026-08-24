@@ -84,7 +84,10 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           </div>
           <p className="mt-0.5 text-meta text-muted">
             {booking.customer.name} ·{' '}
-            <a href={`tel:${booking.customer.phone}`} className="hover:text-brand hover:underline">
+            <a
+              href={`tel:${booking.customer.phone}`}
+              className="-my-1.5 inline-flex min-h-8 items-center rounded-lg px-1 py-1.5 hover:text-brand hover:underline"
+            >
               {booking.customer.phone}
             </a>
           </p>

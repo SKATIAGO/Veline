@@ -29,12 +29,12 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
         <div className="font-semibold text-ink transition-colors duration-300 group-hover:text-brand">
           {business.name}
         </div>
-        <div className="mt-1 mb-3 text-[12.5px] font-medium text-subtle">
+        <div className="mt-1 mb-3 text-meta font-medium text-subtle">
           {categoryLabel(business.category)} ·{' '}
           <Stars rating={business.rating} count={business.reviewCount} /> · {business.city}
         </div>
         {business.fromPriceCents !== null && (
-          <div className="mb-3 text-[12.5px] text-muted">
+          <div className="mb-3 text-meta text-muted">
             Desde{' '}
             <span className="font-semibold text-ink">{formatPrice(business.fromPriceCents)}</span>
           </div>

@@ -480,7 +480,7 @@ export function PanelAdmin() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       to={`/panel/${b.slug}`}
-                      className="text-ui font-semibold text-ink hover:text-brand hover:underline"
+                      className="-my-1.5 inline-flex min-h-8 items-center py-1.5 text-ui font-semibold text-ink hover:text-brand hover:underline"
                     >
                       {b.name}
                     </Link>

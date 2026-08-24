@@ -209,7 +209,7 @@ export function Business() {
                 >
                   <div className="min-w-0">
                     <div className="font-semibold text-ink">{s.name}</div>
-                    <div className="mt-1 text-[13px] text-subtle">
+                    <div className="mt-1 text-meta text-subtle">
                       {formatDuration(s.durationMin)}
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export function Business() {
               {business.description && <p className="mb-6 max-w-[560px]">{business.description}</p>}
               <div className="grid max-w-[560px] gap-6 sm:grid-cols-2">
                 <div>
-                  <div className="mb-2 text-[12.5px] font-semibold text-ink">Dirección</div>
+                  <div className="mb-2 text-meta font-semibold text-ink">Dirección</div>
                   {location ? (
                     <p className="text-muted">
                       {location.street}
@@ -256,7 +256,7 @@ export function Business() {
                   {business.phone && <p className="mt-2 text-muted">Tel. {business.phone}</p>}
                 </div>
                 <div>
-                  <div className="mb-2 text-[12.5px] font-semibold text-ink">Horario</div>
+                  <div className="mb-2 text-meta font-semibold text-ink">Horario</div>
                   <ul className="space-y-1 text-muted">
                     {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
                       const rows = business.openingHours.filter((h) => h.weekday === wd)
@@ -291,14 +291,14 @@ export function Business() {
             </div>
             {location && (
               <>
-                <div className="mb-1 text-[13px] font-medium text-muted">Dirección</div>
-                <div className="mb-4 text-[13.5px] text-ink">
+                <div className="mb-1 text-meta font-medium text-muted">Dirección</div>
+                <div className="mb-4 text-body text-ink">
                   {location.street}, {location.city}
                 </div>
               </>
             )}
-            <div className="mb-1 text-[13px] font-medium text-muted">Hoy</div>
-            <div className="mb-5 text-[13.5px] text-ink">
+            <div className="mb-1 text-meta font-medium text-muted">Hoy</div>
+            <div className="mb-5 text-body text-ink">
               {todayHours.length
                 ? todayHours
                     .map((h) => `${formatMinutes(h.startMin)} – ${formatMinutes(h.endMin)}`)

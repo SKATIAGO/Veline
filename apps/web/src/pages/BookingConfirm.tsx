@@ -31,7 +31,7 @@ function Field({
     (error ? 'border-brand' : 'border-line focus:border-brand')
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[12.5px] font-semibold text-body">
+      <span className="mb-1.5 block text-meta font-semibold text-body">
         {label}
         {optional && <span className="font-normal text-subtle"> (opcional)</span>}
       </span>
@@ -52,7 +52,7 @@ function Field({
           className={cls}
         />
       )}
-      {error && <span className="mt-1.5 block text-[12.5px] text-brand-text">{error}</span>}
+      {error && <span className="mt-1.5 block text-meta text-brand-text">{error}</span>}
     </label>
   )
 }
@@ -172,7 +172,7 @@ export function BookingConfirm() {
             />
           </div>
 
-          <p className="mt-6 max-w-[440px] text-[12.5px] leading-relaxed text-muted">
+          <p className="mt-6 max-w-[440px] text-meta leading-relaxed text-muted">
             No hace falta crear cuenta. Guardamos tu teléfono para identificar la reserva y avisarte
             si el negocio necesita cambiar la hora.
           </p>
@@ -195,7 +195,7 @@ export function BookingConfirm() {
               },
               { label: 'Duración', value: formatDuration(service.durationMin) },
             ].map((row) => (
-              <div key={row.label} className="mb-2.5 flex justify-between gap-4 text-[13.5px]">
+              <div key={row.label} className="mb-2.5 flex justify-between gap-4 text-body">
                 <span className="shrink-0 text-muted">{row.label}</span>
                 <span className="text-right font-semibold text-ink first-letter:uppercase">
                   {row.value}
