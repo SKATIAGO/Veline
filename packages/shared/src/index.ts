@@ -10,6 +10,14 @@ export const LOCALE = 'es-ES'
 export const CURRENCY = 'EUR'
 export const TIMEZONE = 'Europe/Madrid'
 
+/**
+ * Buzón de contacto de Veline. Vive aquí y solo aquí: lo enlaza la web y lo
+ * llevan como Reply-To los correos que manda Veline, así que dos copias
+ * acabarían desincronizadas. Antes había un `hola@veline.es` que no existía,
+ * escrito a mano en dos páginas.
+ */
+export const CONTACT_EMAIL = 'veline.contacto@gmail.com'
+
 /* ── Categorías ─────────────────────────────────────────────── */
 
 export const CATEGORIES = [

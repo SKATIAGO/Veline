@@ -77,28 +77,24 @@ correo en modo live pero SIN BREVO_API_KEY: no se enviará nada
 Ese aviso existe porque el correo apagado es un fallo silencioso: las reservas se confirman
 igual y nadie nota que los avisos no salen hasta que se queja un cliente.
 
-### ⚠️ Pendiente: verificar el dominio
+### El remitente y el buzón de respuesta
 
-Hoy se envía desde **`desarrollo.cayab@gmail.com`**, que no es de Veline. Los correos llegan
-como "Veline <desarrollo.cayab@gmail.com>", en muchos clientes con el aviso de "enviado en
-nombre de", y con bastantes papeletas de acabar en spam.
+Se envía desde **`desarrollo.cayab@gmail.com`**, una cuenta que no es de Veline, por decisión
+tomada a sabiendas: verificar el dominio se deja para más adelante. Consecuencias que conviene
+tener presentes:
 
-`veline.es` ya está dado de alta como dominio en Brevo. Falta añadir estos tres registros TXT
-en Hostinger (DNS del dominio) y pulsar «Verificar» en Brevo:
+- Los correos llegan como «Veline \<desarrollo.cayab@gmail.com\>», y muchos clientes de correo
+  añaden un «enviado en nombre de».
+- Sin SPF ni DKIM propios, la entrega es peor: parte acabará en spam.
 
-| Tipo | Host              | Valor                                                                                                                                                                                                                              |
-| ---- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TXT  | `mail._domainkey` | `k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB` |
-| TXT  | `@`               | `brevo-code:4aa0775ea819933c14ba1daeaa82d4f6`                                                                                                                                                                                      |
-| TXT  | `_dmarc`          | `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`                                                                                                                                                                                 |
+Lo que sí está resuelto es **a dónde va una respuesta**. Todo correo de Veline lleva `Reply-To`
+al buzón de contacto (`CONTACT_EMAIL` en `@veline/shared`), así que responder escribe a Veline
+y no a la cuenta técnica. La única excepción es el aviso de cita nueva al negocio, que responde
+al cliente que reservó — que es lo que el negocio quiere al darle a «Responder».
 
-Cuando verifique, cambiar en el `.env` del VPS:
-
-```bash
-MAIL_FROM_EMAIL=reservas@veline.es
-```
-
-y recrear el contenedor de la API.
+Si algún día se verifica el dominio, `veline.es` ya está dado de alta en Brevo y solo faltarían
+tres registros TXT en Hostinger (DKIM en `mail._domainkey`, `brevo-code:…` en `@`, y DMARC en
+`_dmarc`) más cambiar `MAIL_FROM_EMAIL` a `reservas@veline.es`.
 
 ### ⚠️ La clave es compartida
 

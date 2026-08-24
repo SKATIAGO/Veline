@@ -1,4 +1,4 @@
-import { formatPrice } from '@veline/shared'
+import { CONTACT_EMAIL, formatPrice } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { DoorMotif, Glow, QuoteMark } from '../components/Ornaments'
@@ -204,7 +204,7 @@ export function Pricing() {
 
         <p className="mt-6 text-center text-sm text-muted">
           ¿Te queda alguna duda?{' '}
-          <a href="mailto:hola@veline.es" className="font-semibold text-brand hover:text-ink">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand hover:text-ink">
             Escríbenos
           </a>{' '}
           y te contestamos.

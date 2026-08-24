@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { CONTACT_EMAIL } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { Button, ErrorNote, Logo, Spinner } from '../components/ui'
@@ -111,8 +112,8 @@ export function Login() {
 
         <p className="mt-5 text-center text-[12.5px] text-subtle">
           ¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a{' '}
-          <a href="mailto:hola@veline.es" className="font-semibold text-brand">
-            hola@veline.es
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand">
+            {CONTACT_EMAIL}
           </a>
         </p>
       </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { ButtonLink, Logo, cx } from './ui'
 import { Awning } from './Ornaments'
+import { CONTACT_EMAIL } from '@veline/shared'
 import { ESLOGAN } from '../content/negocio'
 
 const NAV = [
@@ -95,7 +96,9 @@ function Footer() {
       title: 'Compañía',
       links: [
         { label: 'Sobre nosotros', to: '/' },
-        { label: 'Contacto', to: '/' },
+        // Contacto es un mailto, no una ruta: la página no existe y el enlace
+        // llevaba a la home, que no es contactar con nadie.
+        { label: 'Contacto', href: `mailto:${CONTACT_EMAIL}` },
       ],
     },
   ]
@@ -116,11 +119,17 @@ function Footer() {
             <div key={col.title}>
               <div className="mb-3.5 text-[12.5px] font-semibold text-ink">{col.title}</div>
               <div className="flex flex-col gap-2.5 text-[13.5px] text-subtle">
-                {col.links.map((l) => (
-                  <Link key={l.label} to={l.to} className="hover:text-brand">
-                    {l.label}
-                  </Link>
-                ))}
+                {col.links.map((l) =>
+                  l.href ? (
+                    <a key={l.label} href={l.href} className="hover:text-brand">
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link key={l.label} to={l.to!} className="hover:text-brand">
+                      {l.label}
+                    </Link>
+                  ),
+                )}
               </div>
             </div>
           ))}

@@ -13,6 +13,8 @@
  * escribir a nadie que no seas tú.
  */
 
+import { CONTACT_EMAIL } from '@veline/shared'
+
 const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email'
 
 export type MailMode = 'off' | 'dry' | 'live'
@@ -20,6 +22,7 @@ export type MailMode = 'off' | 'dry' | 'live'
 /** Dominios que nunca deben recibir correo real: son de ejemplo o de prueba. */
 const UNDELIVERABLE = /\.(test|invalid|example|local)$|@example\.(com|org|net)$/i
 
+/** Ver CONTACT_EMAIL en @veline/shared: el buzón vive en un único sitio. */
 export interface MailMessage {
   to: string
   toName?: string
@@ -95,7 +98,11 @@ export async function sendMail(message: MailMessage): Promise<MailResult> {
       subject,
       htmlContent: message.html,
       textContent: message.text,
-      ...(message.replyTo ? { replyTo: message.replyTo } : {}),
+      // Sin Reply-To, responder a un correo de Veline escribe al remitente
+      // técnico, que hoy es una cuenta ajena al proyecto. El buzón de contacto
+      // es el destino correcto salvo que la plantilla diga otro (el aviso al
+      // negocio responde al cliente que reservó).
+      replyTo: message.replyTo ?? { email: CONTACT_EMAIL, name: 'Veline' },
       ...(message.tag ? { tags: [message.tag] } : {}),
     }),
   })
