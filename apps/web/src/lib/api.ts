@@ -110,6 +110,21 @@ export const api = {
 
   me: () => request<{ user: AuthUser }>('/auth/me'),
 
+  forgotPassword: (email: string) =>
+    request<{ ok: true }>('/auth/forgot', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  resetPassword: (token: string, password: string) =>
+    request<{ ok: true }>('/auth/reset', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
+
+  changePassword: (current: string, next: string) =>
+    request<{ ok: true }>('/auth/password', {
+      method: 'POST',
+      body: JSON.stringify({ current, next }),
+    }),
+
   // ── Equipo del negocio (ADMIN) ─────────────────────────────
   panelUsers: (slug: string) => request<PanelUser[]>(`/panel/${slug}/users`),
 

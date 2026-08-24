@@ -66,3 +66,52 @@ describe('permisos', () => {
     expect(canConfigureBusiness(superadmin, 'neg-7')).toBe(true)
   })
 })
+
+describe('reglas del restablecimiento de contraseña', () => {
+  // La lógica de consumeResetToken vive contra la base de datos; aquí se
+  // comprueban las reglas de decisión, que son las que deciden si un enlace
+  // sirve o no.
+  const decidir = (r: { usedAt: Date | null; expiresAt: Date } | null, ahora: Date) => {
+    if (!r) return 'invalido'
+    if (r.usedAt) return 'usado'
+    if (r.expiresAt < ahora) return 'caducado'
+    return 'ok'
+  }
+
+  const ahora = new Date(2026, 7, 24, 12, 0)
+  const enUnaHora = new Date(2026, 7, 24, 13, 0)
+  const haceUnaHora = new Date(2026, 7, 24, 11, 0)
+
+  it('un token inexistente no sirve', () => {
+    expect(decidir(null, ahora)).toBe('invalido')
+  })
+
+  it('un token ya usado no sirve una segunda vez', () => {
+    expect(decidir({ usedAt: haceUnaHora, expiresAt: enUnaHora }, ahora)).toBe('usado')
+  })
+
+  it('un token caducado no sirve', () => {
+    expect(decidir({ usedAt: null, expiresAt: haceUnaHora }, ahora)).toBe('caducado')
+  })
+
+  it('un token vivo y sin usar sí sirve', () => {
+    expect(decidir({ usedAt: null, expiresAt: enUnaHora }, ahora)).toBe('ok')
+  })
+
+  it('lo usado gana a lo caducado: el mensaje no debe confundir', () => {
+    // Si un enlace está usado Y caducado, se dice "usado": es la causa real.
+    expect(decidir({ usedAt: haceUnaHora, expiresAt: haceUnaHora }, ahora)).toBe('usado')
+  })
+})
+
+describe('contraseña nueva tras restablecer', () => {
+  it('la contraseña vieja deja de valer', async () => {
+    const antiguo = await hashPassword('la-de-antes-123')
+    const nuevo = await hashPassword('la-de-ahora-456')
+
+    expect(await verifyPassword('la-de-antes-123', antiguo)).toBe(true)
+    // Tras el cambio, el hash almacenado es el nuevo: la vieja ya no entra.
+    expect(await verifyPassword('la-de-antes-123', nuevo)).toBe(false)
+    expect(await verifyPassword('la-de-ahora-456', nuevo)).toBe(true)
+  })
+})

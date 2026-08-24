@@ -43,8 +43,12 @@ await app.register(rateLimit, {
   timeWindow: '1 minute',
   // La salud la consulta el despliegue en bucle: no debe agotar el cupo.
   allowList: (req) => req.url === '/api/health',
+  // Se devuelve statusCode y message, no solo el texto: sin ellos, el objeto
+  // llega al manejador de errores sin código y se responde 500, como si el
+  // servidor fallara. Un límite de peticiones es 429, no un error nuestro.
   errorResponseBuilder: () => ({
-    error: 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.',
+    statusCode: 429,
+    message: 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.',
   }),
 })
 

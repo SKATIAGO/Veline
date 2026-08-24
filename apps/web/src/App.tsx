@@ -8,9 +8,11 @@ import { BookingConfirm } from './pages/BookingConfirm'
 import { BookingDone } from './pages/BookingDone'
 import { Pricing } from './pages/Pricing'
 import { Login } from './pages/Login'
+import { ForgotPassword, ResetPassword } from './pages/PasswordFlow'
 import { PanelIndex, PanelLayout } from './pages/panel/PanelLayout'
 import { PanelAdmin } from './pages/panel/PanelAdmin'
 import { PanelUsers } from './pages/panel/PanelUsers'
+import { PanelCuenta } from './pages/panel/PanelCuenta'
 import { PanelAgenda } from './pages/panel/PanelAgenda'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
@@ -31,16 +33,20 @@ function AppRoutes() {
     <Routes>
       {/* Panel del negocio — layout propio, sin la cabecera pública */}
       <Route path="/login" element={<Login />} />
+      <Route path="/recuperar" element={<ForgotPassword />} />
+      <Route path="/restablecer" element={<ResetPassword />} />
       <Route path="/panel" element={<PanelIndex />} />
       {/* /panel/admin va ANTES que /panel/:slug: el segmento estático gana */}
       <Route path="/panel/admin" element={<PanelLayout />}>
         <Route index element={<PanelAdmin />} />
+        <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
       <Route path="/panel/:slug" element={<PanelLayout />}>
         <Route index element={<PanelAgenda />} />
         <Route path="servicios" element={<PanelServices />} />
         <Route path="horario" element={<PanelHours />} />
         <Route path="equipo" element={<PanelUsers />} />
+        <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
 
       {/* Lado cliente */}

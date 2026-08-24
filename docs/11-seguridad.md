@@ -55,9 +55,28 @@ Detalles de diseño:
 - Las credenciales del superadmin viven en el servidor, en
   `/root/superadmin-credenciales.txt` (solo root).
 
-Queda pendiente dentro de este bloque: cambio y recuperación de contraseña
-(hoy la restablece el superadmin creando otra cuenta o vía SQL), y registro
-de auditoría de quién hizo qué.
+### 1b. Contraseñas: cambio y recuperación — RESUELTO
+
+- **Cambiar la contraseña estando dentro**: `/panel/{negocio}/cuenta`. Pide la
+  actual, exige 10 caracteres mínimo, y al cambiarla **cierra las demás
+  sesiones abiertas pero conserva la propia**: expulsa a quien tuviera la
+  contraseña vieja sin echar a quien la está cambiando.
+- **Recuperar por email**: `/recuperar` → enlace con token → `/restablecer`.
+  El token caduca en 1 hora, sirve **una sola vez**, y pedir uno nuevo
+  invalida el anterior. Al usarlo se cierran todas las sesiones.
+- La base guarda el **hash** del token, igual que las sesiones.
+- `/api/auth/forgot` responde siempre lo mismo exista o no la cuenta: si
+  distinguiera, sería una forma de averiguar qué emails están registrados.
+- Límites: 5 peticiones/minuto para pedir enlace y para iniciar sesión.
+
+⚠️ **La recuperación depende del correo.** Con `MAIL_MODE` distinto de `live`
+el enlace no llega a nadie. La API deja un aviso explícito en el log
+(`NO se ha enviado el correo de restablecimiento`) en vez de fallar en
+silencio, pero para que funcione de verdad hay que verificar `veline.es` en
+Brevo y poner `MAIL_MODE=live` — ver [08-correo.md](08-correo.md).
+
+Queda pendiente dentro de este bloque: registro de auditoría de quién hizo
+qué.
 
 ### 2. Datos personales
 

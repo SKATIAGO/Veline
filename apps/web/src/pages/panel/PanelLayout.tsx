@@ -109,14 +109,21 @@ export function PanelLayout() {
             )}
 
             <div className="flex items-center gap-3">
-              <span className="hidden text-[12.5px] text-muted sm:block">
+              <NavLink
+                to={slug ? `/panel/${slug}/cuenta` : '/panel/admin/cuenta'}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'hidden text-[12.5px] font-semibold text-brand sm:block'
+                    : 'hidden text-[12.5px] text-muted hover:text-ink sm:block'
+                }
+              >
                 {user.name} ·{' '}
                 {user.role === 'SUPERADMIN'
                   ? 'Superadmin'
                   : user.role === 'ADMIN'
                     ? 'Administrador'
                     : 'Equipo'}
-              </span>
+              </NavLink>
               <button
                 type="button"
                 onClick={() => {

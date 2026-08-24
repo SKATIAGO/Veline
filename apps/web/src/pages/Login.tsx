@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { Button, ErrorNote, Logo, Spinner } from '../components/ui'
@@ -8,6 +8,8 @@ import { DoorMotif, Glow } from '../components/Ornaments'
 export function Login() {
   const { user, loading, refresh } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const recienRestablecida = params.get('restablecida') === '1'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +63,12 @@ export function Login() {
           Entra con tu cuenta para gestionar tu negocio.
         </p>
 
+        {recienRestablecida && (
+          <p className="mb-5 rounded-lg border border-brand/40 bg-brand/8 px-4 py-3 text-center text-sm text-body-2">
+            Contraseña cambiada. Ya puedes entrar con la nueva.
+          </p>
+        )}
+
         <form onSubmit={submit} className="flex flex-col gap-4">
           <label className="block">
             <span className="mb-1.5 block text-[12.5px] font-semibold text-body">Email</span>
@@ -94,7 +102,14 @@ export function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-[12.5px] text-subtle">
+        <Link
+          to="/recuperar"
+          className="mt-5 block text-center text-[13px] font-medium text-muted hover:text-brand"
+        >
+          ¿Olvidaste la contraseña?
+        </Link>
+
+        <p className="mt-5 text-center text-[12.5px] text-subtle">
           ¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a{' '}
           <a href="mailto:hola@veline.es" className="font-semibold text-brand">
             hola@veline.es

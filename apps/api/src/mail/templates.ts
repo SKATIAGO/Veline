@@ -224,3 +224,34 @@ export function bookingCancelled(
     ].join('\n'),
   }
 }
+
+/* ── 4. Restablecer contraseña ────────────────────────────────── */
+
+export function passwordResetMail(to: { email: string; name: string }, url: string): MailMessage {
+  return {
+    to: to.email,
+    toName: to.name,
+    subject: 'Restablecer tu contraseña de Veline',
+    tag: 'restablecer-contrasena',
+    html: layout({
+      preheader: 'Enlace para elegir una contraseña nueva',
+      heading: 'Restablecer tu contraseña',
+      intro: `Hola ${to.name.split(' ')[0]}, hemos recibido una petición para cambiar la contraseña de tu panel.`,
+      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
+        El enlace caduca en <strong style="color:${INK};">1 hora</strong> y solo sirve una vez.
+        Si no has sido tú, puedes ignorar este correo: tu contraseña no cambia.
+      </p>`,
+      cta: { label: 'Elegir contraseña nueva', url },
+    }),
+    text: [
+      'Restablecer tu contraseña',
+      '',
+      'Hemos recibido una petición para cambiar la contraseña de tu panel de Veline.',
+      'El enlace caduca en 1 hora y solo sirve una vez.',
+      '',
+      url,
+      '',
+      'Si no has sido tú, ignora este correo: tu contraseña no cambia.',
+    ].join('\n'),
+  }
+}

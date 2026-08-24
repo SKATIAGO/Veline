@@ -219,8 +219,9 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  sessions Session[]
+  business       Business?       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+  passwordResets PasswordReset[]
 
   @@index([businessId])
 }
@@ -233,6 +234,24 @@ model Session {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Petición de restablecimiento de contraseña. Igual que las sesiones, se
+/// guarda el hash del token y no el token: quien leyera la tabla no podría
+/// usarlo para entrar en ninguna cuenta.
+model PasswordReset {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  /// Sella el momento de uso: un enlace solo sirve una vez.
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
