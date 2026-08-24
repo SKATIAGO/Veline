@@ -98,6 +98,60 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ hours }),
     }),
+
+  // ── Sesión ─────────────────────────────────────────────────
+  login: (email: string, password: string) =>
+    request<{ user: AuthUser }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  logout: () => request<{ ok: true }>('/auth/logout', { method: 'POST' }),
+
+  me: () => request<{ user: AuthUser }>('/auth/me'),
+
+  // ── Equipo del negocio (ADMIN) ─────────────────────────────
+  panelUsers: (slug: string) => request<PanelUser[]>(`/panel/${slug}/users`),
+
+  createPanelUser: (
+    slug: string,
+    body: { name: string; email: string; password: string; role: 'ADMIN' | 'EMPLEADO' },
+  ) => request<PanelUser>(`/panel/${slug}/users`, { method: 'POST', body: JSON.stringify(body) }),
+
+  setPanelUserActive: (slug: string, id: string, active: boolean) =>
+    request<{ ok: true }>(`/panel/${slug}/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    }),
+
+  // ── Plataforma (SUPERADMIN) ────────────────────────────────
+  adminBusinesses: () => request<AdminBusiness[]>('/admin/businesses'),
+
+  createAdminBusiness: (body: {
+    name: string
+    category: string
+    email: string
+    phone?: string
+    street: string
+    city: string
+    postalCode: string
+  }) =>
+    request<{ id: string; slug: string; name: string }>('/admin/businesses', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  createAdminUser: (body: {
+    name: string
+    email: string
+    password: string
+    role: 'ADMIN' | 'EMPLEADO'
+    businessId: string
+  }) =>
+    request<{ id: string; email: string }>('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 }
 
 export interface PanelSummary {
@@ -144,4 +198,33 @@ export interface PanelHour {
   weekday: number
   startMin: number
   endMin: number
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  name: string
+  role: 'SUPERADMIN' | 'ADMIN' | 'EMPLEADO'
+  businessSlug: string | null
+  businessName: string | null
+}
+
+export interface PanelUser {
+  id: string
+  name: string
+  email: string
+  role: 'SUPERADMIN' | 'ADMIN' | 'EMPLEADO'
+  active: boolean
+  createdAt: string
+}
+
+export interface AdminBusiness {
+  id: string
+  slug: string
+  name: string
+  category: string
+  plan: string
+  email: string | null
+  createdAt: string
+  counts: { bookings: number; users: number; services: number; staff: number }
 }

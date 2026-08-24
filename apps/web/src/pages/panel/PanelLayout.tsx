@@ -1,33 +1,70 @@
 import { Navigate, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useAuth } from '../../lib/auth'
 import { Logo, Spinner } from '../../components/ui'
 
-const TABS = [
-  { to: '', label: 'Agenda', end: true },
-  { to: 'servicios', label: 'Servicios', end: false },
-  { to: 'horario', label: 'Horario', end: false },
-]
+/**
+ * Marco del panel. Exige sesión y adapta la interfaz al rol:
+ *
+ *  - EMPLEADO   → solo la pestaña Agenda.
+ *  - ADMIN      → Agenda, Servicios, Horario y Equipo de SU negocio.
+ *  - SUPERADMIN → todo lo anterior en cualquier negocio, selector para
+ *                 cambiar de negocio y acceso a la gestión de la plataforma.
+ */
 
-/** /panel sin negocio: entra en el primero. Sustituir por el negocio de la
- *  sesión cuando exista login con Apple/Google. */
+/** /panel sin más: cada rol aterriza donde le corresponde. */
 export function PanelIndex() {
-  const { data, isLoading } = useQuery({
+  const { user, loading } = useAuth()
+  const { data: businesses, isLoading } = useQuery({
     queryKey: ['panel', 'businesses'],
     queryFn: api.panelBusinesses,
+    enabled: !!user,
   })
+
+  if (loading) return <Spinner label="Comprobando sesión…" />
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'SUPERADMIN' && user.businessSlug) {
+    return <Navigate to={`/panel/${user.businessSlug}`} replace />
+  }
   if (isLoading) return <Spinner />
-  if (!data?.length) return <p className="p-16 text-muted">No hay negocios dados de alta.</p>
-  return <Navigate to={`/panel/${data[0].slug}`} replace />
+  if (!businesses?.length) return <Navigate to="/panel/admin" replace />
+  return <Navigate to={`/panel/${businesses[0].slug}`} replace />
 }
 
 export function PanelLayout() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
+  const { user, loading, logout } = useAuth()
+
+  const esSuperadmin = user?.role === 'SUPERADMIN'
+  const puedeConfigurar = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN'
+
   const { data: businesses } = useQuery({
     queryKey: ['panel', 'businesses'],
     queryFn: api.panelBusinesses,
+    enabled: !!user,
   })
+
+  if (loading) return <Spinner label="Comprobando sesión…" />
+  if (!user) return <Navigate to="/login" replace />
+
+  // Un admin o empleado solo tiene un negocio: si la URL apunta a otro,
+  // se le lleva al suyo (la API rechazaría igualmente, esto es cortesía).
+  if (!esSuperadmin && user.businessSlug && slug && slug !== user.businessSlug) {
+    return <Navigate to={`/panel/${user.businessSlug}`} replace />
+  }
+
+  const tabs = [
+    { to: '', label: 'Agenda', end: true },
+    ...(puedeConfigurar
+      ? [
+          { to: 'servicios', label: 'Servicios', end: false },
+          { to: 'horario', label: 'Horario', end: false },
+          { to: 'equipo', label: 'Equipo', end: false },
+        ]
+      : []),
+  ]
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -40,50 +77,82 @@ export function PanelLayout() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="text-[12.5px] font-medium text-muted" htmlFor="panel-business">
-              Negocio
-            </label>
-            <select
-              id="panel-business"
-              value={slug}
-              onChange={(e) => navigate(`/panel/${e.target.value}`)}
-              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
-            >
-              {businesses?.map((b) => (
-                <option key={b.id} value={b.slug}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-4">
+            {esSuperadmin && (
+              <>
+                <NavLink
+                  to="/panel/admin"
+                  className={({ isActive }) =>
+                    isActive
+                      ? 'text-sm font-semibold text-brand'
+                      : 'text-sm font-medium text-muted hover:text-ink'
+                  }
+                >
+                  Plataforma
+                </NavLink>
+                {businesses && businesses.length > 0 && (
+                  <select
+                    value={slug}
+                    onChange={(e) => navigate(`/panel/${e.target.value}`)}
+                    className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink"
+                    aria-label="Cambiar de negocio"
+                  >
+                    {!slug && <option value="">— negocio —</option>}
+                    {businesses.map((b) => (
+                      <option key={b.id} value={b.slug}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </>
+            )}
+
+            <div className="flex items-center gap-3">
+              <span className="hidden text-[12.5px] text-muted sm:block">
+                {user.name} ·{' '}
+                {user.role === 'SUPERADMIN'
+                  ? 'Superadmin'
+                  : user.role === 'ADMIN'
+                    ? 'Administrador'
+                    : 'Equipo'}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  void logout().then(() => navigate('/login'))
+                }}
+                className="text-[12.5px] font-semibold text-muted underline hover:text-brand"
+              >
+                Salir
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="mx-auto flex max-w-[1200px] gap-7 px-6">
-          {TABS.map((tab) => (
-            <NavLink
-              key={tab.label}
-              to={tab.to ? `/panel/${slug}/${tab.to}` : `/panel/${slug}`}
-              end={tab.end}
-              className={({ isActive }) =>
-                isActive
-                  ? 'border-b-2 border-brand pb-3 text-sm font-semibold text-ink'
-                  : 'pb-3 text-sm font-medium text-subtle hover:text-ink'
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </div>
+        {slug && (
+          <div className="mx-auto flex max-w-[1200px] gap-7 px-6">
+            {tabs.map((tab) => (
+              <NavLink
+                key={tab.label}
+                to={tab.to ? `/panel/${slug}/${tab.to}` : `/panel/${slug}`}
+                end={tab.end}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'border-b-2 border-brand pb-3 text-sm font-semibold text-ink'
+                    : 'pb-3 text-sm font-medium text-subtle hover:text-ink'
+                }
+              >
+                {tab.label}
+              </NavLink>
+            ))}
+          </div>
+        )}
       </header>
 
       <main className="mx-auto max-w-[1200px] px-6 py-8">
         <Outlet />
       </main>
-
-      <p className="mx-auto max-w-[1200px] px-6 pb-10 text-[12px] text-subtle">
-        Panel sin autenticación — versión de desarrollo. El acceso con Apple y Google entra después.
-      </p>
     </div>
   )
 }

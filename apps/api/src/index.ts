@@ -1,7 +1,10 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import cookie from '@fastify/cookie'
 import rateLimit from '@fastify/rate-limit'
 import { prisma } from './prisma.js'
+import { adminRoutes } from './routes/admin.js'
+import { authRoutes } from './routes/auth.js'
 import { businessRoutes } from './routes/businesses.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { panelRoutes } from './routes/panel.js'
@@ -25,7 +28,10 @@ const app = Fastify({
  */
 await app.register(cors, {
   origin: esProduccion ? [process.env.PUBLIC_WEB_URL ?? 'https://veline.es'] : true,
+  credentials: true,
 })
+
+await app.register(cookie)
 
 /**
  * Límite de peticiones. Sin esto, los endpoints públicos quedan abiertos a
@@ -47,9 +53,11 @@ app.get('/api/health', async () => {
   return { ok: true, tz: process.env.TZ ?? 'sin TZ', now: new Date().toISOString() }
 })
 
+await app.register(authRoutes)
 await app.register(businessRoutes)
 await app.register(bookingRoutes)
 await app.register(panelRoutes)
+await app.register(adminRoutes)
 
 app.setErrorHandler((error, req, reply) => {
   const err = error as Error & { statusCode?: number }

@@ -31,19 +31,33 @@ técnica previa a producción.
 
 ## Pendiente — lo que hay que resolver antes de crecer
 
-### 1. El panel no tiene autenticación propia (candado provisional)
+### 1. Autenticación del panel — RESUELTO
 
-Los ocho endpoints de `/api/panel/*` **no comprueban ninguna credencial** por
-sí mismos. Ahora mismo los protege una contraseña puesta en Caddy, delante.
+El panel tiene autenticación propia con tres roles:
 
-Eso es suficiente para que nadie ajeno entre, pero tiene un límite importante:
-**es una sola contraseña para todos los negocios**. Quien la tenga ve y
-modifica los datos de cualquiera. En cuanto haya más de un negocio real usando
-la plataforma, hace falta autenticación de verdad: cada dueño con su acceso, y
-cada petición comprobando que ese negocio es suyo.
+| Rol          | Alcance                                                     |
+| ------------ | ----------------------------------------------------------- |
+| `SUPERADMIN` | Plataforma entera: negocios, usuarios, cualquier panel      |
+| `ADMIN`      | Su negocio completo: agenda, servicios, horario y su equipo |
+| `EMPLEADO`   | Solo la agenda de su negocio                                |
 
-Las credenciales actuales están en el servidor, en `/root/panel-credenciales.txt`
-(solo lectura para root). Para cambiarlas, ver [09-despliegue.md](09-despliegue.md).
+Detalles de diseño:
+
+- Sesiones de 14 días con cookie httpOnly + SameSite=Lax. La base de datos
+  guarda el **hash** del token, no el token.
+- Contraseñas con scrypt (coste 2^15) y sal única. Comparación en tiempo
+  constante.
+- Login limitado a 5 intentos/minuto por IP, con el mismo mensaje exista o no
+  el email.
+- Cada endpoint del panel comprueba rol Y pertenencia al negocio; la matriz
+  entera (superadmin / admin propio / admin ajeno / empleado / sin sesión)
+  está verificada con peticiones reales.
+- Las credenciales del superadmin viven en el servidor, en
+  `/root/superadmin-credenciales.txt` (solo root).
+
+Queda pendiente dentro de este bloque: cambio y recuperación de contraseña
+(hoy la restablece el superadmin creando otra cuenta o vía SQL), y registro
+de auditoría de quién hizo qué.
 
 ### 2. Datos personales
 

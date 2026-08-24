@@ -22,7 +22,7 @@ horario con jornada partida. Sigue siendo la mitad del producto y la que menos s
 ### 3. Cuentas y autenticación → **reserva sin cuenta**
 
 El cliente se identifica por **teléfono** (`Customer.phone` es único). Apple y Google entran
-después. ⚠️ El panel **no tiene autenticación todavía** — no exponerlo fuera de local.
+después. El panel tiene autenticación propia con roles — ver [11-seguridad.md](11-seguridad.md).
 
 ### 4. Motor de disponibilidad → **implementado**
 
@@ -41,7 +41,7 @@ transacción de creación y anulados al cancelar.
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Resultados de búsqueda**        | ✅ Construida (`/buscar`) con filtro por categoría, texto y ciudad. Nunca hubo mockup                            |
 | **Mapa**                          | ⛔ Fuera de la v1 por decisión. El hero mantiene el placeholder; `Location` ya guarda `lat`/`lng`                |
-| **Landing "Para negocios"**       | ✅ **Es la home**. Falta el flujo de alta: hoy los negocios solo entran por el seed                              |
+| **Landing "Para negocios"**       | ✅ **Es la home**. El alta la hace el superadmin desde el panel; falta el autoservicio                           |
 | **Tabs Reseñas e Info**           | 🟡 Info construida (dirección, teléfono, horario semanal). Reseñas solo muestra la media — falta el sistema real |
 | **"Añadir al calendario"**        | ✅ Resuelto con `.ics` generado en el navegador                                                                  |
 | **Estados vacíos, carga y error** | ✅ Cubiertos: sin resultados, sin huecos, hueco recién ocupado (409 con enlace para elegir otra hora), 404       |
@@ -59,10 +59,10 @@ transacción de creación y anulados al cancelar.
 
 ## Lo siguiente, por orden de valor
 
-1. **Autenticación** — Apple y Google. Sin ella el panel no puede salir de local.
+1. ✅ **Autenticación del panel** — hecha con email+contraseña y roles (superadmin / admin / empleado). Apple y Google quedan como mejora para el lado cliente.
 2. **Notificaciones** — email transaccional al reservar y al cancelar; es lo mínimo que el
    cliente espera y ya está prometido en el plan gratuito.
 3. **Reprogramar cita** — cancelar existe, mover no.
-4. **Alta de negocio** — hoy los negocios solo entran por el seed.
+4. 🟡 **Alta de negocio** — el superadmin ya da de alta desde el panel; falta el alta autoservicio desde la web pública.
 5. **Fotos e iconografía** — lo único que separa la landing de parecer terminada.
 6. **SEO / SSR** — antes de que las fichas de negocio tengan que posicionar en Google.

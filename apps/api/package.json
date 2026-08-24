@@ -15,6 +15,7 @@
     "start:prod": "npm run db:migrate:deploy && npm run db:generate && npm run db:seed && tsx src/index.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.1",
     "@fastify/cors": "^10.0.1",
     "@fastify/rate-limit": "^10.2.1",
     "@prisma/client": "^6.1.0",

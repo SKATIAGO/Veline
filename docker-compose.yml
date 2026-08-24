@@ -35,6 +35,9 @@ services:
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Veline}
       MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-http://localhost:5173}
+      # Superadmin de desarrollo (el seed lo crea si no existe)
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-super@veline.local}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-veline-super-dev}
     ports:
       - '${API_PORT:-3001}:3001'
     depends_on:

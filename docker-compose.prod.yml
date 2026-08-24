@@ -46,6 +46,10 @@ services:
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Veline}
       MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}
       PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?define PUBLIC_WEB_URL en .env, p.ej. https://veline.es}
+      # Cuenta inicial de superadmin. El seed la crea si no existe; después
+      # de la primera creación estas variables pueden retirarse del .env.
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy
@@ -69,10 +73,6 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?define DOMAIN en .env, p.ej. veline.es}
       ACME_EMAIL: ${ACME_EMAIL:?define ACME_EMAIL en .env — Let's Encrypt necesita un contacto}
-      # Candado del panel mientras no haya autenticación en la aplicación.
-      # El hash se genera con: docker compose exec caddy caddy hash-password
-      PANEL_USER: ${PANEL_USER:?define PANEL_USER en .env}
-      PANEL_PASSWORD_HASH: ${PANEL_PASSWORD_HASH:?define PANEL_PASSWORD_HASH en .env (hash bcrypt, no la contraseña en claro)}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

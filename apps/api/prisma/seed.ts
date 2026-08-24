@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { hashPassword } from '../src/auth/passwords.js'
 
 const prisma = new PrismaClient()
 
@@ -227,6 +228,65 @@ function nextWeekday(offsetDays: number, hour: number, minute = 0) {
   return d
 }
 
+/**
+ * Usuarios del panel. Idempotente: solo crea lo que falta, nunca pisa
+ * contraseñas existentes.
+ *
+ *  - SUPERADMIN: desde SUPERADMIN_EMAIL + SUPERADMIN_PASSWORD del entorno.
+ *    Sin esas variables no se crea nada (y se avisa si no existe ninguno).
+ *  - Usuarios de demostración (admin y empleado del taller): SOLO fuera de
+ *    producción. En producción nadie quiere cuentas con contraseña conocida.
+ */
+async function ensureUsers() {
+  const email = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase()
+  const password = process.env.SUPERADMIN_PASSWORD
+
+  if (email && password) {
+    const exists = await prisma.user.findUnique({ where: { email } })
+    if (!exists) {
+      await prisma.user.create({
+        data: {
+          email,
+          name: 'Superadmin',
+          passwordHash: await hashPassword(password),
+          role: 'SUPERADMIN',
+        },
+      })
+      console.log(`✓ superadmin creado: ${email}`)
+    }
+  } else {
+    const any = await prisma.user.count({ where: { role: 'SUPERADMIN' } })
+    if (any === 0) {
+      console.log('· Sin SUPERADMIN_EMAIL/SUPERADMIN_PASSWORD: no hay superadmin todavía.')
+    }
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    const taller = await prisma.business.findUnique({ where: { slug: 'taller-mecanico-rivas' } })
+    if (taller) {
+      const demos = [
+        { email: 'admin@taller.test', name: 'Andrés Rivas', role: 'ADMIN' as const },
+        { email: 'empleado@taller.test', name: 'Marta Gil', role: 'EMPLEADO' as const },
+      ]
+      for (const demo of demos) {
+        const exists = await prisma.user.findUnique({ where: { email: demo.email } })
+        if (!exists) {
+          await prisma.user.create({
+            data: {
+              email: demo.email,
+              name: demo.name,
+              passwordHash: await hashPassword('veline-demo-1234'),
+              role: demo.role,
+              businessId: taller.id,
+            },
+          })
+          console.log(`✓ usuario demo: ${demo.email} (${demo.role}) — contraseña: veline-demo-1234`)
+        }
+      }
+    }
+  }
+}
+
 async function main() {
   const existing = await prisma.business.count()
   if (existing > 0) {
@@ -241,6 +301,7 @@ async function main() {
       updated += count
     }
     console.log(`· Seed omitido: ya hay ${existing} negocios. Fotos actualizadas en ${updated}.`)
+    await ensureUsers()
     return
   }
 
@@ -320,6 +381,8 @@ async function main() {
       },
     })
   }
+
+  await ensureUsers()
 
   console.log('✓ Seed completado')
 }

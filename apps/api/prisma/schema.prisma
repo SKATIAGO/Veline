@@ -53,6 +53,7 @@ model Business {
   services  Service[]
   staff     Staff[]
   bookings  Booking[]
+  users     User[]
 
   @@index([category])
 }
@@ -194,4 +195,47 @@ model Booking {
   @@index([businessId, startsAt])
   @@index([staffId, startsAt])
   @@index([customerId])
+}
+
+/// Quién puede entrar al panel y con qué alcance.
+enum Role {
+  /// Personal de Veline: gestiona la plataforma entera.
+  SUPERADMIN
+  /// Dueño del negocio: su negocio completo, incluidos sus usuarios.
+  ADMIN
+  /// Persona del equipo: la agenda de su negocio, sin configuración.
+  EMPLEADO
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  /// scrypt con sal propia, formato "sal:hash" en hex. Nunca la contraseña.
+  passwordHash String
+  role         Role
+  /// null solo para SUPERADMIN: no pertenece a ningún negocio.
+  businessId   String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@index([businessId])
+}
+
+/// Sesión de panel. Se guarda el hash del token, no el token: si alguien
+/// llegara a leer la tabla, no puede suplantar a nadie.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }

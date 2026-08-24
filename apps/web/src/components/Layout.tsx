@@ -59,7 +59,7 @@ function Header() {
         </nav>
         <div className="flex items-center gap-3">
           <Link
-            to="/panel"
+            to="/login"
             className="hidden text-[14.5px] font-medium text-ink hover:text-brand sm:block"
           >
             Iniciar sesión
