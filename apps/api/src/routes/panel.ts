@@ -4,6 +4,7 @@ import { prisma } from '../prisma.js'
 import { hashPassword } from '../auth/passwords.js'
 import { canConfigureBusiness, canWorkAgenda } from '../auth/permissions.js'
 import { requireUser, type SessionUser } from '../auth/sessions.js'
+import { audit } from '../audit/log.js'
 
 /**
  * Panel del negocio. Todos los endpoints exigen sesión, y el alcance depende
@@ -48,6 +49,21 @@ const panelUserBody = z.object({
   password: z.string().min(10).max(200),
   role: z.enum(['ADMIN', 'EMPLEADO']),
 })
+
+/**
+ * Qué cambió de verdad entre dos versiones de una fila. Guardar el objeto
+ * entero convierte el registro en ruido: interesa "el precio pasó de 25 € a
+ * 30 €", no las quince columnas que siguen igual.
+ */
+function cambios<T extends Record<string, unknown>>(antes: T, despues: T, campos: (keyof T)[]) {
+  const diff: Record<string, { antes: unknown; despues: unknown }> = {}
+  for (const campo of campos) {
+    if (antes[campo] !== despues[campo]) {
+      diff[String(campo)] = { antes: antes[campo], despues: despues[campo] }
+    }
+  }
+  return diff
+}
 
 const rangeQuery = z.object({
   from: z
@@ -225,20 +241,30 @@ export async function panelRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Datos inválidos', details: parsed.error.flatten() })
     }
     const count = await prisma.service.count({ where: { businessId: auth.business.id } })
-    return reply.code(201).send(
-      await prisma.service.create({
-        data: {
-          businessId: auth.business.id,
-          name: parsed.data.name,
-          description: parsed.data.description || null,
-          durationMin: parsed.data.durationMin,
-          bufferMin: parsed.data.bufferMin,
-          priceCents: parsed.data.priceCents,
-          active: parsed.data.active,
-          position: count,
-        },
-      }),
-    )
+    const creado = await prisma.service.create({
+      data: {
+        businessId: auth.business.id,
+        name: parsed.data.name,
+        description: parsed.data.description || null,
+        durationMin: parsed.data.durationMin,
+        bufferMin: parsed.data.bufferMin,
+        priceCents: parsed.data.priceCents,
+        active: parsed.data.active,
+        position: count,
+      },
+    })
+
+    audit(req, {
+      action: 'SERVICIO_CREADO',
+      summary: `Ha creado el servicio «${creado.name}»`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Service',
+      entityId: creado.id,
+      metadata: { duracionMin: creado.durationMin, precioCents: creado.priceCents },
+    })
+
+    return reply.code(201).send(creado)
   })
 
   app.patch('/api/panel/:slug/services/:id', async (req, reply) => {
@@ -258,13 +284,32 @@ export async function panelRoutes(app: FastifyInstance) {
     if (!existing) return reply.code(404).send({ error: 'Servicio no encontrado' })
 
     const { description, ...rest } = parsed.data
-    return prisma.service.update({
+    const actualizado = await prisma.service.update({
       where: { id },
       data: {
         ...rest,
         ...(description !== undefined ? { description: description || null } : {}),
       },
     })
+
+    audit(req, {
+      action: 'SERVICIO_EDITADO',
+      summary: `Ha editado el servicio «${actualizado.name}»`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Service',
+      entityId: id,
+      metadata: cambios(existing, actualizado, [
+        'name',
+        'description',
+        'durationMin',
+        'bufferMin',
+        'priceCents',
+        'active',
+      ]),
+    })
+
+    return actualizado
   })
 
   /** Baja lógica: si el servicio ya tiene citas no se puede borrar de verdad. */
@@ -280,6 +325,16 @@ export async function panelRoutes(app: FastifyInstance) {
     })
     if (!existing) return reply.code(404).send({ error: 'Servicio no encontrado' })
     await prisma.service.update({ where: { id }, data: { active: false } })
+
+    audit(req, {
+      action: 'SERVICIO_ELIMINADO',
+      summary: `Ha dado de baja el servicio «${existing.name}»`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Service',
+      entityId: id,
+    })
+
     return reply.code(204).send()
   })
 
@@ -311,12 +366,28 @@ export async function panelRoutes(app: FastifyInstance) {
     }
     const locationId = auth.business.locationId
 
+    const anterior = await prisma.openingHour.findMany({
+      where: { locationId },
+      select: { weekday: true, startMin: true, endMin: true },
+      orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }],
+    })
+
     await prisma.$transaction([
       prisma.openingHour.deleteMany({ where: { locationId } }),
       prisma.openingHour.createMany({
         data: parsed.data.hours.map((r) => ({ ...r, locationId })),
       }),
     ])
+
+    audit(req, {
+      action: 'HORARIO_EDITADO',
+      summary: 'Ha cambiado el horario de apertura',
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Location',
+      entityId: locationId,
+      metadata: { antes: anterior, despues: parsed.data.hours },
+    })
 
     return prisma.openingHour.findMany({
       where: { locationId },
@@ -363,6 +434,17 @@ export async function panelRoutes(app: FastifyInstance) {
       },
       select: { id: true, name: true, email: true, role: true, active: true, createdAt: true },
     })
+
+    audit(req, {
+      action: 'USUARIO_CREADO',
+      summary: `Ha dado de alta a ${created.name} (${created.email}) como ${created.role}`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'User',
+      entityId: created.id,
+      metadata: { rol: created.role },
+    })
+
     return reply.code(201).send(created)
   })
 
@@ -386,6 +468,16 @@ export async function panelRoutes(app: FastifyInstance) {
 
     await prisma.user.update({ where: { id }, data: { active: parsed.data.active } })
     if (!parsed.data.active) await prisma.session.deleteMany({ where: { userId: id } })
+
+    audit(req, {
+      action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
+      summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'User',
+      entityId: id,
+    })
+
     return { ok: true }
   })
 }

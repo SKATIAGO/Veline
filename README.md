@@ -32,6 +32,7 @@ Para empezar de cero: `docker compose down -v && docker compose up --build`.
 | [docs/09-despliegue.md](docs/09-despliegue.md)                 | Desplegar en un VPS con dominio propio: DNS, Docker Compose de producción, HTTPS, backups               |
 | [docs/10-cicd.md](docs/10-cicd.md)                             | Despliegue automático desde GitHub: qué verifica, cómo revierte y por qué el repo público exige cuidado |
 | [docs/11-seguridad.md](docs/11-seguridad.md)                   | Qué está protegido, qué no y cómo comprobarlo                                                           |
+| [docs/12-auditoria.md](docs/12-auditoria.md)                   | Registro de actividad: quién hizo qué, quién puede verlo y por qué nunca guarda secretos                |
 
 ## Código
 

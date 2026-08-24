@@ -8,7 +8,7 @@ import { Logo, Spinner } from '../../components/ui'
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
  *
  *  - EMPLEADO   → solo la pestaña Agenda.
- *  - ADMIN      → Agenda, Servicios, Horario y Equipo de SU negocio.
+ *  - ADMIN      → Agenda, Servicios, Horario, Equipo y Actividad de SU negocio.
  *  - SUPERADMIN → todo lo anterior en cualquier negocio, selector para
  *                 cambiar de negocio y acceso a la gestión de la plataforma.
  */
@@ -62,6 +62,7 @@ export function PanelLayout() {
           { to: 'servicios', label: 'Servicios', end: false },
           { to: 'horario', label: 'Horario', end: false },
           { to: 'equipo', label: 'Equipo', end: false },
+          { to: 'actividad', label: 'Actividad', end: false },
         ]
       : []),
   ]
@@ -89,6 +90,16 @@ export function PanelLayout() {
                   }
                 >
                   Plataforma
+                </NavLink>
+                <NavLink
+                  to="/panel/admin/actividad"
+                  className={({ isActive }) =>
+                    isActive
+                      ? 'text-sm font-semibold text-brand'
+                      : 'text-sm font-medium text-muted hover:text-ink'
+                  }
+                >
+                  Actividad
                 </NavLink>
                 {businesses && businesses.length > 0 && (
                   <select

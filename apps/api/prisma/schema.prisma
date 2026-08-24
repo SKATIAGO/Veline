@@ -54,14 +54,15 @@ model Business {
   staff     Staff[]
   bookings  Booking[]
   users     User[]
+  auditLogs AuditLog[]
 
   @@index([category])
 }
 
 model Location {
-  id         String  @id @default(cuid())
+  id         String @id @default(cuid())
   businessId String
-  name       String  @default("Principal")
+  name       String @default("Principal")
   street     String
   city       String
   postalCode String
@@ -222,6 +223,7 @@ model User {
   business       Business?       @relation(fields: [businessId], references: [id], onDelete: Cascade)
   sessions       Session[]
   passwordResets PasswordReset[]
+  auditLogs      AuditLog[]
 
   @@index([businessId])
 }
@@ -257,4 +259,70 @@ model PasswordReset {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// Qué se registra. Nombres estables: se guardan en la base y se muestran en
+/// el panel, así que renombrar uno reescribe el pasado.
+enum AuditAction {
+  SESION_INICIADA
+  SESION_FALLIDA
+  SESION_CERRADA
+  CONTRASENA_CAMBIADA
+  CONTRASENA_RESTABLECIDA
+  CONTRASENA_OLVIDADA
+  USUARIO_CREADO
+  USUARIO_ACTIVADO
+  USUARIO_DESACTIVADO
+  NEGOCIO_CREADO
+  SERVICIO_CREADO
+  SERVICIO_EDITADO
+  SERVICIO_ELIMINADO
+  HORARIO_EDITADO
+  RESERVA_CREADA
+  RESERVA_CANCELADA
+}
+
+/// Registro de auditoría: quién hizo qué, cuándo y desde dónde.
+///
+/// Es solo de escritura y lectura. No hay endpoint que lo edite ni lo borre:
+/// un registro que el propio sistema puede reescribir no sirve para lo que
+/// existe, que es poder responder "¿quién canceló esta cita?" meses después.
+model AuditLog {
+  id String @id @default(cuid())
+
+  action AuditAction
+
+  /// Quién. Nulo cuando lo hace un cliente sin cuenta (reservar, cancelar con
+  /// su código) o cuando el intento de sesión falla y no hay usuario.
+  actorId    String?
+  /// Copia del email y el nombre en el momento del hecho. Si el usuario se
+  /// borra, el registro tiene que seguir diciendo quién fue.
+  actorEmail String?
+  actorName  String?
+  actorRole  Role?
+
+  /// A qué negocio afecta. Nulo en acciones de plataforma.
+  businessId String?
+
+  /// Sobre qué se actuó: "Booking", "Service", "User"… y su id.
+  entity   String?
+  entityId String?
+
+  /// Frase en español ya montada, lista para leer en el panel.
+  summary String
+
+  /// Detalle libre: valores antes y después, motivo de cancelación… Nunca
+  /// contraseñas ni tokens (ver redactar() en audit.ts).
+  metadata Json?
+
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  actor    User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
 }

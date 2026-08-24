@@ -16,6 +16,7 @@ import { PanelCuenta } from './pages/panel/PanelCuenta'
 import { PanelAgenda } from './pages/panel/PanelAgenda'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
+import { PanelActividad } from './pages/panel/PanelActividad'
 import { EmptyState } from './components/ui'
 import { ScrollToTop } from './components/ScrollToTop'
 
@@ -39,6 +40,7 @@ function AppRoutes() {
       {/* /panel/admin va ANTES que /panel/:slug: el segmento estático gana */}
       <Route path="/panel/admin" element={<PanelLayout />}>
         <Route index element={<PanelAdmin />} />
+        <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
       <Route path="/panel/:slug" element={<PanelLayout />}>
@@ -46,6 +48,7 @@ function AppRoutes() {
         <Route path="servicios" element={<PanelServices />} />
         <Route path="horario" element={<PanelHours />} />
         <Route path="equipo" element={<PanelUsers />} />
+        <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
 

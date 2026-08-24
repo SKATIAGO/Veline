@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit'
 import { prisma } from './prisma.js'
 import { describeMailConfig } from './mail/brevo.js'
 import { adminRoutes } from './routes/admin.js'
+import { auditRoutes } from './routes/audit.js'
 import { authRoutes } from './routes/auth.js'
 import { businessRoutes } from './routes/businesses.js'
 import { bookingRoutes } from './routes/bookings.js'
@@ -63,6 +64,7 @@ await app.register(businessRoutes)
 await app.register(bookingRoutes)
 await app.register(panelRoutes)
 await app.register(adminRoutes)
+await app.register(auditRoutes)
 
 app.setErrorHandler((error, req, reply) => {
   const err = error as Error & { statusCode?: number }

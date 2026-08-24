@@ -139,6 +139,10 @@ export const api = {
       body: JSON.stringify({ active }),
     }),
 
+  // ── Registro de actividad (ADMIN y SUPERADMIN) ─────────────
+  auditLog: (params: { businessId?: string; action?: string; cursor?: string; limit?: number }) =>
+    request<{ entries: AuditEntry[]; nextCursor: string | null }>(`/audit${qs(params)}`),
+
   // ── Plataforma (SUPERADMIN) ────────────────────────────────
   adminBusinesses: () => request<AdminBusiness[]>('/admin/businesses'),
 
@@ -242,4 +246,20 @@ export interface AdminBusiness {
   email: string | null
   createdAt: string
   counts: { bookings: number; users: number; services: number; staff: number }
+}
+
+export interface AuditEntry {
+  id: string
+  action: string
+  summary: string
+  actorName: string | null
+  actorEmail: string | null
+  actorRole: 'SUPERADMIN' | 'ADMIN' | 'EMPLEADO' | null
+  business: { slug: string; name: string } | null
+  entity: string | null
+  entityId: string | null
+  metadata: unknown
+  /** Solo llega al superadmin; para un admin siempre es null. */
+  ip: string | null
+  createdAt: string
 }

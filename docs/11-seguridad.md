@@ -115,3 +115,13 @@ sshd -T | grep passwordauthentication                                           
 # Solo 22, 80 y 443 abiertos
 ufw status
 ```
+
+## Registro de auditoría
+
+Toda acción con consecuencias queda registrada: accesos (incluidos los fallidos), cambios de
+contraseña, altas y bajas de usuarios, cambios de servicios y horarios, y creación y
+cancelación de citas. Es lo que permite responder «¿quién hizo esto?» semanas después.
+
+El filtro `redactar()` impide que una contraseña o un token acabe dentro del registro aunque el
+endpoint auditado los reciba, y hay pruebas que lo cubren. El detalle completo está en
+[12-auditoria.md](12-auditoria.md).

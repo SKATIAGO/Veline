@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { CATEGORIES } from '@veline/shared'
 import { prisma } from '../prisma.js'
+import { audit } from '../audit/log.js'
 import { hashPassword } from '../auth/passwords.js'
 import { canManagePlatform } from '../auth/permissions.js'
 import { requireUser } from '../auth/sessions.js'
@@ -92,6 +93,16 @@ export async function adminRoutes(app: FastifyInstance) {
         },
       },
     })
+    audit(req, {
+      action: 'NEGOCIO_CREADO',
+      summary: `Ha dado de alta el negocio «${business.name}»`,
+      actor: user,
+      businessId: business.id,
+      entity: 'Business',
+      entityId: business.id,
+      metadata: { slug: business.slug, categoria: business.category, ciudad: d.city },
+    })
+
     return reply.code(201).send({ id: business.id, slug: business.slug, name: business.name })
   })
 
@@ -142,6 +153,16 @@ export async function adminRoutes(app: FastifyInstance) {
         businessId: d.businessId,
       },
     })
+    audit(req, {
+      action: 'USUARIO_CREADO',
+      summary: `Ha dado de alta a ${created.name} (${created.email}) como ${created.role} en «${business.name}»`,
+      actor: user,
+      businessId: business.id,
+      entity: 'User',
+      entityId: created.id,
+      metadata: { rol: created.role, negocio: business.slug },
+    })
+
     return reply
       .code(201)
       .send({ id: created.id, email: created.email, role: created.role, business: business.slug })
@@ -165,6 +186,16 @@ export async function adminRoutes(app: FastifyInstance) {
     await prisma.user.update({ where: { id }, data: { active: parsed.data.active } })
     // Al desactivar, sus sesiones abiertas mueren también.
     if (!parsed.data.active) await prisma.session.deleteMany({ where: { userId: id } })
+
+    audit(req, {
+      action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
+      summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
+      actor: user,
+      businessId: target.businessId,
+      entity: 'User',
+      entityId: id,
+    })
+
     return { ok: true }
   })
 }

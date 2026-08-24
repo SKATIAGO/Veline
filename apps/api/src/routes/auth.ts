@@ -11,6 +11,7 @@ import {
   requireUser,
   SESSION_COOKIE,
 } from '../auth/sessions.js'
+import { audit } from '../audit/log.js'
 import { mailMode, sendMail } from '../mail/brevo.js'
 import { passwordResetMail } from '../mail/templates.js'
 
@@ -59,6 +60,17 @@ export async function authRoutes(app: FastifyInstance) {
       const ok = await verifyPassword(parsed.data.password, hash)
 
       if (!user || !user.active || !ok) {
+        // Se registran también los fallos: una ráfaga de intentos contra la
+        // misma cuenta es justo lo que hay que poder ver después.
+        audit(req, {
+          action: 'SESION_FALLIDA',
+          summary: `Intento de acceso fallido con ${parsed.data.email}`,
+          actorEmail: parsed.data.email,
+          businessId: user?.businessId ?? null,
+          entity: 'User',
+          entityId: user?.id ?? null,
+          metadata: { motivo: !user ? 'email desconocido' : !user.active ? 'cuenta desactivada' : 'contraseña incorrecta' },
+        })
         return reply.code(401).send({ error: 'Email o contraseña incorrectos' })
       }
 
@@ -70,21 +82,28 @@ export async function authRoutes(app: FastifyInstance) {
           })
         : null
 
-      return {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          businessSlug: conNegocio?.slug ?? null,
-          businessName: conNegocio?.name ?? null,
-        },
+      const sesion = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        businessId: user.businessId,
+        businessSlug: conNegocio?.slug ?? null,
+        businessName: conNegocio?.name ?? null,
       }
+
+      audit(req, { action: 'SESION_INICIADA', summary: 'Ha iniciado sesión', actor: sesion })
+
+      const { businessId: _omitido, ...publico } = sesion
+      return { user: publico }
     },
   )
 
   app.post('/api/auth/logout', async (req, reply) => {
+    // Se lee antes de destruirla: después ya no hay de quién decir que salió.
+    const user = await getSessionUser(req)
     await destroySession(req, reply)
+    if (user) audit(req, { action: 'SESION_CERRADA', summary: 'Ha cerrado sesión', actor: user })
     return { ok: true }
   })
 
@@ -120,6 +139,13 @@ export async function authRoutes(app: FastifyInstance) {
 
       const creado = await createResetToken(parsed.data.email)
       if (creado) {
+        audit(req, {
+          action: 'CONTRASENA_OLVIDADA',
+          summary: `Se ha pedido restablecer la contraseña de ${creado.user.email}`,
+          actorEmail: creado.user.email,
+          entity: 'User',
+          entityId: creado.user.id,
+        })
         const url = `${webUrl()}/restablecer?token=${encodeURIComponent(creado.token)}`
         const resultado = await sendMail(
           passwordResetMail({ email: creado.user.email, name: creado.user.name }, url),
@@ -162,6 +188,14 @@ export async function authRoutes(app: FastifyInstance) {
         }
         return reply.code(400).send({ error: mensajes[r.reason] })
       }
+
+      audit(req, {
+        action: 'CONTRASENA_RESTABLECIDA',
+        summary: `${r.name} ha restablecido su contraseña desde el enlace del correo`,
+        actorEmail: r.email,
+        entity: 'User',
+        entityId: r.userId,
+      })
       return { ok: true }
     },
   )
@@ -195,6 +229,14 @@ export async function authRoutes(app: FastifyInstance) {
           ? { NOT: { tokenHash: createHash('sha256').update(actual).digest('hex') } }
           : {}),
       },
+    })
+
+    audit(req, {
+      action: 'CONTRASENA_CAMBIADA',
+      summary: 'Ha cambiado su contraseña desde el panel',
+      actor: user,
+      entity: 'User',
+      entityId: user.id,
     })
 
     return { ok: true }

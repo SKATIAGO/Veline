@@ -3,6 +3,8 @@ import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { cancelBookingSchema, createBookingSchema, type BookingDTO } from '@veline/shared'
 import { prisma } from '../prisma.js'
+import { audit } from '../audit/log.js'
+import { getSessionUser } from '../auth/sessions.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { sendMailSafely } from '../mail/brevo.js'
 import {
@@ -180,6 +182,20 @@ export async function bookingRoutes(app: FastifyInstance) {
         void sendMailSafely(bookingCreatedToBusiness(mailData, booking.business.email))
       }
 
+      audit(req, {
+        action: 'RESERVA_CREADA',
+        summary: `${booking.customer.name} ha reservado «${booking.service.name}» (${booking.code})`,
+        businessId: booking.businessId,
+        entity: 'Booking',
+        entityId: booking.id,
+        metadata: {
+          codigo: booking.code,
+          cuando: booking.startsAt,
+          origen: booking.source,
+          precioCents: booking.priceCents,
+        },
+      })
+
       return reply.code(201).send(toDTO(booking))
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -215,6 +231,11 @@ export async function bookingRoutes(app: FastifyInstance) {
     const { code } = req.params as { code: string }
     const parsed = cancelBookingSchema.safeParse(req.body ?? {})
     if (!parsed.success) return reply.code(400).send({ error: 'Datos inválidos' })
+
+    // Este endpoint es público: el cliente cancela con su código y sin cuenta.
+    // Si además hay sesión, se registra quién del negocio la canceló, que es
+    // justo la pregunta que el registro tiene que poder responder después.
+    const actor = await getSessionUser(req)
 
     const existing = await prisma.booking.findUnique({ where: { code: code.toUpperCase() } })
     if (!existing) return reply.code(404).send({ error: 'Reserva no encontrada' })
@@ -254,6 +275,23 @@ export async function bookingRoutes(app: FastifyInstance) {
         ),
       )
     }
+
+    audit(req, {
+      action: 'RESERVA_CANCELADA',
+      summary: actor
+        ? `Ha cancelado la cita de ${booking.customer.name} (${booking.code})`
+        : `El cliente ha cancelado su cita con el código ${booking.code}`,
+      actor,
+      businessId: booking.businessId,
+      entity: 'Booking',
+      entityId: booking.id,
+      metadata: {
+        codigo: booking.code,
+        cuando: booking.startsAt,
+        motivo: parsed.data.reason ?? null,
+        canceladaPor: actor ? 'panel' : 'cliente',
+      },
+    })
 
     return toDTO(booking)
   })

@@ -36,7 +36,11 @@ export async function createResetToken(email: string) {
   return { token, user }
 }
 
-export type ResetOutcome = { ok: true } | { ok: false; reason: 'invalido' | 'caducado' | 'usado' }
+export type ResetOutcome =
+  /** Devuelve a quién pertenecía el enlace: sin eso el registro de auditoría
+      no puede decir de qué cuenta se cambió la contraseña. */
+  | { ok: true; userId: string; email: string; name: string }
+  | { ok: false; reason: 'invalido' | 'caducado' | 'usado' }
 
 /**
  * Cambia la contraseña si el token es válido. Al hacerlo cierra todas las
@@ -46,6 +50,7 @@ export type ResetOutcome = { ok: true } | { ok: false; reason: 'invalido' | 'cad
 export async function consumeResetToken(token: string, newPassword: string): Promise<ResetOutcome> {
   const reset = await prisma.passwordReset.findUnique({
     where: { tokenHash: hashToken(token) },
+    include: { user: { select: { email: true, name: true } } },
   })
   if (!reset) return { ok: false, reason: 'invalido' }
   if (reset.usedAt) return { ok: false, reason: 'usado' }
@@ -59,5 +64,5 @@ export async function consumeResetToken(token: string, newPassword: string): Pro
     prisma.session.deleteMany({ where: { userId: reset.userId } }),
   ])
 
-  return { ok: true }
+  return { ok: true, userId: reset.userId, email: reset.user.email, name: reset.user.name }
 }
