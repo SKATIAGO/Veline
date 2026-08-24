@@ -28,7 +28,7 @@ Todo en `.env` (que **no** se sube al repo):
 
 ```bash
 BREVO_API_KEY=xkeysib-...
-MAIL_MODE=dry                 # off | dry | live
+MAIL_MODE=dry                 # off | dry | live (en el VPS: live)
 MAIL_FROM_EMAIL=              # tiene que ser un remitente verificado en Brevo
 MAIL_FROM_NAME=Veline
 MAIL_OVERRIDE_TO=             # manda TODO aquí, sea quien sea el destinatario
@@ -61,22 +61,51 @@ docker compose exec -w /app/apps/api api npm run mail:preview
 Genera los cuatro correos en `http://localhost:5173/preview-correo/`. Los archivos están en
 `.gitignore`.
 
-## ⚠️ Antes de poner `MAIL_MODE=live`
+## Estado en producción
 
-**No hay remitente de Veline verificado.** La cuenta de Brevo se comparte con otros proyectos
-(cayab, Voller Home, coolcan, runpedia, Equipos Biomédicos) y ni `veline.es` ni ningún correo
-de Veline están dados de alta. Los remitentes verificados hoy pertenecen a esos otros
-proyectos.
+`MAIL_MODE=live` desde el 24 de agosto de 2026. Verificado con un envío real: la recuperación
+de contraseña llegó y Brevo registró `requests → delivered → opened`.
 
-Consecuencias:
+Al arrancar, la API escribe en el log qué está haciendo el correo de verdad:
 
-- Enviar desde un Gmail personal (`desarrollo.cayab@gmail.com`) **funciona para probar**, pero
-  llega como "enviado en nombre de" y tiene bastantes papeletas de acabar en spam.
-- Para producción hay que **verificar el dominio `veline.es` en Brevo** (registros SPF, DKIM y
-  DMARC) y enviar desde algo tipo `reservas@veline.es`. Sin eso, la entrega es mala y la marca
-  del correo no es la de Veline.
-- Conviene que **Veline tenga su propia cuenta de Brevo**, o al menos una clave propia: hoy la
-  misma clave da acceso a los envíos de todos los demás proyectos.
+```
+correo ACTIVO desde reservas@veline.es
+correo en PRUEBA (MAIL_MODE=dry): se registra pero NO se envía
+correo en modo live pero SIN BREVO_API_KEY: no se enviará nada
+```
+
+Ese aviso existe porque el correo apagado es un fallo silencioso: las reservas se confirman
+igual y nadie nota que los avisos no salen hasta que se queja un cliente.
+
+### ⚠️ Pendiente: verificar el dominio
+
+Hoy se envía desde **`desarrollo.cayab@gmail.com`**, que no es de Veline. Los correos llegan
+como "Veline <desarrollo.cayab@gmail.com>", en muchos clientes con el aviso de "enviado en
+nombre de", y con bastantes papeletas de acabar en spam.
+
+`veline.es` ya está dado de alta como dominio en Brevo. Falta añadir estos tres registros TXT
+en Hostinger (DNS del dominio) y pulsar «Verificar» en Brevo:
+
+| Tipo | Host              | Valor                                                       |
+| ---- | ----------------- | ----------------------------------------------------------- |
+| TXT  | `mail._domainkey` | `k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB` |
+| TXT  | `@`               | `brevo-code:4aa0775ea819933c14ba1daeaa82d4f6`               |
+| TXT  | `_dmarc`          | `v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com`          |
+
+Cuando verifique, cambiar en el `.env` del VPS:
+
+```bash
+MAIL_FROM_EMAIL=reservas@veline.es
+```
+
+y recrear el contenedor de la API.
+
+### ⚠️ La clave es compartida
+
+La cuenta de Brevo se comparte con otros proyectos (cayab, Voller Home, coolcan, runpedia,
+Equipos Biomédicos). La misma clave que usa Veline da acceso a los envíos, los registros y los
+contactos de todos ellos. Veline debería tener **su propia cuenta**, o al menos una clave
+propia con permisos limitados a envío transaccional.
 
 ## Lo que falta
 

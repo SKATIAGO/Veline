@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import rateLimit from '@fastify/rate-limit'
 import { prisma } from './prisma.js'
+import { describeMailConfig } from './mail/brevo.js'
 import { adminRoutes } from './routes/admin.js'
 import { authRoutes } from './routes/auth.js'
 import { businessRoutes } from './routes/businesses.js'
@@ -82,6 +83,7 @@ const port = Number(process.env.PORT ?? 3001)
 
 try {
   await app.listen({ port, host: '0.0.0.0' })
+  app.log.info(describeMailConfig())
 } catch (err) {
   app.log.error(err)
   process.exit(1)

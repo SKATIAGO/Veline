@@ -124,3 +124,18 @@ export async function sendMailSafely(message: MailMessage): Promise<void> {
 }
 
 export const mailMode = () => readConfig().mode
+
+/**
+ * Aviso al arrancar. El correo apagado es un fallo silencioso: las reservas
+ * se confirman igual y nadie nota que los avisos no salen, hasta que un
+ * cliente se queja. Mejor decirlo en el primer log.
+ */
+export function describeMailConfig(): string {
+  const cfg = readConfig()
+  if (cfg.mode === 'off') return 'correo DESACTIVADO (MAIL_MODE=off): no se envía nada'
+  if (cfg.mode === 'dry') return 'correo en PRUEBA (MAIL_MODE=dry): se registra pero NO se envía'
+  if (!cfg.apiKey) return 'correo en modo live pero SIN BREVO_API_KEY: no se enviará nada'
+  if (!cfg.fromEmail) return 'correo en modo live pero SIN MAIL_FROM_EMAIL: no se enviará nada'
+  const destino = cfg.overrideTo ? ` — TODO redirigido a ${cfg.overrideTo}` : ''
+  return `correo ACTIVO desde ${cfg.fromEmail}${destino}`
+}
