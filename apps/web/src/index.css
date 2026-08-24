@@ -8,6 +8,10 @@
 @theme {
   --color-brand: #a96a3e;
   --color-brand-dark: #935a33;
+  /* El marrón de marca sobre fondo claro da 3,37:1: vale para un relleno con
+     texto blanco encima, pero no como color de texto. Esta variante es la que
+     se usa cuando el marrón ES la letra (enlaces, botones de texto). */
+  --color-brand-text: #8c5833; /* 4,57:1 sobre canvas */
   --color-ink: #2e2119;
   --color-ink-2: #3b2a1f;
   --color-accent: #d9a441;
@@ -21,9 +25,15 @@
 
   --color-body: #5c4a34;
   --color-body-2: #4a3826;
-  --color-muted: #8a7255;
-  --color-subtle: #9b8567;
-  --color-disabled: #c4ae8d;
+  /* Los dos grises se oscurecieron al medir el contraste: sobre el lienzo
+     crema, muted daba 3,52:1 y subtle 2,73:1. WCAG AA pide 4,5:1 para texto
+     normal, así que la mitad de las pistas del panel no cumplían. Se conserva
+     el tono —siguen siendo el mismo marrón grisáceo— y se mantiene la
+     distancia entre ambos para que sigan leyéndose como dos niveles. */
+  --color-muted: #6a5741; /* 5,32:1 sobre canvas */
+  --color-subtle: #72624b; /* 4,56:1 sobre canvas */
+  /* Solo para texto deshabilitado, que WCAG exime del mínimo. */
+  --color-disabled: #b09a79;
 
   --color-ondark: #f2e7d6;
   --color-ondark-muted: #c9b698;

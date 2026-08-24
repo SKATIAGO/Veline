@@ -206,7 +206,7 @@ export function PanelAdminUsers() {
       <p className="text-meta text-subtle">
         Quitar el acceso cierra al momento las sesiones abiertas de esa persona y le impide entrar,
         pero no borra nada de lo que haya hecho. Queda registrado en{' '}
-        <Link to="/panel/admin/actividad" className="font-semibold text-brand hover:underline">
+        <Link to="/panel/admin/actividad" className="font-semibold text-brand-text hover:underline">
           Actividad
         </Link>
         .

@@ -51,6 +51,24 @@ se pulsa de lo que se escribe. Las tarjetas, 12 px.
 El cuerpo sube de 12,5 a 14 px: un panel que se mira todos los días no puede estar en letra
 pequeña.
 
+**Todo el texto cumple WCAG AA (4,5:1).** Medido, no supuesto: al comprobarlo aparecieron tres
+fallos reales sobre el lienzo crema — `muted` daba 3,52:1, `subtle` 2,73:1 y el marrón de marca
+como letra 3,37:1. Es decir, buena parte de las pistas del panel no eran legibles según el
+estándar.
+
+Los dos grises se oscurecieron conservando el tono, y manteniendo la distancia entre ellos para
+que sigan leyéndose como dos niveles distintos. El marrón de marca **no se tocó**: sigue siendo
+`#a96a3e` para rellenos con texto blanco encima, que es donde vive la identidad. Cuando el
+marrón ES la letra se usa `--color-brand-text`, una variante más oscura.
+
+| Color        | Antes     | Ahora   | Sobre canvas |
+| ------------ | --------- | ------- | ------------ |
+| `muted`      | #8a7255   | #6a5741 | 3,52 → 5,32  |
+| `subtle`     | #9b8567   | #72624b | 2,73 → 4,56  |
+| `brand-text` | (#a96a3e) | #8c5833 | 3,37 → 4,57  |
+
+`disabled` se queda por debajo a propósito: WCAG exime el texto deshabilitado.
+
 **La elevación es contraste de superficie, no sombra.** El lienzo es crema y las tarjetas
 blancas; se separan por valor. La sombra queda para lo que de verdad flota (visor de fotos,
 menús). Se conserva el leve levantamiento **solo** en las llamadas grandes de la web pública: en
@@ -92,8 +110,6 @@ sistema.
 
 ## Lo que falta
 
-- **Contraste medido.** Se ha subido el tamaño del texto, pero no se ha comprobado la relación
-  de contraste de `text-subtle` y `text-disabled` sobre crema contra WCAG AA.
 - **Navegación por teclado en las listas.** Se puede tabular, pero no recorrer filas con flechas.
 - **La web pública sigue con tamaños escritos a mano** en Landing, Search y Pricing. El panel y
   el flujo de reserva ya están migrados; esas tres páginas son sobre todo texto de marketing y

@@ -33,7 +33,7 @@ function Check() {
   return (
     <span
       aria-hidden="true"
-      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] border-[1.5px] border-brand text-[11px] font-bold text-brand transition-colors duration-300 group-hover/item:bg-brand group-hover/item:text-white"
+      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] border-[1.5px] border-brand text-[11px] font-bold text-brand-text transition-colors duration-300 group-hover/item:bg-brand group-hover/item:text-white"
     >
       ✓
     </span>
@@ -261,7 +261,7 @@ export function Landing() {
             <Reveal delay={120}>
               <Link
                 to="/buscar"
-                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-ink"
+                className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-text hover:text-ink"
               >
                 Ver el marketplace
                 <span className="transition-transform duration-300 group-hover:translate-x-1">

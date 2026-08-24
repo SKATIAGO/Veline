@@ -52,7 +52,7 @@ function Field({
           className={cls}
         />
       )}
-      {error && <span className="mt-1.5 block text-[12.5px] text-brand">{error}</span>}
+      {error && <span className="mt-1.5 block text-[12.5px] text-brand-text">{error}</span>}
     </label>
   )
 }
@@ -219,7 +219,7 @@ export function BookingConfirm() {
                       {' '}
                       <Link
                         to={`/${slug}/reservar/fecha?servicio=${serviceId}`}
-                        className="font-semibold text-brand underline"
+                        className="font-semibold text-brand-text underline"
                       >
                         Elige otra hora
                       </Link>

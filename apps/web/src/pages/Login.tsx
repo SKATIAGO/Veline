@@ -112,7 +112,7 @@ export function Login() {
 
         <p className="mt-5 text-center text-[12.5px] text-subtle">
           ¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand-text">
             {CONTACT_EMAIL}
           </a>
         </p>

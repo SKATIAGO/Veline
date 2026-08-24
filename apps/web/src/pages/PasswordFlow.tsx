@@ -67,7 +67,7 @@ export function ForgotPassword() {
         </p>
         <Link
           to="/login"
-          className="mt-6 block text-center text-sm font-semibold text-brand hover:text-ink"
+          className="mt-6 block text-center text-sm font-semibold text-brand-text hover:text-ink"
         >
           Volver a iniciar sesión
         </Link>
@@ -123,7 +123,7 @@ export function ResetPassword() {
       <AuthCard title="Enlace incompleto" subtitle="Este enlace no trae el código necesario.">
         <Link
           to="/recuperar"
-          className="block text-center text-sm font-semibold text-brand hover:text-ink"
+          className="block text-center text-sm font-semibold text-brand-text hover:text-ink"
         >
           Pedir un enlace nuevo
         </Link>

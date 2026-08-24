@@ -161,7 +161,7 @@ export function BookingDone() {
 
         <p className="mt-6 text-[12px] text-subtle">
           Guarda este enlace para consultar o cancelar tu cita:{' '}
-          <Link to={`/reserva/${booking.code}`} className="text-brand">
+          <Link to={`/reserva/${booking.code}`} className="text-brand-text">
             /reserva/{booking.code}
           </Link>
         </p>

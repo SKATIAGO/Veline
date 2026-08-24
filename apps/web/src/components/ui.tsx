@@ -80,7 +80,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
   // lista, pero con superficie al acercarse: la zona pulsable existe siempre.
   quiet: 'text-body-2 hover:bg-canvas hover:text-ink',
   accent: 'bg-accent text-ink hover:brightness-105',
-  danger: 'text-brand hover:bg-brand/10',
+  danger: 'text-brand-text hover:bg-brand/10',
 }
 
 /* Alto mínimo garantizado + padding horizontal proporcionado.
@@ -320,11 +320,11 @@ export function Field({
     <div className={cx('flex flex-col gap-1.5', className)}>
       <label htmlFor={htmlFor} className="text-meta font-semibold text-body-2">
         {label}
-        {required && <span className="text-brand"> *</span>}
+        {required && <span className="text-brand-text"> *</span>}
       </label>
       {children}
       {error ? (
-        <p className="text-meta text-brand">{error}</p>
+        <p className="text-meta text-brand-text">{error}</p>
       ) : hint ? (
         <p className="text-meta text-muted">{hint}</p>
       ) : null}

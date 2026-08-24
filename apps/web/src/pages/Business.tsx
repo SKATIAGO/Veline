@@ -106,7 +106,7 @@ export function Business() {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
         <EmptyState title="Este negocio no existe" hint="Puede que haya cambiado de dirección." />
-        <Link to="/buscar" className="mt-6 inline-block font-semibold text-brand">
+        <Link to="/buscar" className="mt-6 inline-block font-semibold text-brand-text">
           ← Volver a la búsqueda
         </Link>
       </div>

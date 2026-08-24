@@ -7,7 +7,7 @@ import { EXTRAS, FAQ, PLANES, PRUEBA_DIAS } from '../content/precios'
 function Feature({ children }: { children: string }) {
   return (
     <li className="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-body-2">
-      <span className="shrink-0 font-bold text-brand">✓</span>
+      <span className="shrink-0 font-bold text-brand-text">✓</span>
       {children}
     </li>
   )
@@ -125,7 +125,7 @@ export function Pricing() {
               <Card className="lift flex h-full flex-col p-7">
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-display text-lg font-semibold text-ink">{extra.name}</span>
-                  <span className="rounded-full bg-cream px-3 py-1 text-[13px] font-semibold text-brand">
+                  <span className="rounded-full bg-cream px-3 py-1 text-[13px] font-semibold text-brand-text">
                     {extra.price}
                   </span>
                 </div>
@@ -194,7 +194,7 @@ export function Pricing() {
                 {item.q}
                 <span
                   aria-hidden="true"
-                  className="shrink-0 text-xl leading-none text-brand transition-transform group-open:rotate-45"
+                  className="shrink-0 text-xl leading-none text-brand-text transition-transform group-open:rotate-45"
                 >
                   +
                 </span>
@@ -206,7 +206,10 @@ export function Pricing() {
 
         <p className="mt-6 text-center text-sm text-muted">
           ¿Te queda alguna duda?{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand hover:text-ink">
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="font-semibold text-brand-text hover:text-ink"
+          >
             Escríbenos
           </a>{' '}
           y te contestamos.

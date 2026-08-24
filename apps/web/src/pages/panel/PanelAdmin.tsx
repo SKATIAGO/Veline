@@ -358,7 +358,7 @@ export function PanelAdmin() {
         <Card padded>
           <h2 className="mb-4 text-ui font-semibold text-ink">
             Nueva cuenta para{' '}
-            <span className="text-brand">
+            <span className="text-brand-text">
               {businesses?.find((b) => b.id === userDraft.businessId)?.name}
             </span>
           </h2>

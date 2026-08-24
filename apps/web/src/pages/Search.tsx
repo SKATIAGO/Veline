@@ -93,7 +93,7 @@ export function Search() {
 
       <p className="mt-10 text-sm text-muted">
         ¿Tu negocio no está?{' '}
-        <Link to="/precios" className="font-semibold text-brand hover:text-ink">
+        <Link to="/precios" className="font-semibold text-brand-text hover:text-ink">
           Añádelo gratis
         </Link>
         .
