@@ -12,7 +12,7 @@ de la API sin romper nada — ver el resumen al final de este documento.
 | ----------------- | ------------------------------------------------- | -------------------------------------------------------------------- |
 | Web               | `vite` en modo dev, hot-reload                    | Build estático (`vite build`) servido por nginx                      |
 | API               | `tsx watch`, con bind mount del código            | `tsx` sin watch, código copiado dentro de la imagen                  |
-| Esquema de BD     | `prisma db push` en cada arranque                 | `prisma migrate deploy` (migraciones versionadas)                    |
+| Esquema de BD     | `prisma migrate deploy` — igual que producción    | `prisma migrate deploy` (migraciones versionadas)                    |
 | Puertos expuestos | `db:5432`, `api:3001`, `web:5173` — todos al host | **Solo Caddy** (80/443). `db` y `api` no son alcanzables desde fuera |
 | HTTPS             | No                                                | Automático, vía Caddy + Let's Encrypt                                |
 | Cómo se accede    | `http://localhost:5173` o el túnel de ngrok       | `https://tu-dominio`                                                 |

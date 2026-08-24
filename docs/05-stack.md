@@ -45,8 +45,11 @@ Veline/                     npm workspaces · Node 22 · TypeScript en todo
   Imposible que se desincronicen.
 - **Sin build en `packages/shared`**: el paquete exporta TypeScript en crudo y lo compilan
   Vite y tsx. Un paso menos que mantener.
-- **Prisma con `db push`** en vez de migraciones mientras el esquema se mueve rápido. Al
-  estabilizar se pasa a `prisma migrate`.
+- **Migraciones versionadas también en desarrollo.** Local y producción arrancan igual, con
+  `prisma migrate deploy`. Durante un tiempo desarrollo usó `db push` por comodidad, y el
+  resultado fue que la base local derivó sin historial mientras producción estaba limpia: el
+  desfase no se veía hasta intentar migrar. Un esquema nuevo se crea con
+  `prisma migrate dev --name lo-que-sea`, y el archivo generado se sube al repo.
 - **Vite hace de proxy de `/api`** hacia el contenedor de la API, así el navegador ve un solo
   origen y no hay CORS en desarrollo.
 
