@@ -107,10 +107,21 @@ export function Landing() {
           </div>
 
           <div
-            className="ph rise float h-[280px] w-full flex-1 rounded-2xl border-line-dark bg-ink-2 text-ph-border lg:h-[400px]"
+            className="rise float h-[280px] w-full flex-1 overflow-hidden rounded-2xl bg-ink-2 lg:h-[400px]"
             style={{ animationDelay: '120ms' }}
           >
-            Vista previa del panel del negocio
+            {/* Muted + playsInline: sin esto los navegadores (sobre todo en
+                móvil) bloquean el autoplay. En bucle porque es la vista
+                previa del panel, no un anuncio con final. */}
+            <video
+              className="size-full object-cover"
+              src="/video/promo.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-label="Vista previa del panel de Veline"
+            />
           </div>
         </div>
       </section>
