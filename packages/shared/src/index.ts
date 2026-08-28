@@ -24,7 +24,7 @@ export const CATEGORIES = [
   { slug: 'talleres', label: 'Talleres mecánicos', singular: 'Taller' },
   { slug: 'peluquerias', label: 'Peluquerías y estética', singular: 'Peluquería' },
   { slug: 'academias', label: 'Academias y clases', singular: 'Academia' },
-  { slug: 'veterinarias', label: 'Veterinarias', singular: 'Veterinaria' },
+  { slug: 'veterinarias', label: 'Veterinarios', singular: 'Veterinario' },
   { slug: 'gimnasios', label: 'Gimnasios', singular: 'Gimnasio' },
   { slug: 'autoescuelas', label: 'Autoescuelas', singular: 'Autoescuela' },
   { slug: 'profesionales', label: 'Servicios profesionales', singular: 'Servicio profesional' },

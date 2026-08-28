@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CONTACT_EMAIL, formatPrice } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
@@ -10,6 +11,45 @@ function Feature({ children }: { children: string }) {
       <span className="shrink-0 font-bold text-brand-text">✓</span>
       {children}
     </li>
+  )
+}
+
+/**
+ * Pregunta desplegable. Antes era un <details> nativo: correcto, pero el
+ * contenido aparecía de golpe porque los navegadores no animan su apertura.
+ * Con la fila controlada a mano, un grid de 0fr a 1fr hace que el texto
+ * se despliegue como una cortina en vez de aparecer con un salto.
+ */
+function FaqRow({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-b border-line last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left text-ui font-semibold text-ink transition-colors duration-200 hover:bg-cream/60"
+      >
+        {q}
+        <span
+          aria-hidden="true"
+          className={cx(
+            'shrink-0 text-xl leading-none text-brand-text transition-transform duration-300',
+            open && 'rotate-45',
+          )}
+        >
+          +
+        </span>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <p className="px-6 pb-5 text-body leading-relaxed text-body">{a}</p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -189,18 +229,7 @@ export function Pricing() {
           className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface"
         >
           {FAQ.map((item) => (
-            <details key={item.q} className="group border-b border-line last:border-b-0">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-ui font-semibold text-ink marker:hidden hover:bg-cream/60">
-                {item.q}
-                <span
-                  aria-hidden="true"
-                  className="shrink-0 text-xl leading-none text-brand-text transition-transform group-open:rotate-45"
-                >
-                  +
-                </span>
-              </summary>
-              <p className="px-6 pb-5 text-body leading-relaxed text-body">{item.a}</p>
-            </details>
+            <FaqRow key={item.q} q={item.q} a={item.a} />
           ))}
         </Reveal>
 
@@ -219,7 +248,7 @@ export function Pricing() {
       {/* CIERRE */}
       <Reveal variant="zoom" as="section" className="mt-24 text-center">
         <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-          Pruébalo {PRUEBA_DIAS} días. Sin tarjeta.
+          Pruébalo {PRUEBA_DIAS} días. Sin compromiso.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <ButtonLink to="/panel" size="lg" className="sheen">

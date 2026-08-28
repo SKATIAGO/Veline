@@ -3,8 +3,27 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CATEGORIES } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, Chip, EmptyState, Spinner } from '../components/ui'
+import { Button, Card, Chip, EmptyState, Skeleton } from '../components/ui'
 import { BusinessCard } from '../components/BusinessCard'
+import { Reveal } from '../components/Reveal'
+
+/** Misma silueta que una tarjeta real, para que la carga no dé un salto. */
+function CardSkeleton() {
+  return (
+    <Card className="flex h-full flex-col overflow-hidden">
+      {/* Sin radio propio: son las esquinas de la tarjeta las que lo recortan,
+          igual que con una foto de verdad. Si el bloque trajera su propio
+          radio, asomaría una esquina redondeada de más justo donde la foto
+          termina y empieza el texto. */}
+      <div className="h-[140px] shrink-0 animate-pulse bg-line/60" />
+      <div className="flex flex-1 flex-col gap-2.5 p-4">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="mt-auto h-9" />
+      </div>
+    </Card>
+  )
+}
 
 export function Search() {
   const [params, setParams] = useSearchParams()
@@ -39,7 +58,7 @@ export function Search() {
           else next.delete('donde')
           setParams(next)
         }}
-        className="flex max-w-[640px] flex-col gap-2 rounded-xl border border-line bg-surface p-2 sm:flex-row sm:items-center"
+        className="flex max-w-[640px] flex-col gap-2 rounded-xl border border-line bg-surface p-2 transition-shadow duration-300 focus-within:shadow-[0_8px_24px_rgba(46,33,25,.08)] sm:flex-row sm:items-center"
       >
         <input
           value={draftQ}
@@ -63,7 +82,12 @@ export function Search() {
 
       <div className="mt-6 flex flex-wrap gap-2.5">
         {CATEGORIES.map((c) => (
-          <button key={c.slug} type="button" onClick={() => setCategory(c.slug)}>
+          <button
+            key={c.slug}
+            type="button"
+            onClick={() => setCategory(c.slug)}
+            className="transition-transform duration-150 active:scale-95"
+          >
             <Chip active={c.slug === category}>{c.label}</Chip>
           </button>
         ))}
@@ -77,11 +101,17 @@ export function Search() {
       </h1>
 
       {isLoading ? (
-        <Spinner />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       ) : data && data.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((b) => (
-            <BusinessCard key={b.id} business={b} />
+          {data.map((b, i) => (
+            <Reveal key={b.id} delay={Math.min(i, 8) * 60} variant="up">
+              <BusinessCard business={b} />
+            </Reveal>
           ))}
         </div>
       ) : (

@@ -4,7 +4,7 @@
  * resto del producto.
  */
 
-export const PRUEBA_DIAS = 8
+export const PRUEBA_DIAS = 15
 
 export const PLANES = [
   {
@@ -16,7 +16,7 @@ export const PLANES = [
     variant: 'secondary' as const,
     features: [
       'Todo lo del plan Negocio',
-      'Sin tarjeta y sin permanencia',
+      'Sin permanencia',
       'Tu perfil en el marketplace desde el primer día',
       'Al acabar decides si sigues',
     ],
@@ -27,13 +27,12 @@ export const PLANES = [
     priceCents: 1895,
     period: '/mes',
     popular: true,
-    cta: `Empezar prueba de ${PRUEBA_DIAS} días`,
+    cta: 'Contratar',
     variant: 'primary' as const,
     features: [
       'Incluye 2 personas en el calendario',
       'Reservas ilimitadas desde tu web, Instagram o Google',
-      'Recordatorios por SMS, email y WhatsApp',
-      'Cobro de señales online',
+      'Recordatorios por SMS, email y WhatsApp — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
       'Estadísticas del negocio',
       'Reseñas de clientes',
       'Soporte prioritario',
@@ -88,9 +87,9 @@ export const EXTRAS = [
   },
   {
     name: 'Recordatorios',
-    price: 'Incluidos',
-    note: 'sin coste por mensaje',
-    items: ['SMS, email y WhatsApp entran en la misma tarifa del plan'],
+    price: '200 msj/mes gratis',
+    note: 'luego 0,06 € por mensaje',
+    items: ['SMS, email y WhatsApp comparten el mismo cupo mensual'],
   },
 ]
 
@@ -102,7 +101,7 @@ export const FAQ = [
   },
   {
     q: `¿Qué pasa cuando acaban los ${PRUEBA_DIAS} días de prueba?`,
-    a: 'Nada automático: no pedimos tarjeta para empezar, así que no se te cobra sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
+    a: 'Nada automático: no se te cobra nada sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
   },
   {
     q: '¿Hay permanencia?',
@@ -118,7 +117,7 @@ export const FAQ = [
   },
   {
     q: '¿Los recordatorios por SMS o WhatsApp tienen coste extra?',
-    a: 'No. SMS, email y WhatsApp entran en la misma tarifa del plan, sin coste por mensaje enviado.',
+    a: 'Los primeros 200 mensajes de cada mes están incluidos en el plan, cuenten como SMS, email o WhatsApp. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
   },
   {
     q: '¿Puedo usar Veline sin salir en el marketplace?',

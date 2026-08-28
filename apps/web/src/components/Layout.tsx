@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ButtonLink, Logo, cx } from './ui'
-import { Awning } from './Ornaments'
 import { CONTACT_EMAIL } from '@veline/shared'
-import { ESLOGAN } from '../content/negocio'
 
 const NAV = [
   { to: '/#como-funciona', label: 'Cómo funciona' },
@@ -105,13 +103,11 @@ function Footer() {
 
   return (
     <footer className="relative border-t border-line">
-      <Awning tone="brand" flip className="absolute inset-x-0 -top-px" />
       <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
           <div className="mb-2.5 font-display text-xl font-semibold text-ink">Veline</div>
-          <p className="text-body leading-relaxed text-subtle">{ESLOGAN}</p>
-          <p className="mt-2 text-body leading-relaxed text-subtle">
-            Reservas online para cualquier negocio de barrio.
+          <p className="text-body leading-relaxed text-subtle">
+            Reservas online para cualquier negocio.
           </p>
         </div>
         <div className="flex flex-wrap gap-10 sm:gap-16">
@@ -142,10 +138,14 @@ function Footer() {
 }
 
 export function Layout() {
+  // La key con la ruta hace que React monte un <main> nuevo en cada
+  // navegación, y con él la animación de entrada vuelve a arrancar desde
+  // cero — así cada página nueva aparece con el mismo gesto suave.
+  const { pathname } = useLocation()
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1">
+      <main key={pathname} className="page-enter flex-1">
         <Outlet />
       </main>
       <Footer />

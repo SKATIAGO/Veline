@@ -18,8 +18,8 @@ export function Awning({
   tone?: 'brand' | 'ink' | 'accent'
   flip?: boolean
 }) {
-  const fill = tone === 'ink' ? '#2E2119' : tone === 'accent' ? '#D9A441' : '#A96A3E'
-  const alt = tone === 'ink' ? '#3B2A1F' : tone === 'accent' ? '#C08F32' : '#8E5734'
+  const fill = tone === 'ink' ? '#2E2119' : tone === 'accent' ? '#CDAE74' : '#A96A3E'
+  const alt = tone === 'ink' ? '#3B2A1F' : tone === 'accent' ? '#B7935A' : '#8E5734'
 
   return (
     <div

@@ -14,6 +14,7 @@ import {
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
+import { Reveal } from '../components/Reveal'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
@@ -125,7 +126,7 @@ export function BookingDate() {
       </BackBar>
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
-        <div className="min-w-0 flex-[1.4]">
+        <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">Elige fecha y hora</h1>
 
           {/* Selector de servicio */}
@@ -164,7 +165,7 @@ export function BookingDate() {
                     disabled={!free}
                     onClick={() => pickDay(key)}
                     className={cx(
-                      'flex h-[66px] w-[52px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl transition-colors',
+                      'flex h-[66px] w-[52px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl transition-[background-color,color,transform] duration-150 active:scale-95',
                       active
                         ? 'bg-brand text-white'
                         : free
@@ -231,7 +232,7 @@ export function BookingDate() {
                     disabled={past || !free}
                     onClick={() => pickDay(key)}
                     className={cx(
-                      'h-14 rounded-[9px] text-sm font-semibold transition-colors',
+                      'h-14 rounded-[9px] text-sm font-semibold transition-[background-color,color,border-color,transform] duration-150 active:scale-95',
                       active
                         ? 'bg-brand text-white'
                         : past || !free
@@ -246,10 +247,11 @@ export function BookingDate() {
               })}
             </div>
           </div>
-        </div>
+        </Reveal>
 
-        {/* Panel de horas */}
-        <aside className="w-full shrink-0 lg:w-[340px]">
+        {/* Panel de horas: entra un pelín después, desde la derecha — el ojo
+            sigue primero el calendario y luego aterriza aquí. */}
+        <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[340px]">
           <Card className="p-6 lg:sticky lg:top-24">
             {isLoading && <Spinner label="Buscando huecos…" />}
             {isError && <ErrorNote>{(error as Error).message}</ErrorNote>}
@@ -289,7 +291,7 @@ export function BookingDate() {
                                 onClick={() => setSlot(s)}
                                 className={cx(
                                   'inline-flex min-h-11 items-center justify-center rounded-full border',
-                                  'text-body font-semibold transition-colors duration-200',
+                                  'text-body font-semibold transition-[background-color,color,border-color,transform] duration-200 active:scale-95',
                                   slot?.startsAt === s.startsAt
                                     ? 'border-brand bg-brand text-white'
                                     : s.available
@@ -331,7 +333,7 @@ export function BookingDate() {
               </>
             )}
           </Card>
-        </aside>
+        </Reveal>
       </div>
     </>
   )

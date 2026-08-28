@@ -14,7 +14,7 @@
   --color-brand-text: #8c5833; /* 4,57:1 sobre canvas */
   --color-ink: #2e2119;
   --color-ink-2: #3b2a1f;
-  --color-accent: #d9a441;
+  --color-accent: #cdae74;
   --color-cream: #f2e7d6;
   --color-canvas: #ede1cd;
   --color-surface: #ffffff;
@@ -117,6 +117,17 @@
 }
 
 /* Flotación lenta para los adornos */
+@keyframes veline-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes veline-float {
   0%,
   100% {
@@ -182,6 +193,13 @@
 }
 
 @layer components {
+  /* Entrada suave de cada página al navegar. Sin esto, pasar de una pantalla
+     a otra es un corte seco; con esto se nota como un pase de diapositivas
+     cuidado, que es justo la diferencia entre "funciona" y "se siente cuidado". */
+  .page-enter {
+    animation: veline-page-enter 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
   .rise {
     animation: veline-rise 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
@@ -321,6 +339,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .page-enter,
     .rise,
     .float,
     .marquee-track,

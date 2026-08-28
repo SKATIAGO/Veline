@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
+import { Reveal } from '../components/Reveal'
 
 const icsStamp = (iso: string) => `${iso.replace(/[-:]/g, '').split('.')[0]}Z`
 
@@ -70,105 +71,107 @@ export function BookingDone() {
 
   return (
     <div className="mx-auto flex max-w-[1440px] justify-center px-6 py-16 lg:px-16 lg:py-20">
-      <Card className="flex w-full max-w-[460px] flex-col items-center p-9 text-center">
-        <div
-          className={
-            'mb-6 flex size-[72px] items-center justify-center rounded-full ' +
-            (cancelled ? 'bg-fill' : 'veline-success bg-ink')
-          }
-        >
-          {cancelled ? (
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
-              <path
-                d="M7 7L23 23M23 7L7 23"
-                stroke="#8A7255"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-            </svg>
-          ) : (
-            <svg width="32" height="24" viewBox="0 0 34 26" fill="none" aria-hidden="true">
-              <path
-                d="M2 14L12 24L32 2"
-                stroke="#D9A441"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="veline-check"
-              />
-            </svg>
-          )}
-        </div>
-
-        <h1 className="text-[24px] font-semibold text-ink">
-          {cancelled ? 'Reserva cancelada' : '¡Reserva confirmada!'}
-        </h1>
-        <p className="mt-2.5 max-w-[320px] text-sm leading-relaxed text-muted first-letter:uppercase">
-          {cancelled
-            ? `Hemos avisado a ${booking.business.name}. Puedes reservar otra hora cuando quieras.`
-            : `Te esperan el ${formatLongDate(start)} a las ${time} en ${booking.business.name}.`}
-        </p>
-
-        <div className="my-7 w-full border-t border-line pt-5 text-left">
-          {[
-            ['Código', booking.code],
-            ['Servicio', booking.service.name],
-            ['Fecha', `${formatLongDate(start)}, ${time}`],
-            ...(booking.staff ? [['Te atiende', booking.staff.name] as const] : []),
-            ...(booking.location
-              ? [['Dónde', `${booking.location.street}, ${booking.location.city}`] as const]
-              : []),
-            ['Total', formatPrice(booking.priceCents)],
-          ].map(([label, value]) => (
-            <div key={label} className="mb-2.5 flex justify-between gap-4 text-meta">
-              <span className="shrink-0 text-muted">{label}</span>
-              <span className="text-right font-semibold text-ink first-letter:uppercase">
-                {value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {!cancelled && (
-          <div className="flex w-full flex-col gap-3 sm:flex-row">
-            <Button variant="secondary" className="flex-1" onClick={() => downloadIcs(booking)}>
-              Añadir al calendario
-            </Button>
-            <ButtonLink to="/" className="flex-1">
-              Volver al inicio
-            </ButtonLink>
-          </div>
-        )}
-
-        {cancelled && (
-          <ButtonLink to={`/${booking.business.slug}`} className="w-full">
-            Reservar otra hora
-          </ButtonLink>
-        )}
-
-        {!cancelled && (
-          <div className="mt-5">
-            <ConfirmAction
-              label="Cancelar la reserva"
-              question="¿Seguro?"
-              confirmLabel="Sí, cancelar"
-              size="md"
-              loading={cancel.isPending}
-              onConfirm={() => cancel.mutate()}
-            />
-          </div>
-        )}
-
-        <p className="mt-6 text-meta text-subtle">
-          Guarda este enlace para consultar o cancelar tu cita:{' '}
-          <Link
-            to={`/reserva/${booking.code}`}
-            className="inline-flex min-h-9 items-center px-1 font-semibold text-brand-text"
+      <Reveal variant="zoom" className="w-full max-w-[460px]">
+        <Card className="flex flex-col items-center p-9 text-center">
+          <div
+            className={
+              'mb-6 flex size-[72px] items-center justify-center rounded-full ' +
+              (cancelled ? 'bg-fill' : 'veline-success bg-ink')
+            }
           >
-            /reserva/{booking.code}
-          </Link>
-        </p>
-      </Card>
+            {cancelled ? (
+              <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+                <path
+                  d="M7 7L23 23M23 7L7 23"
+                  stroke="#8A7255"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            ) : (
+              <svg width="32" height="24" viewBox="0 0 34 26" fill="none" aria-hidden="true">
+                <path
+                  d="M2 14L12 24L32 2"
+                  stroke="#D9A441"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="veline-check"
+                />
+              </svg>
+            )}
+          </div>
+
+          <h1 className="text-[24px] font-semibold text-ink">
+            {cancelled ? 'Reserva cancelada' : '¡Reserva confirmada!'}
+          </h1>
+          <p className="mt-2.5 max-w-[320px] text-sm leading-relaxed text-muted first-letter:uppercase">
+            {cancelled
+              ? `Hemos avisado a ${booking.business.name}. Puedes reservar otra hora cuando quieras.`
+              : `Te esperan el ${formatLongDate(start)} a las ${time} en ${booking.business.name}.`}
+          </p>
+
+          <div className="my-7 w-full border-t border-line pt-5 text-left">
+            {[
+              ['Código', booking.code],
+              ['Servicio', booking.service.name],
+              ['Fecha', `${formatLongDate(start)}, ${time}`],
+              ...(booking.staff ? [['Te atiende', booking.staff.name] as const] : []),
+              ...(booking.location
+                ? [['Dónde', `${booking.location.street}, ${booking.location.city}`] as const]
+                : []),
+              ['Total', formatPrice(booking.priceCents)],
+            ].map(([label, value]) => (
+              <div key={label} className="mb-2.5 flex justify-between gap-4 text-meta">
+                <span className="shrink-0 text-muted">{label}</span>
+                <span className="text-right font-semibold text-ink first-letter:uppercase">
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {!cancelled && (
+            <div className="flex w-full flex-col gap-3 sm:flex-row">
+              <Button variant="secondary" className="flex-1" onClick={() => downloadIcs(booking)}>
+                Añadir al calendario
+              </Button>
+              <ButtonLink to="/" className="flex-1">
+                Volver al inicio
+              </ButtonLink>
+            </div>
+          )}
+
+          {cancelled && (
+            <ButtonLink to={`/${booking.business.slug}`} className="w-full">
+              Reservar otra hora
+            </ButtonLink>
+          )}
+
+          {!cancelled && (
+            <div className="mt-5">
+              <ConfirmAction
+                label="Cancelar la reserva"
+                question="¿Seguro?"
+                confirmLabel="Sí, cancelar"
+                size="md"
+                loading={cancel.isPending}
+                onConfirm={() => cancel.mutate()}
+              />
+            </div>
+          )}
+
+          <p className="mt-6 text-meta text-subtle">
+            Guarda este enlace para consultar o cancelar tu cita:{' '}
+            <Link
+              to={`/reserva/${booking.code}`}
+              className="inline-flex min-h-9 items-center px-1 font-semibold text-brand-text"
+            >
+              /reserva/{booking.code}
+            </Link>
+          </p>
+        </Card>
+      </Reveal>
     </div>
   )
 }

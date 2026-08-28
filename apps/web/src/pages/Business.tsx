@@ -10,6 +10,7 @@ import {
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
+import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
 import { Lightbox } from '../components/Lightbox'
 
@@ -127,7 +128,7 @@ export function Business() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         {/* Columna principal */}
         <div className="min-w-0 flex-[1.6]">
-          <div className="relative mb-7">
+          <Reveal variant="up" className="relative mb-7">
             <div className="grid h-[220px] grid-cols-3 grid-rows-2 gap-2 sm:h-[288px]">
               <GalleryTile
                 photos={business.photos}
@@ -172,7 +173,7 @@ export function Business() {
                 Ver las {business.photos.length} fotos
               </button>
             )}
-          </div>
+          </Reveal>
 
           <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{business.name}</h1>
           <div className="mt-1.5 text-sm font-medium text-subtle">
@@ -189,7 +190,7 @@ export function Business() {
                 aria-pressed={t === tab}
                 onClick={() => setTab(t)}
                 className={cx(
-                  'inline-flex min-h-11 items-center border-b-2 px-3 text-body transition-colors duration-200',
+                  'inline-flex min-h-11 items-center border-b-2 px-3 text-body transition-[color,border-color,transform] duration-200 active:scale-95',
                   t === tab
                     ? 'border-brand font-semibold text-ink'
                     : 'border-transparent font-medium text-subtle hover:border-line-strong hover:text-ink',
@@ -201,11 +202,11 @@ export function Business() {
           </div>
 
           {tab === 'Servicios' && (
-            <div>
+            <div key="servicios" className="rise">
               {business.services.map((s) => (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between gap-4 border-b border-line py-5"
+                  className="flex items-center justify-between gap-4 border-b border-line px-2 py-5 transition-colors duration-200 hover:bg-canvas/60"
                 >
                   <div className="min-w-0">
                     <div className="font-semibold text-ink">{s.name}</div>
@@ -230,7 +231,7 @@ export function Business() {
           )}
 
           {tab === 'Reseñas' && (
-            <div className="py-8">
+            <div key="resenas" className="rise py-8">
               <EmptyState
                 title={`${business.rating.toLocaleString('es-ES', { minimumFractionDigits: 1 })} ★ de media en ${business.reviewCount} reseñas`}
                 hint="El detalle de las reseñas llega en la próxima versión."
@@ -239,7 +240,7 @@ export function Business() {
           )}
 
           {tab === 'Info' && (
-            <div className="py-8 text-sm leading-relaxed text-body">
+            <div key="info" className="rise py-8 text-sm leading-relaxed text-body">
               {business.description && <p className="mb-6 max-w-[560px]">{business.description}</p>}
               <div className="grid max-w-[560px] gap-6 sm:grid-cols-2">
                 <div>

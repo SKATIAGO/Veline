@@ -5,7 +5,7 @@ import { api } from '../lib/api'
 import { ButtonLink, Card, Eyebrow, Spinner } from '../components/ui'
 import { BusinessCard } from '../components/BusinessCard'
 import { Reveal } from '../components/Reveal'
-import { Awning, DoorMotif, Glow, SectorMarquee } from '../components/Ornaments'
+import { DoorMotif, Glow, SectorMarquee } from '../components/Ornaments'
 import { DESTACADOS, ESLOGAN, ESLOGAN_NEGOCIO, SERVICIOS_EMPRESA } from '../content/negocio'
 import { PRUEBA_DIAS } from '../content/precios'
 
@@ -82,7 +82,7 @@ export function Landing() {
               className="rise mt-5 mb-8 max-w-[500px] text-[17px] leading-relaxed text-ondark-muted-2"
               style={{ animationDelay: '160ms' }}
             >
-              Veline se encarga de las citas, los recordatorios y los números para que tú te
+              Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te
               dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.
             </p>
             <div className="rise flex flex-wrap gap-3" style={{ animationDelay: '240ms' }}>
@@ -113,8 +113,6 @@ export function Landing() {
             Vista previa del panel del negocio
           </div>
         </div>
-
-        <Awning tone="accent" />
       </section>
 
       {/* CINTA DE SECTORES */}
@@ -244,7 +242,6 @@ export function Landing() {
 
       {/* EL MARKETPLACE, COMO ARGUMENTO DE VENTA */}
       <section className="relative overflow-hidden border-y border-line bg-canvas">
-        <Awning tone="brand" />
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <Reveal>
@@ -298,10 +295,10 @@ export function Landing() {
               {ESLOGAN}
             </p>
             <p className="mx-auto mt-4 mb-8 max-w-[460px] text-ui leading-relaxed text-muted">
-              Pruébalo {PRUEBA_DIAS} días sin tarjeta y decide después.
+              Pruébalo {PRUEBA_DIAS} días y decide después.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              <ButtonLink to="/precios" size="lg" className="sheen">
+              <ButtonLink to="/precios" variant="dark" size="lg" className="sheen">
                 Ver planes y precios
               </ButtonLink>
               <ButtonLink to="/panel" variant="secondary" size="lg">

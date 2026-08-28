@@ -61,7 +61,7 @@ export function Logo({
  * redondo se pulsa y lo recto se escribe.
  */
 
-type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'accent' | 'danger'
+type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'accent' | 'danger' | 'dark'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const buttonBase =
@@ -81,6 +81,9 @@ const buttonVariants: Record<ButtonVariant, string> = {
   quiet: 'text-body-2 hover:bg-canvas hover:text-ink',
   accent: 'bg-accent text-ink hover:brightness-105',
   danger: 'text-brand-text hover:bg-brand/10',
+  // Marrón oscuro, casi negro: para la llamada a la acción de cierre,
+  // donde el marrón de marca (más claro) se pedía más serio.
+  dark: 'bg-ink text-cream hover:bg-ink-2',
 }
 
 /* Alto mínimo garantizado + padding horizontal proporcionado.

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
+import { Reveal } from '../components/Reveal'
 
 interface FieldProps {
   label: string
@@ -134,7 +135,7 @@ export function BookingConfirm() {
       </BackBar>
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-10 lg:flex-row lg:px-16">
-        <div className="min-w-0 flex-[1.4]">
+        <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-7 text-[24px] font-semibold text-ink">Confirma tu reserva</h1>
 
           <div className="flex max-w-[440px] flex-col gap-5">
@@ -176,9 +177,9 @@ export function BookingConfirm() {
             No hace falta crear cuenta. Guardamos tu teléfono para identificar la reserva y avisarte
             si el negocio necesita cambiar la hora.
           </p>
-        </div>
+        </Reveal>
 
-        <aside className="w-full shrink-0 lg:w-[360px]">
+        <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[360px]">
           <Card className="p-6 lg:sticky lg:top-24">
             <div className="mb-4 font-display text-base font-semibold text-ink">Resumen</div>
             {[
@@ -237,7 +238,7 @@ export function BookingConfirm() {
               {mutation.isPending ? 'Confirmando…' : 'Confirmar reserva'}
             </Button>
           </Card>
-        </aside>
+        </Reveal>
       </div>
     </>
   )
