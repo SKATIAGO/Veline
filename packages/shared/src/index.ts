@@ -16,7 +16,7 @@ export const TIMEZONE = 'Europe/Madrid'
  * acabarían desincronizadas. Antes había un `hola@veline.es` que no existía,
  * escrito a mano en dos páginas.
  */
-export const CONTACT_EMAIL = 'veline.contacto@gmail.com'
+export const CONTACT_EMAIL = 'contacto@veline.es'
 
 /* ── Categorías ─────────────────────────────────────────────── */
 
