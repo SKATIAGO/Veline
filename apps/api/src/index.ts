@@ -4,6 +4,8 @@ import cookie from '@fastify/cookie'
 import rateLimit from '@fastify/rate-limit'
 import { prisma } from './prisma.js'
 import { describeMailConfig } from './mail/brevo.js'
+import { describeSmsConfig } from './mail/acumbamail.js'
+import { arrancarRecordatorios } from './recordatorios.js'
 import { adminRoutes } from './routes/admin.js'
 import { auditRoutes } from './routes/audit.js'
 import { authRoutes } from './routes/auth.js'
@@ -84,10 +86,13 @@ app.setErrorHandler((error, req, reply) => {
 })
 
 const port = Number(process.env.PORT ?? 3001)
+let pararRecordatorios: (() => void) | null = null
 
 try {
   await app.listen({ port, host: '0.0.0.0' })
   app.log.info(describeMailConfig())
+  app.log.info(describeSmsConfig())
+  pararRecordatorios = arrancarRecordatorios(app.log)
 } catch (err) {
   app.log.error(err)
   process.exit(1)
@@ -96,6 +101,7 @@ try {
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, async () => {
     app.log.info(`recibido ${signal}, cerrando`)
+    pararRecordatorios?.()
     await app.close()
     await prisma.$disconnect()
     process.exit(0)

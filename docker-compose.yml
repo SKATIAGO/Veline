@@ -31,6 +31,10 @@ services:
       # Correo — ver docs/08-correo.md. La clave vive en .env, nunca en el repo.
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       MAIL_MODE: ${MAIL_MODE:-dry}
+      SMS_MODE: ${SMS_MODE:-dry}
+      ACUMBAMAIL_TOKEN: ${ACUMBAMAIL_TOKEN:-}
+      SMS_SENDER: ${SMS_SENDER:-Veline}
+      SMS_OVERRIDE_TO: ${SMS_OVERRIDE_TO:-}
       MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Veline}
       MAIL_OVERRIDE_TO: ${MAIL_OVERRIDE_TO:-}

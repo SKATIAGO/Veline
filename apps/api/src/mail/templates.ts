@@ -225,7 +225,43 @@ export function bookingCancelled(
   }
 }
 
-/* ── 4. Restablecer contraseña ────────────────────────────────── */
+/* ── 4. Recordatorio de la cita ───────────────────────────────── */
+
+export function bookingReminderMail(b: BookingMailData): MailMessage {
+  const cuando = `${capitalizar(formatLongDate(b.startsAt))} a las ${hora(b.startsAt)}`
+  const rows: [string, string][] = [
+    ['Servicio', b.serviceName],
+    ['Cuándo', cuando],
+    ...((b.staffName ? [['Te atiende', b.staffName]] : []) as [string, string][]),
+    ...((b.address ? [['Dónde', b.address]] : []) as [string, string][]),
+    ['Código', b.code],
+  ]
+
+  return {
+    to: b.customerEmail!,
+    toName: b.customerName,
+    subject: `Mañana tienes cita en ${b.businessName}`,
+    tag: 'recordatorio',
+    html: layout({
+      preheader: `${cuando} en ${b.businessName}`,
+      heading: 'Te esperamos mañana',
+      intro: `Hola ${b.customerName.split(' ')[0]}, un recordatorio de tu cita en <strong style="color:${INK};">${b.businessName}</strong>.`,
+      body: detalles(rows),
+      cta: { label: 'Ver o cancelar mi cita', url: `${webUrl()}/reserva/${b.code}` },
+    }),
+    text: [
+      'Te esperamos mañana',
+      '',
+      `Un recordatorio de tu cita en ${b.businessName}.`,
+      '',
+      textoDetalles(rows),
+      '',
+      `Ver o cancelar tu cita: ${webUrl()}/reserva/${b.code}`,
+    ].join('\n'),
+  }
+}
+
+/* ── 5. Restablecer contraseña ────────────────────────────────── */
 
 export function passwordResetMail(to: { email: string; name: string }, url: string): MailMessage {
   return {

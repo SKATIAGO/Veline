@@ -83,6 +83,7 @@ model Business {
   bookings  Booking[]
   users     User[]
   auditLogs AuditLog[]
+  messages  MessageLog[]
 
   @@index([category])
 }
@@ -210,6 +211,10 @@ model Booking {
 
   createdAt   DateTime  @default(now())
   cancelledAt DateTime?
+  /// Sella el recordatorio para no mandarlo dos veces si el proceso repite.
+  reminderSentAt DateTime?
+
+  messages MessageLog[]
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
@@ -287,6 +292,56 @@ model PasswordReset {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// Por dónde sale un mensaje.
+enum MessageChannel {
+  EMAIL
+  SMS
+}
+
+/// Para qué se manda. Sirve para contar y para no repetir envíos.
+enum MessageKind {
+  RESERVA_CONFIRMADA
+  RESERVA_CANCELADA
+  RECORDATORIO
+  RESTABLECER_CONTRASENA
+  RESENA_PEDIDA
+}
+
+enum MessageStatus {
+  ENVIADO
+  FALLIDO
+  /// No se intentó: modo de pruebas, dirección no entregable, sin cupo…
+  OMITIDO
+}
+
+/// Cada mensaje que sale (o se intenta) desde Veline.
+///
+/// Existe por dos motivos que no se pueden resolver mirando el log del
+/// servidor: saber cuántos mensajes lleva un negocio este mes —de eso depende
+/// lo que se le cobra a partir del 201— y poder responder "¿le llegó el
+/// recordatorio a este cliente?" tres semanas después.
+model MessageLog {
+  id         String        @id @default(cuid())
+  businessId String?
+  bookingId  String?
+  channel    MessageChannel
+  kind       MessageKind
+  /// Email o teléfono. Es dato personal: no se enseña fuera del panel.
+  to         String
+  status     MessageStatus
+  /// Por qué falló o por qué se omitió.
+  reason     String?
+  /// Lo que cuesta al negocio. 0 mientras entre en el cupo del plan.
+  costCents  Int           @default(0)
+  createdAt  DateTime      @default(now())
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, createdAt])
+  @@index([bookingId])
 }
 
 /// Qué se registra. Nombres estables: se guardan en la base y se muestran en

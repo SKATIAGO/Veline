@@ -287,6 +287,7 @@ export interface PanelSubscription {
   trialEndsAt: string | null
   accepting: boolean
   monthlyCents: number
+  messages: { enviados: number; incluidos: number; extra: number; costeExtraCents: number }
 }
 
 export interface PanelSummary {

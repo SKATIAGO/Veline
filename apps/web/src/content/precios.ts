@@ -32,7 +32,7 @@ export const PLANES = [
     features: [
       'Incluye 2 personas en el calendario',
       'Reservas ilimitadas desde tu web, Instagram o Google',
-      'Recordatorios por SMS, email y WhatsApp — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
+      'Recordatorios por SMS y email — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
       'Estadísticas del negocio',
       'Reseñas de clientes',
       'Soporte prioritario',
@@ -89,7 +89,7 @@ export const EXTRAS = [
     name: 'Recordatorios',
     price: '200 msj/mes gratis',
     note: 'luego 0,06 € por mensaje',
-    items: ['SMS, email y WhatsApp comparten el mismo cupo mensual'],
+    items: ['Los SMS y el email comparten el mismo cupo mensual'],
   },
 ]
 
@@ -116,8 +116,8 @@ export const FAQ = [
     a: 'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
   },
   {
-    q: '¿Los recordatorios por SMS o WhatsApp tienen coste extra?',
-    a: 'Los primeros 200 mensajes de cada mes están incluidos en el plan, cuenten como SMS, email o WhatsApp. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
+    q: '¿Los recordatorios por SMS tienen coste extra?',
+    a: 'Los primeros 200 mensajes de cada mes están incluidos en el plan, sean SMS o email. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
   },
   {
     q: '¿Puedo usar Veline sin salir en el marketplace?',

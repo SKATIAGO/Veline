@@ -113,3 +113,51 @@ propia con permisos limitados a envío transaccional.
   cola ni forma de reenviar.
 - **Baja de comunicaciones** — para avisos transaccionales no es obligatorio, pero en cuanto se
   mande algo comercial hace falta.
+
+## SMS y recordatorios (Acumbamail)
+
+El correo sigue en Brevo, que funciona y está verificado. Los **SMS** salen por
+**Acumbamail**, elegido en septiembre de 2026. Son dos proveedores a propósito: migrar
+también el correo obligaría a volver a verificar el remitente y a reprobar los cuatro correos
+que hoy salen bien, y no había motivo para arriesgarlo.
+
+```bash
+SMS_MODE=dry                 # off | dry | live
+ACUMBAMAIL_TOKEN=            # panel de Acumbamail → API
+SMS_SENDER=Veline            # alfanumérico, 11 caracteres como mucho
+SMS_OVERRIDE_TO=             # manda TODO aquí, sea quien sea el destinatario
+```
+
+Los tres modos y los dos frenos funcionan igual que en el correo, y aquí importan más: un
+correo a una dirección inventada rebota y ya, pero **un SMS a un número equivocado le llega a
+alguien**, y además se cobra.
+
+### El recordatorio
+
+Un proceso dentro de la propia API se despierta **cada 15 minutos** y busca las citas que
+empiezan dentro de **24 horas**. Manda correo (si hay dirección) y SMS.
+
+Para no duplicar se apoya en `reminderSentAt` de la cita, y **se sella antes de enviar**: si el
+envío falla se pierde ese recordatorio, que es mucho mejor que mandarle cinco al mismo cliente
+porque el proceso se reinició.
+
+Vive dentro del proceso de la API en vez de en un contenedor aparte porque con un solo servidor
+no compensa la complejidad. **Si algún día hay más de una instancia hay que moverlo fuera o
+poner un candado en la base**: dos procesos harían el trabajo dos veces.
+
+### El contador
+
+Cada envío se apunta en `MessageLog` con canal, destino, estado, motivo y coste. De ahí sale lo
+que se le cobra al negocio a partir del mensaje 201.
+
+El precio se calcula **en el momento del envío**, no al facturar: si el negocio cambia de plan a
+mitad de mes, lo ya enviado mantiene el precio que tenía cuando salió.
+
+No cuentan para el cupo del negocio ni el aviso que le llega a él mismo (es nuestro, no suyo) ni
+los correos de restablecer contraseña.
+
+### WhatsApp
+
+**Fuera de la web.** Acumbamail no hace WhatsApp de empresa: eso exige un proveedor oficial de
+Meta, verificar el número y que aprueben cada plantilla. Se quitó de la página de precios en vez
+de dejar prometido algo que el producto no hace.
