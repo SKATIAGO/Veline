@@ -8,28 +8,28 @@ import { Button, Logo, LogoMark, Select, Sheet, Spinner, cx } from '../../compon
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
  *
- *  - EMPLEADO   → solo la pestaña Agenda.
- *  - ADMIN      → Agenda, Servicios, Horario, Equipo y Actividad de SU negocio.
+ *  - EMPLEADO   → solo Agenda y Clientes.
+ *  - ADMIN      → todo lo de SU negocio.
  *  - SUPERADMIN → todo lo anterior en cualquier negocio, selector para
  *                 cambiar de negocio y acceso a la gestión de la plataforma.
  *
- * La barra de pestañas cambia de contenido según dónde estés: dentro de un
- * negocio muestra las suyas, y en /panel/admin las de la plataforma. Son dos
- * ámbitos distintos y mezclarlos en una sola fila confunde sobre qué estás
- * mirando.
+ * El ámbito lo dice la URL: dentro de un negocio se ven sus secciones, y en
+ * /panel/admin las de la plataforma. Son dos mundos distintos y mezclarlos
+ * confunde sobre qué estás mirando.
  *
- * ── Móvil ──
- * Medido a 375 px, el panel anterior gastaba 203 px —una cuarta parte de la
- * pantalla— en cabecera, y de las nueve secciones solo se veían cuatro: las
- * otras cinco vivían en 474 px de desplazamiento lateral sin nada que
- * indicara que estaban ahí. Nadie arrastra una fila de pestañas que parece
- * completa.
+ * ── Por qué la navegación es distinta en cada tamaño ──
+ * Son nueve secciones, y ninguna forma sirve para las dos pantallas.
  *
- * Por eso en móvil la navegación baja a una barra fija —lo que hace cualquier
- * app, así que no hay que explicarlo— con los destinos de todos los días, un
- * botón central para apuntar la cita que entra por teléfono, y el resto en
- * «Más». En pantalla grande la barra estorbaría, así que allí se queda la
- * fila de pestañas de siempre.
+ * En una fila de pestañas arriba no caben: medido a 375 px se veían cuatro y
+ * las otras cinco vivían en 474 px de desplazamiento lateral sin nada que
+ * indicara que existían. Y en escritorio, aun cabiendo, nueve pestañas en
+ * línea son una lista que hay que leer entera para encontrar una.
+ *
+ * Así que en móvil baja a una barra fija —lo que hace cualquier app, así que
+ * no hay que explicarla— con los destinos de todos los días, un botón central
+ * para apuntar la cita que entra por teléfono, y el resto en «Más». En
+ * escritorio se va a la izquierda, en columna y agrupada por para qué sirve
+ * cada cosa: las nueve se leen de un vistazo y aguanta crecer.
  */
 
 const ROL_LABEL = {
@@ -57,32 +57,11 @@ export function PanelIndex() {
   return <Navigate to={`/panel/${businesses[0].slug}`} replace />
 }
 
-/** Pestaña con área pulsable de verdad: 44 px de alto y padding lateral. */
-function Tab({ to, label, end }: { to: string; label: string; end?: boolean }) {
-  return (
-    <NavLink
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        cx(
-          'inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-body font-medium',
-          'transition-colors duration-200',
-          isActive
-            ? 'border-brand font-semibold text-ink'
-            : 'border-transparent text-subtle hover:border-line-strong hover:text-ink',
-        )
-      }
-    >
-      {label}
-    </NavLink>
-  )
-}
-
 /* ── Iconos ───────────────────────────────────────────────────
    Trazo de 1,75 y esquinas redondeadas, para que peguen con el
-   logo. Van marcados como decorativos: el nombre va debajo en
+   logo. Van marcados como decorativos: el nombre va al lado en
    texto, así que repetirlo al lector de pantalla solo estorba. */
-function Icono({ d, children }: { d?: string; children?: React.ReactNode }) {
+function Icono({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <svg
       aria-hidden
@@ -92,65 +71,99 @@ function Icono({ d, children }: { d?: string; children?: React.ReactNode }) {
       strokeWidth="1.75"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="size-[22px]"
+      className={className ?? 'size-[22px]'}
     >
-      {d ? <path d={d} /> : children}
+      {children}
     </svg>
   )
 }
 
-const ICONOS = {
+const TRAZOS = {
   agenda: (
-    <Icono>
+    <>
       <rect x="3" y="5" width="18" height="16" rx="3" />
       <path d="M8 3v4M16 3v4M3 11h18" />
-    </Icono>
+    </>
   ),
   clientes: (
-    <Icono>
+    <>
       <circle cx="9" cy="8" r="3.2" />
       <path d="M3 20c0-3.2 2.7-5.2 6-5.2s6 2 6 5.2M16.5 8.4a3 3 0 0 0 0-.8M17 14.9c2.4.5 4 2.4 4 5.1" />
-    </Icono>
+    </>
   ),
   negocio: (
-    <Icono>
+    <>
       <path d="M4 9.5 5.6 5h12.8L20 9.5M4 9.5h16M4 9.5v9.5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9.5" />
       <path d="M9.5 20v-5h5v5" />
-    </Icono>
+    </>
+  ),
+  servicios: (
+    <>
+      <path d="M4 7h16M4 12h16M4 17h10" />
+    </>
+  ),
+  horario: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  personas: (
+    <>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M5.5 20c0-3.4 2.9-5.5 6.5-5.5s6.5 2.1 6.5 5.5" />
+    </>
+  ),
+  equipo: (
+    <>
+      <rect x="3" y="6" width="18" height="14" rx="2.5" />
+      <path d="M8.5 6V4.5A1.5 1.5 0 0 1 10 3h4a1.5 1.5 0 0 1 1.5 1.5V6" />
+    </>
+  ),
+  cuenta: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.8v8.4M14.2 9.7c-.5-.6-1.3-.9-2.2-.9-1.3 0-2.2.7-2.2 1.7 0 2.4 4.4 1.2 4.4 3.6 0 1-1 1.7-2.2 1.7-1 0-1.8-.3-2.3-1" />
+    </>
+  ),
+  actividad: (
+    <>
+      <path d="M3 12h4l2.5-6 4 13L16 12h5" />
+    </>
+  ),
+  cobros: (
+    <>
+      <rect x="2.5" y="6" width="19" height="12" rx="2.5" />
+      <path d="M2.5 10h19" />
+    </>
   ),
   mas: (
-    <Icono>
+    <>
       <circle cx="5.5" cy="12" r="1.4" />
       <circle cx="12" cy="12" r="1.4" />
       <circle cx="18.5" cy="12" r="1.4" />
-    </Icono>
-  ),
-  cobros: (
-    <Icono>
-      <rect x="2.5" y="6" width="19" height="12" rx="2.5" />
-      <path d="M2.5 10h19" />
-    </Icono>
-  ),
-  actividad: (
-    <Icono>
-      <path d="M3 12h4l2.5-6 4 13L16 12h5" />
-    </Icono>
+    </>
   ),
 } as const
 
-type DestinoBarra = {
+type ClaveIcono = keyof typeof TRAZOS
+
+type Seccion = {
   to: string
   label: string
-  icono: keyof typeof ICONOS
+  icono: ClaveIcono
+  grupo: string
   end?: boolean
+  /** Si aparece también en la barra de abajo del móvil. */
+  enBarra?: boolean
 }
 
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
-function BotonBarra({ destino }: { destino: DestinoBarra }) {
+function BotonBarra({ seccion }: { seccion: Seccion }) {
   return (
     <NavLink
-      to={destino.to}
-      end={destino.end}
+      to={seccion.to}
+      end={seccion.end}
       className={({ isActive }) =>
         cx(
           'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
@@ -159,8 +172,36 @@ function BotonBarra({ destino }: { destino: DestinoBarra }) {
         )
       }
     >
-      {ICONOS[destino.icono]}
-      <span className="max-w-full truncate">{destino.label}</span>
+      <Icono>{TRAZOS[seccion.icono]}</Icono>
+      <span className="max-w-full truncate">{seccion.label}</span>
+    </NavLink>
+  )
+}
+
+/** Una entrada del menú lateral. 44 px, con el icono a la izquierda. */
+function ItemLateral({ seccion }: { seccion: Seccion }) {
+  return (
+    <NavLink
+      to={seccion.to}
+      end={seccion.end}
+      className={({ isActive }) =>
+        cx(
+          'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body',
+          'transition-colors duration-200',
+          isActive
+            ? 'bg-canvas font-semibold text-ink'
+            : 'font-medium text-body-2 hover:bg-canvas/60 hover:text-ink',
+        )
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <Icono className={cx('size-[19px] shrink-0', isActive ? 'text-brand' : 'text-subtle')}>
+            {TRAZOS[seccion.icono]}
+          </Icono>
+          <span className="truncate">{seccion.label}</span>
+        </>
+      )}
     </NavLink>
   )
 }
@@ -192,180 +233,272 @@ export function PanelLayout() {
     return <Navigate to={`/panel/${user.businessSlug}`} replace />
   }
 
-  const tabs = esPlataforma
+  /* Una sola lista de secciones para las dos navegaciones. Antes había dos
+     y era cuestión de tiempo que una creciera sin la otra y quedara una
+     sección sin puerta en algún tamaño de pantalla. */
+  const secciones: Seccion[] = esPlataforma
     ? [
-        { to: '/panel/admin', label: 'Negocios', end: true },
-        { to: '/panel/admin/usuarios', label: 'Cuentas' },
-        { to: '/panel/admin/cobros', label: 'Cobros' },
-        { to: '/panel/admin/actividad', label: 'Actividad' },
+        {
+          to: '/panel/admin',
+          label: 'Negocios',
+          icono: 'negocio',
+          grupo: 'Plataforma',
+          end: true,
+          enBarra: true,
+        },
+        {
+          to: '/panel/admin/usuarios',
+          label: 'Cuentas',
+          icono: 'clientes',
+          grupo: 'Plataforma',
+          enBarra: true,
+        },
+        {
+          to: '/panel/admin/cobros',
+          label: 'Cobros',
+          icono: 'cobros',
+          grupo: 'Plataforma',
+          enBarra: true,
+        },
+        {
+          to: '/panel/admin/actividad',
+          label: 'Actividad',
+          icono: 'actividad',
+          grupo: 'Plataforma',
+          enBarra: true,
+        },
       ]
     : [
-        { to: `/panel/${slug}`, label: 'Agenda', end: true },
-        { to: `/panel/${slug}/clientes`, label: 'Clientes' },
+        {
+          to: `/panel/${slug}`,
+          label: 'Agenda',
+          icono: 'agenda',
+          grupo: 'Día a día',
+          end: true,
+          enBarra: true,
+        },
+        {
+          to: `/panel/${slug}/clientes`,
+          label: 'Clientes',
+          icono: 'clientes',
+          grupo: 'Día a día',
+          enBarra: true,
+        },
         ...(puedeConfigurar
-          ? [
-              { to: `/panel/${slug}/servicios`, label: 'Servicios' },
-              { to: `/panel/${slug}/horario`, label: 'Horario' },
-              { to: `/panel/${slug}/personas`, label: 'Personas' },
-              { to: `/panel/${slug}/equipo`, label: 'Equipo' },
-              { to: `/panel/${slug}/negocio`, label: 'El negocio' },
-              { to: `/panel/${slug}/facturacion`, label: 'Tu cuenta' },
-              { to: `/panel/${slug}/actividad`, label: 'Actividad' },
-            ]
+          ? ([
+              {
+                to: `/panel/${slug}/servicios`,
+                label: 'Servicios',
+                icono: 'servicios',
+                grupo: 'Configuración',
+              },
+              {
+                to: `/panel/${slug}/horario`,
+                label: 'Horario',
+                icono: 'horario',
+                grupo: 'Configuración',
+              },
+              {
+                to: `/panel/${slug}/personas`,
+                label: 'Personas',
+                icono: 'personas',
+                grupo: 'Configuración',
+              },
+              {
+                to: `/panel/${slug}/equipo`,
+                label: 'Equipo',
+                icono: 'equipo',
+                grupo: 'Configuración',
+              },
+              {
+                to: `/panel/${slug}/negocio`,
+                label: 'El negocio',
+                icono: 'negocio',
+                grupo: 'Configuración',
+                enBarra: true,
+              },
+              {
+                to: `/panel/${slug}/facturacion`,
+                label: 'Tu cuenta',
+                icono: 'cuenta',
+                grupo: 'Cuenta',
+              },
+              {
+                to: `/panel/${slug}/actividad`,
+                label: 'Actividad',
+                icono: 'actividad',
+                grupo: 'Cuenta',
+              },
+            ] satisfies Seccion[])
           : []),
       ]
 
   const negocioActual = businesses?.find((b) => b.slug === slug)
 
-  /* La barra lleva solo lo de todos los días. Lo demás cabe en «Más»: sacar
-     nueve destinos a una barra de móvil los deja en 41 px cada uno. */
-  const barra: DestinoBarra[] = esPlataforma
-    ? [
-        { to: '/panel/admin', label: 'Negocios', icono: 'negocio', end: true },
-        { to: '/panel/admin/usuarios', label: 'Cuentas', icono: 'clientes' },
-        { to: '/panel/admin/cobros', label: 'Cobros', icono: 'cobros' },
-        { to: '/panel/admin/actividad', label: 'Actividad', icono: 'actividad' },
-      ]
-    : [
-        { to: `/panel/${slug}`, label: 'Agenda', icono: 'agenda', end: true },
-        { to: `/panel/${slug}/clientes`, label: 'Clientes', icono: 'clientes' },
-        ...(puedeConfigurar
-          ? [
-              {
-                to: `/panel/${slug}/negocio`,
-                label: 'El negocio',
-                icono: 'negocio' as const,
-              },
-            ]
-          : []),
-      ]
+  // Orden de aparición, sin repetir: el primero que trae cada grupo lo coloca.
+  const grupos = [...new Set(secciones.map((s) => s.grupo))]
 
+  const enBarra = secciones.filter((s) => s.enBarra)
+  const enMas = secciones.filter((s) => !s.enBarra)
   // En la plataforma no hay ninguna cita que apuntar.
   const conBotonCentral = !esPlataforma
-
-  /* Lo que no cabe en la barra. Es la lista de pestañas menos las que ya
-     están abajo, para que nada quede sin puerta. */
-  const enBarra = new Set(barra.map((d) => d.to))
-  const enMas = tabs.filter((t) => !enBarra.has(t.to))
 
   const irA = (to: string) => {
     setMasAbierto(false)
     navigate(to)
   }
 
+  const salir = () => {
+    setMasAbierto(false)
+    void logout().then(() => navigate('/login'))
+  }
+
+  const selectorNegocio = esSuperadmin && !esPlataforma && businesses && businesses.length > 1 && (
+    <Select
+      value={slug}
+      onChange={(e) => irA(`/panel/${e.target.value}`)}
+      aria-label="Cambiar de negocio"
+      className="text-meta"
+    >
+      {businesses.map((b) => (
+        <option key={b.id} value={b.slug}>
+          {b.name}
+        </option>
+      ))}
+    </Select>
+  )
+
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="border-b border-line bg-cream">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
-          {/* En móvil la cabecera es una sola línea: marca, dónde estás y tú.
-              Todo lo demás (cambiar de negocio, plataforma, salir) vive en
-              «Más», que está a un dedo. */}
-          <div className="flex min-w-0 flex-1 items-center gap-3 md:flex-none">
-            <span className="md:hidden">
-              <LogoMark size={22} />
-            </span>
-            <span className="hidden md:inline">
-              <Logo size={20} />
-            </span>
-            <span className="hidden rounded-full bg-ink px-2.5 py-1 text-caption font-semibold tracking-wide text-cream uppercase md:inline-block">
+    <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
+      {/* ── Menú lateral (escritorio) ──
+          Se queda quieto mientras la página baja, y se desplaza por su cuenta
+          si algún día no cabe. */}
+      <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
+        <div className="flex flex-col gap-3 px-4 pt-5 pb-4">
+          <div className="flex items-center gap-2">
+            <Logo size={19} />
+            <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
               Panel
             </span>
-            <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink md:hidden">
-              {esPlataforma ? 'Plataforma' : (negocioActual?.name ?? 'Panel')}
-            </span>
           </div>
+          {/* Qué estás mirando, siempre a la vista: es lo que antes decía
+              «Estás gestionando…» en una línea suelta sobre el contenido. */}
+          {esPlataforma ? (
+            <p className="text-meta font-semibold text-body-2">Gestión de la plataforma</p>
+          ) : (
+            (selectorNegocio ?? (
+              <p className="truncate text-meta font-semibold text-body-2">
+                {negocioActual?.name ?? ''}
+              </p>
+            ))
+          )}
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {esSuperadmin && (
-              <>
-                {/* El selector solo aparece dentro de un negocio: en la
-                    plataforma no hay ninguno abierto que cambiar. */}
-                {!esPlataforma && businesses && businesses.length > 0 && (
-                  <Select
-                    value={slug}
-                    onChange={(e) => navigate(`/panel/${e.target.value}`)}
-                    aria-label="Cambiar de negocio"
-                    className="hidden h-10 w-auto max-w-[190px] text-meta md:block"
-                  >
-                    {businesses.map((b) => (
-                      <option key={b.id} value={b.slug}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-                <NavLink
-                  to={esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin'}
-                  className={cx(
-                    'hidden min-h-10 items-center rounded-full border border-line-strong md:inline-flex',
-                    'bg-surface px-4 text-meta font-semibold text-body-2',
-                    'transition-colors duration-200 hover:border-brand hover:text-brand',
-                  )}
-                >
-                  {esPlataforma ? 'Ir a un negocio' : 'Plataforma'}
-                </NavLink>
-              </>
-            )}
+        <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label="Secciones del panel">
+          {grupos.map((grupo) => (
+            <div key={grupo} className="mb-1">
+              <p className="px-3 pt-3 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
+                {grupo}
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {secciones
+                  .filter((s) => s.grupo === grupo)
+                  .map((s) => (
+                    <li key={s.to}>
+                      <ItemLateral seccion={s} />
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
 
+        <div className="flex flex-col gap-1 border-t border-line px-2 py-3">
+          {esSuperadmin && (
+            <button
+              type="button"
+              onClick={() =>
+                irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
+              }
+              className={cx(
+                'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body font-medium',
+                'text-body-2 transition-colors duration-200 hover:bg-canvas/60 hover:text-ink',
+              )}
+            >
+              <Icono className="size-[19px] shrink-0 text-subtle">
+                {esPlataforma ? TRAZOS.agenda : TRAZOS.cobros}
+              </Icono>
+              <span className="truncate">
+                {esPlataforma ? 'Ir a un negocio' : 'Gestión de la plataforma'}
+              </span>
+            </button>
+          )}
+
+          <NavLink
+            to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+            className={({ isActive }) =>
+              cx(
+                'flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-meta',
+                'transition-colors duration-200',
+                isActive ? 'bg-ink text-cream' : 'text-body-2 hover:bg-canvas/60 hover:text-ink',
+              )
+            }
+          >
+            <span
+              aria-hidden
+              className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-caption font-bold text-white"
+            >
+              {user.name.trim().charAt(0).toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1 truncate">
+              <span className="block truncate font-semibold">{user.name}</span>
+              <span className="block truncate text-caption opacity-80">{ROL_LABEL[user.role]}</span>
+            </span>
+          </NavLink>
+
+          <Button size="sm" variant="quiet" className="justify-start px-3" onClick={salir}>
+            Salir
+          </Button>
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        {/* ── Cabecera (solo móvil) ──
+            Una sola línea: marca, dónde estás y tú. Todo lo demás vive en la
+            barra de abajo, que está a un dedo. */}
+        <header className="border-b border-line bg-cream md:hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <LogoMark size={22} />
+              <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">
+                {esPlataforma ? 'Plataforma' : (negocioActual?.name ?? 'Panel')}
+              </span>
+            </div>
             <NavLink
               to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+              aria-label="Tu perfil"
               className={({ isActive }) =>
                 cx(
-                  'inline-flex min-h-10 max-w-[220px] items-center gap-2 rounded-full px-1 md:px-3',
-                  'text-meta transition-colors duration-200',
-                  isActive ? 'bg-ink text-cream' : 'text-body-2 hover:bg-canvas hover:text-ink',
+                  'inline-flex min-h-10 items-center rounded-full px-1',
+                  isActive ? 'bg-ink' : 'hover:bg-canvas',
                 )
               }
             >
               <span
                 aria-hidden
-                className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-caption font-bold text-white md:size-7"
+                className="grid size-8 place-items-center rounded-full bg-brand text-caption font-bold text-white"
               >
                 {user.name.trim().charAt(0).toUpperCase()}
               </span>
-              <span className="hidden truncate md:inline">
-                <span className="font-semibold">{user.name}</span>
-                <span className="hidden sm:inline"> · {ROL_LABEL[user.role]}</span>
-              </span>
             </NavLink>
-
-            <Button
-              size="sm"
-              variant="quiet"
-              className="hidden md:inline-flex"
-              onClick={() => {
-                void logout().then(() => navigate('/login'))
-              }}
-            >
-              Salir
-            </Button>
           </div>
-        </div>
+        </header>
 
-        {/* En pantalla grande hay sitio para las nueve de una vez. En móvil
-            navega la barra de abajo, así que aquí no pintan nada. */}
-        <div className="mx-auto hidden max-w-[1200px] px-4 sm:px-6 md:block">
-          <nav className="flex gap-1" aria-label="Secciones del panel">
-            {tabs.map((tab) => (
-              <Tab key={tab.to} {...tab} />
-            ))}
-          </nav>
-        </div>
-      </header>
-
-      {negocioActual && (
-        <div className="mx-auto hidden max-w-[1200px] px-4 pt-6 sm:px-6 md:block">
-          <p className="text-meta text-muted">
-            Estás gestionando{' '}
-            <span className="font-semibold text-body-2">{negocioActual.name}</span>
-          </p>
-        </div>
-      )}
-
-      {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila. */}
-      <main className="mx-auto max-w-[1200px] px-4 py-6 pb-28 sm:px-6 sm:py-8 md:pb-8">
-        <Outlet />
-      </main>
+        {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila. */}
+        <main className="mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10">
+          <Outlet />
+        </main>
+      </div>
 
       <nav
         aria-label="Navegación del panel"
@@ -377,14 +510,14 @@ export function PanelLayout() {
         <div
           className="mx-auto grid max-w-md items-center px-2 py-1"
           style={{
-            gridTemplateColumns: `repeat(${barra.length + (conBotonCentral ? 2 : 1)}, 1fr)`,
+            gridTemplateColumns: `repeat(${enBarra.length + (conBotonCentral ? 2 : 1)}, 1fr)`,
           }}
         >
           {/* El botón de apuntar va en el centro de verdad, no al final: es
               donde lo pone cualquier app y donde llega el pulgar. */}
-          {(conBotonCentral ? barra.slice(0, Math.ceil(barra.length / 2)) : barra).map(
-            (destino) => (
-              <BotonBarra key={destino.to} destino={destino} />
+          {(conBotonCentral ? enBarra.slice(0, Math.ceil(enBarra.length / 2)) : enBarra).map(
+            (s) => (
+              <BotonBarra key={s.to} seccion={s} />
             ),
           )}
 
@@ -403,25 +536,17 @@ export function PanelLayout() {
                   'hover:bg-brand-dark active:scale-[.97] motion-reduce:transform-none',
                 )}
               >
-                <svg
-                  aria-hidden
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.25"
-                  strokeLinecap="round"
-                  className="size-6"
-                >
+                <Icono className="size-6">
                   <path d="M12 5v14M5 12h14" />
-                </svg>
+                </Icono>
               </button>
             </div>
           )}
 
           {conBotonCentral &&
-            barra
-              .slice(Math.ceil(barra.length / 2))
-              .map((destino) => <BotonBarra key={destino.to} destino={destino} />)}
+            enBarra
+              .slice(Math.ceil(enBarra.length / 2))
+              .map((s) => <BotonBarra key={s.to} seccion={s} />)}
 
           <button
             type="button"
@@ -433,7 +558,7 @@ export function PanelLayout() {
               'text-caption font-semibold text-subtle transition-colors duration-200',
             )}
           >
-            {ICONOS.mas}
+            <Icono>{TRAZOS.mas}</Icono>
             <span>Más</span>
           </button>
         </div>
@@ -445,46 +570,55 @@ export function PanelLayout() {
           {esPlataforma ? 'Gestión de la plataforma' : (negocioActual?.name ?? 'Tu negocio')}
         </p>
 
-        {esSuperadmin && !esPlataforma && businesses && businesses.length > 1 && (
+        {selectorNegocio && (
           <label className="mb-4 flex flex-col gap-1.5">
             <span className="text-meta font-semibold text-body-2">Cambiar de negocio</span>
-            <Select
-              value={slug}
-              onChange={(e) => irA(`/panel/${e.target.value}`)}
-              aria-label="Cambiar de negocio"
-            >
-              {businesses.map((b) => (
-                <option key={b.id} value={b.slug}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
+            {selectorNegocio}
           </label>
         )}
 
-        <ul className="-mx-1 flex flex-col">
-          {enMas.map((t) => {
-            const activo = location.pathname === t.to
-            return (
-              <li key={t.to}>
-                <button
-                  type="button"
-                  onClick={() => irA(t.to)}
-                  className={cx(
-                    'flex min-h-12 w-full items-center justify-between rounded-xl px-3',
-                    'text-ui transition-colors duration-200 hover:bg-canvas',
-                    activo ? 'font-semibold text-ink' : 'text-body-2',
-                  )}
-                >
-                  {t.label}
-                  <span aria-hidden className="text-subtle">
-                    ›
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        {grupos
+          .filter((g) => enMas.some((s) => s.grupo === g))
+          .map((grupo) => (
+            <div key={grupo} className="mb-2">
+              <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
+                {grupo}
+              </p>
+              <ul className="-mx-1 flex flex-col">
+                {enMas
+                  .filter((s) => s.grupo === grupo)
+                  .map((s) => {
+                    const activo = location.pathname === s.to
+                    return (
+                      <li key={s.to}>
+                        <button
+                          type="button"
+                          onClick={() => irA(s.to)}
+                          className={cx(
+                            'flex min-h-12 w-full items-center gap-3 rounded-xl px-3',
+                            'text-ui transition-colors duration-200 hover:bg-canvas',
+                            activo ? 'font-semibold text-ink' : 'text-body-2',
+                          )}
+                        >
+                          <Icono
+                            className={cx(
+                              'size-[19px] shrink-0',
+                              activo ? 'text-brand' : 'text-subtle',
+                            )}
+                          >
+                            {TRAZOS[s.icono]}
+                          </Icono>
+                          <span className="flex-1 text-left">{s.label}</span>
+                          <span aria-hidden className="text-subtle">
+                            ›
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+              </ul>
+            </div>
+          ))}
 
         <div className="mt-4 flex flex-col gap-2 border-t border-line pt-4">
           {esSuperadmin && (
@@ -498,14 +632,7 @@ export function PanelLayout() {
               {esPlataforma ? 'Ir a un negocio' : 'Gestión de la plataforma'}
             </Button>
           )}
-          <Button
-            variant="quiet"
-            block
-            onClick={() => {
-              setMasAbierto(false)
-              void logout().then(() => navigate('/login'))
-            }}
-          >
+          <Button variant="quiet" block onClick={salir}>
             Salir
           </Button>
         </div>

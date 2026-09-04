@@ -615,8 +615,11 @@ export function PanelAgenda() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* El marco ya dice en qué negocio estás —en el menú lateral y en la
+          cabecera del móvil—, así que repetirlo aquí gastaba una línea para
+          no decir nada. El título es la pantalla, no el negocio. */}
       <PageHeader
-        title={summary?.business.name ?? 'Agenda'}
+        title="Agenda"
         hint={
           summary ? `${summary.serviceCount} servicios · ${summary.staffCount} personas` : undefined
         }
