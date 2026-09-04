@@ -11,7 +11,7 @@ import { prisma } from '../prisma.js'
 import { audit } from '../audit/log.js'
 import { getSessionUser } from '../auth/sessions.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
-import { sendMail, sendMailSafely } from '../mail/brevo.js'
+import { sendMail, sendMailSafely } from '../mail/enviar.js'
 import { registrarEnvio } from '../mail/contador.js'
 import {
   bookingCancelled,

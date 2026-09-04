@@ -1,5 +1,5 @@
 import { formatLongDate, formatPrice, TIMEZONE } from '@veline/shared'
-import type { MailMessage } from './brevo.js'
+import type { MailMessage } from './tipos.js'
 
 /* Paleta de marca. En correo se escriben literales: los clientes de email no
    entienden variables CSS ni hojas externas. */
@@ -32,6 +32,16 @@ export interface BookingMailData {
   notes?: string | null
 }
 
+/**
+ * Escapa antes de meter nada en el HTML del correo.
+ *
+ * Todo lo que se pinta aquí lo escribe alguien: el nombre del cliente, sus
+ * notas, el nombre del servicio. Sin esto, un cliente que se llame
+ * `<img onerror=…>` inyecta HTML en el correo que le llega al negocio.
+ */
+const esc = (v: string) =>
+  v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
 /** Marco común: cabecera con el logotipo, cuerpo y pie. */
 function layout(opts: {
   preheader: string
@@ -43,7 +53,7 @@ function layout(opts: {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:${CREAM};">
-<span style="display:none;font-size:1px;color:${CREAM};">${opts.preheader}</span>
+<span style="display:none;font-size:1px;color:${CREAM};">${esc(opts.preheader)}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};padding:32px 16px;">
 <tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid ${LINE};border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
@@ -79,8 +89,8 @@ function detalles(rows: [string, string][]) {
     ${rows
       .map(
         ([label, value]) => `<tr>
-      <td style="padding:11px 0 0;font-size:13px;color:${MUTED};">${label}</td>
-      <td style="padding:11px 0 0;font-size:13px;color:${INK};font-weight:600;text-align:right;">${value}</td>
+      <td style="padding:11px 0 0;font-size:13px;color:${MUTED};">${esc(label)}</td>
+      <td style="padding:11px 0 0;font-size:13px;color:${INK};font-weight:600;text-align:right;">${esc(value)}</td>
     </tr>`,
       )
       .join('')}
@@ -110,7 +120,7 @@ export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
     html: layout({
       preheader: `${cuando} en ${b.businessName}`,
       heading: '¡Reserva confirmada!',
-      intro: `Hola ${b.customerName.split(' ')[0]}, te esperan en <strong style="color:${INK};">${b.businessName}</strong>.`,
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, te esperan en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
       body: detalles(rows),
       cta: { label: 'Ver o cancelar mi reserva', url: `${webUrl()}/reserva/${b.code}` },
     }),
@@ -137,6 +147,8 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
     ['Cliente', b.customerName],
     ['Teléfono', b.customerPhone],
     ...((b.customerEmail ? [['Email', b.customerEmail]] : []) as [string, string][]),
+    // Ojo con el orden: estas filas se escapan, así que el enlace de contacto
+    // va aparte, más abajo.
     ['Importe', formatPrice(b.priceCents)],
     ['Código', b.code],
   ]
@@ -150,12 +162,23 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
     html: layout({
       preheader: `${b.customerName} ha reservado para el ${cuando}`,
       heading: 'Tienes una cita nueva',
-      intro: `<strong style="color:${INK};">${b.customerName}</strong> acaba de reservar en ${b.businessName}.`,
+      intro: `<strong style="color:${INK};">${esc(b.customerName)}</strong> acaba de reservar en ${esc(b.businessName)}.`,
       body:
         detalles(rows) +
         (b.notes
-          ? `<p style="margin:20px 0 0;padding:14px 16px;background:${CREAM};border-radius:10px;font-size:13.5px;line-height:1.6;color:#4A3826;"><strong>Nota del cliente:</strong> ${b.notes}</p>`
-          : ''),
+          ? `<p style="margin:20px 0 0;padding:14px 16px;background:${CREAM};border-radius:10px;font-size:13.5px;line-height:1.6;color:#4A3826;"><strong>Nota del cliente:</strong> ${esc(b.notes)}</p>`
+          : '') +
+        // Enlaces directos al cliente. Antes bastaba con darle a «Responder»
+        // porque el correo llevaba su dirección en Reply-To; Acumbamail no
+        // tiene ese campo, así que se ponen a la vista.
+        `<p style="margin:18px 0 0;font-size:13px;color:${MUTED};">
+          ${
+            b.customerEmail
+              ? `Escríbele a <a href="mailto:${encodeURI(b.customerEmail)}" style="color:${BRAND};font-weight:600;">${esc(b.customerEmail)}</a> o llámale`
+              : 'Llámale'
+          }
+          al <a href="tel:${encodeURI(b.customerPhone)}" style="color:${BRAND};font-weight:600;">${esc(b.customerPhone)}</a>.
+        </p>`,
       cta: { label: 'Abrir la agenda', url: `${webUrl()}/panel/${b.businessSlug}` },
     }),
     text: [
@@ -201,8 +224,8 @@ export function bookingCancelled(
       heading: 'Cita cancelada',
       intro:
         audience === 'cliente'
-          ? `Tu cita en <strong style="color:${INK};">${b.businessName}</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.`
-          : `Se ha cancelado una cita en ${b.businessName}. El hueco ya vuelve a ofrecerse.`,
+          ? `Tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.`
+          : `Se ha cancelado una cita en ${esc(b.businessName)}. El hueco ya vuelve a ofrecerse.`,
       body: detalles(rows),
       cta:
         audience === 'cliente'
@@ -245,7 +268,7 @@ export function bookingReminderMail(b: BookingMailData): MailMessage {
     html: layout({
       preheader: `${cuando} en ${b.businessName}`,
       heading: 'Te esperamos mañana',
-      intro: `Hola ${b.customerName.split(' ')[0]}, un recordatorio de tu cita en <strong style="color:${INK};">${b.businessName}</strong>.`,
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, un recordatorio de tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
       body: detalles(rows),
       cta: { label: 'Ver o cancelar mi cita', url: `${webUrl()}/reserva/${b.code}` },
     }),
@@ -275,7 +298,7 @@ export function reviewRequestMail(
     html: layout({
       preheader: `Cuéntanos cómo fue tu ${ctx.serviceName}`,
       heading: '¿Cómo fue?',
-      intro: `Hola ${to.name.split(' ')[0]}, estuviste en <strong style="color:${INK};">${ctx.businessName}</strong>. Si te apetece, cuéntalo en medio minuto.`,
+      intro: `Hola ${esc(to.name.split(' ')[0])}, estuviste en <strong style="color:${INK};">${esc(ctx.businessName)}</strong>. Si te apetece, cuéntalo en medio minuto.`,
       body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
         Tu opinión es lo que ayuda a otra gente del barrio a decidir. Puedes
         puntuar sin escribir nada si vas con prisa.
@@ -303,7 +326,7 @@ export function passwordResetMail(to: { email: string; name: string }, url: stri
     html: layout({
       preheader: 'Enlace para elegir una contraseña nueva',
       heading: 'Restablecer tu contraseña',
-      intro: `Hola ${to.name.split(' ')[0]}, hemos recibido una petición para cambiar la contraseña de tu panel.`,
+      intro: `Hola ${esc(to.name.split(' ')[0])}, hemos recibido una petición para cambiar la contraseña de tu panel.`,
       body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
         El enlace caduca en <strong style="color:${INK};">1 hora</strong> y solo sirve una vez.
         Si no has sido tú, puedes ignorar este correo: tu contraseña no cambia.

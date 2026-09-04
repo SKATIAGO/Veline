@@ -12,7 +12,7 @@ import {
   SESSION_COOKIE,
 } from '../auth/sessions.js'
 import { audit } from '../audit/log.js'
-import { mailMode, sendMail } from '../mail/brevo.js'
+import { mailMode, sendMail } from '../mail/enviar.js'
 import { passwordResetMail } from '../mail/templates.js'
 
 const loginSchema = z.object({

@@ -5,7 +5,7 @@ import { prisma } from '../prisma.js'
 import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
-import { sendMail } from '../mail/brevo.js'
+import { sendMail } from '../mail/enviar.js'
 import { registrarEnvio } from '../mail/contador.js'
 import { reviewRequestMail } from '../mail/templates.js'
 

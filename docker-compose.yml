@@ -30,6 +30,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-veline}:${POSTGRES_PASSWORD:-veline}@db:5432/${POSTGRES_DB:-veline}?schema=public
       # Correo — ver docs/08-correo.md. La clave vive en .env, nunca en el repo.
       BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-acumbamail}
       MAIL_MODE: ${MAIL_MODE:-dry}
       SMS_MODE: ${SMS_MODE:-dry}
       ACUMBAMAIL_TOKEN: ${ACUMBAMAIL_TOKEN:-}

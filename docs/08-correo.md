@@ -1,4 +1,4 @@
-# Correo transaccional (Brevo) — fase 1
+# Correo y SMS
 
 Primera fase de comunicaciones: **solo email**. SMS y WhatsApp, que la página de precios
 promete dentro de la misma tarifa, quedan para más adelante.
@@ -114,12 +114,67 @@ propia con permisos limitados a envío transaccional.
 - **Baja de comunicaciones** — para avisos transaccionales no es obligatorio, pero en cuanto se
   mande algo comercial hace falta.
 
+## Un solo proveedor: Acumbamail
+
+Desde septiembre de 2026 **el correo y los SMS salen los dos por Acumbamail**. Antes el correo
+iba por Brevo; se unificó para tener una sola cuenta y una sola factura.
+
+El proveedor se elige con `MAIL_PROVIDER` (`acumbamail` por defecto, `brevo` como vuelta atrás).
+Todo el producto llama a `mail/enviar.ts` y es ahí donde se decide: **cambiar de proveedor es una
+variable de entorno, no tocar cinco archivos**.
+
+### Lo que se pierde con Acumbamail
+
+Su API de correo (`sendOne`) admite `auth_token`, `from_email`, `to_email`, `cc_email`,
+`bcc_email`, `subject`, `body`, `template_id`, `merge_tags`, `category` y `program_date`. **No
+tiene** tres cosas que Brevo sí:
+
+|                      | Brevo | Acumbamail |
+| -------------------- | ----- | ---------- |
+| HTML                 | sí    | sí         |
+| Texto plano          | sí    | **no**     |
+| Reply-To             | sí    | **no**     |
+| Nombre del remitente | sí    | **no**     |
+
+Qué significa cada una en la práctica:
+
+- **Reply-To.** Responder a un correo de Veline ya no escribe al buzón de contacto, y —lo que
+  más se nota— **responder al aviso de cita nueva ya no escribe al cliente**. Para compensarlo,
+  ese correo lleva ahora el email y el teléfono del cliente como enlaces directos: un clic
+  abre el correo o la llamada.
+- **Texto plano.** Las plantillas siguen generando la versión en texto (Brevo la usa si se
+  vuelve), pero Acumbamail solo manda el HTML. Un cliente que bloquee HTML verá menos.
+- **Nombre del remitente.** Llega la dirección pelada en vez de «Veline \<…\>».
+
+Si alguna de las tres acaba molestando, `MAIL_PROVIDER=brevo` y vuelve todo — la clave de Brevo
+sigue en el `.env`.
+
+### Configuración
+
+```bash
+MAIL_PROVIDER=acumbamail     # acumbamail | brevo
+MAIL_MODE=dry                # off | dry | live
+ACUMBAMAIL_TOKEN=            # sirve para el correo y para los SMS
+MAIL_FROM_EMAIL=             # remitente verificado en Acumbamail
+MAIL_OVERRIDE_TO=            # manda TODO aquí, sea quien sea el destinatario
+BREVO_API_KEY=               # solo si se vuelve a MAIL_PROVIDER=brevo
+```
+
+Los frenos (`off`/`dry`/`live`, la redirección y el descarte de direcciones no entregables) viven
+en `mail/tipos.ts` y se aplican **antes** de llegar a ningún proveedor: si cada transporte los
+implementara por su cuenta, tarde o temprano uno se dejaría alguno.
+
+### Las plantillas escapan lo que escribe el cliente
+
+Todo lo que se pinta en un correo lo escribe alguien —el nombre del cliente, sus notas, el
+nombre del servicio—, y hasta ahora entraba en el HTML tal cual. Un cliente llamado
+`<img onerror=…>` inyectaba HTML en el correo que le llegaba al negocio. Ahora se escapa en el
+marco y en las filas de detalle; hay una prueba que recorre las siete plantillas con un nombre
+malicioso.
+
 ## SMS y recordatorios (Acumbamail)
 
-El correo sigue en Brevo, que funciona y está verificado. Los **SMS** salen por
-**Acumbamail**, elegido en septiembre de 2026. Son dos proveedores a propósito: migrar
-también el correo obligaría a volver a verificar el remitente y a reprobar los cuatro correos
-que hoy salen bien, y no había motivo para arriesgarlo.
+Los SMS salen por Acumbamail, igual que el correo.
 
 ```bash
 SMS_MODE=dry                 # off | dry | live

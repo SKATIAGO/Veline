@@ -1,6 +1,6 @@
 import { aceptaReservas, formatLongDate, TIMEZONE } from '@veline/shared'
 import { prisma } from './prisma.js'
-import { sendMail } from './mail/brevo.js'
+import { sendMail } from './mail/enviar.js'
 import { sendSms } from './mail/acumbamail.js'
 import { registrarEnvio } from './mail/contador.js'
 import { bookingReminderMail } from './mail/templates.js'
