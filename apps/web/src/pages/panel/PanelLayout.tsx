@@ -417,7 +417,8 @@ export function PanelLayout() {
 
   const salir = () => {
     setMasAbierto(false)
-    void logout().then(() => navigate('/login'))
+    // logout() ya lleva a /login con una carga limpia.
+    void logout()
   }
 
   const selectorNegocio = esSuperadmin && !esPlataforma && businesses && businesses.length > 1 && (
