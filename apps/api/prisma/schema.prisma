@@ -85,6 +85,7 @@ model Business {
   auditLogs AuditLog[]
   messages  MessageLog[]
   charges   Charge[]
+  reviews   Review[]
 
   @@index([category])
 }
@@ -185,6 +186,7 @@ model Customer {
   createdAt DateTime @default(now())
 
   bookings Booking[]
+  reviews  Review[]
 }
 
 model Booking {
@@ -216,6 +218,7 @@ model Booking {
   reminderSentAt DateTime?
 
   messages MessageLog[]
+  review   Review?
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
@@ -293,6 +296,38 @@ model PasswordReset {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// Una reseña de verdad, escrita por quien tuvo la cita.
+///
+/// Antes la estrella del marketplace era un número fijo escrito en los datos
+/// de ejemplo: 4,8 con 126 reseñas que nunca escribió nadie. Ahora sale de
+/// aquí, y un negocio nuevo empieza sin estrella en vez de con una inventada.
+///
+/// Solo se puede reseñar una cita COMPLETADA, y una sola vez: el enlace lleva
+/// un testigo que se consume. Sin eso, cualquiera podría inflar la nota de un
+/// negocio desde fuera.
+model Review {
+  id         String   @id @default(cuid())
+  businessId String
+  /// Una cita, una reseña.
+  bookingId  String   @unique
+  customerId String
+  /// De 1 a 5.
+  rating     Int
+  comment    String?
+  /// Testigo del enlace que se le manda al cliente. Se guarda el hash, no el
+  /// testigo: igual que las sesiones y los restablecimientos de contraseña.
+  tokenHash  String   @unique
+  /// Null mientras no la haya escrito: la fila nace al pedirla.
+  answeredAt DateTime?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, answeredAt])
 }
 
 enum ChargeStatus {
@@ -414,6 +449,7 @@ enum AuditAction {
   PRUEBA_AMPLIADA
   COBRO_GENERADO
   COBRO_MARCADO
+  RESENA_PUBLICADA
   SERVICIO_CREADO
   SERVICIO_EDITADO
   SERVICIO_ELIMINADO

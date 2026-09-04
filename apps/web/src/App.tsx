@@ -7,6 +7,7 @@ import { BookingDate } from './pages/BookingDate'
 import { BookingConfirm } from './pages/BookingConfirm'
 import { BookingDone } from './pages/BookingDone'
 import { Pricing } from './pages/Pricing'
+import { Resena } from './pages/Resena'
 import { Login } from './pages/Login'
 import { ForgotPassword, ResetPassword } from './pages/PasswordFlow'
 import { PanelIndex, PanelLayout } from './pages/panel/PanelLayout'
@@ -21,6 +22,7 @@ import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
 import { PanelPersonas } from './pages/panel/PanelPersonas'
 import { PanelNegocio } from './pages/panel/PanelNegocio'
+import { PanelClientes } from './pages/panel/PanelClientes'
 import { PanelActividad } from './pages/panel/PanelActividad'
 import { EmptyState } from './components/ui'
 import { ScrollToTop } from './components/ScrollToTop'
@@ -55,6 +57,7 @@ function AppRoutes() {
         <Route path="servicios" element={<PanelServices />} />
         <Route path="horario" element={<PanelHours />} />
         <Route path="personas" element={<PanelPersonas />} />
+        <Route path="clientes" element={<PanelClientes />} />
         <Route path="equipo" element={<PanelUsers />} />
         <Route path="negocio" element={<PanelNegocio />} />
         <Route path="facturacion" element={<PanelMiCuenta />} />
@@ -71,6 +74,7 @@ function AppRoutes() {
             enlaces que ya se hayan compartido. */}
         <Route path="/negocios" element={<Navigate to="/" replace />} />
         <Route path="/reserva/:code" element={<BookingDone />} />
+        <Route path="/resena/:token" element={<Resena />} />
         <Route path="/:slug" element={<Business />} />
         <Route path="/:slug/reservar/fecha" element={<BookingDate />} />
         <Route path="/:slug/reservar/confirmar" element={<BookingConfirm />} />

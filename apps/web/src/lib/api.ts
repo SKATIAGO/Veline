@@ -238,6 +238,33 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  // ── Clientes ───────────────────────────────────────────────
+  panelCustomers: (slug: string) => request<PanelCustomer[]>(`/panel/${slug}/customers`),
+
+  // ── Reseñas ────────────────────────────────────────────────
+  getReview: (token: string) =>
+    request<{
+      businessName: string
+      businessSlug: string
+      customerName: string
+      startsAt: string
+      answered: boolean
+    }>(`/reviews/${token}`),
+
+  sendReview: (token: string, rating: number, comment?: string) =>
+    request<{ ok: true }>(`/reviews/${token}`, {
+      method: 'POST',
+      body: JSON.stringify({ rating, comment }),
+    }),
+
+  panelReviews: (slug: string) =>
+    request<{ pending: number; reviews: PanelReview[] }>(`/panel/${slug}/reviews`),
+
+  requestReview: (slug: string, bookingId: string) =>
+    request<{ url: string | null }>(`/panel/${slug}/bookings/${bookingId}/review-request`, {
+      method: 'POST',
+    }),
+
   // ── Cuenta del negocio ─────────────────────────────────────
   panelCuenta: (slug: string) => request<CuentaNegocio>(`/panel/${slug}/cuenta`),
 
@@ -472,4 +499,27 @@ export interface CuentaNegocio {
     status: 'PENDIENTE' | 'COBRADO' | 'ANULADO'
     paidAt: string | null
   })[]
+}
+
+export interface PanelReview {
+  id: string
+  rating: number
+  comment: string | null
+  customerName: string
+  serviceName: string
+  answeredAt: string
+}
+
+export interface PanelCustomer {
+  id: string
+  name: string
+  phone: string
+  email: string | null
+  total: number
+  completadas: number
+  ausencias: number
+  canceladas: number
+  gastadoCents: number
+  ultima: string | null
+  proxima: string | null
 }

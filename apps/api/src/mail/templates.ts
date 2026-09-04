@@ -261,7 +261,38 @@ export function bookingReminderMail(b: BookingMailData): MailMessage {
   }
 }
 
-/* ── 5. Restablecer contraseña ────────────────────────────────── */
+/* ── 5. Pedir la reseña ───────────────────────────────────────── */
+
+export function reviewRequestMail(
+  to: { email: string; name: string },
+  ctx: { businessName: string; serviceName: string; url: string },
+): MailMessage {
+  return {
+    to: to.email,
+    toName: to.name,
+    subject: `¿Qué tal fue en ${ctx.businessName}?`,
+    tag: 'resena',
+    html: layout({
+      preheader: `Cuéntanos cómo fue tu ${ctx.serviceName}`,
+      heading: '¿Cómo fue?',
+      intro: `Hola ${to.name.split(' ')[0]}, estuviste en <strong style="color:${INK};">${ctx.businessName}</strong>. Si te apetece, cuéntalo en medio minuto.`,
+      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
+        Tu opinión es lo que ayuda a otra gente del barrio a decidir. Puedes
+        puntuar sin escribir nada si vas con prisa.
+      </p>`,
+      cta: { label: 'Dejar mi opinión', url: ctx.url },
+    }),
+    text: [
+      '¿Cómo fue?',
+      '',
+      `Estuviste en ${ctx.businessName}. Si te apetece, cuéntalo en medio minuto.`,
+      '',
+      ctx.url,
+    ].join('\n'),
+  }
+}
+
+/* ── 6. Restablecer contraseña ────────────────────────────────── */
 
 export function passwordResetMail(to: { email: string; name: string }, url: string): MailMessage {
   return {

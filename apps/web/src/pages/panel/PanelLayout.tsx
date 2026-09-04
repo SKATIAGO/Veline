@@ -98,6 +98,7 @@ export function PanelLayout() {
       ]
     : [
         { to: `/panel/${slug}`, label: 'Agenda', end: true },
+        { to: `/panel/${slug}/clientes`, label: 'Clientes' },
         ...(puedeConfigurar
           ? [
               { to: `/panel/${slug}/servicios`, label: 'Servicios' },

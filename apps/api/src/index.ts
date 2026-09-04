@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.js'
 import { businessRoutes } from './routes/businesses.js'
 import { negocioRoutes } from './routes/negocio.js'
 import { cobrosRoutes } from './routes/cobros.js'
+import { resenaRoutes } from './routes/resenas.js'
 import { bookingRoutes } from './routes/bookings.js'
 import { panelRoutes } from './routes/panel.js'
 
@@ -69,6 +70,7 @@ await app.register(bookingRoutes)
 await app.register(panelRoutes)
 await app.register(negocioRoutes)
 await app.register(cobrosRoutes)
+await app.register(resenaRoutes)
 await app.register(adminRoutes)
 await app.register(auditRoutes)
 

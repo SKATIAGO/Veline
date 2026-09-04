@@ -511,11 +511,16 @@ export function Eyebrow({
   )
 }
 
+/**
+ * La nota del negocio. Sin reseñas NO se enseña «0,0 ★»: un negocio recién
+ * entrado no es un negocio malo, y esa cifra lo hunde al lado de los demás.
+ * Se dice lo que es — que acaba de llegar.
+ */
 export function Stars({ rating, count }: { rating: number; count?: number }) {
+  if (!count) return <span className="text-subtle">Nuevo en Veline</span>
   return (
     <span className="text-subtle">
-      {rating.toLocaleString('es-ES', { minimumFractionDigits: 1 })} ★
-      {count !== undefined && ` (${count})`}
+      {rating.toLocaleString('es-ES', { minimumFractionDigits: 1 })} ★ ({count})
     </span>
   )
 }

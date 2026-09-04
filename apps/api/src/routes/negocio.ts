@@ -7,6 +7,7 @@ import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
+import { pedirResena } from './resenas.js'
 
 /**
  * Lo que un negocio necesita para gestionarse solo: las personas que atienden,
@@ -441,6 +442,100 @@ export async function negocioRoutes(app: FastifyInstance) {
     return { ok: true, photos: parsed.data.photos }
   })
 
+  /* ── Clientes ─────────────────────────────────────────────
+   * Los clientes y su historial estaban guardados desde el principio, pero no
+   * había pantalla: nadie podía saber quién repite, quién falta o a quién
+   * llamar. Se calcula sobre las citas de ESTE negocio — un cliente que
+   * reserva en dos sitios no comparte su historial entre ellos. */
+
+  app.get('/api/panel/:slug/customers', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const q = (req.query as { q?: string }).q?.trim().toLowerCase() ?? ''
+
+    const citas = await prisma.booking.findMany({
+      where: {
+        businessId: auth.business.id,
+        ...(q
+          ? {
+              customer: {
+                OR: [{ name: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }],
+              },
+            }
+          : {}),
+      },
+      orderBy: { startsAt: 'desc' },
+      include: { customer: true },
+      take: 1000,
+    })
+
+    const porCliente = new Map<
+      string,
+      {
+        id: string
+        name: string
+        phone: string
+        email: string | null
+        total: number
+        completadas: number
+        ausencias: number
+        canceladas: number
+        gastadoCents: number
+        ultima: Date | null
+        proxima: Date | null
+      }
+    >()
+
+    const ahora = Date.now()
+
+    for (const c of citas) {
+      const actual = porCliente.get(c.customerId) ?? {
+        id: c.customerId,
+        name: c.customer.name,
+        phone: c.customer.phone,
+        email: c.customer.email,
+        total: 0,
+        completadas: 0,
+        ausencias: 0,
+        canceladas: 0,
+        gastadoCents: 0,
+        ultima: null as Date | null,
+        proxima: null as Date | null,
+      }
+
+      actual.total++
+      if (c.status === 'COMPLETADA') {
+        actual.completadas++
+        actual.gastadoCents += c.priceCents
+      }
+      if (c.status === 'NO_ASISTIO') actual.ausencias++
+      if (c.status === 'CANCELADA') actual.canceladas++
+
+      const t = c.startsAt.getTime()
+      if (t <= ahora && (!actual.ultima || c.startsAt > actual.ultima)) actual.ultima = c.startsAt
+      if (
+        t > ahora &&
+        c.status === 'CONFIRMADA' &&
+        (!actual.proxima || c.startsAt < actual.proxima)
+      ) {
+        actual.proxima = c.startsAt
+      }
+
+      porCliente.set(c.customerId, actual)
+    }
+
+    return [...porCliente.values()]
+      .sort((a, b) => (b.ultima?.getTime() ?? 0) - (a.ultima?.getTime() ?? 0))
+      .map((c) => ({
+        ...c,
+        ultima: c.ultima?.toISOString() ?? null,
+        proxima: c.proxima?.toISOString() ?? null,
+      }))
+  })
+
   /* ── Agenda operativa ─────────────────────────────────────── */
 
   /** Apuntar a mano la cita que entra por teléfono o en mostrador. */
@@ -646,6 +741,12 @@ export async function negocioRoutes(app: FastifyInstance) {
     }
 
     await prisma.booking.update({ where: { id }, data: { status: parsed.data.status } })
+
+    // Atendida = momento de pedir la reseña. Se dispara y se olvida: si el
+    // correo falla, la cita ya está marcada y eso es lo que importaba.
+    if (parsed.data.status === 'COMPLETADA') {
+      void pedirResena(id).catch((err) => req.log.error({ err }, 'no se pudo pedir la reseña'))
+    }
 
     const accion =
       parsed.data.status === 'COMPLETADA'

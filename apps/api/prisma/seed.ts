@@ -41,8 +41,6 @@ const SEED = [
     description:
       'Taller de barrio de toda la vida. Mecánica general, revisiones y pre-ITV sin cita telefónica.',
     phone: '915 55 01 92',
-    rating: 4.8,
-    reviewCount: 126,
     plan: 'NEGOCIO' as const,
     location: {
       street: 'Calle de San Bernardo 42',
@@ -71,8 +69,6 @@ const SEED = [
     ],
     description: 'Clases particulares y preparación de exámenes oficiales de Cambridge.',
     phone: '914 22 18 40',
-    rating: 4.9,
-    reviewCount: 84,
     plan: 'NEGOCIO' as const,
     location: {
       street: 'Calle de Fuencarral 78',
@@ -101,8 +97,6 @@ const SEED = [
     ],
     description: 'Consulta, vacunación y peluquería canina. Urgencias concertadas.',
     phone: '915 71 33 20',
-    rating: 4.7,
-    reviewCount: 203,
     plan: 'EQUIPOS' as const,
     location: {
       street: 'Avenida de Brasil 15',
@@ -131,8 +125,6 @@ const SEED = [
     ],
     description: 'Hatha y Vinyasa en grupos reducidos, con sesiones privadas bajo demanda.',
     phone: '910 45 66 71',
-    rating: 4.9,
-    reviewCount: 57,
     plan: 'GRATIS' as const,
     location: {
       street: 'Calle de Bravo Murillo 210',
@@ -161,8 +153,6 @@ const SEED = [
     ],
     description: 'Prácticas del permiso B con recogida en el centro de Madrid.',
     phone: '913 08 77 12',
-    rating: 4.6,
-    reviewCount: 312,
     plan: 'EQUIPOS' as const,
     location: {
       street: 'Calle de Alcalá 320',
@@ -191,8 +181,6 @@ const SEED = [
     ],
     description: 'Copias de llaves, afilado y asesoramiento a domicilio con cita previa.',
     phone: '913 66 90 05',
-    rating: 4.8,
-    reviewCount: 41,
     plan: 'GRATIS' as const,
     location: {
       street: 'Calle del Olivar 9',
@@ -333,8 +321,8 @@ async function main() {
         // Dominio .test: reservado por la RFC, nunca entregable. El envío real
         // se prueba con MAIL_OVERRIDE_TO.
         email: `reservas@${b.slug}.test`,
-        rating: b.rating,
-        reviewCount: b.reviewCount,
+        // Sin nota ni reseñas: un negocio empieza en cero y la estrella sale
+        // de las reseñas reales de sus clientes, no de un número escrito aquí.
         plan: b.plan,
         photos: b.photos,
         locations: {
