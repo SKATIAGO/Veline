@@ -42,12 +42,34 @@ export function readMailConfig(): MailConfig {
   const rawMode = (process.env.MAIL_MODE ?? 'dry').toLowerCase()
   const mode: MailMode = rawMode === 'live' || rawMode === 'off' ? rawMode : 'dry'
 
-  const rawProvider = (process.env.MAIL_PROVIDER ?? 'acumbamail').toLowerCase()
-  const provider: MailProvider = rawProvider === 'brevo' ? 'brevo' : 'acumbamail'
+  return { provider: elegirProveedor(), mode, ...datosRemitente() }
+}
 
+/**
+ * Qué proveedor manda el correo.
+ *
+ * Si `MAIL_PROVIDER` está puesto, se respeta y punto. Si no, se elige el que
+ * tenga credencial: Acumbamail primero, y Brevo si aún no hay token.
+ *
+ * Ese respaldo no es por gusto. El día que se migró, producción tenía la
+ * clave de Brevo y ningún `MAIL_PROVIDER` en su `.env`; con el valor por
+ * defecto a secas, el despliegue habría dejado el correo apagado hasta que
+ * alguien entrara al servidor. «Hemos migrado» no puede significar «no sale
+ * ni un correo hasta mañana». En cuanto exista el token, se pasa solo.
+ *
+ * No es magia oculta: el log del arranque dice siempre cuál está mandando.
+ */
+function elegirProveedor(): MailProvider {
+  const pedido = (process.env.MAIL_PROVIDER ?? '').toLowerCase()
+  if (pedido === 'brevo') return 'brevo'
+  if (pedido === 'acumbamail') return 'acumbamail'
+
+  if (!process.env.ACUMBAMAIL_TOKEN && process.env.BREVO_API_KEY) return 'brevo'
+  return 'acumbamail'
+}
+
+function datosRemitente() {
   return {
-    provider,
-    mode,
     fromEmail: process.env.MAIL_FROM_EMAIL ?? '',
     fromName: process.env.MAIL_FROM_NAME ?? 'Veline',
     overrideTo: process.env.MAIL_OVERRIDE_TO || undefined,
