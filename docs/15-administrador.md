@@ -84,7 +84,7 @@ una cuota pendiente, o ha dejado de aceptar reservas. Una suscripción al día n
 Ver [08-correo.md](08-correo.md) para el detalle. Lo esencial:
 
 - Un proceso dentro de la API se despierta cada 15 minutos y avisa de las citas de dentro de 24 h,
-  por correo (Brevo) y SMS (Acumbamail).
+  por correo y SMS, los dos por Acumbamail.
 - Se sella `reminderSentAt` **antes** de enviar: perder un recordatorio es mucho mejor que
   mandarle cinco al mismo cliente porque el proceso se reinició.
 - Cada envío se apunta con su coste. El precio se calcula **al enviar**, no al facturar: si el

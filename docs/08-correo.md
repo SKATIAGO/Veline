@@ -119,9 +119,19 @@ propia con permisos limitados a envío transaccional.
 Desde septiembre de 2026 **el correo y los SMS salen los dos por Acumbamail**. Antes el correo
 iba por Brevo; se unificó para tener una sola cuenta y una sola factura.
 
-El proveedor se elige con `MAIL_PROVIDER` (`acumbamail` por defecto, `brevo` como vuelta atrás).
-Todo el producto llama a `mail/enviar.ts` y es ahí donde se decide: **cambiar de proveedor es una
-variable de entorno, no tocar cinco archivos**.
+El proveedor se elige con `MAIL_PROVIDER`. Todo el producto llama a `mail/enviar.ts` y es ahí
+donde se decide: **cambiar de proveedor es una variable de entorno, no tocar cinco archivos**.
+
+Si `MAIL_PROVIDER` **no** está puesto, manda el que tenga credencial: Acumbamail si hay
+`ACUMBAMAIL_TOKEN`, y Brevo mientras no lo haya. Ese respaldo existe por un motivo concreto: el día
+de la migración, producción tenía la clave de Brevo y ninguna variable nueva, así que un valor por
+defecto a secas habría dejado el correo apagado hasta que alguien entrara al servidor. Y el correo
+apagado **no se ve**: la API arranca, las reservas se confirman y el fallo solo aparece cuando un
+cliente dice que no le ha llegado nada. En cuanto el token esté en el `.env`, la migración se
+completa sola sin desplegar.
+
+Puesto a mano se respeta sin discutir, que es lo que hace falta para forzar uno u otro. Y **el log
+del arranque siempre dice cuál está mandando** — es la forma de comprobarlo, no de adivinarlo.
 
 ### Lo que se pierde con Acumbamail
 
@@ -152,7 +162,7 @@ sigue en el `.env`.
 ### Configuración
 
 ```bash
-MAIL_PROVIDER=acumbamail     # acumbamail | brevo
+MAIL_PROVIDER=              # acumbamail | brevo — vacío: el que tenga credencial
 MAIL_MODE=dry                # off | dry | live
 ACUMBAMAIL_TOKEN=            # sirve para el correo y para los SMS
 MAIL_FROM_EMAIL=             # remitente verificado en Acumbamail
