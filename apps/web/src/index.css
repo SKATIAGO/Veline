@@ -149,6 +149,20 @@
   }
 }
 
+/* La del panel es más corta y viaja menos que la del sitio público: a una
+   herramienta se entra decenas de veces al día, y ahí una animación larga deja
+   de sentirse cuidada y empieza a estorbar. */
+@keyframes veline-section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes veline-float {
   0%,
   100% {
@@ -219,6 +233,13 @@
      cuidado, que es justo la diferencia entre "funciona" y "se siente cuidado". */
   .page-enter {
     animation: veline-page-enter 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  /* Entrada de cada sección del panel. Existe aparte de .page-enter porque
+     el panel es una herramienta, no una visita: 0,42 s se hacen largos cuando
+     cambias de pestaña veinte veces seguidas. */
+  .section-enter {
+    animation: veline-section-enter 0.24s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
 
   .rise {
@@ -361,6 +382,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .page-enter,
+    .section-enter,
     .rise,
     .float,
     .marquee-track,

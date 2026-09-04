@@ -3,7 +3,7 @@ import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from '
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Button, Logo, LogoMark, Select, Sheet, Spinner, cx } from '../../components/ui'
+import { Button, Logo, LogoMark, Select, Sheet, Skeleton, cx } from '../../components/ui'
 
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
@@ -38,6 +38,73 @@ const ROL_LABEL = {
   EMPLEADO: 'Equipo',
 } as const
 
+/**
+ * El marco del panel mientras se comprueba la sesión.
+ *
+ * Antes aquí había un spinner suelto sobre una pantalla en blanco: al recargar
+ * se veía el vacío, luego el spinner y de golpe el panel entero: menú, barra y
+ * contenido a la vez. Ese es el «golpe» que se notaba al entrar.
+ *
+ * Dibujando ya el marco —que no depende de la sesión, es el mismo siempre— lo
+ * único que cambia al resolverse es el contenido. Se sustituyen huecos por
+ * cosas en lugar de construir la página delante del usuario.
+ */
+function MarcoCargando() {
+  return (
+    <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
+      <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
+        <div className="flex flex-col gap-3 px-4 pt-5 pb-4">
+          <div className="flex items-center gap-2">
+            <Logo size={19} />
+            <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
+              Panel
+            </span>
+          </div>
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="flex flex-col gap-1.5 px-4">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-9" />
+          ))}
+        </div>
+      </aside>
+
+      <div className="min-w-0">
+        <header className="border-b border-line bg-cream md:hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <LogoMark size={22} />
+              <Skeleton className="h-4 w-36" />
+            </div>
+            <Skeleton className="size-8 rounded-full" />
+          </div>
+        </header>
+
+        <div
+          className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
+          aria-busy="true"
+          aria-label="Comprobando sesión"
+        >
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-40" />
+        </div>
+      </div>
+
+      <nav
+        aria-hidden
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-11" />
+          ))}
+        </div>
+      </nav>
+    </div>
+  )
+}
+
 /** /panel sin más: cada rol aterriza donde le corresponde. */
 export function PanelIndex() {
   const { user, loading } = useAuth()
@@ -47,12 +114,12 @@ export function PanelIndex() {
     enabled: !!user,
   })
 
-  if (loading) return <Spinner label="Comprobando sesión…" />
+  if (loading) return <MarcoCargando />
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN' && user.businessSlug) {
     return <Navigate to={`/panel/${user.businessSlug}`} replace />
   }
-  if (isLoading) return <Spinner />
+  if (isLoading) return <MarcoCargando />
   if (!businesses?.length) return <Navigate to="/panel/admin" replace />
   return <Navigate to={`/panel/${businesses[0].slug}`} replace />
 }
@@ -224,7 +291,7 @@ export function PanelLayout() {
     enabled: !!user,
   })
 
-  if (loading) return <Spinner label="Comprobando sesión…" />
+  if (loading) return <MarcoCargando />
   if (!user) return <Navigate to="/login" replace />
 
   // Un admin o empleado solo tiene un negocio: si la URL apunta a otro,
@@ -494,8 +561,15 @@ export function PanelLayout() {
           </div>
         </header>
 
-        {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila. */}
-        <main className="mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10">
+        {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila.
+
+            La key con la ruta monta un <main> nuevo en cada sección, y con él
+            la animación vuelve a arrancar: sin ella el contenido se sustituye
+            de golpe y cambiar de pestaña se siente como un parpadeo. */}
+        <main
+          key={location.pathname}
+          className="section-enter mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
+        >
           <Outlet />
         </main>
       </div>

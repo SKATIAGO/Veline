@@ -16,6 +16,18 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap"
     />
+    <!--
+      El fondo, aquí y no solo en el CSS: el navegador pinta la página en
+      blanco antes de tener la hoja de estilos, así que cada recarga empezaba
+      con un destello blanco y luego el crema. Es el primer golpe que se ve al
+      entrar, y se quita con una línea.
+      Es el mismo valor que --color-cream; si allí cambia, aquí también.
+    -->
+    <style>
+      html {
+        background: #f2e7d6;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
