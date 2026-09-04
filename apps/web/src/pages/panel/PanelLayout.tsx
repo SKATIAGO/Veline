@@ -93,6 +93,7 @@ export function PanelLayout() {
     ? [
         { to: '/panel/admin', label: 'Negocios', end: true },
         { to: '/panel/admin/usuarios', label: 'Cuentas' },
+        { to: '/panel/admin/cobros', label: 'Cobros' },
         { to: '/panel/admin/actividad', label: 'Actividad' },
       ]
     : [
@@ -104,6 +105,7 @@ export function PanelLayout() {
               { to: `/panel/${slug}/personas`, label: 'Personas' },
               { to: `/panel/${slug}/equipo`, label: 'Equipo' },
               { to: `/panel/${slug}/negocio`, label: 'El negocio' },
+              { to: `/panel/${slug}/facturacion`, label: 'Tu cuenta' },
               { to: `/panel/${slug}/actividad`, label: 'Actividad' },
             ]
           : []),

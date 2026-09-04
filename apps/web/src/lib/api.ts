@@ -238,6 +238,27 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  // ── Cuenta del negocio ─────────────────────────────────────
+  panelCuenta: (slug: string) => request<CuentaNegocio>(`/panel/${slug}/cuenta`),
+
+  // ── Cobros (SUPERADMIN) ────────────────────────────────────
+  adminCharges: (period?: string) =>
+    request<{ charges: Charge[]; totals: { pendienteCents: number; cobradoCents: number } }>(
+      `/admin/charges${qs({ period })}`,
+    ),
+
+  closeMonth: (period?: string) =>
+    request<{ period: string; negocios: number; creados: number }>('/admin/charges/close', {
+      method: 'POST',
+      body: JSON.stringify(period ? { period } : {}),
+    }),
+
+  markCharge: (id: string, status: 'PENDIENTE' | 'COBRADO' | 'ANULADO', note?: string) =>
+    request<{ id: string; status: string; paidAt: string | null }>(`/admin/charges/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, note }),
+    }),
+
   // ── Registro de actividad (ADMIN y SUPERADMIN) ─────────────
   auditLog: (params: { businessId?: string; action?: string; cursor?: string; limit?: number }) =>
     request<{ entries: AuditEntry[]; nextCursor: string | null }>(`/audit${qs(params)}`),
@@ -422,4 +443,33 @@ export interface PanelProfile {
   street: string
   city: string
   postalCode: string
+}
+
+export interface Desglose {
+  plan: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS'
+  seats: number
+  subscriptionCents: number
+  commissionCents: number
+  extraMessages: number
+  messagesCents: number
+  totalCents: number
+}
+
+export interface Charge extends Desglose {
+  id: string
+  period: string
+  business: { name: string; slug: string }
+  status: 'PENDIENTE' | 'COBRADO' | 'ANULADO'
+  paidAt: string | null
+  paidNote: string | null
+}
+
+export interface CuentaNegocio {
+  current: (Desglose & { period: string }) | null
+  history: (Desglose & {
+    id: string
+    period: string
+    status: 'PENDIENTE' | 'COBRADO' | 'ANULADO'
+    paidAt: string | null
+  })[]
 }

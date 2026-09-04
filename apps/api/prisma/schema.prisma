@@ -84,6 +84,7 @@ model Business {
   users     User[]
   auditLogs AuditLog[]
   messages  MessageLog[]
+  charges   Charge[]
 
   @@index([category])
 }
@@ -294,6 +295,56 @@ model PasswordReset {
   @@index([expiresAt])
 }
 
+enum ChargeStatus {
+  /// Generado, esperando el pago.
+  PENDIENTE
+  /// Marcado como cobrado a mano (transferencia, recibo…).
+  COBRADO
+  /// Se decidió no cobrarlo: cortesía, error, negocio dado de baja.
+  ANULADO
+}
+
+/// Lo que le toca pagar a un negocio por un mes.
+///
+/// Se genera al cerrar el mes con las cifras congeladas: si después cambia de
+/// plan o da de baja a alguien, el mes ya cerrado no se mueve. Cobrar hacia
+/// atrás con la tarifa nueva sería una sorpresa desagradable.
+///
+/// El cobro es MANUAL por ahora (transferencia o recibo): no hay pasarela.
+/// Esta tabla es el registro de qué se debe y qué está pagado.
+model Charge {
+  id         String       @id @default(cuid())
+  businessId String
+  /// Mes que se cobra, siempre el día 1: 2026-09-01 = septiembre.
+  period     DateTime     @db.Date
+  status     ChargeStatus @default(PENDIENTE)
+
+  // ── Desglose, congelado al generar ──
+  plan            Plan
+  /// Personas activas en el momento de cerrar el mes.
+  seats           Int
+  /// Cuota del plan más las personas de más.
+  subscriptionCents Int
+  /// 15 % de los primeros clientes que llegaron por el marketplace.
+  commissionCents Int
+  /// Mensajes fuera del cupo, a 0,06 €.
+  messagesCents   Int
+  extraMessages   Int
+  totalCents      Int
+
+  /// Cuándo y quién lo marcó cobrado, y por qué vía.
+  paidAt   DateTime?
+  paidNote String?
+
+  createdAt DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  /// Un negocio tiene como mucho un cobro por mes.
+  @@unique([businessId, period])
+  @@index([status, period])
+}
+
 /// Por dónde sale un mensaje.
 enum MessageChannel {
   EMAIL
@@ -361,6 +412,8 @@ enum AuditAction {
   NEGOCIO_SUSPENDIDO
   NEGOCIO_REACTIVADO
   PRUEBA_AMPLIADA
+  COBRO_GENERADO
+  COBRO_MARCADO
   SERVICIO_CREADO
   SERVICIO_EDITADO
   SERVICIO_ELIMINADO

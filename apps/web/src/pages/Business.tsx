@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   categoryLabel,
@@ -13,6 +13,7 @@ import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } fro
 import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
 import { Lightbox } from '../components/Lightbox'
+import { recordarOrigen } from '../lib/origen'
 
 const TABS = ['Servicios', 'Reseñas', 'Info'] as const
 
@@ -83,6 +84,13 @@ function GalleryTile({
 export function Business() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
+  const { search } = useLocation()
+
+  // Si el cliente llega por el enlace que el negocio comparte en Instagram o
+  // en Google, se recuerda: de eso depende que no se le cobre comisión.
+  useEffect(() => {
+    recordarOrigen(search)
+  }, [search])
   const [tab, setTab] = useState<(typeof TABS)[number]>('Servicios')
   const [lightbox, setLightbox] = useState<number | null>(null)
 

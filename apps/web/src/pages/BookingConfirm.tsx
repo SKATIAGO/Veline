@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
+import { origenActual } from '../lib/origen'
 import { Reveal } from '../components/Reveal'
 
 interface FieldProps {
@@ -85,7 +86,7 @@ export function BookingConfirm() {
         startsAt,
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
         notes: notes.trim(),
-        source: 'MARKETPLACE',
+        source: origenActual(),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
   })
@@ -107,7 +108,7 @@ export function BookingConfirm() {
       startsAt,
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       notes: notes.trim(),
-      source: 'MARKETPLACE',
+      source: origenActual(),
     })
     if (!parsed.success) {
       const flat = parsed.error.flatten((issue) => issue.message)

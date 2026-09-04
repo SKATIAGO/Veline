@@ -12,6 +12,8 @@ import { ForgotPassword, ResetPassword } from './pages/PasswordFlow'
 import { PanelIndex, PanelLayout } from './pages/panel/PanelLayout'
 import { PanelAdmin } from './pages/panel/PanelAdmin'
 import { PanelAdminUsers } from './pages/panel/PanelAdminUsers'
+import { PanelCobros } from './pages/panel/PanelCobros'
+import { PanelMiCuenta } from './pages/panel/PanelMiCuenta'
 import { PanelUsers } from './pages/panel/PanelUsers'
 import { PanelCuenta } from './pages/panel/PanelCuenta'
 import { PanelAgenda } from './pages/panel/PanelAgenda'
@@ -44,6 +46,7 @@ function AppRoutes() {
       <Route path="/panel/admin" element={<PanelLayout />}>
         <Route index element={<PanelAdmin />} />
         <Route path="usuarios" element={<PanelAdminUsers />} />
+        <Route path="cobros" element={<PanelCobros />} />
         <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
@@ -54,6 +57,7 @@ function AppRoutes() {
         <Route path="personas" element={<PanelPersonas />} />
         <Route path="equipo" element={<PanelUsers />} />
         <Route path="negocio" element={<PanelNegocio />} />
+        <Route path="facturacion" element={<PanelMiCuenta />} />
         <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
       </Route>
