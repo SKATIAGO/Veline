@@ -19,7 +19,17 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      /* La cabecera solo cuando hay algo que enviar. Anunciar JSON y no mandar
+         cuerpo hace que el servidor conteste 400 —«Body cannot be empty when
+         content-type is set to application/json»— antes siquiera de mirar la
+         ruta, así que la llamada muere sin llegar.
+         Se estaba comiendo tres cosas: cerrar sesión, borrar un servicio y
+         pedir una reseña. En «Salir» además no se veía: la promesa fallaba
+         por dentro, la sesión se quedaba abierta y la pantalla, igual. */
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init?.headers,
+    },
   })
   if (res.status === 204) return undefined as T
   const body = await res.json().catch(() => ({}))

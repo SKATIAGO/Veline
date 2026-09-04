@@ -48,6 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fuera todo lo cacheado: lo que viera el usuario anterior no debe
     // quedar en memoria para el siguiente.
     queryClient.clear()
+
+    /* Y se sale con una carga de verdad, no navegando por dentro.
+     *
+     * Vaciar la caché no bastaba: los componentes que ya estaban leyendo la
+     * sesión se quedan con el último valor que recibieron —nadie les avisa de
+     * que su consulta ha desaparecido—, así que el panel seguía puesto con la
+     * sesión ya cerrada en el servidor, y al ir a /login creía que aún había
+     * usuario y devolvía al panel. Se podía pelear con la caché hasta
+     * convencerla, pero cerrar sesión es justo el momento de no depender de
+     * eso: una carga limpia se lleva por delante toda la memoria del usuario
+     * anterior, y el panel se usa en el mostrador de un negocio, que es un
+     * ordenador compartido.
+     */
+    window.location.assign('/login')
   }
 
   return (

@@ -97,7 +97,11 @@ export function PanelMiCuenta() {
           ))}
         </Card>
       ) : (
-        <div className="grid items-start gap-5 lg:grid-cols-2">
+        <div className="grid items-start gap-5 lg:grid-cols-2 [&>*]:min-w-0">
+          {/* [&>*]:min-w-0 — sin esto, la tarjeta de los enlaces se niega a
+              encoger: las URLs van con truncate (no cortan línea) y una hija
+              de rejilla no baja de su contenido mínimo, así que estiraba la
+              página entera y en el móvil salía scroll horizontal. */}
           <Card padded>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-subheading font-semibold text-ink">
@@ -161,7 +165,12 @@ export function PanelMiCuenta() {
                   <span className="w-[76px] shrink-0 text-meta font-semibold text-body-2">
                     {e.label}
                   </span>
-                  <code className="min-w-0 flex-1 truncate text-meta text-subtle">{e.url}</code>
+                  {/* En el móvil se parte en varias líneas en vez de recortarse: lo
+                      que se recortaba era el final —«?origen=instagram»—, que es
+                      justo lo que distingue un enlace de otro. */}
+                  <code className="min-w-0 flex-1 basis-full text-meta break-all text-subtle sm:basis-0 sm:truncate">
+                    {e.url}
+                  </code>
                   <Button
                     size="sm"
                     variant="quiet"
