@@ -35,6 +35,7 @@ Para empezar de cero: `docker compose down -v && docker compose up --build`.
 | [docs/12-auditoria.md](docs/12-auditoria.md)                     | Registro de actividad: quién hizo qué, quién puede verlo y por qué nunca guarda secretos                |
 | [docs/13-sistema-de-interfaz.md](docs/13-sistema-de-interfaz.md) | Reglas de botones, campos y escala tipográfica — y el problema de zonas pulsables que resolvieron       |
 | [docs/14-panel-superadmin.md](docs/14-panel-superadmin.md)       | Qué puede hacer quien lleva Veline: negocios, cuentas de acceso y actividad                             |
+| [docs/15-administrador.md](docs/15-administrador.md)             | El administrador completo: personas, vacaciones, suscripciones, cobros y reseñas                        |
 
 ## Código
 
