@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDuration, formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
+import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
 import {
   Badge,
   Button,
@@ -425,6 +426,8 @@ export function PanelAgenda() {
           !apuntando && <Button onClick={() => setApuntando(true)}>+ Apuntar una cita</Button>
         }
       />
+
+      <AvisoSuscripcion sub={summary?.subscription ?? null} />
 
       {apuntando && (
         <NuevaCita

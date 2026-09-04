@@ -17,6 +17,20 @@ enum Plan {
   EQUIPOS
 }
 
+/// En qué punto está la relación comercial con el negocio.
+enum SubStatus {
+  /// Dentro de los días de prueba. Funciona todo.
+  PRUEBA
+  /// Al día de pago.
+  ACTIVA
+  /// Se le ha pasado el cobro. Sigue funcionando: primero se avisa.
+  IMPAGADA
+  /// Cortado a mano. Deja de aceptar reservas nuevas.
+  SUSPENDIDA
+  /// Se dio de baja él. Igual que suspendida pero por decisión suya.
+  CANCELADA
+}
+
 enum BookingStatus {
   CONFIRMADA
   CANCELADA
@@ -48,6 +62,16 @@ model Business {
   rating      Float    @default(0)
   reviewCount Int      @default(0)
   plan        Plan     @default(GRATIS)
+
+  // ── Suscripción ──
+  /// El plan por sí solo no dice nada: hace falta saber si está pagando, en
+  /// prueba o cortado. Sin esto la prueba de 15 días no tenía ni fecha.
+  subStatus   SubStatus @default(PRUEBA)
+  trialEndsAt DateTime?
+  /// Cuándo se le cortó o se dio de baja, para poder contarlo después.
+  endedAt     DateTime?
+  /// Nota interna de la ficha: por qué se suspendió, con quién se habló.
+  adminNotes  String?
   /// URLs base de las fotos (sin parámetros de tamaño). La primera es la
   /// portada; el resto rellena la galería del perfil.
   photos      String[]
@@ -278,6 +302,10 @@ enum AuditAction {
   USUARIO_ACTIVADO
   USUARIO_DESACTIVADO
   NEGOCIO_CREADO
+  NEGOCIO_PLAN_CAMBIADO
+  NEGOCIO_SUSPENDIDO
+  NEGOCIO_REACTIVADO
+  PRUEBA_AMPLIADA
   SERVICIO_CREADO
   SERVICIO_EDITADO
   SERVICIO_ELIMINADO

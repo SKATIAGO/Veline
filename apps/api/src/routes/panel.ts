@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../prisma.js'
+import { aceptaReservas, cuotaMensualCents } from '@veline/shared'
 import { hashPassword } from '../auth/passwords.js'
 import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
@@ -111,6 +112,11 @@ export async function panelRoutes(app: FastifyInstance) {
       prisma.service.count({ where: { businessId: auth.business.id, active: true } }),
     ])
 
+    const negocio = await prisma.business.findUnique({
+      where: { id: auth.business.id },
+      select: { plan: true, subStatus: true, trialEndsAt: true },
+    })
+
     return {
       business: {
         id: auth.business.id,
@@ -118,6 +124,15 @@ export async function panelRoutes(app: FastifyInstance) {
         name: auth.business.name,
         plan: auth.business.plan,
       },
+      subscription: negocio
+        ? {
+            plan: negocio.plan,
+            status: negocio.subStatus,
+            trialEndsAt: negocio.trialEndsAt?.toISOString() ?? null,
+            accepting: aceptaReservas(negocio.subStatus, negocio.trialEndsAt),
+            monthlyCents: cuotaMensualCents(negocio.plan, staffCount),
+          }
+        : null,
       todayCount,
       weekCount: weekBookings.length,
       weekRevenueCents: weekBookings.reduce((acc, b) => acc + b.priceCents, 0),

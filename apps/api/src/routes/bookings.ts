@@ -1,7 +1,12 @@
 import { randomInt } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
-import { cancelBookingSchema, createBookingSchema, type BookingDTO } from '@veline/shared'
+import {
+  aceptaReservas,
+  cancelBookingSchema,
+  createBookingSchema,
+  type BookingDTO,
+} from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { audit } from '../audit/log.js'
 import { getSessionUser } from '../auth/sessions.js'
@@ -88,6 +93,15 @@ export async function bookingRoutes(app: FastifyInstance) {
       include: { locations: { take: 1 } },
     })
     if (!business) return reply.code(404).send({ error: 'Negocio no encontrado' })
+
+    // Un negocio suspendido, dado de baja o con la prueba caducada deja de
+    // aceptar reservas. Se comprueba aquí y no solo al pintar la ficha: si no,
+    // bastaría con llamar a la API directamente para seguir reservando.
+    if (!aceptaReservas(business.subStatus, business.trialEndsAt)) {
+      return reply.code(409).send({
+        error: 'Este negocio no está aceptando reservas ahora mismo',
+      })
+    }
 
     const service = await prisma.service.findFirst({
       where: { id: input.serviceId, businessId: business.id, active: true },

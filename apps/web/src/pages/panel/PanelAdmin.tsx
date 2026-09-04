@@ -1,13 +1,14 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CATEGORIES, categoryLabel } from '@veline/shared'
+import { CATEGORIES, categoryLabel, formatPrice, PLAN_INFO, SUB_STATUS_LABEL } from '@veline/shared'
 import { api, ApiError, type AdminBusiness } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Badge,
   Button,
   Card,
+  ConfirmAction,
   EmptyState,
   ErrorNote,
   Field,
@@ -108,6 +109,150 @@ function Credencial({
   )
 }
 
+const ESTADO_TONO: Record<string, 'ok' | 'warn' | 'off' | 'neutral'> = {
+  ACTIVA: 'ok',
+  PRUEBA: 'neutral',
+  IMPAGADA: 'warn',
+  SUSPENDIDA: 'off',
+  CANCELADA: 'off',
+}
+
+const diasHasta = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
+
+/**
+ * El mando de la suscripción de un negocio. Se abre bajo su fila para no
+ * llevarte a otra pantalla: casi siempre se toca justo después de mirar
+ * las cifras de esa misma fila.
+ */
+function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
+  const [notas, setNotas] = useState(b.adminNotes ?? '')
+
+  const cambiar = useMutation({
+    mutationFn: (body: Parameters<typeof api.updateSubscription>[1]) =>
+      api.updateSubscription(b.id, body),
+    onSuccess: onDone,
+  })
+
+  const cortado = b.subStatus === 'SUSPENDIDA' || b.subStatus === 'CANCELADA'
+
+  return (
+    <div className="w-full border-t border-line bg-canvas/50 px-4 py-4 sm:px-5">
+      <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1.2fr]">
+        <div>
+          <p className="mb-2 text-meta font-semibold text-body-2">Plan</p>
+          <div className="flex flex-wrap gap-1.5">
+            {(['GRATIS', 'NEGOCIO', 'EQUIPOS'] as const).map((p) => (
+              <Button
+                key={p}
+                size="sm"
+                variant={b.plan === p ? 'primary' : 'quiet'}
+                loading={cambiar.isPending && cambiar.variables?.plan === p}
+                onClick={() => cambiar.mutate({ plan: p })}
+              >
+                {PLAN_INFO[p].label}
+              </Button>
+            ))}
+          </div>
+          <p className="mt-2 text-meta text-muted">
+            Con {b.counts.staff} {b.counts.staff === 1 ? 'persona' : 'personas'}:{' '}
+            <strong className="font-semibold text-body-2">
+              {formatPrice(b.monthlyCents)} al mes
+            </strong>
+          </p>
+        </div>
+
+        <div>
+          <p className="mb-2 text-meta font-semibold text-body-2">Prueba</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[7, 15, 30].map((d) => (
+              <Button
+                key={d}
+                size="sm"
+                variant="quiet"
+                loading={cambiar.isPending && cambiar.variables?.trialDays === d}
+                onClick={() => cambiar.mutate({ trialDays: d })}
+              >
+                +{d} días
+              </Button>
+            ))}
+          </div>
+          <p className="mt-2 text-meta text-muted">
+            {b.trialEndsAt
+              ? `Termina el ${new Date(b.trialEndsAt).toLocaleDateString('es-ES')}`
+              : 'Sin prueba activa'}
+          </p>
+        </div>
+
+        <div>
+          <p className="mb-2 text-meta font-semibold text-body-2">Estado</p>
+          <div className="flex flex-wrap gap-1.5">
+            {cortado ? (
+              <Button
+                size="sm"
+                loading={cambiar.isPending && cambiar.variables?.status === 'ACTIVA'}
+                onClick={() => cambiar.mutate({ status: 'ACTIVA' })}
+              >
+                Reactivar
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  variant="quiet"
+                  loading={cambiar.isPending && cambiar.variables?.status === 'IMPAGADA'}
+                  onClick={() => cambiar.mutate({ status: 'IMPAGADA' })}
+                >
+                  Marcar impagada
+                </Button>
+                <ConfirmAction
+                  label="Suspender"
+                  question="¿Deja de aceptar reservas?"
+                  confirmLabel="Sí, suspender"
+                  loading={cambiar.isPending && cambiar.variables?.status === 'SUSPENDIDA'}
+                  onConfirm={() => cambiar.mutate({ status: 'SUSPENDIDA' })}
+                />
+              </>
+            )}
+          </div>
+          <p className="mt-2 text-meta text-muted">
+            {b.accepting
+              ? 'Acepta reservas con normalidad'
+              : 'No acepta reservas nuevas ahora mismo'}
+          </p>
+        </div>
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          cambiar.mutate({ adminNotes: notas.trim() })
+        }}
+        className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-4"
+      >
+        <label className="flex min-w-[260px] flex-1 flex-col gap-1.5">
+          <span className="text-meta font-semibold text-body-2">Nota interna</span>
+          <Input
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Con quién se habló, por qué se suspendió…"
+          />
+        </label>
+        <Button type="submit" variant="secondary" loading={cambiar.isPending}>
+          Guardar nota
+        </Button>
+      </form>
+
+      {cambiar.isError && (
+        <div className="mt-3">
+          <ErrorNote>
+            {cambiar.error instanceof ApiError ? cambiar.error.message : 'No se ha podido cambiar'}
+          </ErrorNote>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <Card className="p-4">
@@ -128,6 +273,7 @@ export function PanelAdmin() {
   const [userDraft, setUserDraft] = useState<UserDraft | null>(null)
   const [credencial, setCredencial] = useState<{ email: string; password: string } | null>(null)
   const [busqueda, setBusqueda] = useState('')
+  const [abierto, setAbierto] = useState<string | null>(null)
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['admin', 'businesses'],
@@ -485,11 +631,18 @@ export function PanelAdmin() {
                       {b.name}
                     </Link>
                     <Badge>{categoryLabel(b.category)}</Badge>
+                    <Badge tone={ESTADO_TONO[b.subStatus] ?? 'neutral'}>
+                      {SUB_STATUS_LABEL[b.subStatus]}
+                      {b.subStatus === 'PRUEBA' && b.trialEndsAt
+                        ? ` · ${Math.max(0, diasHasta(b.trialEndsAt))} d`
+                        : ''}
+                    </Badge>
+                    {!b.accepting && <Badge tone="off">No acepta reservas</Badge>}
                     {b.counts.services === 0 && <Badge tone="warn">Sin servicios</Badge>}
                     {b.counts.users === 0 && <Badge tone="off">Sin acceso</Badge>}
                   </div>
                   <p className="mt-0.5 text-meta text-muted">
-                    /{b.slug} · plan {b.plan.toLowerCase()}
+                    /{b.slug} · {PLAN_INFO[b.plan].label} · {formatPrice(b.monthlyCents)}/mes
                     {b.email && ` · ${b.email}`}
                   </p>
                 </div>
@@ -508,6 +661,13 @@ export function PanelAdmin() {
                 </dl>
 
                 <div className="ml-auto flex gap-1 sm:ml-0">
+                  <Button
+                    size="sm"
+                    variant="quiet"
+                    onClick={() => setAbierto(abierto === b.id ? null : b.id)}
+                  >
+                    {abierto === b.id ? 'Cerrar' : 'Suscripción'}
+                  </Button>
                   <Button size="sm" variant="quiet" onClick={() => abrirCuenta(b)}>
                     Crear cuenta
                   </Button>
@@ -518,6 +678,17 @@ export function PanelAdmin() {
                     Abrir panel
                   </Link>
                 </div>
+
+                {abierto === b.id && (
+                  <Suscripcion
+                    b={b}
+                    onDone={() => {
+                      queryClient.invalidateQueries({ queryKey: ['admin'] })
+                      queryClient.invalidateQueries({ queryKey: ['panel'] })
+                      queryClient.invalidateQueries({ queryKey: ['audit'] })
+                    }}
+                  />
+                )}
               </li>
             ))}
           </ul>

@@ -139,6 +139,26 @@ export const api = {
       body: JSON.stringify({ active }),
     }),
 
+  // ── Suscripción (SUPERADMIN) ───────────────────────────────
+  updateSubscription: (
+    businessId: string,
+    body: {
+      plan?: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS'
+      status?: 'PRUEBA' | 'ACTIVA' | 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA'
+      trialDays?: number
+      adminNotes?: string
+    },
+  ) =>
+    request<{
+      plan: string
+      subStatus: string
+      trialEndsAt: string | null
+      adminNotes: string | null
+    }>(`/admin/businesses/${businessId}/subscription`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
   // ── Personas que atienden ──────────────────────────────────
   panelStaff: (slug: string) => request<PanelStaff[]>(`/panel/${slug}/staff`),
 
@@ -261,8 +281,17 @@ export const api = {
     }),
 }
 
+export interface PanelSubscription {
+  plan: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS'
+  status: 'PRUEBA' | 'ACTIVA' | 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA'
+  trialEndsAt: string | null
+  accepting: boolean
+  monthlyCents: number
+}
+
 export interface PanelSummary {
   business: { id: string; slug: string; name: string; plan: string }
+  subscription: PanelSubscription | null
   todayCount: number
   weekCount: number
   weekRevenueCents: number
@@ -330,10 +359,15 @@ export interface AdminBusiness {
   slug: string
   name: string
   category: string
-  plan: string
+  plan: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS'
   email: string | null
   createdAt: string
   counts: { bookings: number; users: number; services: number; staff: number }
+  subStatus: 'PRUEBA' | 'ACTIVA' | 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA'
+  trialEndsAt: string | null
+  adminNotes: string | null
+  monthlyCents: number
+  accepting: boolean
 }
 
 export interface AdminUser {

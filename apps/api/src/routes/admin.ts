@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
-import { CATEGORIES } from '@veline/shared'
+import { aceptaReservas, CATEGORIES, cuotaMensualCents } from '@veline/shared'
 import { prisma } from '../prisma.js'
+import { cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 import { hashPassword } from '../auth/passwords.js'
 import { canManagePlatform } from '../auth/permissions.js'
@@ -38,6 +40,14 @@ const createUserSchema = z.object({
   businessId: z.string().min(1),
 })
 
+const subscriptionBody = z.object({
+  plan: z.enum(['GRATIS', 'NEGOCIO', 'EQUIPOS']).optional(),
+  status: z.enum(['PRUEBA', 'ACTIVA', 'IMPAGADA', 'SUSPENDIDA', 'CANCELADA']).optional(),
+  /** Días que se suman a la prueba desde hoy (o desde el fin actual si no ha vencido). */
+  trialDays: z.number().int().min(1).max(365).optional(),
+  adminNotes: z.string().trim().max(600).optional(),
+})
+
 export async function adminRoutes(app: FastifyInstance) {
   app.get('/api/admin/businesses', async (req, reply) => {
     const user = await requireUser(req, reply)
@@ -47,7 +57,14 @@ export async function adminRoutes(app: FastifyInstance) {
     const rows = await prisma.business.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        _count: { select: { bookings: true, users: true, services: true, staff: true } },
+        _count: {
+          select: {
+            bookings: true,
+            users: true,
+            services: true,
+            staff: { where: { active: true } },
+          },
+        },
       },
     })
     return rows.map((b) => ({
@@ -59,6 +76,12 @@ export async function adminRoutes(app: FastifyInstance) {
       email: b.email,
       createdAt: b.createdAt.toISOString(),
       counts: b._count,
+      subStatus: b.subStatus,
+      trialEndsAt: b.trialEndsAt?.toISOString() ?? null,
+      adminNotes: b.adminNotes,
+      /** Lo que costaría este mes con las personas que tiene ahora. */
+      monthlyCents: cuotaMensualCents(b.plan, b._count.staff),
+      accepting: aceptaReservas(b.subStatus, b.trialEndsAt),
     }))
   })
 
@@ -104,6 +127,86 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return reply.code(201).send({ id: business.id, slug: business.slug, name: business.name })
+  })
+
+  /** Cambiar de plan, ampliar la prueba, suspender o reactivar. */
+  app.patch('/api/admin/businesses/:id/subscription', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const { id } = req.params as { id: string }
+    const parsed = subscriptionBody.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+
+    const before = await prisma.business.findUnique({ where: { id } })
+    if (!before) return reply.code(404).send({ error: 'Negocio no encontrado' })
+
+    const data: Prisma.BusinessUpdateInput = {}
+    let resumen = ''
+    let accion:
+      'NEGOCIO_PLAN_CAMBIADO' | 'NEGOCIO_SUSPENDIDO' | 'NEGOCIO_REACTIVADO' | 'PRUEBA_AMPLIADA' =
+      'NEGOCIO_PLAN_CAMBIADO'
+
+    if (parsed.data.plan) {
+      data.plan = parsed.data.plan
+      // Cambiar a un plan de pago cierra la prueba: ya no tiene sentido.
+      if (parsed.data.plan !== 'GRATIS' && before.subStatus === 'PRUEBA') {
+        data.subStatus = 'ACTIVA'
+        data.trialEndsAt = null
+      }
+      resumen = `Ha pasado ${before.name} al plan ${parsed.data.plan}`
+    }
+
+    if (parsed.data.trialDays !== undefined) {
+      const base =
+        before.trialEndsAt && before.trialEndsAt > new Date() ? before.trialEndsAt : new Date()
+      data.trialEndsAt = new Date(base.getTime() + parsed.data.trialDays * 86_400_000)
+      data.subStatus = 'PRUEBA'
+      data.endedAt = null
+      accion = 'PRUEBA_AMPLIADA'
+      resumen = `Ha ampliado la prueba de ${before.name} en ${parsed.data.trialDays} días`
+    }
+
+    if (parsed.data.status) {
+      data.subStatus = parsed.data.status
+      const corta = parsed.data.status === 'SUSPENDIDA' || parsed.data.status === 'CANCELADA'
+      data.endedAt = corta ? new Date() : null
+      accion = corta ? 'NEGOCIO_SUSPENDIDO' : 'NEGOCIO_REACTIVADO'
+      resumen = corta
+        ? `Ha ${parsed.data.status === 'SUSPENDIDA' ? 'suspendido' : 'dado de baja'} a ${before.name}`
+        : `Ha reactivado a ${before.name}`
+    }
+
+    if (parsed.data.adminNotes !== undefined) {
+      data.adminNotes = parsed.data.adminNotes || null
+      if (!resumen) resumen = `Ha anotado algo en la ficha de ${before.name}`
+    }
+
+    if (Object.keys(data).length === 0) {
+      return reply.code(400).send({ error: 'No has cambiado nada' })
+    }
+
+    const updated = await prisma.business.update({ where: { id }, data })
+
+    audit(req, {
+      action: accion,
+      summary: resumen,
+      actor: user,
+      businessId: id,
+      entity: 'Business',
+      entityId: id,
+      metadata: cambios(before, updated, ['plan', 'subStatus', 'trialEndsAt', 'adminNotes']),
+    })
+
+    return {
+      plan: updated.plan,
+      subStatus: updated.subStatus,
+      trialEndsAt: updated.trialEndsAt?.toISOString() ?? null,
+      adminNotes: updated.adminNotes,
+    }
   })
 
   app.get('/api/admin/users', async (req, reply) => {

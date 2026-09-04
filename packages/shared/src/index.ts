@@ -18,6 +18,83 @@ export const TIMEZONE = 'Europe/Madrid'
  */
 export const CONTACT_EMAIL = 'contacto@veline.es'
 
+/* ── Planes y cuotas ────────────────────────────────────────
+ * Los números viven aquí y no en la página de precios porque los usan tres
+ * sitios: lo que se le enseña al visitante, lo que se le cobra al negocio y
+ * lo que el sistema deja hacer. Tres copias del mismo precio acaban siempre
+ * diciendo cosas distintas.
+ */
+
+export const PRUEBA_DIAS_DEFECTO = 15
+
+export const PLAN_INFO = {
+  GRATIS: {
+    label: 'Gratis',
+    /** Cuota mensual base, en céntimos. */
+    priceCents: 0,
+    /** Personas que atienden incluidas en la cuota. */
+    seatsIncluded: 1,
+    /** Cada persona de más, al mes. */
+    extraSeatCents: 0,
+    /** Mensajes incluidos al mes (email + SMS juntos). */
+    messagesIncluded: 0,
+  },
+  NEGOCIO: {
+    label: 'Negocio',
+    priceCents: 1895,
+    seatsIncluded: 2,
+    extraSeatCents: 1095,
+    messagesIncluded: 200,
+  },
+  EQUIPOS: {
+    label: 'Equipo',
+    priceCents: 1895,
+    seatsIncluded: 2,
+    extraSeatCents: 1095,
+    messagesIncluded: 200,
+  },
+} as const
+
+export type PlanKey = keyof typeof PLAN_INFO
+
+/** Cada mensaje que pasa del cupo mensual. */
+export const MENSAJE_EXTRA_CENTS = 6
+
+/** 15 % del primer cliente que llega por el marketplace. */
+export const COMMISSION_RATE = 0.15
+
+export const SUB_STATUS_LABEL = {
+  PRUEBA: 'En prueba',
+  ACTIVA: 'Activa',
+  IMPAGADA: 'Impagada',
+  SUSPENDIDA: 'Suspendida',
+  CANCELADA: 'Dada de baja',
+} as const
+
+export type SubStatusKey = keyof typeof SUB_STATUS_LABEL
+
+/**
+ * Lo que cuesta un mes con este plan y estas personas.
+ * La cuota no depende de cuánto se use: si tienes 4 personas con el plan
+ * Negocio, son 18,95 € + 2 × 10,95 €.
+ */
+export function cuotaMensualCents(plan: PlanKey, personas: number) {
+  const info = PLAN_INFO[plan]
+  const extra = Math.max(0, personas - info.seatsIncluded)
+  return info.priceCents + extra * info.extraSeatCents
+}
+
+/** Un negocio suspendido o dado de baja deja de aceptar reservas nuevas. */
+export function aceptaReservas(status: SubStatusKey, trialEndsAt: Date | string | null) {
+  if (status === 'SUSPENDIDA' || status === 'CANCELADA') return false
+  // La prueba caducada se comporta como suspendida hasta que alguien pague o
+  // se le amplíe: si no, la prueba de 15 días sería infinita.
+  if (status === 'PRUEBA' && trialEndsAt && new Date(trialEndsAt).getTime() < Date.now()) {
+    return false
+  }
+  return true
+}
+
 /* ── Categorías ─────────────────────────────────────────────── */
 
 export const CATEGORIES = [
