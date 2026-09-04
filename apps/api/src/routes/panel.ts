@@ -2,8 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../prisma.js'
 import { hashPassword } from '../auth/passwords.js'
-import { canConfigureBusiness, canWorkAgenda } from '../auth/permissions.js'
-import { requireUser, type SessionUser } from '../auth/sessions.js'
+import { requireUser } from '../auth/sessions.js'
+import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 
 /**
@@ -50,21 +50,6 @@ const panelUserBody = z.object({
   role: z.enum(['ADMIN', 'EMPLEADO']),
 })
 
-/**
- * Qué cambió de verdad entre dos versiones de una fila. Guardar el objeto
- * entero convierte el registro en ruido: interesa "el precio pasó de 25 € a
- * 30 €", no las quince columnas que siguen igual.
- */
-function cambios<T extends Record<string, unknown>>(antes: T, despues: T, campos: (keyof T)[]) {
-  const diff: Record<string, { antes: unknown; despues: unknown }> = {}
-  for (const campo of campos) {
-    if (antes[campo] !== despues[campo]) {
-      diff[String(campo)] = { antes: antes[campo], despues: despues[campo] }
-    }
-  }
-  return diff
-}
-
 const rangeQuery = z.object({
   from: z
     .string()
@@ -80,42 +65,6 @@ const startOfDay = (key?: string) => {
   const d = key ? new Date(`${key}T00:00:00`) : new Date()
   d.setHours(0, 0, 0, 0)
   return d
-}
-
-/** Carga el negocio del slug y comprueba el permiso pedido. */
-async function authorize(
-  user: SessionUser,
-  slug: string,
-  nivel: 'agenda' | 'configuracion',
-): Promise<
-  | {
-      ok: true
-      business: { id: string; slug: string; name: string; plan: string; locationId: string | null }
-    }
-  | { ok: false; status: number; error: string }
-> {
-  const business = await prisma.business.findUnique({
-    where: { slug },
-    include: { locations: { take: 1, select: { id: true } } },
-  })
-  if (!business) return { ok: false, status: 404, error: 'Negocio no encontrado' }
-
-  const permitido =
-    nivel === 'agenda' ? canWorkAgenda(user, business.id) : canConfigureBusiness(user, business.id)
-  if (!permitido) {
-    return { ok: false, status: 403, error: 'No tienes acceso a este negocio' }
-  }
-
-  return {
-    ok: true,
-    business: {
-      id: business.id,
-      slug: business.slug,
-      name: business.name,
-      plan: business.plan,
-      locationId: business.locations[0]?.id ?? null,
-    },
-  }
 }
 
 export async function panelRoutes(app: FastifyInstance) {

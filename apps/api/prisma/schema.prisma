@@ -21,6 +21,10 @@ enum BookingStatus {
   CONFIRMADA
   CANCELADA
   COMPLETADA
+  /// El cliente no apareció. Se separa de CANCELADA porque no es lo mismo
+  /// para el negocio: una cancelación libera el hueco a tiempo, una ausencia
+  /// se lo come. Y de esto salen los avisos de clientes poco fiables.
+  NO_ASISTIO
 }
 
 /// De dónde viene la reserva. Determina si se cobra la comisión del 15%.
@@ -280,6 +284,16 @@ enum AuditAction {
   HORARIO_EDITADO
   RESERVA_CREADA
   RESERVA_CANCELADA
+  RESERVA_MOVIDA
+  RESERVA_COMPLETADA
+  RESERVA_NO_ASISTIO
+  PERSONA_CREADA
+  PERSONA_EDITADA
+  PERSONA_DESACTIVADA
+  PERSONA_ACTIVADA
+  CIERRE_CREADO
+  CIERRE_ELIMINADO
+  NEGOCIO_EDITADO
 }
 
 /// Registro de auditoría: quién hizo qué, cuándo y desde dónde.

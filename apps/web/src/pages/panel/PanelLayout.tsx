@@ -101,7 +101,9 @@ export function PanelLayout() {
           ? [
               { to: `/panel/${slug}/servicios`, label: 'Servicios' },
               { to: `/panel/${slug}/horario`, label: 'Horario' },
+              { to: `/panel/${slug}/personas`, label: 'Personas' },
               { to: `/panel/${slug}/equipo`, label: 'Equipo' },
+              { to: `/panel/${slug}/negocio`, label: 'El negocio' },
               { to: `/panel/${slug}/actividad`, label: 'Actividad' },
             ]
           : []),

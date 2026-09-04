@@ -139,6 +139,85 @@ export const api = {
       body: JSON.stringify({ active }),
     }),
 
+  // ── Personas que atienden ──────────────────────────────────
+  panelStaff: (slug: string) => request<PanelStaff[]>(`/panel/${slug}/staff`),
+
+  createStaff: (slug: string, name: string) =>
+    request<PanelStaff>(`/panel/${slug}/staff`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  updateStaff: (slug: string, id: string, body: { name?: string; active?: boolean }) =>
+    request<PanelStaff>(`/panel/${slug}/staff/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  // ── Cierres (vacaciones y festivos) ────────────────────────
+  panelClosures: (slug: string) => request<PanelClosure[]>(`/panel/${slug}/closures`),
+
+  createClosure: (slug: string, body: { from: string; to: string; reason?: string }) =>
+    request<{ from: string; to: string; days: number; affectedBookings: number }>(
+      `/panel/${slug}/closures`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+
+  deleteClosure: (slug: string, ids: string[]) =>
+    request<void>(`/panel/${slug}/closures`, {
+      method: 'DELETE',
+      body: JSON.stringify({ ids }),
+    }),
+
+  // ── Ficha del negocio ──────────────────────────────────────
+  panelProfile: (slug: string) => request<PanelProfile>(`/panel/${slug}/profile`),
+
+  saveProfile: (slug: string, body: Omit<PanelProfile, 'slug' | 'photos'>) =>
+    request<{ ok: true }>(`/panel/${slug}/profile`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+
+  savePhotos: (slug: string, photos: string[]) =>
+    request<{ ok: true; photos: string[] }>(`/panel/${slug}/photos`, {
+      method: 'PUT',
+      body: JSON.stringify({ photos }),
+    }),
+
+  // ── Agenda operativa ───────────────────────────────────────
+  createManualBooking: (
+    slug: string,
+    body: {
+      serviceId: string
+      startsAt: string
+      staffId?: string
+      customerName: string
+      customerPhone: string
+      customerEmail?: string
+      notes?: string
+    },
+  ) =>
+    request<{ id: string; code: string }>(`/panel/${slug}/bookings`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  rescheduleBooking: (slug: string, id: string, startsAt: string) =>
+    request<{ ok: true; startsAt: string }>(`/panel/${slug}/bookings/${id}/reschedule`, {
+      method: 'PATCH',
+      body: JSON.stringify({ startsAt }),
+    }),
+
+  setBookingOutcome: (
+    slug: string,
+    id: string,
+    status: 'COMPLETADA' | 'NO_ASISTIO' | 'CONFIRMADA',
+  ) =>
+    request<{ ok: true; status: string }>(`/panel/${slug}/bookings/${id}/outcome`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
   // ── Registro de actividad (ADMIN y SUPERADMIN) ─────────────
   auditLog: (params: { businessId?: string; action?: string; cursor?: string; limit?: number }) =>
     request<{ entries: AuditEntry[]; nextCursor: string | null }>(`/audit${qs(params)}`),
@@ -196,7 +275,7 @@ export interface PanelSummary {
 export interface PanelBooking {
   id: string
   code: string
-  status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA'
+  status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA' | 'NO_ASISTIO'
   startsAt: string
   endsAt: string
   priceCents: number
@@ -281,4 +360,31 @@ export interface AuditEntry {
   /** Solo llega al superadmin; para un admin siempre es null. */
   ip: string | null
   createdAt: string
+}
+
+export interface PanelStaff {
+  id: string
+  name: string
+  active: boolean
+  upcomingBookings?: number
+}
+
+export interface PanelClosure {
+  from: string
+  to: string
+  reason: string | null
+  ids: string[]
+}
+
+export interface PanelProfile {
+  slug: string
+  name: string
+  category: string
+  description: string
+  phone: string
+  email: string
+  photos: string[]
+  street: string
+  city: string
+  postalCode: string
 }

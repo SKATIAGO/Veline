@@ -219,7 +219,7 @@ export interface DayAvailabilityDTO {
 export interface BookingDTO {
   id: string
   code: string
-  status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA'
+  status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA' | 'NO_ASISTIO'
   startsAt: string
   endsAt: string
   priceCents: number
