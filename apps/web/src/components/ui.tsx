@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -580,4 +580,85 @@ export function EmptyState({
 /** Bloque de carga con la forma del contenido, en vez de un giro en el vacío. */
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cx('animate-pulse rounded-lg bg-line/60', className)} />
+}
+
+/**
+ * Ficha que sube desde abajo en el móvil y se centra en pantalla grande.
+ *
+ * Existe porque en una fila estrecha no caben cuatro acciones con sitio para
+ * el dedo: en el panel llegaron a quedar a 4 px unas de otras, con «Vino» y
+ * «No vino» —que significan lo contrario— pegadas. Sacarlas a una ficha les
+ * da alto y separación de verdad, y permite poner lo irreversible aparte.
+ *
+ * Al abrirse manda el foco dentro y al cerrarse lo devuelve donde estaba: si
+ * no, quien navega con teclado se queda detrás de la ficha, pulsando cosas
+ * que no ve.
+ */
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+}) {
+  const caja = useRef<HTMLDivElement>(null)
+  const devolverFoco = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    devolverFoco.current = document.activeElement as HTMLElement | null
+    caja.current?.focus()
+
+    // Con la ficha abierta, el fondo no debe desplazarse por debajo.
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const alPulsarTecla = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', alPulsarTecla)
+
+    return () => {
+      document.removeEventListener('keydown', alPulsarTecla)
+      document.body.style.overflow = overflow
+      devolverFoco.current?.focus?.()
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="absolute inset-0 bg-ink/45 motion-safe:animate-[veline-fade_180ms_ease-out]" />
+      <div
+        ref={caja}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        className={cx(
+          'relative w-full max-w-lg bg-surface shadow-overlay outline-none',
+          'max-h-[88vh] overflow-y-auto rounded-t-2xl px-5 pt-3 pb-6',
+          'sm:mx-4 sm:rounded-2xl sm:px-6 sm:pt-5 sm:pb-6',
+          'motion-safe:animate-[veline-sheet_220ms_cubic-bezier(.22,1,.36,1)]',
+        )}
+      >
+        {/* El asa dice «esto se arrastra» sin escribirlo. Solo en móvil,
+            que es donde la ficha nace desde abajo. */}
+        <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-line-strong sm:hidden" />
+        {children}
+      </div>
+    </div>
+  )
 }

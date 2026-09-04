@@ -116,6 +116,27 @@
   }
 }
 
+/* El velo de la ficha de acciones. */
+@keyframes veline-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* La ficha entra desde abajo, como es costumbre en el móvil: el movimiento
+   dice de dónde ha salido y adónde vuelve al cerrarla. */
+@keyframes veline-sheet {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
 /* Flotación lenta para los adornos */
 @keyframes veline-page-enter {
   from {

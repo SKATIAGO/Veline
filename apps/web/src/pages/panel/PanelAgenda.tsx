@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDuration, formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
@@ -16,6 +16,7 @@ import {
   Input,
   PageHeader,
   Select,
+  Sheet,
   Skeleton,
   cx,
 } from '../../components/ui'
@@ -62,6 +63,7 @@ function paraInput(iso: string) {
 
 function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) {
   const queryClient = useQueryClient()
+  const [ficha, setFicha] = useState(false)
   const [moviendo, setMoviendo] = useState(false)
   const [nuevaHora, setNuevaHora] = useState(() => paraInput(booking.startsAt))
 
@@ -103,11 +105,89 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
     (mover.error as Error | null) ??
     (marcar.error as Error | null)
 
+  const abrirFicha = () => setFicha(true)
+  const cerrarFicha = () => {
+    setFicha(false)
+    setMoviendo(false)
+  }
+  /* Tras actuar, la ficha se cierra sola: dejarla abierta obliga a un toque
+     de más y esconde la lista, que es donde se ve el resultado. */
+  const alTerminar = { onSuccess: () => cerrarFicha() }
+
+  const formularioMover = (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        mover.mutate(undefined, alTerminar)
+      }}
+      className="flex flex-col gap-3"
+    >
+      <label className="flex flex-col gap-1.5">
+        <span className="text-meta font-semibold text-body-2">Nueva fecha y hora</span>
+        <Input
+          type="datetime-local"
+          value={nuevaHora}
+          onChange={(e) => setNuevaHora(e.target.value)}
+        />
+      </label>
+      <div className="flex gap-2">
+        <Button type="submit" loading={mover.isPending} block>
+          Mover la cita
+        </Button>
+        <Button type="button" variant="quiet" onClick={() => setMoviendo(false)}>
+          Dejarlo
+        </Button>
+      </div>
+    </form>
+  )
+
   return (
     <li className="border-b border-line last:border-b-0">
+      {/* ── Móvil: una línea por cita ──
+          Antes cada cita ocupaba 211 px y con los contadores arriba cabían
+          dos en la pantalla. Así caben seis, que es una jornada entera. */}
+      <button
+        type="button"
+        onClick={abrirFicha}
+        aria-label={`Cita de ${booking.customer.name} a las ${fmt(start)}`}
+        className={cx(
+          'flex w-full items-center gap-3 px-4 py-3 text-left md:hidden',
+          'transition-colors duration-200 active:bg-canvas',
+          (cancelled || cerrada) && 'opacity-60',
+        )}
+      >
+        <span
+          className={cx(
+            'w-[46px] shrink-0 font-display text-ui font-bold text-ink tabular-nums',
+            cancelled && 'line-through',
+          )}
+        >
+          {fmt(start)}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-body font-semibold text-ink">
+            {booking.service.name}
+          </span>
+          <span className="block truncate text-meta text-muted">
+            {booking.customer.name} · {formatPrice(booking.priceCents)}
+          </span>
+        </span>
+        {estado ? (
+          <Badge tone={estado.tone}>{estado.label}</Badge>
+        ) : (
+          <span aria-hidden className="text-ui text-subtle">
+            ›
+          </span>
+        )}
+      </button>
+
+      {/* ── Escritorio: la fila detallada, con jerarquía en los botones ──
+          Los cuatro eran del mismo peso y estaban a 4 px unos de otros, con
+          «Vino» y «No vino» pegados. Ahora manda uno solo y lo irreversible
+          va detrás de un filete. */}
       <div
         className={cx(
-          'flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:px-5',
+          'hidden flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 md:flex',
           (cancelled || cerrada) && 'opacity-60',
         )}
       >
@@ -141,9 +221,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           {booking.notes && <p className="mt-1 text-meta text-subtle italic">{booking.notes}</p>}
         </div>
 
-        <div className="hidden w-[130px] text-meta text-muted sm:block">
-          {booking.staff?.name ?? 'Sin asignar'}
-        </div>
+        <div className="w-[130px] text-meta text-muted">{booking.staff?.name ?? 'Sin asignar'}</div>
 
         <div className="w-[104px] text-right">
           <div className="text-ui font-semibold text-ink tabular-nums">
@@ -154,11 +232,11 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           </div>
         </div>
 
-        <div className="ml-auto flex flex-wrap justify-end gap-1">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {cerrada && (
             <Button
               size="sm"
-              variant="quiet"
+              variant="secondary"
               loading={marcar.isPending}
               onClick={() => marcar.mutate('CONFIRMADA')}
             >
@@ -173,7 +251,6 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                 <>
                   <Button
                     size="sm"
-                    variant="quiet"
                     loading={marcar.isPending && marcar.variables === 'COMPLETADA'}
                     onClick={() => marcar.mutate('COMPLETADA')}
                   >
@@ -181,7 +258,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                   </Button>
                   <Button
                     size="sm"
-                    variant="quiet"
+                    variant="secondary"
                     loading={marcar.isPending && marcar.variables === 'NO_ASISTIO'}
                     onClick={() => marcar.mutate('NO_ASISTIO')}
                   >
@@ -192,49 +269,154 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
               <Button size="sm" variant="quiet" onClick={() => setMoviendo((m) => !m)}>
                 Mover
               </Button>
-              <ConfirmAction
-                label="Cancelar"
-                question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
-                confirmLabel="Sí, cancelar"
-                loading={cancel.isPending}
-                onConfirm={() => cancel.mutate()}
-              />
+              <span className="ml-1 border-l border-line pl-2">
+                <ConfirmAction
+                  label="Cancelar"
+                  question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
+                  confirmLabel="Sí, cancelar"
+                  loading={cancel.isPending}
+                  onConfirm={() => cancel.mutate()}
+                />
+              </span>
             </>
           )}
         </div>
       </div>
 
-      {moviendo && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            mover.mutate()
-          }}
-          className="flex flex-wrap items-end gap-3 border-t border-line bg-canvas/50 px-4 py-4 sm:px-5"
-        >
-          <label className="flex flex-col gap-1.5">
-            <span className="text-meta font-semibold text-body-2">Nueva fecha y hora</span>
-            <Input
-              type="datetime-local"
-              value={nuevaHora}
-              onChange={(e) => setNuevaHora(e.target.value)}
-              className="w-auto"
-            />
-          </label>
-          <Button type="submit" loading={mover.isPending}>
-            Mover la cita
-          </Button>
-          <Button type="button" variant="quiet" onClick={() => setMoviendo(false)}>
-            Cancelar
-          </Button>
-        </form>
+      {moviendo && !ficha && (
+        <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
+          {formularioMover}
+        </div>
       )}
 
-      {error && (
+      {error && !ficha && (
         <div className="px-4 pb-4 sm:px-5">
           <ErrorNote>{error.message}</ErrorNote>
         </div>
       )}
+
+      {/* ── La ficha ──
+          Aquí las acciones tienen 44 px de alto y 8 de separación, y cancelar
+          vive detrás de un filete, en otro color y con confirmación. En la
+          fila no cabía nada de eso. */}
+      <Sheet open={ficha} onClose={cerrarFicha} title={`Cita de ${booking.customer.name}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-display text-heading-sm font-semibold text-ink tabular-nums">
+              {fmt(start)}
+              <span className="ml-2 text-body font-normal text-muted">
+                {formatDuration(Math.round((end.getTime() - start.getTime()) / 60000))}
+              </span>
+            </p>
+            <p className="mt-1 text-ui font-semibold text-ink">{booking.service.name}</p>
+          </div>
+          <p className="shrink-0 text-ui font-bold text-ink tabular-nums">
+            {formatPrice(booking.priceCents)}
+          </p>
+        </div>
+
+        <dl className="mt-4 flex flex-col gap-2 border-t border-line pt-4 text-body">
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted">Cliente</dt>
+            <dd className="text-right font-medium text-ink">{booking.customer.name}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-muted">Teléfono</dt>
+            <dd>
+              <a
+                href={`tel:${booking.customer.phone}`}
+                className="inline-flex min-h-11 items-center rounded-lg px-2 font-medium text-brand-text hover:underline"
+              >
+                {booking.customer.phone}
+              </a>
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted">Atiende</dt>
+            <dd className="text-right font-medium text-ink">
+              {booking.staff?.name ?? 'Sin asignar'}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted">Origen</dt>
+            <dd className="text-right font-medium text-ink">
+              {SOURCE_LABEL[booking.source] ?? booking.source}
+            </dd>
+          </div>
+          {booking.notes && (
+            <div className="mt-1 rounded-xl bg-canvas px-3 py-2.5">
+              <dt className="text-meta text-muted">Notas</dt>
+              <dd className="mt-0.5 text-body text-ink italic">{booking.notes}</dd>
+            </div>
+          )}
+        </dl>
+
+        {error && (
+          <div className="mt-4">
+            <ErrorNote>{error.message}</ErrorNote>
+          </div>
+        )}
+
+        {estado && (
+          <p className="mt-4 flex items-center gap-2 text-body text-muted">
+            Esta cita está marcada como <Badge tone={estado.tone}>{estado.label}</Badge>
+          </p>
+        )}
+
+        <div className="mt-5 flex flex-col gap-2">
+          {cerrada && (
+            <Button
+              variant="secondary"
+              block
+              loading={marcar.isPending}
+              onClick={() => marcar.mutate('CONFIRMADA', alTerminar)}
+            >
+              Deshacer
+            </Button>
+          )}
+
+          {!cancelled && !cerrada && (
+            <>
+              {moviendo ? (
+                formularioMover
+              ) : (
+                <>
+                  {yaPaso && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        loading={marcar.isPending && marcar.variables === 'COMPLETADA'}
+                        onClick={() => marcar.mutate('COMPLETADA', alTerminar)}
+                      >
+                        Vino
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        loading={marcar.isPending && marcar.variables === 'NO_ASISTIO'}
+                        onClick={() => marcar.mutate('NO_ASISTIO', alTerminar)}
+                      >
+                        No vino
+                      </Button>
+                    </div>
+                  )}
+                  <Button variant="secondary" block onClick={() => setMoviendo(true)}>
+                    Mover de hora
+                  </Button>
+                  <div className="mt-2 flex justify-center border-t border-line pt-4">
+                    <ConfirmAction
+                      size="md"
+                      label="Cancelar la cita"
+                      question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
+                      confirmLabel="Sí, cancelar"
+                      loading={cancel.isPending}
+                      onConfirm={() => cancel.mutate(undefined, alTerminar)}
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </Sheet>
     </li>
   )
 }
@@ -378,8 +560,24 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
 
 export function PanelAgenda() {
   const { slug = '' } = useParams()
+  const [params, setParams] = useSearchParams()
   const [rango, setRango] = useState<RangoKey>('semana')
-  const [apuntando, setApuntando] = useState(false)
+
+  /* El botón central de la barra de móvil abre el formulario desde otra
+     pantalla, así que el estado vive en la URL y no en este componente. De
+     paso, «apuntar una cita» pasa a ser un enlace que se puede guardar. */
+  const apuntando = params.get('nueva') === '1'
+  const setApuntando = (abierto: boolean) => {
+    setParams(
+      (prev) => {
+        const siguiente = new URLSearchParams(prev)
+        if (abierto) siguiente.set('nueva', '1')
+        else siguiente.delete('nueva')
+        return siguiente
+      },
+      { replace: true },
+    )
+  }
   const queryClient = useQueryClient()
 
   const { data: summary } = useQuery({
