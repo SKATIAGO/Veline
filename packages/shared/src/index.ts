@@ -105,6 +105,7 @@ export const CATEGORIES = [
   { slug: 'gimnasios', label: 'Gimnasios', singular: 'Gimnasio' },
   { slug: 'autoescuelas', label: 'Autoescuelas', singular: 'Autoescuela' },
   { slug: 'profesionales', label: 'Servicios profesionales', singular: 'Servicio profesional' },
+  { slug: 'asesorias', label: 'Asesorías y despachos', singular: 'Asesoría' },
   { slug: 'tiendas', label: 'Tiendas de barrio', singular: 'Tienda' },
   { slug: 'bienestar', label: 'Bienestar', singular: 'Bienestar' },
 ] as const
