@@ -561,7 +561,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
 export function PanelAgenda() {
   const { slug = '' } = useParams()
   const [params, setParams] = useSearchParams()
-  const [rango, setRango] = useState<RangoKey>('semana')
+  const [rango, setRango] = useState<RangoKey>('hoy')
 
   /* El botón central de la barra de móvil abre el formulario desde otra
      pantalla, así que el estado vive en la URL y no en este componente. De
