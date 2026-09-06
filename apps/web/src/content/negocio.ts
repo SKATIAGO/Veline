@@ -48,7 +48,7 @@ export const DESTACADOS = [
 export const SERVICIOS_EMPRESA = [
   {
     title: 'Área administrativa cómoda y sencilla',
-    text: 'Un panel que se entiende sin manual: agenda, clientes y servicios con un clic.',
+    text: 'Un panel que se entiende sin manual: agenda, clientes y servicios con un click.',
   },
   {
     title: 'Calendario adaptable',
