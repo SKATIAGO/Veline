@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
-import { aceptaReservas, CATEGORIES, cuotaMensualCents } from '@veline/shared'
+import { aceptaReservas, CATEGORIES, cuotaMensualCents, PRUEBA_DIAS_DEFECTO } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
@@ -111,6 +111,12 @@ export async function adminRoutes(app: FastifyInstance) {
         category: d.category,
         email: d.email,
         phone: d.phone || null,
+        // Sin esto, `trialEndsAt` se queda a null: `aceptaReservas()` solo
+        // corta una prueba cuando esa fecha existe y ya ha pasado, así que
+        // una prueba sin fecha es una prueba que nunca caduca. La web
+        // promete 15 días — el negocio tiene que empezar a contarlos desde
+        // que se crea, no desde que alguien se acuerde de ponerlos a mano.
+        trialEndsAt: new Date(Date.now() + PRUEBA_DIAS_DEFECTO * 86_400_000),
         locations: {
           create: { street: d.street, city: d.city, postalCode: d.postalCode },
         },

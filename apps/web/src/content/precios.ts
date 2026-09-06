@@ -3,8 +3,12 @@
  * Los importes van en céntimos para formatearlos con el mismo helper que el
  * resto del producto.
  */
+import { PRUEBA_DIAS_DEFECTO } from '@veline/shared'
 
-export const PRUEBA_DIAS = 15
+/* No un 15 propio: el mismo con el que el servidor pone fecha de caducidad a
+   la prueba al crear el negocio. Dos copias del mismo número acaban diciendo
+   cosas distintas — aquí ya pasó: esta lo prometía y el servidor no la ponía. */
+export const PRUEBA_DIAS = PRUEBA_DIAS_DEFECTO
 
 export const PLANES = [
   {
