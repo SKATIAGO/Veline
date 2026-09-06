@@ -63,7 +63,7 @@ export const PLANES = [
 export const EXTRAS = [
   {
     name: 'Creación de web y app móvil',
-    price: 'Desde 250 €',
+    price: 'Desde 350 €',
     note: 'pago único',
     items: [
       'Imagen propia de tu negocio',
