@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ButtonLink, Logo, cx } from './ui'
-import { CONTACT_EMAIL } from '@veline/shared'
+import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
 
 const NAV = [
   { to: '/#como-funciona', label: 'Cómo funciona' },
@@ -72,6 +72,64 @@ function Header() {
   )
 }
 
+/* Mismo trazo (1.75, esquinas redondeadas) que el resto de iconos del
+   producto, para que no desentonen al lado del logo. */
+function IconoInstagram() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className="size-full"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function IconoFacebook() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className="size-full"
+    >
+      <path d="M14.5 21v-7.2h2.4l.4-2.8h-2.8V9.2c0-.8.2-1.4 1.4-1.4h1.5V5.3c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6v2.2H9.4v2.8h2.4V21" />
+    </svg>
+  )
+}
+
+/** Enlace circular de solo icono, para las redes. Abren en pestaña nueva:
+    salir del sitio no debería perder el progreso de quien está mirando. */
+function IconoSocial({
+  href,
+  label,
+  children,
+}: {
+  href: string
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="grid size-9 shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-canvas hover:text-brand"
+    >
+      <span className="size-[19px]">{children}</span>
+    </a>
+  )
+}
+
 function Footer() {
   const columns = [
     {
@@ -109,6 +167,14 @@ function Footer() {
           <p className="text-body leading-relaxed text-subtle">
             Reservas online para cualquier negocio.
           </p>
+          <div className="-ml-1.5 mt-4 flex items-center gap-1">
+            <IconoSocial href={SOCIAL.instagram.url} label="Instagram de Veline">
+              <IconoInstagram />
+            </IconoSocial>
+            <IconoSocial href={SOCIAL.facebook.url} label="Facebook de Veline">
+              <IconoFacebook />
+            </IconoSocial>
+          </div>
         </div>
         <div className="flex flex-wrap gap-10 sm:gap-16">
           {columns.map((col) => (

@@ -18,6 +18,14 @@ export const TIMEZONE = 'Europe/Madrid'
  */
 export const CONTACT_EMAIL = 'contacto@veline.es'
 
+/** Perfiles oficiales. El mismo motivo que el correo: un solo sitio de donde
+ *  colgar el usuario, para no tener que buscar por la web quién lo escribió
+ *  mal si un día cambia. */
+export const SOCIAL = {
+  instagram: { user: 'somosveline', url: 'https://instagram.com/somosveline' },
+  facebook: { user: 'somosveline', url: 'https://facebook.com/somosveline' },
+} as const
+
 /* ── Planes y cuotas ────────────────────────────────────────
  * Los números viven aquí y no en la página de precios porque los usan tres
  * sitios: lo que se le enseña al visitante, lo que se le cobra al negocio y
