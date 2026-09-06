@@ -48,7 +48,7 @@ export const DESTACADOS = [
 export const SERVICIOS_EMPRESA = [
   {
     title: 'Área administrativa cómoda y sencilla',
-    text: 'Un panel que se entiende sin manual: agenda, clientes y servicios con un click.',
+    text: 'Un panel que se entiende sin manual: agenda, clientes y servicios con un clic.',
   },
   {
     title: 'Calendario adaptable',
@@ -65,12 +65,12 @@ export const SERVICIOS_EMPRESA = [
   },
   {
     title: 'Web personalizada',
-    text: 'Creamos la web de la empresa con su marca y su propio motor de reservas.',
+    text: 'Creamos la web de tu empresa, con tu marca y tu propio motor de reservas.',
     plus: true,
   },
   {
-    title: 'Aplicación para su local',
-    text: 'Su propia aplicación personalizada para reforzar su marca y facilitar el acceso de sus clientes a todos sus servicios.',
+    title: 'Aplicación para tu local',
+    text: 'Tu propia aplicación personalizada para reforzar tu marca y facilitar a tus clientes el acceso a todos tus servicios.',
     plus: true,
   },
   {

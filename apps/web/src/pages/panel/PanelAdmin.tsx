@@ -435,7 +435,7 @@ export function PanelAdmin() {
                 <Input
                   id={`${id}-be`}
                   type="email"
-                  placeholder="hola@peluqerialola.es"
+                  placeholder="hola@peluquerialola.es"
                   value={businessDraft.email}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, email: e.target.value })}
                 />

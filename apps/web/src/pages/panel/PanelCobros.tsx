@@ -201,7 +201,7 @@ export function PanelCobros() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Cobros"
-        hint="El cobro es manual: esto dice cuánto y guarda lo que ya está pagado."
+        hint="El cobro es manual: esto dice cuánto se debe y guarda constancia de lo que ya está pagado."
         actions={
           <Button variant="secondary" loading={cerrar.isPending} onClick={() => cerrar.mutate()}>
             Cerrar {mesLargo(mesAnterior())}

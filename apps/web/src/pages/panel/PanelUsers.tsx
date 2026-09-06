@@ -254,7 +254,7 @@ export function PanelUsers() {
       ) : !users?.length ? (
         <EmptyState
           title="Todavía no hay nadie en el equipo"
-          hint="Añade a la primera persona para que pueda entrar al panel y trabajar la agenda."
+          hint="Añade a la primera persona para que pueda entrar al panel y llevar la agenda."
           action={!creating && <Button onClick={abrirAlta}>Añadir a la primera persona</Button>}
         />
       ) : (

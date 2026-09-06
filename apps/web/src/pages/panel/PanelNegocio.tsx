@@ -171,7 +171,7 @@ export function PanelNegocio() {
           <Field
             label="Categoría"
             htmlFor={`${id}-cat`}
-            hint="Determina en qué filtro del marketplace apareces"
+            hint="Determina en qué categoría del marketplace apareces"
             required
           >
             <Select

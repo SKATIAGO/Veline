@@ -76,7 +76,7 @@ export const EXTRAS = [
     items: [
       'Cambios de horarios y precios',
       'Información del negocio al día',
-      'Altas y bajas de personas y miembros',
+      'Altas y bajas de personas y del equipo',
     ],
   },
   {
