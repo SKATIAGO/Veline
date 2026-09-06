@@ -650,7 +650,7 @@ export function PanelAgenda() {
           hint={
             summary?.weekCommissionCents
               ? `Comisión Veline: ${formatPrice(summary.weekCommissionCents)}`
-              : 'Sin comisión esta semana'
+              : 'Sin comisión en estos 7 días'
           }
         />
         <Stat
