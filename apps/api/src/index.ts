@@ -8,6 +8,7 @@ import { describeSmsConfig } from './mail/acumbamail.js'
 import { arrancarRecordatorios } from './recordatorios.js'
 import { adminRoutes } from './routes/admin.js'
 import { auditRoutes } from './routes/audit.js'
+import { fichajeRoutes } from './routes/fichajes.js'
 import { authRoutes } from './routes/auth.js'
 import { businessRoutes } from './routes/businesses.js'
 import { negocioRoutes } from './routes/negocio.js'
@@ -72,6 +73,7 @@ await app.register(negocioRoutes)
 await app.register(cobrosRoutes)
 await app.register(resenaRoutes)
 await app.register(adminRoutes)
+await app.register(fichajeRoutes)
 await app.register(auditRoutes)
 
 app.setErrorHandler((error, req, reply) => {

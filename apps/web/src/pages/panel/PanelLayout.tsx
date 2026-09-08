@@ -175,6 +175,13 @@ const TRAZOS = {
       <path d="M12 7.5V12l3 2" />
     </>
   ),
+  fichaje: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+      <path d="M20 4.5 17.6 6.8M4 4.5l2.4 2.3" />
+    </>
+  ),
   personas: (
     <>
       <circle cx="12" cy="8" r="3.2" />
@@ -350,6 +357,12 @@ export function PanelLayout() {
           icono: 'clientes',
           grupo: 'Día a día',
           enBarra: true,
+        },
+        {
+          to: `/panel/${slug}/fichaje`,
+          label: 'Fichaje',
+          icono: 'fichaje',
+          grupo: 'Día a día',
         },
         ...(puedeConfigurar
           ? ([

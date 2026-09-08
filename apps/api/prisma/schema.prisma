@@ -92,6 +92,7 @@ model Business {
   messages  MessageLog[]
   charges   Charge[]
   reviews   Review[]
+  fichajes  Fichaje[]
 
   @@index([category])
 }
@@ -271,6 +272,8 @@ model User {
   emailVerifiedAt DateTime?
 
   business           Business?           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  fichajes           Fichaje[]           @relation("FichajesPropios")
+  correcciones       Fichaje[]           @relation("FichajesCorregidos")
   sessions           Session[]
   passwordResets     PasswordReset[]
   emailVerifications EmailVerification[]
@@ -498,6 +501,7 @@ enum AuditAction {
   CIERRE_CREADO
   CIERRE_ELIMINADO
   NEGOCIO_EDITADO
+  FICHAJE_CORREGIDO
 }
 
 /// Registro de auditoría: quién hizo qué, cuándo y desde dónde.
@@ -543,4 +547,44 @@ model AuditLog {
   @@index([businessId, createdAt])
   @@index([actorId, createdAt])
   @@index([createdAt])
+}
+
+/// Registro de jornada: a qué hora entra y sale cada persona.
+///
+/// En España es obligatorio (art. 34.9 del Estatuto de los Trabajadores) y eso
+/// marca el diseño, no solo lo que se ve:
+///
+///   · Ficha cada uno con su cuenta. Quien ficha ha metido su contraseña, así
+///     que el registro dice de verdad quién fue.
+///   · Una corrección NO pisa el original. Se guardan las dos horas, quién la
+///     hizo y por qué: un registro que se puede reescribir sin dejar rastro no
+///     prueba nada.
+///   · Hay que conservarlo cuatro años. Por eso no se borra nunca desde el
+///     producto; lo único que se lleva un fichaje por delante es dar de baja
+///     el negocio entero.
+model Fichaje {
+  id         String @id @default(cuid())
+  userId     String
+  businessId String
+
+  entrada DateTime
+  /// Null mientras la jornada sigue abierta.
+  salida  DateTime?
+
+  /// Qué decía antes de corregirlo. Null si nadie lo ha tocado.
+  entradaOriginal DateTime?
+  salidaOriginal  DateTime?
+  /// Quién corrigió, cuándo y por qué. El motivo es obligatorio al corregir.
+  corregidoPorId  String?
+  corregidoEn     DateTime?
+  motivo          String?
+
+  createdAt DateTime @default(now())
+
+  user         User     @relation("FichajesPropios", fields: [userId], references: [id], onDelete: Cascade)
+  corregidoPor User?    @relation("FichajesCorregidos", fields: [corregidoPorId], references: [id], onDelete: SetNull)
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, entrada])
+  @@index([userId, entrada])
 }

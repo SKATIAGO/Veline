@@ -168,6 +168,31 @@ export const api = {
       body: JSON.stringify({ active }),
     }),
 
+  // ── Fichaje (registro de jornada) ──────────────────────────
+  fichajeAbierto: (slug: string) =>
+    request<{ fichaje: Fichaje | null }>(`/panel/${slug}/fichajes/abierto`),
+
+  ficharEntrada: (slug: string) =>
+    request<Fichaje>(`/panel/${slug}/fichajes/entrada`, { method: 'POST' }),
+
+  ficharSalida: (slug: string) =>
+    request<Fichaje>(`/panel/${slug}/fichajes/salida`, { method: 'POST' }),
+
+  fichajes: (slug: string, params: { desde?: string; hasta?: string } = {}) =>
+    request<{ puedeVerTodos: boolean; fichajes: Fichaje[] }>(
+      `/panel/${slug}/fichajes${qs(params)}`,
+    ),
+
+  corregirFichaje: (
+    slug: string,
+    id: string,
+    body: { entrada: string; salida: string | null; motivo: string },
+  ) =>
+    request<Fichaje>(`/panel/${slug}/fichajes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
   // ── Suscripción (SUPERADMIN) ───────────────────────────────
   updateSubscription: (
     businessId: string,
@@ -433,6 +458,24 @@ export interface PanelUser {
   role: 'SUPERADMIN' | 'ADMIN' | 'EMPLEADO'
   active: boolean
   createdAt: string
+}
+
+export interface Fichaje {
+  id: string
+  userId: string
+  persona: string
+  email: string
+  entrada: string
+  salida: string | null
+  /** Minutos trabajados. Null mientras la jornada sigue abierta. */
+  minutos: number | null
+  correccion: {
+    por: string
+    cuando: string
+    motivo: string | null
+    entradaOriginal: string | null
+    salidaOriginal: string | null
+  } | null
 }
 
 export interface AdminBusiness {
