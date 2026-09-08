@@ -35,6 +35,50 @@ export interface AvailabilityRange {
   serviceId: string
   from: Date
   to: Date
+  /**
+   * En qué local. Si no se dice, se usa el único que tenga el negocio.
+   *
+   * Es opcional a propósito: la inmensa mayoría de negocios tiene uno solo, y
+   * obligar a elegir cuando no hay nada que elegir complicaría cada llamada
+   * sin ganar nada. Con varios locales SÍ hay que decirlo — dar por bueno el
+   * primero ofrecería los huecos del local equivocado.
+   */
+  locationId?: string
+}
+
+/**
+ * El local sobre el que se calcula, con sus horarios.
+ *
+ * Con un local, el de siempre. Con varios y sin decir cuál, se niega en vez de
+ * elegir por su cuenta: enseñar los huecos de un local y que el cliente
+ * aparezca en el otro es peor que pedirle que elija.
+ */
+async function resolverLocal(businessId: string, locationId?: string) {
+  if (locationId) {
+    const l = await prisma.location.findFirst({
+      // El businessId no sobra: sin él, cualquiera podría pedir los huecos de
+      // un local de otro negocio pasando su id.
+      where: { id: locationId, businessId },
+      include: { openingHours: true },
+    })
+    if (!l) throw Object.assign(new Error('Local no encontrado'), { statusCode: 404 })
+    return l
+  }
+
+  const locales = await prisma.location.findMany({
+    where: { businessId },
+    include: { openingHours: true },
+    orderBy: { id: 'asc' },
+  })
+  if (locales.length === 0) {
+    throw Object.assign(new Error('El negocio no tiene local'), { statusCode: 404 })
+  }
+  if (locales.length > 1) {
+    throw Object.assign(new Error('Este negocio tiene varios locales: elige uno'), {
+      statusCode: 400,
+    })
+  }
+  return locales[0]
 }
 
 export async function getAvailability({
@@ -42,23 +86,30 @@ export async function getAvailability({
   serviceId,
   from,
   to,
+  locationId,
 }: AvailabilityRange): Promise<DayAvailabilityDTO[]> {
   const service = await prisma.service.findFirst({
     where: { id: serviceId, businessId, active: true },
   })
   if (!service) throw Object.assign(new Error('Servicio no encontrado'), { statusCode: 404 })
 
-  const location = await prisma.location.findFirst({
-    where: { businessId },
-    include: { openingHours: true },
-  })
-  if (!location) throw Object.assign(new Error('El negocio no tiene local'), { statusCode: 404 })
+  const location = await resolverLocal(businessId, locationId)
 
   const rangeStart = atLocalMinutes(from, 0)
   const rangeEnd = atLocalMinutes(to, 24 * 60)
 
   const [staff, closures, bookings] = await Promise.all([
-    prisma.staff.findMany({ where: { businessId, active: true }, orderBy: { name: 'asc' } }),
+    /* Las personas de ESTE local. Las que no lo tienen asignado atienden en
+       cualquiera: es lo que había antes de que existieran varios locales, y
+       excluirlas dejaría sin huecos a todo negocio que no las haya repartido. */
+    prisma.staff.findMany({
+      where: {
+        businessId,
+        active: true,
+        OR: [{ locationId: location.id }, { locationId: null }],
+      },
+      orderBy: { name: 'asc' },
+    }),
     prisma.closure.findMany({
       where: { locationId: location.id, date: { gte: utcMidnight(from), lte: utcMidnight(to) } },
     }),
@@ -103,12 +154,23 @@ export async function getAvailability({
  */
 export async function pickStaffForSlot(
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  opts: { businessId: string; start: Date; end: Date; preferredStaffId?: string },
+  opts: {
+    businessId: string
+    start: Date
+    end: Date
+    preferredStaffId?: string
+    /** El local de la cita. Sin él, cualquier persona del negocio vale. */
+    locationId?: string
+  },
 ) {
   const staff = await tx.staff.findMany({
     where: {
       businessId: opts.businessId,
       active: true,
+      // Las mismas que ofrece el buscador: las de este local y las que no
+      // tienen ninguno asignado. Si aquí entrara alguien de otro local, se
+      // podría reservar con quien no está.
+      ...(opts.locationId ? { OR: [{ locationId: opts.locationId }, { locationId: null }] } : {}),
       ...(opts.preferredStaffId ? { id: opts.preferredStaffId } : {}),
     },
     orderBy: { name: 'asc' },
@@ -129,11 +191,21 @@ export async function pickStaffForSlot(
 }
 
 /** Comprueba que el inicio cae dentro del horario de atención y no en un cierre. */
-export async function isWithinOpeningHours(businessId: string, start: Date, occupancyMin: number) {
-  const location = await prisma.location.findFirst({
-    where: { businessId },
-    include: { openingHours: true, closures: true },
-  })
+export async function isWithinOpeningHours(
+  businessId: string,
+  start: Date,
+  occupancyMin: number,
+  locationId?: string,
+) {
+  const location = locationId
+    ? await prisma.location.findFirst({
+        where: { id: locationId, businessId },
+        include: { openingHours: true, closures: true },
+      })
+    : await prisma.location.findFirst({
+        where: { businessId },
+        include: { openingHours: true, closures: true },
+      })
   if (!location) return false
 
   const minutes = start.getHours() * 60 + start.getMinutes()

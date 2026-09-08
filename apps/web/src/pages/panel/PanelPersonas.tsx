@@ -12,6 +12,7 @@ import {
   Field,
   Input,
   PageHeader,
+  Select,
   Skeleton,
   cx,
 } from '../../components/ui'
@@ -33,6 +34,16 @@ export function PanelPersonas() {
   const [editando, setEditando] = useState<string | null>(null)
   const [nombreEdit, setNombreEdit] = useState('')
 
+  /* Con varios locales hay que poder decir dónde atiende cada persona: de eso
+     depende en qué local sale su hueco. Sin elegir = atiende en todos, que es
+     lo que hace falta para quien va rotando. */
+  const { data: locales } = useQuery({
+    queryKey: ['panel', slug, 'locales'],
+    queryFn: () => api.panelLocales(slug),
+  })
+  const varios = (locales?.length ?? 0) > 1
+  const [localNuevo, setLocalNuevo] = useState('')
+
   const { data: personas, isLoading } = useQuery({
     queryKey: ['panel', slug, 'staff'],
     queryFn: () => api.panelStaff(slug),
@@ -45,7 +56,7 @@ export function PanelPersonas() {
   }
 
   const crear = useMutation({
-    mutationFn: () => api.createStaff(slug, nombre.trim()),
+    mutationFn: () => api.createStaff(slug, nombre.trim(), varios ? localNuevo || null : undefined),
     onSuccess: () => {
       setNombre('')
       invalidate()
@@ -104,6 +115,22 @@ export function PanelPersonas() {
               onChange={(e) => setNombre(e.target.value)}
             />
           </Field>
+          {varios && (
+            <Field label="Dónde atiende" htmlFor={`${id}-local`} className="sm:w-[220px]">
+              <Select
+                id={`${id}-local`}
+                value={localNuevo}
+                onChange={(e) => setLocalNuevo(e.target.value)}
+              >
+                <option value="">En todos</option>
+                {locales?.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
           <Button type="submit" loading={crear.isPending} disabled={nombre.trim().length < 2}>
             Añadir
           </Button>
@@ -189,6 +216,13 @@ export function PanelPersonas() {
                         {!p.active && <Badge tone="off">De baja</Badge>}
                       </div>
                       <p className="mt-0.5 text-meta text-muted">
+                        {varios && (
+                          <>
+                            {locales?.find((l) => l.id === p.locationId)?.name ??
+                              'En todos los locales'}
+                            {' · '}
+                          </>
+                        )}
                         {p.upcomingBookings
                           ? `${p.upcomingBookings} ${p.upcomingBookings === 1 ? 'cita' : 'citas'} por delante`
                           : 'Sin citas pendientes'}

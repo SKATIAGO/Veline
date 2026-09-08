@@ -24,6 +24,7 @@ import { PanelPersonas } from './pages/panel/PanelPersonas'
 import { PanelNegocio } from './pages/panel/PanelNegocio'
 import { PanelClientes } from './pages/panel/PanelClientes'
 import { PanelFichaje } from './pages/panel/PanelFichaje'
+import { PanelLocales } from './pages/panel/PanelLocales'
 import { PanelActividad } from './pages/panel/PanelActividad'
 import { EmptyState } from './components/ui'
 import { ScrollToTop } from './components/ScrollToTop'
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route path="personas" element={<PanelPersonas />} />
         <Route path="clientes" element={<PanelClientes />} />
         <Route path="fichaje" element={<PanelFichaje />} />
+        <Route path="locales" element={<PanelLocales />} />
         <Route path="equipo" element={<PanelUsers />} />
         <Route path="negocio" element={<PanelNegocio />} />
         <Route path="facturacion" element={<PanelMiCuenta />} />

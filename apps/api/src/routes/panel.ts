@@ -5,7 +5,11 @@ import { aceptaReservas, cuotaMensualCents } from '@veline/shared'
 import { resumenMensajes } from '../mail/contador.js'
 import { hashPassword } from '../auth/passwords.js'
 import { requireUser } from '../auth/sessions.js'
-import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
+import {
+  authorizeBusiness as authorize,
+  cambios,
+  resolverLocalDelPanel,
+} from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 
 /**
@@ -310,9 +314,11 @@ export async function panelRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'configuracion')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
-    if (!auth.business.locationId) return []
+    // Cada local tiene su horario: con varios hay que decir cuál.
+    const locationId = resolverLocalDelPanel(auth.business, (req.query as { local?: string }).local)
+    if (!locationId) return []
     return prisma.openingHour.findMany({
-      where: { locationId: auth.business.locationId },
+      where: { locationId },
       orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }],
     })
   })
@@ -327,10 +333,10 @@ export async function panelRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.code(400).send({ error: 'Horario inválido', details: parsed.error.flatten() })
     }
-    if (!auth.business.locationId) {
-      return reply.code(404).send({ error: 'El negocio no tiene local' })
+    const locationId = resolverLocalDelPanel(auth.business, (req.query as { local?: string }).local)
+    if (!locationId) {
+      return reply.code(404).send({ error: 'El negocio no tiene ese local' })
     }
-    const locationId = auth.business.locationId
 
     const anterior = await prisma.openingHour.findMany({
       where: { locationId },

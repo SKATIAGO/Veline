@@ -4,7 +4,11 @@ import { z } from 'zod'
 import { CATEGORIES, phoneES } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { requireUser } from '../auth/sessions.js'
-import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
+import {
+  authorizeBusiness as authorize,
+  cambios,
+  resolverLocalDelPanel,
+} from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
@@ -22,6 +26,8 @@ const CATEGORY_SLUGS = CATEGORIES.map((c) => c.slug) as [string, ...string[]]
 
 const staffBody = z.object({
   name: z.string().trim().min(2, 'El nombre es demasiado corto').max(120),
+  /** En qué local atiende. Sin poner = en todos. */
+  locationId: z.string().min(1).nullable().optional(),
 })
 
 const closureBody = z
@@ -94,6 +100,8 @@ export async function negocioRoutes(app: FastifyInstance) {
       name: s.name,
       active: s.active,
       upcomingBookings: s._count.bookings,
+      /** Null = atiende en cualquier local. */
+      locationId: s.locationId,
     }))
   })
 
@@ -108,12 +116,20 @@ export async function negocioRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
     }
 
+    /* En qué local atiende. Con uno solo, ese. Con varios, el que se diga —
+       y si no se dice ninguno, ninguno: eso significa «atiende en todos», que
+       es justo lo que hace falta para quien va rotando. */
+    const locationId =
+      auth.business.locationIds.length > 1
+        ? (parsed.data.locationId ?? null)
+        : auth.business.locationId
+
+    if (parsed.data.locationId && !auth.business.locationIds.includes(parsed.data.locationId)) {
+      return reply.code(400).send({ error: 'Ese local no es de este negocio' })
+    }
+
     const created = await prisma.staff.create({
-      data: {
-        businessId: auth.business.id,
-        locationId: auth.business.locationId,
-        name: parsed.data.name,
-      },
+      data: { businessId: auth.business.id, locationId, name: parsed.data.name },
     })
 
     audit(req, {
@@ -147,6 +163,12 @@ export async function negocioRoutes(app: FastifyInstance) {
       where: { id, businessId: auth.business.id },
     })
     if (!existing) return reply.code(404).send({ error: 'Persona no encontrada' })
+
+    // Mover a alguien al local de otro negocio dejaría una persona atendiendo
+    // donde no trabaja, y saldría en los huecos de un negocio ajeno.
+    if (parsed.data.locationId && !auth.business.locationIds.includes(parsed.data.locationId)) {
+      return reply.code(400).send({ error: 'Ese local no es de este negocio' })
+    }
 
     // Dar de baja a alguien con citas por delante dejaría esas citas huérfanas
     // en la agenda. Se avisa en vez de romperlas por la espalda.
@@ -194,13 +216,14 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (!user) return
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
-    if (!auth.business.locationId) return []
+    const locationId = resolverLocalDelPanel(auth.business, (req.query as { local?: string }).local)
+    if (!locationId) return []
 
     const desde = new Date()
     desde.setUTCHours(0, 0, 0, 0)
 
     const dias = await prisma.closure.findMany({
-      where: { locationId: auth.business.locationId, date: { gte: desde } },
+      where: { locationId, date: { gte: desde } },
       orderBy: { date: 'asc' },
     })
 
@@ -226,7 +249,8 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (!user) return
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'configuracion')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
-    if (!auth.business.locationId) {
+    const locationId = resolverLocalDelPanel(auth.business, (req.query as { local?: string }).local)
+    if (!locationId) {
       return reply.code(404).send({ error: 'El negocio no tiene local' })
     }
 
@@ -257,7 +281,7 @@ export async function negocioRoutes(app: FastifyInstance) {
 
     await prisma.closure.createMany({
       data: fechas.map((date) => ({
-        locationId: auth.business.locationId!,
+        locationId,
         date,
         reason: parsed.data.reason || null,
       })),
@@ -270,7 +294,7 @@ export async function negocioRoutes(app: FastifyInstance) {
       actor: user,
       businessId: auth.business.id,
       entity: 'Closure',
-      entityId: auth.business.locationId,
+      entityId: locationId,
       metadata: {
         desde: parsed.data.from,
         hasta: parsed.data.to,
@@ -303,7 +327,9 @@ export async function negocioRoutes(app: FastifyInstance) {
     const { count } = await prisma.closure.deleteMany({
       where: {
         id: { in: parsed.data.ids },
-        locationId: auth.business.locationId ?? '__ninguno__',
+        locationId:
+          resolverLocalDelPanel(auth.business, (req.query as { local?: string }).local) ??
+          '__ninguno__',
       },
     })
     if (count === 0) return reply.code(404).send({ error: 'Cierre no encontrado' })

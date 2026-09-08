@@ -15,6 +15,8 @@ const availabilityQuery = z.object({
   serviceId: z.string().min(1),
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** Solo hace falta cuando el negocio tiene más de un local. */
+  locationId: z.string().min(1).optional(),
 })
 
 export async function businessRoutes(app: FastifyInstance) {
@@ -104,6 +106,14 @@ export async function businessRoutes(app: FastifyInstance) {
         postalCode: l.postalCode,
         lat: l.lat,
         lng: l.lng,
+        /* El horario de CADA local. Antes solo viajaba el del primero (abajo,
+           en openingHours), así que con dos locales la ficha enseñaba el
+           horario de uno junto a la dirección del otro. */
+        openingHours: l.openingHours.map((w) => ({
+          weekday: w.weekday,
+          startMin: w.startMin,
+          endMin: w.endMin,
+        })),
       })),
       services: b.services.map((s) => ({
         id: s.id,
@@ -149,6 +159,7 @@ export async function businessRoutes(app: FastifyInstance) {
         serviceId: parsed.data.serviceId,
         from,
         to,
+        locationId: parsed.data.locationId,
       })
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode ?? 500

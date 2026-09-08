@@ -118,7 +118,9 @@ export async function bookingRoutes(app: FastifyInstance) {
 
     const business = await prisma.business.findUnique({
       where: { slug },
-      include: { locations: { take: 1 } },
+      // Todos, no solo el primero: con varios locales hay que comprobar que el
+      // que pide el cliente es de este negocio.
+      include: { locations: { orderBy: { id: 'asc' } } },
     })
     // Sin revisar todavía: para el público no existe, ni por enlace directo ni
     // llamando aquí. Mismo 404 que la ficha, para no confirmar que el slug
@@ -153,7 +155,23 @@ export async function bookingRoutes(app: FastifyInstance) {
     const blockedTo = new Date(end.getTime() + service.bufferMin * 60_000)
     const occupancy = service.durationMin + service.bufferMin
 
-    if (!(await isWithinOpeningHours(business.id, start, occupancy))) {
+    /* En qué local. Con uno solo se coge ese y el cliente ni se entera; con
+       varios hay que decirlo, porque el horario y las personas son de cada
+       uno. Se comprueba que el local pedido sea de este negocio: si no,
+       mandando el id de otro se reservaría en el sitio equivocado. */
+    const local = input.locationId
+      ? business.locations.find((l) => l.id === input.locationId)
+      : business.locations.length === 1
+        ? business.locations[0]
+        : undefined
+
+    if (!local) {
+      return reply.code(400).send({
+        error: business.locations.length > 1 ? 'Elige en qué local' : 'Este negocio no tiene local',
+      })
+    }
+
+    if (!(await isWithinOpeningHours(business.id, start, occupancy, local.id))) {
       return reply.code(409).send({ error: 'Ese horario está fuera del horario de atención' })
     }
 
@@ -161,6 +179,7 @@ export async function bookingRoutes(app: FastifyInstance) {
       const booking = await prisma.$transaction(
         async (tx) => {
           const staff = await pickStaffForSlot(tx, {
+            locationId: local.id,
             businessId: business.id,
             start,
             end: blockedTo,
@@ -201,7 +220,7 @@ export async function bookingRoutes(app: FastifyInstance) {
             data: {
               code: bookingCode(),
               businessId: business.id,
-              locationId: business.locations[0]?.id ?? null,
+              locationId: local.id,
               serviceId: service.id,
               staffId: staff.id,
               customerId: customer.id,

@@ -158,6 +158,12 @@ const TRAZOS = {
       <path d="M3 20c0-3.2 2.7-5.2 6-5.2s6 2 6 5.2M16.5 8.4a3 3 0 0 0 0-.8M17 14.9c2.4.5 4 2.4 4 5.1" />
     </>
   ),
+  locales: (
+    <>
+      <path d="M4 9.5 5.6 5h12.8L20 9.5M4 9.5h16M4 9.5v9.5a1 1 0 0 0 1 1h5v-6h4v6h5a1 1 0 0 0 1-1V9.5" />
+      <circle cx="17" cy="16" r="1" />
+    </>
+  ),
   negocio: (
     <>
       <path d="M4 9.5 5.6 5h12.8L20 9.5M4 9.5h16M4 9.5v9.5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9.5" />
@@ -396,6 +402,12 @@ export function PanelLayout() {
                 icono: 'negocio',
                 grupo: 'Configuración',
                 enBarra: true,
+              },
+              {
+                to: `/panel/${slug}/locales`,
+                label: 'Locales',
+                icono: 'locales',
+                grupo: 'Configuración',
               },
               {
                 to: `/panel/${slug}/facturacion`,

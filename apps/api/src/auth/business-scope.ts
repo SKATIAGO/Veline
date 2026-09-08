@@ -15,7 +15,10 @@ export interface BusinessScope {
   slug: string
   name: string
   plan: string
+  /** El primero. Sigue aquí para lo que no depende del local. */
   locationId: string | null
+  /** Todos, por si hay que elegir. */
+  locationIds: string[]
 }
 
 export type AuthorizeResult =
@@ -28,7 +31,10 @@ export async function authorizeBusiness(
 ): Promise<AuthorizeResult> {
   const business = await prisma.business.findUnique({
     where: { slug },
-    include: { locations: { take: 1, select: { id: true } } },
+    // Todos, no solo el primero: con varios locales, cada pantalla del panel
+    // trabaja sobre uno y hay que poder comprobar que el que piden es de este
+    // negocio antes de tocar nada.
+    include: { locations: { select: { id: true }, orderBy: { id: 'asc' } } },
   })
   if (!business) return { ok: false, status: 404, error: 'Negocio no encontrado' }
 
@@ -46,8 +52,22 @@ export async function authorizeBusiness(
       name: business.name,
       plan: business.plan,
       locationId: business.locations[0]?.id ?? null,
+      locationIds: business.locations.map((l) => l.id),
     },
   }
+}
+
+/**
+ * Sobre qué local trabaja una pantalla del panel.
+ *
+ * Con uno solo, ese — nadie tiene que elegir nada. Con varios, el que se pida;
+ * y si no se pide ninguno, el primero, que es lo que ya hacía todo antes de
+ * que existieran varios. Devuelve null si el id pedido no es de este negocio,
+ * para no dejar que se toque el local de otro pasando su id.
+ */
+export function resolverLocalDelPanel(business: BusinessScope, pedido?: string): string | null {
+  if (!pedido) return business.locationId
+  return business.locationIds.includes(pedido) ? pedido : null
 }
 
 /**

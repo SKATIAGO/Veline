@@ -10,6 +10,7 @@ import {
   IconButton,
   Input,
   PageHeader,
+  Select,
   Skeleton,
   SuccessNote,
   cx,
@@ -37,9 +38,21 @@ export function PanelHours() {
   const [week, setWeek] = useState<Record<number, Range[]>>({})
   const [dirty, setDirty] = useState(false)
 
+  /* Cada local tiene su horario. Con uno solo no se pregunta nada; con
+     varios hay que elegir cuál se está editando, o se acabaría guardando el
+     horario de un local encima del de otro. */
+  const { data: locales } = useQuery({
+    queryKey: ['panel', slug, 'locales'],
+    queryFn: () => api.panelLocales(slug),
+  })
+  const [local, setLocal] = useState('')
+  const localActual = local || locales?.[0]?.id || ''
+  const varios = (locales?.length ?? 0) > 1
+
   const { data: hours, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'hours'],
-    queryFn: () => api.panelHours(slug),
+    queryKey: ['panel', slug, 'hours', localActual],
+    queryFn: () => api.panelHours(slug, localActual || undefined),
+    enabled: !!localActual,
   })
 
   useEffect(() => {
@@ -67,6 +80,7 @@ export function PanelHours() {
       api.saveHours(
         slug,
         ORDER.flatMap((wd) => (week[wd] ?? []).map((r) => ({ weekday: wd, ...r }))),
+        localActual || undefined,
       ),
     onSuccess: () => {
       setDirty(false)
@@ -132,6 +146,25 @@ export function PanelHours() {
       )}
       {save.isError && <ErrorNote>{(save.error as Error).message}</ErrorNote>}
       {save.isSuccess && !dirty && <SuccessNote>Horario guardado.</SuccessNote>}
+
+      {varios && (
+        <label className="flex max-w-xs flex-col gap-1.5">
+          <span className="text-meta font-semibold text-body-2">Local</span>
+          <Select
+            value={localActual}
+            onChange={(e) => {
+              setLocal(e.target.value)
+              setDirty(false)
+            }}
+          >
+            {locales?.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </Select>
+        </label>
+      )}
 
       <Card className="overflow-hidden">
         <ul>

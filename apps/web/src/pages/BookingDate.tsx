@@ -30,6 +30,7 @@ export function BookingDate() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const serviceId = params.get('servicio') ?? ''
+  const localPedido = params.get('local') ?? ''
 
   const today = useMemo(() => {
     const d = new Date()
@@ -48,6 +49,13 @@ export function BookingDate() {
 
   const service = business?.services.find((s) => s.id === serviceId) ?? business?.services[0]
 
+  /* Con un solo local no se pregunta nada. Con varios hay que elegir, porque
+     el horario y quién atiende son de cada uno: enseñar los huecos de uno y
+     que el cliente aparezca en el otro es peor que preguntarle. */
+  const locales = business?.locations ?? []
+  const local = locales.find((l) => l.id === localPedido) ?? locales[0]
+  const varios = locales.length > 1
+
   // Ventana consultada: desde hoy (o el 1 del mes si es futuro) hasta fin de mes,
   // ampliada a 14 días para que el carrusel móvil no se quede corto a fin de mes.
   const from = month > today ? month : today
@@ -63,12 +71,15 @@ export function BookingDate() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['availability', slug, service?.id, toDateKey(from), toDateKey(to)],
+    // El local va en la clave: sin él, cambiar de local enseñaría los huecos
+    // del anterior sacados de la caché.
+    queryKey: ['availability', slug, service?.id, local?.id, toDateKey(from), toDateKey(to)],
     queryFn: () =>
       api.getAvailability(slug, {
         serviceId: service!.id,
         from: toDateKey(from),
         to: toDateKey(to),
+        ...(local ? { locationId: local.id } : {}),
       }),
     enabled: Boolean(service),
   })
@@ -129,6 +140,31 @@ export function BookingDate() {
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">Elige fecha y hora</h1>
 
+          {/* Selector de local: solo si hay más de uno que elegir. */}
+          {varios && (
+            <label className="mb-6 block">
+              <span className="mb-1.5 block text-meta font-semibold text-body">Local</span>
+              <select
+                value={local?.id ?? ''}
+                onChange={(e) => {
+                  setSlot(null)
+                  setSelectedKey(null)
+                  navigate(
+                    `/${slug}/reservar/fecha?servicio=${service.id}&local=${e.target.value}`,
+                    { replace: true },
+                  )
+                }}
+                className="w-full max-w-[420px] rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink"
+              >
+                {locales.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name} · {l.street}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           {/* Selector de servicio */}
           {business.services.length > 1 && (
             <label className="mb-6 block">
@@ -138,7 +174,10 @@ export function BookingDate() {
                 onChange={(e) => {
                   setSlot(null)
                   setSelectedKey(null)
-                  navigate(`/${slug}/reservar/fecha?servicio=${e.target.value}`, { replace: true })
+                  navigate(
+                    `/${slug}/reservar/fecha?servicio=${e.target.value}${local ? `&local=${local.id}` : ''}`,
+                    { replace: true },
+                  )
                 }}
                 className="w-full max-w-[420px] rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink"
               >
@@ -322,7 +361,7 @@ export function BookingDate() {
                       onClick={() =>
                         slot &&
                         navigate(
-                          `/${slug}/reservar/confirmar?servicio=${service.id}&hora=${encodeURIComponent(slot.startsAt)}`,
+                          `/${slug}/reservar/confirmar?servicio=${service.id}&hora=${encodeURIComponent(slot.startsAt)}${local ? `&local=${local.id}` : ''}`,
                         )
                       }
                     >

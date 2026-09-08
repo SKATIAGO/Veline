@@ -65,6 +65,9 @@ export function BookingConfirm() {
   const [params] = useSearchParams()
   const serviceId = params.get('servicio') ?? ''
   const startsAt = params.get('hora') ?? ''
+  // Viene de la pantalla anterior. Con un solo local va vacío y el servidor
+  // coge el único que hay.
+  const locationId = params.get('local') ?? ''
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -87,6 +90,7 @@ export function BookingConfirm() {
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
         notes: notes.trim(),
         source: origenActual(),
+        ...(locationId ? { locationId } : {}),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
   })
@@ -109,6 +113,7 @@ export function BookingConfirm() {
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       notes: notes.trim(),
       source: origenActual(),
+      ...(locationId ? { locationId } : {}),
     })
     if (!parsed.success) {
       const flat = parsed.error.flatten((issue) => issue.message)

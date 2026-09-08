@@ -218,6 +218,8 @@ export const createBookingSchema = z.object({
   /** ISO 8601 del inicio de la cita. */
   startsAt: z.string().datetime({ offset: true }),
   staffId: z.string().min(1).optional(),
+  /** En qué local. Solo hace falta cuando el negocio tiene más de uno. */
+  locationId: z.string().min(1).optional(),
   customer: z.object({
     name: z.string().trim().min(2, 'Escribe tu nombre y apellidos').max(120),
     phone: phoneES,
@@ -256,6 +258,8 @@ export interface LocationDTO {
   postalCode: string
   lat: number | null
   lng: number | null
+  /** El horario de este local. Cada uno tiene el suyo. */
+  openingHours: OpeningHourDTO[]
 }
 
 export interface OpeningHourDTO {

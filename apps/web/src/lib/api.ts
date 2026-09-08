@@ -56,8 +56,10 @@ export const api = {
 
   getBusiness: (slug: string) => request<BusinessDTO>(`/businesses/${slug}`),
 
-  getAvailability: (slug: string, params: { serviceId: string; from: string; to: string }) =>
-    request<DayAvailabilityDTO[]>(`/businesses/${slug}/availability${qs(params)}`),
+  getAvailability: (
+    slug: string,
+    params: { serviceId: string; from: string; to: string; locationId?: string },
+  ) => request<DayAvailabilityDTO[]>(`/businesses/${slug}/availability${qs(params)}`),
 
   createBooking: (slug: string, body: CreateBookingInput) =>
     request<BookingDTO>(`/businesses/${slug}/bookings`, {
@@ -101,10 +103,11 @@ export const api = {
   deleteService: (slug: string, id: string) =>
     request<void>(`/panel/${slug}/services/${id}`, { method: 'DELETE' }),
 
-  panelHours: (slug: string) => request<PanelHour[]>(`/panel/${slug}/hours`),
+  panelHours: (slug: string, local?: string) =>
+    request<PanelHour[]>(`/panel/${slug}/hours${qs({ local })}`),
 
-  saveHours: (slug: string, hours: Omit<PanelHour, 'id' | 'locationId'>[]) =>
-    request<PanelHour[]>(`/panel/${slug}/hours`, {
+  saveHours: (slug: string, hours: Omit<PanelHour, 'id' | 'locationId'>[], local?: string) =>
+    request<PanelHour[]>(`/panel/${slug}/hours${qs({ local })}`, {
       method: 'PUT',
       body: JSON.stringify({ hours }),
     }),
@@ -168,6 +171,31 @@ export const api = {
       body: JSON.stringify({ active }),
     }),
 
+  // ── Locales ────────────────────────────────────────────────
+  panelLocales: (slug: string) => request<PanelLocal[]>(`/panel/${slug}/locations`),
+
+  crearLocal: (
+    slug: string,
+    body: Omit<PanelLocal, 'id' | 'personas' | 'personasPropias' | 'citas' | 'tieneHorario'>,
+  ) =>
+    request<{ id: string; name: string }>(`/panel/${slug}/locations`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  editarLocal: (
+    slug: string,
+    id: string,
+    body: { name: string; street: string; city: string; postalCode: string },
+  ) =>
+    request<{ id: string; name: string }>(`/panel/${slug}/locations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  cerrarLocal: (slug: string, id: string) =>
+    request<{ ok: true }>(`/panel/${slug}/locations/${id}`, { method: 'DELETE' }),
+
   // ── Fichaje (registro de jornada) ──────────────────────────
   fichajeAbierto: (slug: string) =>
     request<{ fichaje: Fichaje | null }>(`/panel/${slug}/fichajes/abierto`),
@@ -216,13 +244,17 @@ export const api = {
   // ── Personas que atienden ──────────────────────────────────
   panelStaff: (slug: string) => request<PanelStaff[]>(`/panel/${slug}/staff`),
 
-  createStaff: (slug: string, name: string) =>
+  createStaff: (slug: string, name: string, locationId?: string | null) =>
     request<PanelStaff>(`/panel/${slug}/staff`, {
       method: 'POST',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, ...(locationId !== undefined ? { locationId } : {}) }),
     }),
 
-  updateStaff: (slug: string, id: string, body: { name?: string; active?: boolean }) =>
+  updateStaff: (
+    slug: string,
+    id: string,
+    body: { name?: string; active?: boolean; locationId?: string | null },
+  ) =>
     request<PanelStaff>(`/panel/${slug}/staff/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
@@ -460,6 +492,19 @@ export interface PanelUser {
   createdAt: string
 }
 
+export interface PanelLocal {
+  id: string
+  name: string
+  street: string
+  city: string
+  postalCode: string
+  /** Quién atiende aquí, contando a las que atienden en cualquier local. */
+  personas: number
+  personasPropias: number
+  citas: number
+  tieneHorario: boolean
+}
+
 export interface Fichaje {
   id: string
   userId: string
@@ -527,6 +572,8 @@ export interface PanelStaff {
   name: string
   active: boolean
   upcomingBookings?: number
+  /** Null = atiende en cualquier local. */
+  locationId: string | null
 }
 
 export interface PanelClosure {
