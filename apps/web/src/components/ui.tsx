@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from 'react-router-dom'
+import { useIdioma } from '../i18n/idioma'
 
 export const cx = (...parts: (string | false | null | undefined)[]) =>
   parts.filter(Boolean).join(' ')
@@ -33,8 +34,10 @@ export function Logo({
   variant?: 'light' | 'dark'
   size?: number
 }) {
+  const { t } = useIdioma()
+
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="Veline — inicio">
+    <Link to="/" className="flex items-center gap-2.5" aria-label={t('comun.inicio')}>
       <LogoMark size={size} variant={variant} />
       <span
         className={cx(
@@ -364,12 +367,14 @@ export function Field({
  * pulsar.
  */
 export function BackBar({ to, children }: { to: string; children: ReactNode }) {
+  const { t } = useIdioma()
+
   return (
     <div className="border-b border-line">
       <div className="mx-auto flex max-w-[1440px] items-center gap-1 px-4 py-2.5 sm:px-6 lg:px-16">
         <Link
           to={to}
-          aria-label="Volver"
+          aria-label={t('comun.volver')}
           className={cx(
             'inline-flex size-10 shrink-0 items-center justify-center rounded-full',
             'text-subheading leading-none text-body-2 transition-colors duration-200',
@@ -537,21 +542,24 @@ export function Eyebrow({
  * Se dice lo que es — que acaba de llegar.
  */
 export function Stars({ rating, count }: { rating: number; count?: number }) {
-  if (!count) return <span className="text-subtle">Nuevo en Veline</span>
+  const { t, locale } = useIdioma()
+  if (!count) return <span className="text-subtle">{t('comun.nuevoEnVeline')}</span>
   return (
     <span className="text-subtle">
-      {rating.toLocaleString('es-ES', { minimumFractionDigits: 1 })} ★ ({count})
+      {rating.toLocaleString(locale, { minimumFractionDigits: 1 })} ★ ({count})
     </span>
   )
 }
 
 /* ── Estados ────────────────────────────────────────────────── */
 
-export function Spinner({ label = 'Cargando…' }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const { t } = useIdioma()
+  const texto = label ?? t('comun.cargando')
   return (
     <div className="flex items-center gap-3 py-10 text-body text-muted">
       <span className="size-4 animate-spin rounded-full border-2 border-line border-t-brand" />
-      {label}
+      {texto}
     </div>
   )
 }

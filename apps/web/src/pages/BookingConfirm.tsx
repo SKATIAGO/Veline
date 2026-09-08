@@ -6,6 +6,7 @@ import { api, ApiError } from '../lib/api'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
 import { origenActual } from '../lib/origen'
 import { Reveal } from '../components/Reveal'
+import { useIdioma, type Clave } from '../i18n/idioma'
 
 interface FieldProps {
   label: string
@@ -14,7 +15,8 @@ interface FieldProps {
   placeholder?: string
   type?: string
   error?: string
-  optional?: boolean
+  /** El «(opcional)» ya traducido; ausente si el campo es obligatorio. */
+  optional?: string
   multiline?: boolean
 }
 
@@ -35,7 +37,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-meta font-semibold text-body">
         {label}
-        {optional && <span className="font-normal text-subtle"> (opcional)</span>}
+        {optional && <span className="font-normal text-subtle"> {optional}</span>}
       </span>
       {multiline ? (
         <textarea
@@ -60,6 +62,7 @@ function Field({
 }
 
 export function BookingConfirm() {
+  const { t, idioma, locale } = useIdioma()
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -116,15 +119,19 @@ export function BookingConfirm() {
       ...(locationId ? { locationId } : {}),
     })
     if (!parsed.success) {
-      const flat = parsed.error.flatten((issue) => issue.message)
       const next: Record<string, string> = {}
-      for (const [key, messages] of Object.entries(flat.fieldErrors)) {
-        if (messages?.[0]) next[key] = messages[0]
+      // El esquema dice QUÉ campo falla; el texto lo pone Veline, en el idioma
+      // de quien está reservando. Los mensajes del esquema son los que ve el
+      // servidor, y ese habla castellano.
+      const POR_CAMPO: Record<string, Clave> = {
+        name: 'confirmar.errNombre',
+        phone: 'confirmar.errTelefono',
+        email: 'confirmar.errEmail',
       }
-      // Los errores del cliente vienen anidados bajo "customer"
       for (const issue of parsed.error.issues) {
         if (issue.path[0] === 'customer' && typeof issue.path[1] === 'string') {
-          next[issue.path[1]] = issue.message
+          const clave = POR_CAMPO[issue.path[1]]
+          if (clave) next[issue.path[1]] = t(clave)
         }
       }
       setErrors(next)
@@ -142,18 +149,18 @@ export function BookingConfirm() {
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-10 lg:flex-row lg:px-16">
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-7 text-[24px] font-semibold text-ink">Confirma tu reserva</h1>
+          <h1 className="mb-7 text-[24px] font-semibold text-ink">{t('confirmar.titulo')}</h1>
 
           <div className="flex max-w-[440px] flex-col gap-5">
             <Field
-              label="Nombre y apellidos"
+              label={t('confirmar.nombre')}
               value={name}
               onChange={setName}
-              placeholder="Marina López"
+              placeholder={t('confirmar.nombreEjemplo')}
               error={errors.name}
             />
             <Field
-              label="Teléfono"
+              label={t('confirmar.telefono')}
               value={phone}
               onChange={setPhone}
               placeholder="612 34 56 78"
@@ -161,49 +168,50 @@ export function BookingConfirm() {
               error={errors.phone}
             />
             <Field
-              label="Email"
+              label={t('confirmar.email')}
               value={email}
               onChange={setEmail}
-              placeholder="marina.lopez@mail.com"
+              placeholder={t('confirmar.emailEjemplo')}
               type="email"
-              optional
+              optional={t('comun.opcional')}
               error={errors.email}
             />
             <Field
-              label="Notas para el negocio"
+              label={t('confirmar.notas')}
               value={notes}
               onChange={setNotes}
-              placeholder="Ej: llego con el coche, dejo las llaves en recepción…"
-              optional
+              placeholder={t('confirmar.notasEjemplo')}
+              optional={t('comun.opcional')}
               multiline
             />
           </div>
 
           <p className="mt-6 max-w-[440px] text-meta leading-relaxed text-muted">
-            No hace falta crear cuenta. Guardamos tu teléfono para identificar la reserva y avisarte
-            si el negocio necesita cambiar la hora.
+            {t('confirmar.sinCuenta')}
           </p>
         </Reveal>
 
         <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[360px]">
           <Card className="p-6 lg:sticky lg:top-24">
-            <div className="mb-4 font-display text-base font-semibold text-ink">Resumen</div>
+            <div className="mb-4 font-display text-base font-semibold text-ink">
+              {t('confirmar.resumen')}
+            </div>
             {[
-              { label: 'Negocio', value: business.name },
-              { label: 'Servicio', value: service.name },
+              { clave: 'confirmar.negocio', value: business.name },
+              { clave: 'confirmar.servicio', value: service.name },
               {
-                label: 'Fecha',
+                clave: 'confirmar.fecha',
                 value: validStart
-                  ? `${formatLongDate(start)}, ${start.toLocaleTimeString('es-ES', {
+                  ? `${formatLongDate(start, idioma)}, ${start.toLocaleTimeString(locale, {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}`
                   : '—',
               },
-              { label: 'Duración', value: formatDuration(service.durationMin) },
+              { clave: 'confirmar.duracion', value: formatDuration(service.durationMin, idioma) },
             ].map((row) => (
-              <div key={row.label} className="mb-2.5 flex justify-between gap-4 text-body">
-                <span className="shrink-0 text-muted">{row.label}</span>
+              <div key={row.clave} className="mb-2.5 flex justify-between gap-4 text-body">
+                <span className="shrink-0 text-muted">{t(row.clave as Clave)}</span>
                 <span className="text-right font-semibold text-ink first-letter:uppercase">
                   {row.value}
                 </span>
@@ -211,9 +219,9 @@ export function BookingConfirm() {
             ))}
 
             <div className="mt-4 mb-5 flex justify-between border-t border-line pt-4">
-              <span className="text-sm text-muted">Total</span>
+              <span className="text-sm text-muted">{t('comun.total')}</span>
               <span className="text-base font-semibold text-ink">
-                {formatPrice(service.priceCents)}
+                {formatPrice(service.priceCents, idioma)}
               </span>
             </div>
 
@@ -228,7 +236,7 @@ export function BookingConfirm() {
                         to={`/${slug}/reservar/fecha?servicio=${serviceId}`}
                         className="font-semibold text-brand-text underline"
                       >
-                        Elige otra hora
+                        {t('confirmar.eligeOtraHora')}
                       </Link>
                     </>
                   )}
@@ -241,7 +249,7 @@ export function BookingConfirm() {
               onClick={submit}
               disabled={mutation.isPending || !validStart}
             >
-              {mutation.isPending ? 'Confirmando…' : 'Confirmar reserva'}
+              {mutation.isPending ? t('confirmar.confirmando') : t('confirmar.confirmar')}
             </Button>
           </Card>
         </Reveal>

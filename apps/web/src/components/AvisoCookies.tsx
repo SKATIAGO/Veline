@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from './ui'
+import { useIdioma } from '../i18n/idioma'
 
 /**
  * El aviso de cookies.
@@ -26,6 +27,8 @@ import { Button } from './ui'
 const CLAVE = 'veline:aviso-cookies'
 
 export function AvisoCookies() {
+  const { t } = useIdioma()
+
   // Arranca oculto y solo aparece si hace falta: si empezara visible, quien ya
   // lo cerró vería el cartel parpadear en cada carga.
   const [visible, setVisible] = useState(false)
@@ -53,20 +56,19 @@ export function AvisoCookies() {
   return (
     <div
       role="region"
-      aria-label="Aviso de cookies"
+      aria-label={t('pie.cookies')}
       className="fixed inset-x-0 bottom-0 z-50 border-t border-line-strong bg-cream/95 backdrop-blur"
     >
       <div className="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
         <p className="flex-1 text-body leading-relaxed text-body-2">
-          Usamos una única cookie, la que mantiene tu sesión abierta en el panel. No hay cookies de
-          publicidad ni de seguimiento.{' '}
+          {t('cookies.aviso')}{' '}
           <Link to="/cookies" className="font-semibold text-brand-text hover:underline">
-            Más detalle
+            {t('cookies.masDetalle')}
           </Link>
           .
         </p>
         <Button onClick={cerrar} className="shrink-0 sm:min-w-[130px]">
-          Entendido
+          {t('cookies.entendido')}
         </Button>
       </div>
     </div>

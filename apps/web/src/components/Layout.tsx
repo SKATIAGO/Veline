@@ -3,15 +3,18 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ButtonLink, Logo, cx } from './ui'
 import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
 import { AvisoCookies } from './AvisoCookies'
+import { SelectorIdioma } from './SelectorIdioma'
+import { useIdioma, type Clave } from '../i18n/idioma'
 
-const NAV = [
-  { to: '/#como-funciona', label: 'Cómo funciona' },
-  { to: '/#servicios', label: 'Servicios' },
-  { to: '/precios', label: 'Precios' },
-  { to: '/buscar', label: 'Marketplace' },
+const NAV: { to: string; clave: Clave }[] = [
+  { to: '/#como-funciona', clave: 'nav.comoFunciona' },
+  { to: '/#servicios', clave: 'nav.servicios' },
+  { to: '/precios', clave: 'nav.precios' },
+  { to: '/buscar', clave: 'nav.marketplace' },
 ]
 
 function Header() {
+  const { t } = useIdioma()
   // La barra se compacta y coge sombra en cuanto empiezas a bajar.
   const [scrolled, setScrolled] = useState(false)
 
@@ -42,7 +45,7 @@ function Header() {
               // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
               // desde otra página. El scroll hasta la sección lo hace ScrollToTop.
               <Link key={item.to} to={item.to} className="veline-navlink">
-                {item.label}
+                {t(item.clave)}
               </Link>
             ) : (
               <NavLink
@@ -52,20 +55,21 @@ function Header() {
                   cx('veline-navlink', isActive && 'is-active font-semibold text-ink')
                 }
               >
-                {item.label}
+                {t(item.clave)}
               </NavLink>
             ),
           )}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <SelectorIdioma />
           <Link
             to="/login"
             className="hidden min-h-10 items-center px-1 text-body font-medium text-ink hover:text-brand sm:inline-flex"
           >
-            Iniciar sesión
+            {t('nav.entrar')}
           </Link>
           <ButtonLink to="/precios" size="sm">
-            Añadir mi negocio
+            {t('nav.anadirNegocio')}
           </ButtonLink>
         </div>
       </div>
@@ -132,32 +136,34 @@ function IconoSocial({
 }
 
 function Footer() {
-  const columns = [
+  const { t } = useIdioma()
+
+  const columns: { title: Clave; links: { label: Clave; to?: string; href?: string }[] }[] = [
     {
-      title: 'Negocios',
+      title: 'pie.negocios',
       links: [
-        { label: 'Cómo funciona', to: '/#como-funciona' },
-        { label: 'Servicios para empresas', to: '/#servicios' },
-        { label: 'Precios', to: '/precios' },
-        { label: 'Panel de gestión', to: '/panel' },
+        { label: 'nav.comoFunciona', to: '/#como-funciona' },
+        { label: 'pie.serviciosEmpresas', to: '/#servicios' },
+        { label: 'nav.precios', to: '/precios' },
+        { label: 'pie.panel', to: '/panel' },
       ],
     },
     {
-      title: 'Marketplace',
+      title: 'pie.marketplace',
       links: [
-        { label: 'Buscar negocios', to: '/buscar' },
-        { label: 'Consultar mi reserva', to: '/buscar' },
+        { label: 'pie.buscarNegocios', to: '/buscar' },
+        { label: 'pie.consultarReserva', to: '/buscar' },
       ],
     },
     {
-      title: 'Compañía',
+      title: 'pie.compania',
       links: [
-        { label: 'Sobre nosotros', to: '/' },
+        { label: 'pie.sobreNosotros', to: '/' },
         // Contacto es un mailto, no una ruta: la página no existe y el enlace
         // llevaba a la home, que no es contactar con nadie.
-        { label: 'Contacto', href: `mailto:${CONTACT_EMAIL}` },
-        { label: 'Privacidad', to: '/privacidad' },
-        { label: 'Cookies', to: '/cookies' },
+        { label: 'pie.contacto', href: `mailto:${CONTACT_EMAIL}` },
+        { label: 'pie.privacidad', to: '/privacidad' },
+        { label: 'pie.cookies', to: '/cookies' },
       ],
     },
   ]
@@ -167,14 +173,12 @@ function Footer() {
       <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
           <div className="mb-2.5 font-display text-xl font-semibold text-ink">Veline</div>
-          <p className="text-body leading-relaxed text-subtle">
-            Reservas online para cualquier negocio.
-          </p>
+          <p className="text-body leading-relaxed text-subtle">{t('pie.eslogan')}</p>
           <div className="-ml-1.5 mt-4 flex items-center gap-1">
-            <IconoSocial href={SOCIAL.instagram.url} label="Instagram de Veline">
+            <IconoSocial href={SOCIAL.instagram.url} label={t('pie.red', { red: 'Instagram' })}>
               <IconoInstagram />
             </IconoSocial>
-            <IconoSocial href={SOCIAL.facebook.url} label="Facebook de Veline">
+            <IconoSocial href={SOCIAL.facebook.url} label={t('pie.red', { red: 'Facebook' })}>
               <IconoFacebook />
             </IconoSocial>
           </div>
@@ -182,18 +186,18 @@ function Footer() {
         <div className="flex flex-wrap gap-10 sm:gap-16">
           {columns.map((col) => (
             <div key={col.title}>
-              <div className="mb-3.5 text-meta font-semibold text-ink">{col.title}</div>
+              <div className="mb-3.5 text-meta font-semibold text-ink">{t(col.title)}</div>
               {/* -my-1.5 compensa el padding: el blanco pulsable crece a 32 px
                   sin que la lista se vea más separada de lo que estaba. */}
               <div className="-my-1.5 flex flex-col text-body text-subtle">
                 {col.links.map((l) =>
                   l.href ? (
                     <a key={l.label} href={l.href} className="py-1.5 hover:text-brand">
-                      {l.label}
+                      {t(l.label)}
                     </a>
                   ) : (
                     <Link key={l.label} to={l.to!} className="py-1.5 hover:text-brand">
-                      {l.label}
+                      {t(l.label)}
                     </Link>
                   ),
                 )}

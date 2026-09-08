@@ -6,15 +6,16 @@ import {
   formatLongDate,
   formatPrice,
   fromDateKey,
-  MONTHS_LONG,
+  monthLong,
   toDateKey,
-  WEEKDAYS_SHORT,
+  weekdayShort,
   type DayAvailabilityDTO,
   type SlotDTO,
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
+import { useIdioma } from '../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
@@ -26,6 +27,7 @@ const sameDay = (a: Date, b: Date) => toDateKey(a) === toDateKey(b)
 const mondayIndex = (d: Date) => (d.getDay() + 6) % 7
 
 export function BookingDate() {
+  const { t, idioma } = useIdioma()
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -138,12 +140,14 @@ export function BookingDate() {
 
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">Elige fecha y hora</h1>
+          <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">{t('fecha.titulo')}</h1>
 
           {/* Selector de local: solo si hay más de uno que elegir. */}
           {varios && (
             <label className="mb-6 block">
-              <span className="mb-1.5 block text-meta font-semibold text-body">Local</span>
+              <span className="mb-1.5 block text-meta font-semibold text-body">
+                {t('fecha.local')}
+              </span>
               <select
                 value={local?.id ?? ''}
                 onChange={(e) => {
@@ -168,7 +172,9 @@ export function BookingDate() {
           {/* Selector de servicio */}
           {business.services.length > 1 && (
             <label className="mb-6 block">
-              <span className="mb-1.5 block text-meta font-semibold text-body">Servicio</span>
+              <span className="mb-1.5 block text-meta font-semibold text-body">
+                {t('fecha.servicio')}
+              </span>
               <select
                 value={service.id}
                 onChange={(e) => {
@@ -183,7 +189,8 @@ export function BookingDate() {
               >
                 {business.services.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} · {formatDuration(s.durationMin)} · {formatPrice(s.priceCents)}
+                    {s.name} · {formatDuration(s.durationMin, idioma)} ·{' '}
+                    {formatPrice(s.priceCents, idioma)}
                   </option>
                 ))}
               </select>
@@ -213,7 +220,7 @@ export function BookingDate() {
                     )}
                   >
                     <span className="text-caption font-medium opacity-80">
-                      {WEEKDAYS_SHORT[d.getDay()]}
+                      {weekdayShort(d.getDay(), idioma)}
                     </span>
                     <span className="text-ui font-semibold">{d.getDate()}</span>
                   </button>
@@ -226,12 +233,12 @@ export function BookingDate() {
           <div className="hidden lg:block">
             <div className="mb-5 flex items-center justify-between">
               <h1 className="font-display text-xl font-semibold text-ink capitalize">
-                {MONTHS_LONG[month.getMonth()]} {month.getFullYear()}
+                {monthLong(month.getMonth(), idioma)} {month.getFullYear()}
               </h1>
               <div className="flex gap-2.5">
                 <button
                   type="button"
-                  aria-label="Mes anterior"
+                  aria-label={t('fecha.mesAnterior')}
                   disabled={month <= startOfMonth(today)}
                   onClick={() => setMonth(addMonths(month, -1))}
                   className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line"
@@ -240,7 +247,7 @@ export function BookingDate() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Mes siguiente"
+                  aria-label={t('fecha.mesSiguiente')}
                   onClick={() => setMonth(addMonths(month, 1))}
                   className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand"
                 >
@@ -250,9 +257,10 @@ export function BookingDate() {
             </div>
 
             <div className="mb-2 grid grid-cols-7 gap-2">
-              {['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].map((d) => (
-                <div key={d} className="text-center text-xs font-semibold text-subtle">
-                  {d}
+              {/* La semana empieza en lunes: 1..6 y el domingo al final. */}
+              {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
+                <div key={wd} className="text-center text-xs font-semibold text-subtle">
+                  {weekdayShort(wd, idioma)}
                 </div>
               ))}
             </div>
@@ -292,34 +300,30 @@ export function BookingDate() {
             sigue primero el calendario y luego aterriza aquí. */}
         <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[340px]">
           <Card className="p-6 lg:sticky lg:top-24">
-            {isLoading && <Spinner label="Buscando huecos…" />}
+            {isLoading && <Spinner label={t('fecha.buscandoHuecos')} />}
             {isError && <ErrorNote>{(error as Error).message}</ErrorNote>}
 
             {!isLoading && !isError && (
               <>
                 <div className="mb-4 font-display text-base font-semibold text-ink first-letter:uppercase">
                   {selectedKey
-                    ? formatLongDate(fromDateKey(selectedKey))
-                    : 'Sin huecos disponibles'}
+                    ? formatLongDate(fromDateKey(selectedKey), idioma)
+                    : t('fecha.sinHuecos')}
                 </div>
 
-                {!selectedKey && (
-                  <p className="text-sm text-muted">
-                    No quedan huecos en este periodo. Prueba con el mes siguiente.
-                  </p>
-                )}
+                {!selectedKey && <p className="text-sm text-muted">{t('fecha.sinHuecosPista')}</p>}
 
                 {selectedDay && (
                   <>
                     {[
-                      { title: 'Mañana', slots: morning },
-                      { title: 'Tarde', slots: afternoon },
+                      { id: 'manana', titulo: t('fecha.manana'), slots: morning },
+                      { id: 'tarde', titulo: t('fecha.tarde'), slots: afternoon },
                     ]
                       .filter((g) => g.slots.length > 0)
                       .map((group) => (
-                        <div key={group.title} className="mb-5">
+                        <div key={group.id} className="mb-5">
                           <div className="mb-2.5 text-xs font-semibold tracking-[0.04em] text-muted uppercase">
-                            {group.title}
+                            {group.titulo}
                           </div>
                           <div className="grid grid-cols-3 gap-2">
                             {group.slots.map((s) => (
@@ -351,7 +355,7 @@ export function BookingDate() {
                         {slot && ` · ${slot.label}`}
                       </span>
                       <span className="font-semibold text-ink">
-                        {formatPrice(service.priceCents)}
+                        {formatPrice(service.priceCents, idioma)}
                       </span>
                     </div>
 
@@ -365,7 +369,7 @@ export function BookingDate() {
                         )
                       }
                     >
-                      {slot ? 'Continuar' : 'Elige una hora'}
+                      {slot ? t('fecha.continuar') : t('fecha.eligeHora')}
                     </Button>
                   </>
                 )}

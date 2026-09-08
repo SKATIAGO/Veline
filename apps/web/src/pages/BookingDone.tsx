@@ -4,11 +4,14 @@ import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
 import { Reveal } from '../components/Reveal'
+import { useIdioma, type Clave } from '../i18n/idioma'
 
 const icsStamp = (iso: string) => `${iso.replace(/[-:]/g, '').split('.')[0]}Z`
 
-/** Genera el .ics en el navegador — sin depender de Google Calendar. */
-function downloadIcs(b: BookingDTO) {
+/** Genera el .ics en el navegador — sin depender de Google Calendar.
+    La descripción la lee el calendario de quien reserva, así que va en su
+    idioma; el resto del archivo son campos del formato, no texto. */
+function downloadIcs(b: BookingDTO, descripcion: string) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -21,7 +24,7 @@ function downloadIcs(b: BookingDTO) {
     `DTEND:${icsStamp(b.endsAt)}`,
     `SUMMARY:${b.service.name} — ${b.business.name}`,
     b.location ? `LOCATION:${b.location.street}\\, ${b.location.city}` : '',
-    `DESCRIPTION:Reserva ${b.code} en Veline`,
+    `DESCRIPTION:${descripcion}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].filter(Boolean)
@@ -36,6 +39,7 @@ function downloadIcs(b: BookingDTO) {
 }
 
 export function BookingDone() {
+  const { t, idioma, locale } = useIdioma()
   const { code = '' } = useParams()
   const queryClient = useQueryClient()
 
@@ -60,14 +64,14 @@ export function BookingDone() {
   if (!booking) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
-        <EmptyState title="No encontramos esa reserva" hint="Revisa el enlace o el código." />
+        <EmptyState title={t('hecha.noEncontrada')} hint={t('hecha.noEncontradaPista')} />
       </div>
     )
   }
 
   const start = new Date(booking.startsAt)
   const cancelled = booking.status === 'CANCELADA'
-  const time = start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const time = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div className="mx-auto flex max-w-[1440px] justify-center px-6 py-16 lg:px-16 lg:py-20">
@@ -103,27 +107,38 @@ export function BookingDone() {
           </div>
 
           <h1 className="text-[24px] font-semibold text-ink">
-            {cancelled ? 'Reserva cancelada' : '¡Reserva confirmada!'}
+            {cancelled ? t('hecha.cancelada') : t('hecha.confirmada')}
           </h1>
           <p className="mt-2.5 max-w-[320px] text-sm leading-relaxed text-muted first-letter:uppercase">
             {cancelled
-              ? `Hemos avisado a ${booking.business.name}. Puedes reservar otra hora cuando quieras.`
-              : `Te esperan el ${formatLongDate(start)} a las ${time} en ${booking.business.name}.`}
+              ? t('hecha.canceladaTexto', { negocio: booking.business.name })
+              : t('hecha.confirmadaTexto', {
+                  fecha: formatLongDate(start, idioma),
+                  hora: time,
+                  negocio: booking.business.name,
+                })}
           </p>
 
           <div className="my-7 w-full border-t border-line pt-5 text-left">
-            {[
-              ['Código', booking.code],
-              ['Servicio', booking.service.name],
-              ['Fecha', `${formatLongDate(start)}, ${time}`],
-              ...(booking.staff ? [['Te atiende', booking.staff.name] as const] : []),
-              ...(booking.location
-                ? [['Dónde', `${booking.location.street}, ${booking.location.city}`] as const]
-                : []),
-              ['Total', formatPrice(booking.priceCents)],
-            ].map(([label, value]) => (
-              <div key={label} className="mb-2.5 flex justify-between gap-4 text-meta">
-                <span className="shrink-0 text-muted">{label}</span>
+            {(
+              [
+                ['hecha.codigo', booking.code],
+                ['confirmar.servicio', booking.service.name],
+                ['confirmar.fecha', `${formatLongDate(start, idioma)}, ${time}`],
+                ...(booking.staff ? [['hecha.teAtiende', booking.staff.name] as const] : []),
+                ...(booking.location
+                  ? [
+                      [
+                        'hecha.donde',
+                        `${booking.location.street}, ${booking.location.city}`,
+                      ] as const,
+                    ]
+                  : []),
+                ['comun.total', formatPrice(booking.priceCents, idioma)],
+              ] as [Clave, string][]
+            ).map(([clave, value]) => (
+              <div key={clave} className="mb-2.5 flex justify-between gap-4 text-meta">
+                <span className="shrink-0 text-muted">{t(clave)}</span>
                 <span className="text-right font-semibold text-ink first-letter:uppercase">
                   {value}
                 </span>
@@ -133,27 +148,31 @@ export function BookingDone() {
 
           {!cancelled && (
             <div className="flex w-full flex-col gap-3 sm:flex-row">
-              <Button variant="secondary" className="flex-1" onClick={() => downloadIcs(booking)}>
-                Añadir al calendario
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => downloadIcs(booking, t('hecha.ics', { codigo: booking.code }))}
+              >
+                {t('hecha.anadirCalendario')}
               </Button>
               <ButtonLink to="/" className="flex-1">
-                Volver al inicio
+                {t('hecha.volverInicio')}
               </ButtonLink>
             </div>
           )}
 
           {cancelled && (
             <ButtonLink to={`/${booking.business.slug}`} className="w-full">
-              Reservar otra hora
+              {t('hecha.reservarOtra')}
             </ButtonLink>
           )}
 
           {!cancelled && (
             <div className="mt-5">
               <ConfirmAction
-                label="Cancelar la reserva"
-                question="¿Seguro?"
-                confirmLabel="Sí, cancelar"
+                label={t('hecha.cancelar')}
+                question={t('hecha.seguro')}
+                confirmLabel={t('hecha.siCancelar')}
                 size="md"
                 loading={cancel.isPending}
                 onConfirm={() => cancel.mutate()}
@@ -162,7 +181,7 @@ export function BookingDone() {
           )}
 
           <p className="mt-6 text-meta text-subtle">
-            Guarda este enlace para consultar o cancelar tu cita:{' '}
+            {t('hecha.guardaEnlace')}{' '}
             <Link
               to={`/reserva/${booking.code}`}
               className="inline-flex min-h-9 items-center px-1 font-semibold text-brand-text"

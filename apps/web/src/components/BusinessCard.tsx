@@ -1,6 +1,7 @@
 import { categoryLabel, formatPrice } from '@veline/shared'
 import { ButtonLink, Card, Stars } from './ui'
 import { Photo } from './Photo'
+import { useIdioma } from '../i18n/idioma'
 
 export interface BusinessCardData {
   slug: string
@@ -14,6 +15,8 @@ export interface BusinessCardData {
 }
 
 export function BusinessCard({ business }: { business: BusinessCardData }) {
+  const { t, idioma } = useIdioma()
+
   return (
     <Card className="lift group flex h-full flex-col overflow-hidden">
       <div className="h-[140px] shrink-0 overflow-hidden">
@@ -30,13 +33,15 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
           {business.name}
         </div>
         <div className="mt-1 mb-3 text-meta font-medium text-subtle">
-          {categoryLabel(business.category)} ·{' '}
+          {categoryLabel(business.category, idioma)} ·{' '}
           <Stars rating={business.rating} count={business.reviewCount} /> · {business.city}
         </div>
         {business.fromPriceCents !== null && (
           <div className="mb-3 text-meta text-muted">
-            Desde{' '}
-            <span className="font-semibold text-ink">{formatPrice(business.fromPriceCents)}</span>
+            {t('comun.desde')}{' '}
+            <span className="font-semibold text-ink">
+              {formatPrice(business.fromPriceCents, idioma)}
+            </span>
           </div>
         )}
         <ButtonLink
@@ -45,7 +50,7 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
           size="sm"
           className="mt-auto w-full"
         >
-          Reservar
+          {t('ficha.reservar')}
         </ButtonLink>
       </div>
     </Card>

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { formatLongDate } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { Button, Card, EmptyState, ErrorNote, Spinner, Textarea, cx } from '../components/ui'
+import { useIdioma, type Clave } from '../i18n/idioma'
 
 /**
  * Donde el cliente deja su reseña, con el enlace que le llegó por correo.
@@ -12,9 +13,18 @@ import { Button, Card, EmptyState, ErrorNote, Spinner, Textarea, cx } from '../c
  * se registre para opinar es la forma más segura de no recibir ninguna opinión.
  */
 
-const ETIQUETA = ['', 'Mal', 'Regular', 'Bien', 'Muy bien', 'Genial']
+/** Índice 0 sin usar: las estrellas van de 1 a 5 y así el número es el índice. */
+const ETIQUETA: (Clave | null)[] = [
+  null,
+  'resena.mal',
+  'resena.regular',
+  'resena.bien',
+  'resena.muyBien',
+  'resena.genial',
+]
 
 export function Resena() {
+  const { t, idioma } = useIdioma()
   const { token = '' } = useParams()
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
@@ -42,10 +52,7 @@ export function Resena() {
   if (isError || !data) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
-        <EmptyState
-          title="Este enlace no vale"
-          hint="Puede que ya hayas dejado tu opinión, o que el enlace esté incompleto."
-        />
+        <EmptyState title={t('resena.enlaceNoVale')} hint={t('resena.enlaceNoValePista')} />
       </div>
     )
   }
@@ -57,11 +64,10 @@ export function Resena() {
       <Card className="w-full max-w-[480px] p-8 sm:p-10">
         {yaEstaba ? (
           <div className="text-center">
-            <p className="font-display text-heading-sm font-semibold text-ink">¡Gracias!</p>
-            <p className="mt-2 text-body text-muted">
-              Tu opinión ya está guardada. Ayuda más de lo que parece a la gente del barrio que está
-              decidiendo.
+            <p className="font-display text-heading-sm font-semibold text-ink">
+              {t('resena.gracias')}
             </p>
+            <p className="mt-2 text-body text-muted">{t('resena.graciasTexto')}</p>
           </div>
         ) : (
           <form
@@ -70,12 +76,14 @@ export function Resena() {
               if (rating > 0) enviar.mutate()
             }}
           >
-            <p className="text-meta text-muted">{formatLongDate(new Date(data.startsAt))}</p>
+            <p className="text-meta text-muted">
+              {formatLongDate(new Date(data.startsAt), idioma)}
+            </p>
             <h1 className="mt-1 font-display text-heading-sm font-semibold text-ink">
-              ¿Qué tal fue en {data.businessName}?
+              {t('resena.queTalFue', { negocio: data.businessName })}
             </h1>
             <p className="mt-2 text-body text-muted">
-              Con puntuar basta, {data.customerName.split(' ')[0]}. Lo demás es opcional.
+              {t('resena.conPuntuarBasta', { nombre: data.customerName.split(' ')[0] })}
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -83,7 +91,7 @@ export function Resena() {
                 <button
                   key={n}
                   type="button"
-                  aria-label={`${n} de 5 · ${ETIQUETA[n]}`}
+                  aria-label={t('resena.deCinco', { n, etiqueta: t(ETIQUETA[n]!) })}
                   aria-pressed={rating === n}
                   onClick={() => setRating(n)}
                   className={cx(
@@ -98,7 +106,9 @@ export function Resena() {
                 </button>
               ))}
               {rating > 0 && (
-                <span className="ml-1 text-body font-semibold text-body-2">{ETIQUETA[rating]}</span>
+                <span className="ml-1 text-body font-semibold text-body-2">
+                  {t(ETIQUETA[rating]!)}
+                </span>
               )}
             </div>
 
@@ -107,14 +117,14 @@ export function Resena() {
                 htmlFor="comentario"
                 className="mb-1.5 block text-meta font-semibold text-body-2"
               >
-                ¿Quieres contar algo más?{' '}
-                <span className="font-normal text-subtle">(opcional)</span>
+                {t('resena.contarMas')}{' '}
+                <span className="font-normal text-subtle">{t('comun.opcional')}</span>
               </label>
               <Textarea
                 id="comentario"
                 rows={4}
                 maxLength={600}
-                placeholder="Qué tal el trato, la puntualidad, el resultado…"
+                placeholder={t('resena.comentarioEjemplo')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
@@ -123,9 +133,7 @@ export function Resena() {
             {enviar.isError && (
               <div className="mt-4">
                 <ErrorNote>
-                  {enviar.error instanceof ApiError
-                    ? enviar.error.message
-                    : 'No se ha podido enviar'}
+                  {enviar.error instanceof ApiError ? enviar.error.message : t('resena.noEnviada')}
                 </ErrorNote>
               </div>
             )}
@@ -138,7 +146,7 @@ export function Resena() {
               loading={enviar.isPending}
               disabled={rating === 0}
             >
-              {rating === 0 ? 'Elige una puntuación' : 'Enviar mi opinión'}
+              {rating === 0 ? t('resena.eligePuntuacion') : t('resena.enviar')}
             </Button>
           </form>
         )}

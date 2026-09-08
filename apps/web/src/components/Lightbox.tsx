@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { photoSrc } from './Photo'
 import { cx } from './ui'
+import { useIdioma } from '../i18n/idioma'
 
 interface LightboxProps {
   photos: string[]
@@ -16,6 +17,7 @@ interface LightboxProps {
  * bloqueo del scroll de fondo mientras está abierto.
  */
 export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxProps) {
+  const { t } = useIdioma()
   const open = index !== null && photos.length > 0
 
   const go = useCallback(
@@ -60,7 +62,7 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Fotos de ${title}`}
+      aria-label={t('ficha.fotosDe', { nombre: title })}
       onClick={onClose}
       className="fixed inset-0 z-50 flex flex-col bg-ink/95 backdrop-blur-sm"
     >
@@ -72,7 +74,7 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
         <button
           type="button"
           onClick={onClose}
-          aria-label="Cerrar galería"
+          aria-label={t('ficha.cerrarGaleria')}
           className="flex size-10 items-center justify-center rounded-full text-2xl leading-none text-ondark transition-colors hover:bg-ondark/15"
         >
           ×
@@ -84,7 +86,7 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
         <img
           key={photos[index]}
           src={photoSrc(photos[index]!, 1600, 1100)}
-          alt={`${title} — foto ${index + 1}`}
+          alt={t('ficha.foto', { nombre: title, n: index + 1 })}
           onClick={(e) => e.stopPropagation()}
           className="max-h-full max-w-full rounded-xl object-contain"
         />
@@ -109,7 +111,7 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
               key={p}
               type="button"
               onClick={() => onIndex(i)}
-              aria-label={`Ver foto ${i + 1}`}
+              aria-label={t('ficha.verFoto', { n: i + 1 })}
               aria-current={i === index}
               className={cx(
                 'h-14 w-20 shrink-0 overflow-hidden rounded-lg transition-opacity',
@@ -126,10 +128,12 @@ export function Lightbox({ photos, index, onIndex, onClose, title }: LightboxPro
 }
 
 function NavArrow({ side, onClick }: { side: 'left' | 'right'; onClick: () => void }) {
+  const { t } = useIdioma()
+
   return (
     <button
       type="button"
-      aria-label={side === 'left' ? 'Foto anterior' : 'Foto siguiente'}
+      aria-label={side === 'left' ? t('ficha.fotoAnterior') : t('ficha.fotoSiguiente')}
       onClick={(e) => {
         e.stopPropagation()
         onClick()

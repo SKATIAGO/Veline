@@ -103,44 +103,145 @@ export function aceptaReservas(status: SubStatusKey, trialEndsAt: Date | string 
   return true
 }
 
+/**
+ * Los idiomas del producto.
+ *
+ * Vive aquí porque lo necesitan los dos lados: la web para pintar y el API
+ * para escribir los correos en el idioma de quien reserva.
+ */
+export type Idioma = 'es' | 'en'
+
 /* ── Categorías ─────────────────────────────────────────────── */
 
+/**
+ * Los sectores.
+ *
+ * El inglés va aquí y no en el diccionario de la web porque estas etiquetas
+ * las usan los dos lados: la web las pinta y el API las mete en los correos.
+ * Partirlas en dos sitios acabaría con «Peluquerías y estética» en la pantalla
+ * inglesa y nadie sabría por qué.
+ *
+ * `singular` es para hablar de UN negocio («Taller», «Peluquería»); `label` es
+ * el nombre del sector entero, que es lo que se pone en los filtros.
+ */
 export const CATEGORIES = [
-  { slug: 'talleres', label: 'Talleres mecánicos', singular: 'Taller' },
-  { slug: 'peluquerias', label: 'Peluquerías y estética', singular: 'Peluquería' },
-  { slug: 'academias', label: 'Academias y clases', singular: 'Academia' },
-  { slug: 'veterinarias', label: 'Veterinarios', singular: 'Veterinario' },
-  { slug: 'gimnasios', label: 'Gimnasios', singular: 'Gimnasio' },
-  { slug: 'autoescuelas', label: 'Autoescuelas', singular: 'Autoescuela' },
-  { slug: 'profesionales', label: 'Servicios profesionales', singular: 'Servicio profesional' },
-  { slug: 'asesorias', label: 'Asesorías y despachos', singular: 'Asesoría' },
-  { slug: 'tiendas', label: 'Tiendas de barrio', singular: 'Tienda' },
-  { slug: 'bienestar', label: 'Bienestar', singular: 'Bienestar' },
+  {
+    slug: 'talleres',
+    label: 'Talleres mecánicos',
+    singular: 'Taller',
+    labelEn: 'Garages',
+    singularEn: 'Garage',
+  },
+  {
+    slug: 'peluquerias',
+    label: 'Peluquerías y estética',
+    singular: 'Peluquería',
+    labelEn: 'Hair & beauty',
+    singularEn: 'Salon',
+  },
+  {
+    slug: 'academias',
+    label: 'Academias y clases',
+    singular: 'Academia',
+    labelEn: 'Tutoring & classes',
+    singularEn: 'Tutoring centre',
+  },
+  {
+    slug: 'veterinarias',
+    label: 'Veterinarios',
+    singular: 'Veterinario',
+    labelEn: 'Vets',
+    singularEn: 'Vet',
+  },
+  {
+    slug: 'gimnasios',
+    label: 'Gimnasios',
+    singular: 'Gimnasio',
+    labelEn: 'Gyms',
+    singularEn: 'Gym',
+  },
+  {
+    slug: 'autoescuelas',
+    label: 'Autoescuelas',
+    singular: 'Autoescuela',
+    labelEn: 'Driving schools',
+    singularEn: 'Driving school',
+  },
+  {
+    slug: 'profesionales',
+    label: 'Servicios profesionales',
+    singular: 'Servicio profesional',
+    labelEn: 'Professional services',
+    singularEn: 'Professional service',
+  },
+  {
+    slug: 'asesorias',
+    label: 'Asesorías y despachos',
+    singular: 'Asesoría',
+    labelEn: 'Accountants & law firms',
+    singularEn: 'Firm',
+  },
+  {
+    slug: 'tiendas',
+    label: 'Tiendas de barrio',
+    singular: 'Tienda',
+    labelEn: 'Local shops',
+    singularEn: 'Shop',
+  },
+  {
+    slug: 'bienestar',
+    label: 'Bienestar',
+    singular: 'Bienestar',
+    labelEn: 'Wellbeing',
+    singularEn: 'Wellbeing',
+  },
 ] as const
 
 export type CategorySlug = (typeof CATEGORIES)[number]['slug']
 
-export const categoryLabel = (slug: string) =>
-  CATEGORIES.find((c) => c.slug === slug)?.singular ?? slug
+export const categoryLabel = (slug: string, idioma: Idioma = 'es') => {
+  const c = CATEGORIES.find((x) => x.slug === slug)
+  if (!c) return slug
+  return idioma === 'en' ? c.singularEn : c.singular
+}
+
+/** El nombre del sector en el idioma que toque. En castellano sigue saliendo
+    exactamente lo de antes. */
+export const categoryName = (slug: string, idioma: Idioma = 'es') => {
+  const c = CATEGORIES.find((x) => x.slug === slug)
+  if (!c) return slug
+  return idioma === 'en' ? c.labelEn : c.label
+}
 
 /* ── Formato ────────────────────────────────────────────────── */
 
-const eur = new Intl.NumberFormat(LOCALE, {
-  style: 'currency',
-  currency: CURRENCY,
-  minimumFractionDigits: 2,
-})
+/** Los precios son en euros siempre —el negocio está en España— pero se
+    escriben como los escribe cada idioma: «59,00 €» y «€59.00». */
+const EUR: Record<Idioma, Intl.NumberFormat> = {
+  es: new Intl.NumberFormat(LOCALE, {
+    style: 'currency',
+    currency: CURRENCY,
+    minimumFractionDigits: 2,
+  }),
+  en: new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: CURRENCY,
+    minimumFractionDigits: 2,
+  }),
+}
 
-/** 5900 → "59,00 €" */
-export const formatPrice = (cents: number) => eur.format(cents / 100)
+/** 5900 → "59,00 €" · en inglés, "€59.00" */
+export const formatPrice = (cents: number, idioma: Idioma = 'es') => EUR[idioma].format(cents / 100)
 
 /** 30 → "30 min" · 60 → "1 h" · 90 → "1 h 30 min" */
-export function formatDuration(minutes: number) {
+export function formatDuration(minutes: number, idioma: Idioma = 'es') {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
+  // «1 hr 30 min»: en inglés «1 h» a secas no se usa fuera de la física.
+  const uh = idioma === 'en' ? 'hr' : 'h'
   if (h === 0) return `${m} min`
-  if (m === 0) return `${h} h`
-  return `${h} h ${m} min`
+  if (m === 0) return `${h} ${uh}`
+  return `${h} ${uh} ${m} min`
 }
 
 /** 600 → "10:00" (minutos desde medianoche) */
@@ -166,6 +267,16 @@ export const WEEKDAYS_LONG = [
   'viernes',
   'sábado',
 ] as const
+export const WEEKDAYS_SHORT_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const
+export const WEEKDAYS_LONG_EN = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+] as const
 export const MONTHS_LONG = [
   'enero',
   'febrero',
@@ -180,6 +291,27 @@ export const MONTHS_LONG = [
   'noviembre',
   'diciembre',
 ] as const
+export const MONTHS_LONG_EN = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
+
+export const weekdayShort = (dia: number, idioma: Idioma = 'es') =>
+  (idioma === 'en' ? WEEKDAYS_SHORT_EN : WEEKDAYS_SHORT)[dia]
+export const weekdayLong = (dia: number, idioma: Idioma = 'es') =>
+  (idioma === 'en' ? WEEKDAYS_LONG_EN : WEEKDAYS_LONG)[dia]
+export const monthLong = (mes: number, idioma: Idioma = 'es') =>
+  (idioma === 'en' ? MONTHS_LONG_EN : MONTHS_LONG)[mes]
 
 /** Fecha local (no UTC) en formato YYYY-MM-DD. */
 export function toDateKey(d: Date) {
@@ -194,8 +326,11 @@ export function fromDateKey(key: string) {
   return new Date(y, m - 1, d)
 }
 
-/** "martes 15 de marzo" */
-export function formatLongDate(d: Date) {
+/** "martes 15 de marzo" · en inglés, "Tuesday 15 March" */
+export function formatLongDate(d: Date, idioma: Idioma = 'es') {
+  if (idioma === 'en') {
+    return `${WEEKDAYS_LONG_EN[d.getDay()]} ${d.getDate()} ${MONTHS_LONG_EN[d.getMonth()]}`
+  }
   return `${WEEKDAYS_LONG[d.getDay()]} ${d.getDate()} de ${MONTHS_LONG[d.getMonth()]}`
 }
 

@@ -6,6 +6,7 @@ import { api } from '../lib/api'
 import { Button, Card, Chip, EmptyState, Skeleton } from '../components/ui'
 import { BusinessCard } from '../components/BusinessCard'
 import { Reveal } from '../components/Reveal'
+import { useIdioma, usePlural } from '../i18n/idioma'
 
 /** Misma silueta que una tarjeta real, para que la carga no dé un salto. */
 function CardSkeleton() {
@@ -26,6 +27,8 @@ function CardSkeleton() {
 }
 
 export function Search() {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const city = params.get('donde') ?? ''
@@ -63,20 +66,20 @@ export function Search() {
         <input
           value={draftQ}
           onChange={(e) => setDraftQ(e.target.value)}
-          placeholder="¿Qué buscas?"
-          aria-label="Qué buscas"
+          placeholder={t('buscar.queBuscas')}
+          aria-label={t('buscar.queBuscas')}
           className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-sm outline-none placeholder:text-subtle"
         />
         <div className="hidden w-px self-stretch bg-line sm:block" />
         <input
           value={draftCity}
           onChange={(e) => setDraftCity(e.target.value)}
-          placeholder="Tu barrio o ciudad"
-          aria-label="Dónde"
+          placeholder={t('buscar.donde')}
+          aria-label={t('buscar.dondeEtiqueta')}
           className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-sm outline-none placeholder:text-subtle"
         />
         <Button type="submit" size="sm" className="shrink-0">
-          Buscar
+          {t('comun.buscar')}
         </Button>
       </form>
 
@@ -88,16 +91,16 @@ export function Search() {
             onClick={() => setCategory(c.slug)}
             className="transition-transform duration-150 active:scale-95"
           >
-            <Chip active={c.slug === category}>{c.label}</Chip>
+            <Chip active={c.slug === category}>{idioma === 'en' ? c.labelEn : c.label}</Chip>
           </button>
         ))}
       </div>
 
       <h1 className="mt-10 mb-6 text-[26px] font-semibold text-ink">
         {isLoading
-          ? 'Buscando…'
-          : `${data?.length ?? 0} ${data?.length === 1 ? 'negocio' : 'negocios'}`}
-        {q && <span className="text-subtle"> para “{q}”</span>}
+          ? t('buscar.buscando')
+          : plural(data?.length ?? 0, 'buscar.unNegocio', 'buscar.variosNegocios')}
+        {q && <span className="text-subtle"> {t('buscar.para', { q })}</span>}
       </h1>
 
       {isLoading ? (
@@ -115,19 +118,16 @@ export function Search() {
           ))}
         </div>
       ) : (
-        <EmptyState
-          title="No hemos encontrado nada por aquí"
-          hint="Prueba con otro sector o quita alguno de los filtros."
-        />
+        <EmptyState title={t('buscar.sinResultados')} hint={t('buscar.sinResultadosPista')} />
       )}
 
       <p className="mt-10 text-body text-muted">
-        ¿Tu negocio no está?{' '}
+        {t('buscar.tuNegocioNoEsta')}{' '}
         <Link
           to="/precios"
           className="inline-flex min-h-10 items-center px-1 font-semibold text-brand-text hover:text-ink"
         >
-          Añádelo gratis
+          {t('buscar.anadeloGratis')}
         </Link>
         .
       </p>

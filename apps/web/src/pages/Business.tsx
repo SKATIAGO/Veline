@@ -6,7 +6,7 @@ import {
   formatDuration,
   formatMinutes,
   formatPrice,
-  WEEKDAYS_LONG,
+  weekdayLong,
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
@@ -14,8 +14,18 @@ import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
 import { Lightbox } from '../components/Lightbox'
 import { recordarOrigen } from '../lib/origen'
+import { useIdioma, type Clave } from '../i18n/idioma'
 
-const TABS = ['Servicios', 'Reseñas', 'Info'] as const
+/** La pestaña se identifica por su nombre interno, no por lo que pone en
+    pantalla: si la etiqueta fuera el identificador, cambiar de idioma dejaría
+    seleccionada una pestaña que ya no existe. */
+const TABS = [
+  { id: 'servicios', clave: 'ficha.servicios' },
+  { id: 'resenas', clave: 'ficha.resenas' },
+  { id: 'info', clave: 'ficha.info' },
+] as const satisfies readonly { id: string; clave: Clave }[]
+
+type TabId = (typeof TABS)[number]['id']
 
 /** Una celda de la galería: abre el visor si hay foto, placeholder si no. */
 function GalleryTile({
@@ -41,6 +51,7 @@ function GalleryTile({
   priority?: boolean
   extra?: number
 }) {
+  const { t } = useIdioma()
   const src = photos[i]
 
   if (!src) {
@@ -60,12 +71,12 @@ function GalleryTile({
     <button
       type="button"
       onClick={() => onOpen(i)}
-      aria-label={`Ver las fotos de ${name}`}
+      aria-label={t('ficha.verFotosDe', { nombre: name })}
       className={cx('group relative cursor-zoom-in overflow-hidden rounded-xl', className)}
     >
       <Photo
         src={src}
-        alt={`${name} — foto ${i + 1}`}
+        alt={t('ficha.foto', { nombre: name, n: i + 1 })}
         width={width}
         height={height}
         priority={priority}
@@ -82,6 +93,7 @@ function GalleryTile({
 }
 
 export function Business() {
+  const { t, idioma, locale } = useIdioma()
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -91,7 +103,7 @@ export function Business() {
   useEffect(() => {
     recordarOrigen(search)
   }, [search])
-  const [tab, setTab] = useState<(typeof TABS)[number]>('Servicios')
+  const [tab, setTab] = useState<TabId>('servicios')
   const [lightbox, setLightbox] = useState<number | null>(null)
 
   const {
@@ -106,7 +118,7 @@ export function Business() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 lg:px-16">
-        <Spinner label="Cargando el negocio…" />
+        <Spinner label={t('ficha.cargando')} />
       </div>
     )
   }
@@ -114,9 +126,9 @@ export function Business() {
   if (isError || !business) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
-        <EmptyState title="Este negocio no existe" hint="Puede que haya cambiado de dirección." />
+        <EmptyState title={t('ficha.noExiste')} hint={t('ficha.noExistePista')} />
         <Link to="/buscar" className="mt-6 inline-block font-semibold text-brand-text">
-          ← Volver a la búsqueda
+          ← {t('ficha.volverBusqueda')}
         </Link>
       </div>
     )
@@ -147,7 +159,7 @@ export function Business() {
                 height={620}
                 priority
                 className="col-span-3 row-span-2 sm:col-span-2"
-                fallback="Foto principal"
+                fallback={t('ficha.fotoPrincipal')}
               />
               <GalleryTile
                 photos={business.photos}
@@ -157,7 +169,7 @@ export function Business() {
                 width={460}
                 height={300}
                 className="hidden sm:block"
-                fallback="Foto 2"
+                fallback={t('ficha.fotoNumero', { n: 2 })}
               />
               <GalleryTile
                 photos={business.photos}
@@ -167,7 +179,7 @@ export function Business() {
                 width={460}
                 height={300}
                 className="hidden sm:block"
-                fallback="Foto 3"
+                fallback={t('ficha.fotoNumero', { n: 3 })}
                 extra={business.photos.length - 3}
               />
             </div>
@@ -178,38 +190,38 @@ export function Business() {
                 onClick={() => setLightbox(0)}
                 className="absolute bottom-3 left-3 inline-flex min-h-10 items-center rounded-full bg-surface/95 px-4 text-meta font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
               >
-                Ver las {business.photos.length} fotos
+                {t('ficha.verFotos', { n: business.photos.length })}
               </button>
             )}
           </Reveal>
 
           <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{business.name}</h1>
           <div className="mt-1.5 text-sm font-medium text-subtle">
-            {categoryLabel(business.category)} ·{' '}
+            {categoryLabel(business.category, idioma)} ·{' '}
             <Stars rating={business.rating} count={business.reviewCount} />
             {location && ` · ${location.street}, ${location.city}`}
           </div>
 
           <div className="mt-6 flex gap-1 border-b border-line">
-            {TABS.map((t) => (
+            {TABS.map((p) => (
               <button
-                key={t}
+                key={p.id}
                 type="button"
-                aria-pressed={t === tab}
-                onClick={() => setTab(t)}
+                aria-pressed={p.id === tab}
+                onClick={() => setTab(p.id)}
                 className={cx(
                   'inline-flex min-h-11 items-center border-b-2 px-3 text-body transition-[color,border-color,transform] duration-200 active:scale-95',
-                  t === tab
+                  p.id === tab
                     ? 'border-brand font-semibold text-ink'
                     : 'border-transparent font-medium text-subtle hover:border-line-strong hover:text-ink',
                 )}
               >
-                {t}
+                {t(p.clave)}
               </button>
             ))}
           </div>
 
-          {tab === 'Servicios' && (
+          {tab === 'servicios' && (
             <div key="servicios" className="rise">
               {business.services.map((s) => (
                 <div
@@ -219,40 +231,45 @@ export function Business() {
                   <div className="min-w-0">
                     <div className="font-semibold text-ink">{s.name}</div>
                     <div className="mt-1 text-meta text-subtle">
-                      {formatDuration(s.durationMin)}
+                      {formatDuration(s.durationMin, idioma)}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
-                    <span className="font-semibold text-ink">{formatPrice(s.priceCents)}</span>
+                    <span className="font-semibold text-ink">
+                      {formatPrice(s.priceCents, idioma)}
+                    </span>
                     <Button variant="secondary" size="sm" onClick={() => goBook(s.id)}>
-                      Reservar
+                      {t('ficha.reservar')}
                     </Button>
                   </div>
                 </div>
               ))}
               {business.services.length === 0 && (
-                <p className="py-8 text-sm text-muted">
-                  Este negocio todavía no ha publicado servicios.
-                </p>
+                <p className="py-8 text-sm text-muted">{t('ficha.sinServicios')}</p>
               )}
             </div>
           )}
 
-          {tab === 'Reseñas' && (
+          {tab === 'resenas' && (
             <div key="resenas" className="rise py-8">
               <EmptyState
-                title={`${business.rating.toLocaleString('es-ES', { minimumFractionDigits: 1 })} ★ de media en ${business.reviewCount} reseñas`}
-                hint="El detalle de las reseñas llega en la próxima versión."
+                title={t('ficha.mediaResenas', {
+                  nota: business.rating.toLocaleString(locale, { minimumFractionDigits: 1 }),
+                  n: business.reviewCount,
+                })}
+                hint={t('ficha.resenasProxima')}
               />
             </div>
           )}
 
-          {tab === 'Info' && (
+          {tab === 'info' && (
             <div key="info" className="rise py-8 text-sm leading-relaxed text-body">
               {business.description && <p className="mb-6 max-w-[560px]">{business.description}</p>}
               <div className="grid max-w-[560px] gap-6 sm:grid-cols-2">
                 <div>
-                  <div className="mb-2 text-meta font-semibold text-ink">Dirección</div>
+                  <div className="mb-2 text-meta font-semibold text-ink">
+                    {t('ficha.direccion')}
+                  </div>
                   {location ? (
                     <p className="text-muted">
                       {location.street}
@@ -260,18 +277,22 @@ export function Business() {
                       {location.postalCode} {location.city}
                     </p>
                   ) : (
-                    <p className="text-muted">Sin dirección</p>
+                    <p className="text-muted">{t('ficha.sinDireccion')}</p>
                   )}
-                  {business.phone && <p className="mt-2 text-muted">Tel. {business.phone}</p>}
+                  {business.phone && (
+                    <p className="mt-2 text-muted">
+                      {t('ficha.tel')} {business.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <div className="mb-2 text-meta font-semibold text-ink">Horario</div>
+                  <div className="mb-2 text-meta font-semibold text-ink">{t('ficha.horario')}</div>
                   <ul className="space-y-1 text-muted">
                     {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
                       const rows = business.openingHours.filter((h) => h.weekday === wd)
                       return (
                         <li key={wd} className="flex justify-between gap-4">
-                          <span className="capitalize">{WEEKDAYS_LONG[wd]}</span>
+                          <span className="capitalize">{weekdayLong(wd, idioma)}</span>
                           <span className={rows.length ? '' : 'text-disabled'}>
                             {rows.length
                               ? rows
@@ -280,7 +301,7 @@ export function Business() {
                                       `${formatMinutes(r.startMin)}–${formatMinutes(r.endMin)}`,
                                   )
                                   .join(' · ')
-                              : 'Cerrado'}
+                              : t('comun.cerrado')}
                           </span>
                         </li>
                       )
@@ -296,34 +317,34 @@ export function Business() {
         <aside className="w-full shrink-0 lg:w-[340px]">
           <Card className="p-6 lg:sticky lg:top-24">
             <div className="mb-4 font-display text-[17px] font-semibold text-ink">
-              Reservar cita
+              {t('ficha.reservarCita')}
             </div>
             {location && (
               <>
-                <div className="mb-1 text-meta font-medium text-muted">Dirección</div>
+                <div className="mb-1 text-meta font-medium text-muted">{t('ficha.direccion')}</div>
                 <div className="mb-4 text-body text-ink">
                   {location.street}, {location.city}
                 </div>
               </>
             )}
-            <div className="mb-1 text-meta font-medium text-muted">Hoy</div>
+            <div className="mb-1 text-meta font-medium text-muted">{t('ficha.hoy')}</div>
             <div className="mb-5 text-body text-ink">
               {todayHours.length
                 ? todayHours
                     .map((h) => `${formatMinutes(h.startMin)} – ${formatMinutes(h.endMin)}`)
                     .join(' · ')
-                : 'Cerrado'}
+                : t('comun.cerrado')}
             </div>
             {business.services[0] ? (
               <ButtonLink
                 to={`/${business.slug}/reservar/fecha?servicio=${business.services[0].id}`}
                 className="w-full"
               >
-                Ver huecos disponibles
+                {t('ficha.verHuecos')}
               </ButtonLink>
             ) : (
               <Button disabled className="w-full">
-                Sin servicios disponibles
+                {t('ficha.sinServiciosBoton')}
               </Button>
             )}
           </Card>

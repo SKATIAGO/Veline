@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { cx } from './ui'
+import { useIdioma } from '../i18n/idioma'
 
 /**
  * Las fotos se guardan sin parámetros de tamaño. Unsplash recorta y comprime
@@ -23,15 +24,8 @@ interface PhotoProps {
   priority?: boolean
 }
 
-export function Photo({
-  src,
-  alt,
-  width,
-  height,
-  className,
-  fallback = 'Foto del negocio',
-  priority,
-}: PhotoProps) {
+export function Photo({ src, alt, width, height, className, fallback, priority }: PhotoProps) {
+  const { t } = useIdioma()
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
@@ -43,7 +37,7 @@ export function Photo({
   }, [])
 
   if (!src || failed) {
-    return <div className={cx('ph', className)}>{fallback}</div>
+    return <div className={cx('ph', className)}>{fallback ?? t('ficha.fotoNegocio')}</div>
   }
 
   return (
