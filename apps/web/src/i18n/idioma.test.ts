@@ -46,7 +46,10 @@ describe('diccionarios', () => {
       'ficha.info',
       'ficha.tel',
       'comun.total',
+      'comun.no',
       'confirmar.email',
+      'agenda.email',
+      'panel.rolSuperadmin',
       // Los ejemplos de los campos: un nombre y un correo, no son texto.
       'confirmar.nombreEjemplo',
       'confirmar.emailEjemplo',

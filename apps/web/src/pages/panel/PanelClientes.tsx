@@ -13,6 +13,7 @@ import {
   Skeleton,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /**
  * Los clientes del negocio y su historial.
@@ -22,15 +23,12 @@ import {
  * un hueco libre.
  */
 
-const fecha = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—'
-
 const FILTROS = [
-  { key: 'todos', label: 'Todos' },
-  { key: 'repiten', label: 'Repiten' },
-  { key: 'proxima', label: 'Con cita' },
-  { key: 'faltan', label: 'Han faltado' },
-] as const
+  { key: 'todos', clave: 'clientes.todos' },
+  { key: 'repiten', clave: 'clientes.repiten' },
+  { key: 'proxima', clave: 'clientes.conCita' },
+  { key: 'faltan', clave: 'clientes.hanFaltado' },
+] as const satisfies readonly { key: string; clave: Clave }[]
 
 type FiltroKey = (typeof FILTROS)[number]['key']
 
@@ -42,9 +40,15 @@ function cumple(c: PanelCustomer, filtro: FiltroKey) {
 }
 
 export function PanelClientes() {
+  const { t, idioma, locale } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
+
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<FiltroKey>('todos')
+
+  const fecha = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : '—'
 
   const { data: clientes, isLoading } = useQuery({
     queryKey: ['panel', slug, 'customers'],
@@ -61,10 +65,13 @@ export function PanelClientes() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Clientes"
+        title={t('panel.clientes')}
         hint={
           clientes
-            ? `${clientes.length} en total${repiten ? ` · ${repiten} han repetido` : ''}`
+            ? [
+                t('clientes.enTotal', { n: clientes.length }),
+                ...(repiten ? [t('clientes.hanRepetido', { n: repiten })] : []),
+              ].join(' · ')
             : undefined
         }
       />
@@ -73,14 +80,14 @@ export function PanelClientes() {
         <div className="flex flex-wrap gap-2">
           {FILTROS.map((f) => (
             <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-              {f.label}
+              {t(f.clave)}
             </FilterChip>
           ))}
         </div>
         <Input
           type="search"
-          placeholder="Buscar por nombre o teléfono…"
-          aria-label="Buscar clientes"
+          placeholder={t('clientes.buscar')}
+          aria-label={t('clientes.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="ml-auto max-w-xs"
@@ -95,12 +102,8 @@ export function PanelClientes() {
         </Card>
       ) : !filtrados.length ? (
         <EmptyState
-          title={clientes?.length ? 'Nadie coincide con esta búsqueda' : 'Todavía no hay clientes'}
-          hint={
-            clientes?.length
-              ? undefined
-              : 'En cuanto entre la primera cita, el cliente aparecerá aquí con su historial.'
-          }
+          title={clientes?.length ? t('clientes.nadieCoincide') : t('clientes.todaviaNoHay')}
+          hint={clientes?.length ? undefined : t('clientes.todaviaNoHayPista')}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -120,10 +123,14 @@ export function PanelClientes() {
                 <div className="min-w-[170px] flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-ui font-semibold text-ink">{c.name}</span>
-                    {c.total > 1 && <Badge tone="ok">{c.total} citas</Badge>}
+                    {c.total > 1 && (
+                      <Badge tone="ok">
+                        {plural(c.total, 'clientes.unaCita', 'clientes.variasCitas')}
+                      </Badge>
+                    )}
                     {c.ausencias > 0 && (
                       <Badge tone="warn">
-                        {c.ausencias} {c.ausencias === 1 ? 'ausencia' : 'ausencias'}
+                        {plural(c.ausencias, 'clientes.unaAusencia', 'clientes.variasAusencias')}
                       </Badge>
                     )}
                   </div>
@@ -139,17 +146,19 @@ export function PanelClientes() {
                 </div>
 
                 <dl className="flex gap-5 text-meta text-muted">
-                  {[
-                    ['Última', fecha(c.ultima)],
-                    ['Próxima', fecha(c.proxima)],
-                    ['Gastado', formatPrice(c.gastadoCents)],
-                  ].map(([label, valor]) => (
-                    <div key={label}>
-                      <dt className="text-caption">{label}</dt>
+                  {(
+                    [
+                      ['clientes.ultima', fecha(c.ultima)],
+                      ['clientes.proxima', fecha(c.proxima)],
+                      ['clientes.gastado', formatPrice(c.gastadoCents, idioma)],
+                    ] as [Clave, string][]
+                  ).map(([clave, valor]) => (
+                    <div key={clave}>
+                      <dt className="text-caption">{t(clave)}</dt>
                       <dd
                         className={cx(
                           'font-semibold text-body-2 tabular-nums',
-                          label === 'Próxima' && c.proxima && 'text-brand-text',
+                          clave === 'clientes.proxima' && c.proxima && 'text-brand-text',
                         )}
                       >
                         {valor}
@@ -164,9 +173,14 @@ export function PanelClientes() {
       )}
 
       <p className="text-meta text-subtle">
-        El historial es solo de <strong className="font-semibold text-body-2">tu negocio</strong>:
-        un cliente que también reserva en otro sitio de Veline no comparte con él ni sus citas ni
-        sus datos. «Han faltado» son las citas que marcaste como que el cliente no vino.
+        <Texto
+          clave="clientes.aviso"
+          partes={{
+            tuNegocio: (
+              <strong className="font-semibold text-body-2">{t('clientes.tuNegocio')}</strong>
+            ),
+          }}
+        />
       </p>
     </div>
   )

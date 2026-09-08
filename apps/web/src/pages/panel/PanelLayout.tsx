@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Button, Logo, LogoMark, Select, Sheet, Skeleton, cx } from '../../components/ui'
+import { SelectorIdioma } from '../../components/SelectorIdioma'
+import { useIdioma, type Clave } from '../../i18n/idioma'
 
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
@@ -32,11 +34,11 @@ import { Button, Logo, LogoMark, Select, Sheet, Skeleton, cx } from '../../compo
  * cada cosa: las nueve se leen de un vistazo y aguanta crecer.
  */
 
-const ROL_LABEL = {
-  SUPERADMIN: 'Superadmin',
-  ADMIN: 'Administrador',
-  EMPLEADO: 'Equipo',
-} as const
+const ROL_CLAVE = {
+  SUPERADMIN: 'panel.rolSuperadmin',
+  ADMIN: 'panel.rolAdmin',
+  EMPLEADO: 'panel.rolEmpleado',
+} as const satisfies Record<string, Clave>
 
 /**
  * El marco del panel mientras se comprueba la sesión.
@@ -50,6 +52,8 @@ const ROL_LABEL = {
  * cosas en lugar de construir la página delante del usuario.
  */
 function MarcoCargando() {
+  const { t } = useIdioma()
+
   return (
     <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
       <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
@@ -57,7 +61,7 @@ function MarcoCargando() {
           <div className="flex items-center gap-2">
             <Logo size={19} />
             <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
-              Panel
+              {t('panel.panel')}
             </span>
           </div>
           <Skeleton className="h-4 w-32" />
@@ -83,7 +87,7 @@ function MarcoCargando() {
         <div
           className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
           aria-busy="true"
-          aria-label="Comprobando sesión"
+          aria-label={t('panel.comprobandoSesion')}
         >
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-24" />
@@ -230,9 +234,12 @@ type ClaveIcono = keyof typeof TRAZOS
 
 type Seccion = {
   to: string
-  label: string
+  /* Clave y no texto: el menú se pinta en dos sitios y se agrupa por «grupo»,
+     así que si el idioma cambiara el texto cambiarían también las agrupaciones
+     y el orden. La clave no cambia nunca. */
+  clave: Clave
   icono: ClaveIcono
-  grupo: string
+  grupo: Clave
   end?: boolean
   /** Si aparece también en la barra de abajo del móvil. */
   enBarra?: boolean
@@ -240,6 +247,8 @@ type Seccion = {
 
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
 function BotonBarra({ seccion }: { seccion: Seccion }) {
+  const { t } = useIdioma()
+
   return (
     <NavLink
       to={seccion.to}
@@ -253,13 +262,15 @@ function BotonBarra({ seccion }: { seccion: Seccion }) {
       }
     >
       <Icono>{TRAZOS[seccion.icono]}</Icono>
-      <span className="max-w-full truncate">{seccion.label}</span>
+      <span className="max-w-full truncate">{t(seccion.clave)}</span>
     </NavLink>
   )
 }
 
 /** Una entrada del menú lateral. 44 px, con el icono a la izquierda. */
 function ItemLateral({ seccion }: { seccion: Seccion }) {
+  const { t } = useIdioma()
+
   return (
     <NavLink
       to={seccion.to}
@@ -279,7 +290,7 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
           <Icono className={cx('size-[19px] shrink-0', isActive ? 'text-brand' : 'text-subtle')}>
             {TRAZOS[seccion.icono]}
           </Icono>
-          <span className="truncate">{seccion.label}</span>
+          <span className="truncate">{t(seccion.clave)}</span>
         </>
       )}
     </NavLink>
@@ -287,6 +298,7 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
 }
 
 export function PanelLayout() {
+  const { t } = useIdioma()
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -320,106 +332,106 @@ export function PanelLayout() {
     ? [
         {
           to: '/panel/admin',
-          label: 'Negocios',
+          clave: 'panel.negocios',
           icono: 'negocio',
-          grupo: 'Plataforma',
+          grupo: 'panel.grupoPlataforma',
           end: true,
           enBarra: true,
         },
         {
           to: '/panel/admin/usuarios',
-          label: 'Cuentas',
+          clave: 'panel.cuentas',
           icono: 'clientes',
-          grupo: 'Plataforma',
+          grupo: 'panel.grupoPlataforma',
           enBarra: true,
         },
         {
           to: '/panel/admin/cobros',
-          label: 'Cobros',
+          clave: 'panel.cobros',
           icono: 'cobros',
-          grupo: 'Plataforma',
+          grupo: 'panel.grupoPlataforma',
           enBarra: true,
         },
         {
           to: '/panel/admin/actividad',
-          label: 'Actividad',
+          clave: 'panel.actividad',
           icono: 'actividad',
-          grupo: 'Plataforma',
+          grupo: 'panel.grupoPlataforma',
           enBarra: true,
         },
       ]
     : [
         {
           to: `/panel/${slug}`,
-          label: 'Agenda',
+          clave: 'panel.agenda',
           icono: 'agenda',
-          grupo: 'Día a día',
+          grupo: 'panel.grupoDiaADia',
           end: true,
           enBarra: true,
         },
         {
           to: `/panel/${slug}/clientes`,
-          label: 'Clientes',
+          clave: 'panel.clientes',
           icono: 'clientes',
-          grupo: 'Día a día',
+          grupo: 'panel.grupoDiaADia',
           enBarra: true,
         },
         {
           to: `/panel/${slug}/fichaje`,
-          label: 'Fichaje',
+          clave: 'panel.fichaje',
           icono: 'fichaje',
-          grupo: 'Día a día',
+          grupo: 'panel.grupoDiaADia',
         },
         ...(puedeConfigurar
           ? ([
               {
                 to: `/panel/${slug}/servicios`,
-                label: 'Servicios',
+                clave: 'panel.servicios',
                 icono: 'servicios',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
               },
               {
                 to: `/panel/${slug}/horario`,
-                label: 'Horario',
+                clave: 'panel.horario',
                 icono: 'horario',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
               },
               {
                 to: `/panel/${slug}/personas`,
-                label: 'Personas',
+                clave: 'panel.personas',
                 icono: 'personas',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
               },
               {
                 to: `/panel/${slug}/equipo`,
-                label: 'Equipo',
+                clave: 'panel.equipo',
                 icono: 'equipo',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
               },
               {
                 to: `/panel/${slug}/negocio`,
-                label: 'El negocio',
+                clave: 'panel.elNegocio',
                 icono: 'negocio',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
                 enBarra: true,
               },
               {
                 to: `/panel/${slug}/locales`,
-                label: 'Locales',
+                clave: 'panel.locales',
                 icono: 'locales',
-                grupo: 'Configuración',
+                grupo: 'panel.grupoConfiguracion',
               },
               {
                 to: `/panel/${slug}/facturacion`,
-                label: 'Tu cuenta',
+                clave: 'panel.tuCuenta',
                 icono: 'cuenta',
-                grupo: 'Cuenta',
+                grupo: 'panel.grupoCuenta',
               },
               {
                 to: `/panel/${slug}/actividad`,
-                label: 'Actividad',
+                clave: 'panel.actividad',
                 icono: 'actividad',
-                grupo: 'Cuenta',
+                grupo: 'panel.grupoCuenta',
               },
             ] satisfies Seccion[])
           : []),
@@ -450,7 +462,7 @@ export function PanelLayout() {
     <Select
       value={slug}
       onChange={(e) => irA(`/panel/${e.target.value}`)}
-      aria-label="Cambiar de negocio"
+      aria-label={t('panel.cambiarNegocio')}
       className="text-meta"
     >
       {businesses.map((b) => (
@@ -471,13 +483,13 @@ export function PanelLayout() {
           <div className="flex items-center gap-2">
             <Logo size={19} />
             <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
-              Panel
+              {t('panel.panel')}
             </span>
           </div>
           {/* Qué estás mirando, siempre a la vista: es lo que antes decía
               «Estás gestionando…» en una línea suelta sobre el contenido. */}
           {esPlataforma ? (
-            <p className="text-meta font-semibold text-body-2">Gestión de la plataforma</p>
+            <p className="text-meta font-semibold text-body-2">{t('panel.gestionPlataforma')}</p>
           ) : (
             (selectorNegocio ?? (
               <p className="truncate text-meta font-semibold text-body-2">
@@ -487,11 +499,11 @@ export function PanelLayout() {
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label="Secciones del panel">
+        <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label={t('panel.secciones')}>
           {grupos.map((grupo) => (
             <div key={grupo} className="mb-1">
               <p className="px-3 pt-3 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
-                {grupo}
+                {t(grupo)}
               </p>
               <ul className="flex flex-col gap-0.5">
                 {secciones
@@ -522,7 +534,7 @@ export function PanelLayout() {
                 {esPlataforma ? TRAZOS.agenda : TRAZOS.cobros}
               </Icono>
               <span className="truncate">
-                {esPlataforma ? 'Ir a un negocio' : 'Gestión de la plataforma'}
+                {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
               </span>
             </button>
           )}
@@ -545,13 +557,20 @@ export function PanelLayout() {
             </span>
             <span className="min-w-0 flex-1 truncate">
               <span className="block truncate font-semibold">{user.name}</span>
-              <span className="block truncate text-caption opacity-80">{ROL_LABEL[user.role]}</span>
+              <span className="block truncate text-caption opacity-80">
+                {t(ROL_CLAVE[user.role])}
+              </span>
             </span>
           </NavLink>
 
-          <Button size="sm" variant="quiet" className="justify-start px-3" onClick={salir}>
-            Salir
-          </Button>
+          {/* El idioma, junto a la cuenta: es una preferencia de quien mira,
+              como su nombre y su rol, no una sección más del negocio. */}
+          <div className="flex items-center justify-between gap-2 px-1 pt-1">
+            <Button size="sm" variant="quiet" className="justify-start px-2" onClick={salir}>
+              {t('panel.salir')}
+            </Button>
+            <SelectorIdioma />
+          </div>
         </div>
       </aside>
 
@@ -564,12 +583,12 @@ export function PanelLayout() {
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <LogoMark size={22} />
               <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">
-                {esPlataforma ? 'Plataforma' : (negocioActual?.name ?? 'Panel')}
+                {esPlataforma ? t('panel.plataforma') : (negocioActual?.name ?? t('panel.panel'))}
               </span>
             </div>
             <NavLink
               to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
-              aria-label="Tu perfil"
+              aria-label={t('panel.tuPerfil')}
               className={({ isActive }) =>
                 cx(
                   'inline-flex min-h-10 items-center rounded-full px-1',
@@ -601,7 +620,7 @@ export function PanelLayout() {
       </div>
 
       <nav
-        aria-label="Navegación del panel"
+        aria-label={t('panel.navegacion')}
         className={cx(
           'fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream md:hidden',
           'pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(46,33,25,.07)]',
@@ -629,7 +648,7 @@ export function PanelLayout() {
               <button
                 type="button"
                 onClick={() => navigate(`/panel/${slug}?nueva=1`)}
-                aria-label="Apuntar una cita"
+                aria-label={t('panel.apuntarCita')}
                 className={cx(
                   'grid size-14 place-items-center rounded-full bg-brand text-cream',
                   'shadow-[0_5px_16px_rgba(169,106,62,.42)] transition-colors duration-200',
@@ -659,20 +678,24 @@ export function PanelLayout() {
             )}
           >
             <Icono>{TRAZOS.mas}</Icono>
-            <span>Más</span>
+            <span>{t('panel.mas')}</span>
           </button>
         </div>
       </nav>
 
-      <Sheet open={masAbierto} onClose={() => setMasAbierto(false)} title="Más secciones">
-        <h2 className="mb-1 font-display text-subheading font-semibold text-ink">Más</h2>
+      <Sheet open={masAbierto} onClose={() => setMasAbierto(false)} title={t('panel.masSecciones')}>
+        <h2 className="mb-1 font-display text-subheading font-semibold text-ink">
+          {t('panel.mas')}
+        </h2>
         <p className="mb-4 text-meta text-muted">
-          {esPlataforma ? 'Gestión de la plataforma' : (negocioActual?.name ?? 'Tu negocio')}
+          {esPlataforma
+            ? t('panel.gestionPlataforma')
+            : (negocioActual?.name ?? t('panel.tuNegocio'))}
         </p>
 
         {selectorNegocio && (
           <label className="mb-4 flex flex-col gap-1.5">
-            <span className="text-meta font-semibold text-body-2">Cambiar de negocio</span>
+            <span className="text-meta font-semibold text-body-2">{t('panel.cambiarNegocio')}</span>
             {selectorNegocio}
           </label>
         )}
@@ -682,7 +705,7 @@ export function PanelLayout() {
           .map((grupo) => (
             <div key={grupo} className="mb-2">
               <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
-                {grupo}
+                {t(grupo)}
               </p>
               <ul className="-mx-1 flex flex-col">
                 {enMas
@@ -708,7 +731,7 @@ export function PanelLayout() {
                           >
                             {TRAZOS[s.icono]}
                           </Icono>
-                          <span className="flex-1 text-left">{s.label}</span>
+                          <span className="flex-1 text-left">{t(s.clave)}</span>
                           <span aria-hidden className="text-subtle">
                             ›
                           </span>
@@ -729,12 +752,18 @@ export function PanelLayout() {
                 irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
               }
             >
-              {esPlataforma ? 'Ir a un negocio' : 'Gestión de la plataforma'}
+              {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
             </Button>
           )}
           <Button variant="quiet" block onClick={salir}>
-            Salir
+            {t('panel.salir')}
           </Button>
+          {/* En móvil el menú lateral no existe, así que el idioma vive aquí:
+              es el único sitio de la app donde se puede cambiar sin salir. */}
+          <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+            <span className="text-meta font-semibold text-body-2">{t('comun.idioma')}</span>
+            <SelectorIdioma />
+          </div>
         </div>
       </Sheet>
     </div>

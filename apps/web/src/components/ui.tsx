@@ -220,8 +220,8 @@ export function IconButton({
  */
 export function ConfirmAction({
   label,
-  question = '¿Seguro?',
-  confirmLabel = 'Sí',
+  question,
+  confirmLabel,
   onConfirm,
   loading,
   size = 'sm',
@@ -235,7 +235,10 @@ export function ConfirmAction({
   size?: ButtonSize
   disabled?: boolean
 }) {
+  const { t } = useIdioma()
   const [armado, setArmado] = useState(false)
+  const pregunta = question ?? t('comun.seguro')
+  const siLabel = confirmLabel ?? t('comun.si')
 
   if (!armado) {
     return (
@@ -250,7 +253,7 @@ export function ConfirmAction({
       className="inline-flex items-center gap-1"
       onKeyDown={(e) => e.key === 'Escape' && setArmado(false)}
     >
-      <span className="pl-1 text-meta text-muted">{question}</span>
+      <span className="pl-1 text-meta text-muted">{pregunta}</span>
       <Button
         size={size}
         variant="danger"
@@ -261,10 +264,10 @@ export function ConfirmAction({
           onConfirm()
         }}
       >
-        {confirmLabel}
+        {siLabel}
       </Button>
       <Button size={size} variant="quiet" onClick={() => setArmado(false)}>
-        No
+        {t('comun.no')}
       </Button>
     </span>
   )

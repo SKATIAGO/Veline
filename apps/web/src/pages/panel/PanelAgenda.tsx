@@ -20,20 +20,22 @@ import {
   Skeleton,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
+/* Marketplace, Instagram y Google son nombres propios: no se traducen. El
+   único que es una palabra es «Directo». */
 const SOURCE_LABEL: Record<string, string> = {
   MARKETPLACE: 'Marketplace',
-  DIRECTO: 'Directo',
   INSTAGRAM: 'Instagram',
   GOOGLE: 'Google',
 }
 
 /** Rangos que de verdad se miran: lo de hoy, la semana, y todo. */
 const RANGOS = [
-  { key: 'hoy', label: 'Hoy', dias: 0 },
-  { key: 'semana', label: 'Próximos 7 días', dias: 7 },
-  { key: 'todo', label: 'Todo', dias: null },
-] as const
+  { key: 'hoy', clave: 'agenda.hoy', dias: 0 },
+  { key: 'semana', clave: 'agenda.proximos7', dias: 7 },
+  { key: 'todo', clave: 'agenda.todo', dias: null },
+] as const satisfies readonly { key: string; clave: Clave; dias: number | null }[]
 
 type RangoKey = (typeof RANGOS)[number]['key']
 
@@ -48,10 +50,10 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 }
 
 /** Etiqueta y tono de cada estado, para no repetir el condicional. */
-const ESTADO: Record<string, { label: string; tone: 'off' | 'ok' | 'warn' } | undefined> = {
-  CANCELADA: { label: 'Cancelada', tone: 'off' },
-  COMPLETADA: { label: 'Atendida', tone: 'ok' },
-  NO_ASISTIO: { label: 'No vino', tone: 'warn' },
+const ESTADO: Record<string, { clave: Clave; tone: 'off' | 'ok' | 'warn' } | undefined> = {
+  CANCELADA: { clave: 'agenda.cancelada', tone: 'off' },
+  COMPLETADA: { clave: 'agenda.atendida', tone: 'ok' },
+  NO_ASISTIO: { clave: 'agenda.noVinoEstado', tone: 'warn' },
 }
 
 /** Fecha y hora en el formato que espera un <input type="datetime-local">. */
@@ -62,6 +64,7 @@ function paraInput(iso: string) {
 }
 
 function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) {
+  const { t, idioma, locale } = useIdioma()
   const queryClient = useQueryClient()
   const [ficha, setFicha] = useState(false)
   const [moviendo, setMoviendo] = useState(false)
@@ -94,7 +97,12 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
 
   const start = new Date(booking.startsAt)
   const end = new Date(booking.endsAt)
-  const fmt = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const fmt = (d: Date) => d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  /* «Directo» es la única fuente que es una palabra y no un nombre propio. */
+  const origen =
+    SOURCE_LABEL[booking.source] ??
+    (booking.source === 'DIRECTO' ? t('agenda.origenDirecto') : booking.source)
+  const nombrePila = booking.customer.name.split(' ')[0] ?? booking.customer.name
   const cancelled = booking.status === 'CANCELADA'
   const cerrada = booking.status === 'COMPLETADA' || booking.status === 'NO_ASISTIO'
   const estado = ESTADO[booking.status]
@@ -123,7 +131,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
       className="flex flex-col gap-3"
     >
       <label className="flex flex-col gap-1.5">
-        <span className="text-meta font-semibold text-body-2">Nueva fecha y hora</span>
+        <span className="text-meta font-semibold text-body-2">{t('agenda.nuevaFechaHora')}</span>
         <Input
           type="datetime-local"
           value={nuevaHora}
@@ -132,10 +140,10 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
       </label>
       <div className="flex gap-2">
         <Button type="submit" loading={mover.isPending} block>
-          Mover la cita
+          {t('agenda.moverLaCita')}
         </Button>
         <Button type="button" variant="quiet" onClick={() => setMoviendo(false)}>
-          Dejarlo
+          {t('agenda.dejarlo')}
         </Button>
       </div>
     </form>
@@ -149,7 +157,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
       <button
         type="button"
         onClick={abrirFicha}
-        aria-label={`Cita de ${booking.customer.name} a las ${fmt(start)}`}
+        aria-label={t('agenda.citaDeALas', { nombre: booking.customer.name, hora: fmt(start) })}
         className={cx(
           'flex w-full items-center gap-3 px-4 py-3 text-left md:hidden',
           'transition-colors duration-200 active:bg-canvas',
@@ -169,11 +177,11 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
             {booking.service.name}
           </span>
           <span className="block truncate text-meta text-muted">
-            {booking.customer.name} · {formatPrice(booking.priceCents)}
+            {booking.customer.name} · {formatPrice(booking.priceCents, idioma)}
           </span>
         </span>
         {estado ? (
-          <Badge tone={estado.tone}>{estado.label}</Badge>
+          <Badge tone={estado.tone}>{t(estado.clave)}</Badge>
         ) : (
           <span aria-hidden className="text-ui text-subtle">
             ›
@@ -200,14 +208,18 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           >
             {fmt(start)}
           </div>
-          <div className="text-meta text-subtle tabular-nums">hasta {fmt(end)}</div>
+          <div className="text-meta text-subtle tabular-nums">
+            {t('agenda.hasta', { hora: fmt(end) })}
+          </div>
         </div>
 
         <div className="min-w-[180px] flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-ui font-semibold text-ink">{booking.service.name}</span>
-            {estado && <Badge tone={estado.tone}>{estado.label}</Badge>}
-            {!estado && booking.isFirstFromMarketplace && <Badge tone="ok">Cliente nuevo</Badge>}
+            {estado && <Badge tone={estado.tone}>{t(estado.clave)}</Badge>}
+            {!estado && booking.isFirstFromMarketplace && (
+              <Badge tone="ok">{t('agenda.clienteNuevo')}</Badge>
+            )}
           </div>
           <p className="mt-0.5 text-meta text-muted">
             {booking.customer.name} ·{' '}
@@ -221,15 +233,15 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           {booking.notes && <p className="mt-1 text-meta text-subtle italic">{booking.notes}</p>}
         </div>
 
-        <div className="w-[130px] text-meta text-muted">{booking.staff?.name ?? 'Sin asignar'}</div>
+        <div className="w-[130px] text-meta text-muted">
+          {booking.staff?.name ?? t('agenda.sinAsignar')}
+        </div>
 
         <div className="w-[104px] text-right">
           <div className="text-ui font-semibold text-ink tabular-nums">
-            {formatPrice(booking.priceCents)}
+            {formatPrice(booking.priceCents, idioma)}
           </div>
-          <div className="text-caption text-subtle">
-            {SOURCE_LABEL[booking.source] ?? booking.source}
-          </div>
+          <div className="text-caption text-subtle">{origen}</div>
         </div>
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -240,7 +252,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
               loading={marcar.isPending}
               onClick={() => marcar.mutate('CONFIRMADA')}
             >
-              Deshacer
+              {t('agenda.deshacer')}
             </Button>
           )}
 
@@ -254,7 +266,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                     loading={marcar.isPending && marcar.variables === 'COMPLETADA'}
                     onClick={() => marcar.mutate('COMPLETADA')}
                   >
-                    Vino
+                    {t('agenda.vino')}
                   </Button>
                   <Button
                     size="sm"
@@ -262,18 +274,18 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                     loading={marcar.isPending && marcar.variables === 'NO_ASISTIO'}
                     onClick={() => marcar.mutate('NO_ASISTIO')}
                   >
-                    No vino
+                    {t('agenda.noVino')}
                   </Button>
                 </>
               )}
               <Button size="sm" variant="quiet" onClick={() => setMoviendo((m) => !m)}>
-                Mover
+                {t('agenda.mover')}
               </Button>
               <span className="ml-1 border-l border-line pl-2">
                 <ConfirmAction
-                  label="Cancelar"
-                  question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
-                  confirmLabel="Sí, cancelar"
+                  label={t('agenda.cancelar')}
+                  question={t('agenda.cancelarLaDe', { nombre: nombrePila })}
+                  confirmLabel={t('agenda.siCancelar')}
                   loading={cancel.isPending}
                   onConfirm={() => cancel.mutate()}
                 />
@@ -299,29 +311,33 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           Aquí las acciones tienen 44 px de alto y 8 de separación, y cancelar
           vive detrás de un filete, en otro color y con confirmación. En la
           fila no cabía nada de eso. */}
-      <Sheet open={ficha} onClose={cerrarFicha} title={`Cita de ${booking.customer.name}`}>
+      <Sheet
+        open={ficha}
+        onClose={cerrarFicha}
+        title={t('agenda.citaDe', { nombre: booking.customer.name })}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-display text-heading-sm font-semibold text-ink tabular-nums">
               {fmt(start)}
               <span className="ml-2 text-body font-normal text-muted">
-                {formatDuration(Math.round((end.getTime() - start.getTime()) / 60000))}
+                {formatDuration(Math.round((end.getTime() - start.getTime()) / 60000), idioma)}
               </span>
             </p>
             <p className="mt-1 text-ui font-semibold text-ink">{booking.service.name}</p>
           </div>
           <p className="shrink-0 text-ui font-bold text-ink tabular-nums">
-            {formatPrice(booking.priceCents)}
+            {formatPrice(booking.priceCents, idioma)}
           </p>
         </div>
 
         <dl className="mt-4 flex flex-col gap-2 border-t border-line pt-4 text-body">
           <div className="flex justify-between gap-3">
-            <dt className="text-muted">Cliente</dt>
+            <dt className="text-muted">{t('agenda.cliente')}</dt>
             <dd className="text-right font-medium text-ink">{booking.customer.name}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted">Teléfono</dt>
+            <dt className="text-muted">{t('agenda.telefono')}</dt>
             <dd>
               <a
                 href={`tel:${booking.customer.phone}`}
@@ -332,20 +348,18 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
             </dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-muted">Atiende</dt>
+            <dt className="text-muted">{t('agenda.atiende')}</dt>
             <dd className="text-right font-medium text-ink">
-              {booking.staff?.name ?? 'Sin asignar'}
+              {booking.staff?.name ?? t('agenda.sinAsignar')}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-muted">Origen</dt>
-            <dd className="text-right font-medium text-ink">
-              {SOURCE_LABEL[booking.source] ?? booking.source}
-            </dd>
+            <dt className="text-muted">{t('agenda.origen')}</dt>
+            <dd className="text-right font-medium text-ink">{origen}</dd>
           </div>
           {booking.notes && (
             <div className="mt-1 rounded-xl bg-canvas px-3 py-2.5">
-              <dt className="text-meta text-muted">Notas</dt>
+              <dt className="text-meta text-muted">{t('agenda.notas')}</dt>
               <dd className="mt-0.5 text-body text-ink italic">{booking.notes}</dd>
             </div>
           )}
@@ -359,7 +373,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
 
         {estado && (
           <p className="mt-4 flex items-center gap-2 text-body text-muted">
-            Esta cita está marcada como <Badge tone={estado.tone}>{estado.label}</Badge>
+            {t('agenda.marcadaComo')} <Badge tone={estado.tone}>{t(estado.clave)}</Badge>
           </p>
         )}
 
@@ -371,7 +385,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
               loading={marcar.isPending}
               onClick={() => marcar.mutate('CONFIRMADA', alTerminar)}
             >
-              Deshacer
+              {t('agenda.deshacer')}
             </Button>
           )}
 
@@ -387,26 +401,26 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                         loading={marcar.isPending && marcar.variables === 'COMPLETADA'}
                         onClick={() => marcar.mutate('COMPLETADA', alTerminar)}
                       >
-                        Vino
+                        {t('agenda.vino')}
                       </Button>
                       <Button
                         variant="secondary"
                         loading={marcar.isPending && marcar.variables === 'NO_ASISTIO'}
                         onClick={() => marcar.mutate('NO_ASISTIO', alTerminar)}
                       >
-                        No vino
+                        {t('agenda.noVino')}
                       </Button>
                     </div>
                   )}
                   <Button variant="secondary" block onClick={() => setMoviendo(true)}>
-                    Mover de hora
+                    {t('agenda.moverDeHora')}
                   </Button>
                   <div className="mt-2 flex justify-center border-t border-line pt-4">
                     <ConfirmAction
                       size="md"
-                      label="Cancelar la cita"
-                      question={`¿Cancelar la de ${booking.customer.name.split(' ')[0]}?`}
-                      confirmLabel="Sí, cancelar"
+                      label={t('agenda.cancelarLaCita')}
+                      question={t('agenda.cancelarLaDe', { nombre: nombrePila })}
+                      confirmLabel={t('agenda.siCancelar')}
                       loading={cancel.isPending}
                       onConfirm={() => cancel.mutate(undefined, alTerminar)}
                     />
@@ -426,6 +440,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
  * que reservarse a sí mismo desde su página pública como si fuera un cliente.
  */
 function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
+  const { t, idioma } = useIdioma()
   const id = useId()
   const [serviceId, setServiceId] = useState('')
   const [cuando, setCuando] = useState(() => paraInput(new Date().toISOString()))
@@ -456,16 +471,16 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   })
 
   const problema = !elegido
-    ? 'Primero hay que tener algún servicio publicado.'
+    ? t('agenda.faltaServicio')
     : nombre.trim().length < 2
-      ? 'Escribe el nombre del cliente.'
+      ? t('agenda.faltaNombre')
       : telefono.trim().length < 9
-        ? 'Falta el teléfono.'
+        ? t('agenda.faltaTelefono')
         : null
 
   return (
     <Card padded>
-      <h2 className="mb-4 text-ui font-semibold text-ink">Apuntar una cita</h2>
+      <h2 className="mb-4 text-ui font-semibold text-ink">{t('agenda.apuntarTitulo')}</h2>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -474,17 +489,18 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         className="flex flex-col gap-4"
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Servicio" htmlFor={`${id}-svc`} required>
+          <Field label={t('agenda.servicio')} htmlFor={`${id}-svc`} required>
             <Select id={`${id}-svc`} value={elegido} onChange={(e) => setServiceId(e.target.value)}>
               {activos.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} · {formatDuration(s.durationMin)} · {formatPrice(s.priceCents)}
+                  {s.name} · {formatDuration(s.durationMin, idioma)} ·{' '}
+                  {formatPrice(s.priceCents, idioma)}
                 </option>
               ))}
             </Select>
           </Field>
 
-          <Field label="Cuándo" htmlFor={`${id}-cuando`} required>
+          <Field label={t('agenda.cuando')} htmlFor={`${id}-cuando`} required>
             <Input
               id={`${id}-cuando`}
               type="datetime-local"
@@ -493,17 +509,17 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
             />
           </Field>
 
-          <Field label="Cliente" htmlFor={`${id}-nombre`} required>
+          <Field label={t('agenda.cliente')} htmlFor={`${id}-nombre`} required>
             <Input
               id={`${id}-nombre`}
-              placeholder="Marina López"
+              placeholder={t('confirmar.nombreEjemplo')}
               autoComplete="off"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
           </Field>
 
-          <Field label="Teléfono" htmlFor={`${id}-tel`} required>
+          <Field label={t('agenda.telefono')} htmlFor={`${id}-tel`} required>
             <Input
               id={`${id}-tel`}
               placeholder="612 34 56 78"
@@ -513,9 +529,9 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
           </Field>
 
           <Field
-            label="Email"
+            label={t('agenda.email')}
             htmlFor={`${id}-mail`}
-            hint="Si lo pones, recibe la confirmación"
+            hint={t('agenda.emailPista')}
             className="sm:col-span-2"
           >
             <Input
@@ -526,10 +542,10 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
             />
           </Field>
 
-          <Field label="Notas" htmlFor={`${id}-notas`} className="sm:col-span-2">
+          <Field label={t('agenda.notas')} htmlFor={`${id}-notas`} className="sm:col-span-2">
             <Input
               id={`${id}-notas`}
-              placeholder="Llamó por teléfono"
+              placeholder={t('agenda.notasEjemplo')}
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
             />
@@ -540,25 +556,30 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
 
         <div className="flex flex-wrap items-center gap-2">
           <Button type="submit" loading={crear.isPending} disabled={!!problema}>
-            Apuntar la cita
+            {t('agenda.apuntarBoton')}
           </Button>
           <Button type="button" variant="secondary" onClick={onHecho}>
-            Cancelar
+            {t('agenda.cancelar')}
           </Button>
           {problema && <span className="text-meta text-muted">{problema}</span>}
         </div>
       </form>
 
       <p className="mt-4 border-t border-line pt-4 text-meta text-subtle">
-        Una cita apuntada desde aquí cuenta como{' '}
-        <strong className="font-semibold text-body-2">directa</strong>: la trajiste tú, así que no
-        genera comisión de marketplace.
+        <Texto
+          clave="agenda.avisoDirecta"
+          partes={{
+            directa: <strong className="font-semibold text-body-2">{t('agenda.esDirecta')}</strong>,
+          }}
+        />
       </p>
     </Card>
   )
 }
 
 export function PanelAgenda() {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const [params, setParams] = useSearchParams()
   const [rango, setRango] = useState<RangoKey>('hoy')
@@ -619,12 +640,19 @@ export function PanelAgenda() {
           cabecera del móvil—, así que repetirlo aquí gastaba una línea para
           no decir nada. El título es la pantalla, no el negocio. */}
       <PageHeader
-        title="Agenda"
+        title={t('panel.agenda')}
         hint={
-          summary ? `${summary.serviceCount} servicios · ${summary.staffCount} personas` : undefined
+          // Dos plurales sueltos y no una frase con dos huecos: «1 personas»
+          // era lo que salía antes, y en inglés «1 people» sería lo mismo.
+          summary
+            ? [
+                plural(summary.serviceCount, 'agenda.unServicio', 'agenda.variosServicios'),
+                plural(summary.staffCount, 'agenda.unaPersona', 'agenda.variasPersonas'),
+              ].join(' · ')
+            : undefined
         }
         actions={
-          !apuntando && <Button onClick={() => setApuntando(true)}>+ Apuntar una cita</Button>
+          !apuntando && <Button onClick={() => setApuntando(true)}>{t('agenda.apuntarUna')}</Button>
         }
       />
 
@@ -642,27 +670,29 @@ export function PanelAgenda() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Citas hoy" value={String(summary?.todayCount ?? 0)} />
-        <Stat label="Próximos 7 días" value={String(summary?.weekCount ?? 0)} />
+        <Stat label={t('agenda.citasHoy')} value={String(summary?.todayCount ?? 0)} />
+        <Stat label={t('agenda.proximos7')} value={String(summary?.weekCount ?? 0)} />
         <Stat
-          label="Ingresos 7 días"
-          value={formatPrice(summary?.weekRevenueCents ?? 0)}
+          label={t('agenda.ingresos7')}
+          value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
           hint={
             summary?.weekCommissionCents
-              ? `Comisión Veline: ${formatPrice(summary.weekCommissionCents)}`
-              : 'Sin comisión en estos 7 días'
+              ? t('agenda.comision', {
+                  importe: formatPrice(summary.weekCommissionCents, idioma),
+                })
+              : t('agenda.sinComision')
           }
         />
         <Stat
-          label="Clientes nuevos"
+          label={t('agenda.clientesNuevos')}
           value={String(summary?.newFromMarketplace ?? 0)}
-          hint="Descubiertos vía marketplace"
+          hint={t('agenda.viaMarketplace')}
         />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-subheading font-semibold text-ink">
-          Próximas citas
+          {t('agenda.proximasCitas')}
           {!isLoading && total > 0 && (
             <span className="ml-2 text-body font-normal text-muted">({total})</span>
           )}
@@ -670,7 +700,7 @@ export function PanelAgenda() {
         <div className="flex flex-wrap gap-2">
           {RANGOS.map((r) => (
             <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
-              {r.label}
+              {t(r.clave)}
             </FilterChip>
           ))}
         </div>
@@ -684,19 +714,15 @@ export function PanelAgenda() {
         </Card>
       ) : grupos.length === 0 ? (
         <EmptyState
-          title={rango === 'hoy' ? 'Hoy no hay citas' : 'No hay citas en este periodo'}
-          hint={
-            rango === 'todo'
-              ? 'Cuando alguien reserve aparecerá aquí automáticamente.'
-              : 'Prueba a ampliar el periodo con los filtros de arriba.'
-          }
+          title={rango === 'hoy' ? t('agenda.hoySinCitas') : t('agenda.sinCitasPeriodo')}
+          hint={rango === 'todo' ? t('agenda.apareceránSolas') : t('agenda.ampliaPeriodo')}
         />
       ) : (
         <div className="flex flex-col gap-6">
           {grupos.map(([key, filas]) => (
             <section key={key}>
               <h3 className="mb-2 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
-                {formatLongDate(new Date(`${key}T00:00:00`))}
+                {formatLongDate(new Date(`${key}T00:00:00`), idioma)}
               </h3>
               <Card className="overflow-hidden">
                 <ul>

@@ -1,6 +1,7 @@
 import { formatPrice, PLAN_INFO, type PlanKey } from '@veline/shared'
 import type { PanelSubscription } from '../lib/api'
 import { Card, cx } from './ui'
+import { useIdioma, usePlural } from '../i18n/idioma'
 
 /**
  * El estado de la cuenta, arriba del todo y solo cuando hay algo que decir.
@@ -14,33 +15,34 @@ import { Card, cx } from './ui'
 const diasHasta = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
 
 export function AvisoSuscripcion({ sub }: { sub: PanelSubscription | null }) {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
+
   if (!sub) return null
 
   const dias = sub.trialEndsAt ? diasHasta(sub.trialEndsAt) : null
-  const cuota = formatPrice(sub.monthlyCents)
+  const cuota = formatPrice(sub.monthlyCents, idioma)
   const plan = PLAN_INFO[sub.plan as PlanKey]?.label ?? sub.plan
 
   // Cortado: no acepta reservas. Es lo más grave que le puede pasar.
   if (!sub.accepting) {
     const motivo =
       sub.status === 'PRUEBA'
-        ? 'Se han acabado los días de prueba.'
+        ? t('sub.pruebaAcabada')
         : sub.status === 'CANCELADA'
-          ? 'La cuenta está dada de baja.'
-          : 'La cuenta está suspendida.'
+          ? t('sub.baja')
+          : t('sub.suspendida')
     return (
-      <Aviso tono="grave" titulo="Tu negocio no está aceptando reservas">
-        {motivo} Tu ficha sigue publicada, pero nadie puede reservar hasta que se reactive.
-        Escríbenos y lo arreglamos.
+      <Aviso tono="grave" titulo={t('sub.noAcepta')}>
+        {t('sub.noAceptaTexto', { motivo })}
       </Aviso>
     )
   }
 
   if (sub.status === 'IMPAGADA') {
     return (
-      <Aviso tono="grave" titulo="Hay una cuota pendiente">
-        La cuota de {cuota} al mes no consta pagada. Las reservas siguen funcionando, pero conviene
-        resolverlo antes de que se corte.
+      <Aviso tono="grave" titulo={t('sub.cuotaPendiente')}>
+        {t('sub.cuotaPendienteTexto', { cuota })}
       </Aviso>
     )
   }
@@ -51,13 +53,10 @@ export function AvisoSuscripcion({ sub }: { sub: PanelSubscription | null }) {
       <Aviso
         tono="aviso"
         titulo={
-          dias <= 0
-            ? 'Tu prueba termina hoy'
-            : `Te ${dias === 1 ? 'queda' : 'quedan'} ${dias} ${dias === 1 ? 'día' : 'días'} de prueba`
+          dias <= 0 ? t('sub.pruebaHoy') : plural(dias, 'sub.pruebaUnDia', 'sub.pruebaVariosDias')
         }
       >
-        Después seguirás con el plan {plan} por {cuota} al mes. Si no quieres continuar, no tienes
-        que hacer nada.
+        {t('sub.pruebaTexto', { plan, cuota })}
       </Aviso>
     )
   }

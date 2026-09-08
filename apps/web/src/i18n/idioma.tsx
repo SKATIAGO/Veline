@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  Fragment,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import type { ReactNode } from 'react'
 import { es } from './es'
 import { en } from './en'
@@ -94,6 +102,50 @@ export function ProveedorIdioma({ children }: { children: ReactNode }) {
 }
 
 export const useIdioma = () => useContext(Ctx)
+
+/**
+ * Una frase con algo dentro que no es texto: una palabra en negrita, un
+ * enlace, una etiqueta de color.
+ *
+ * El motivo de que exista es el orden. «Una cita apuntada aquí cuenta como
+ * **directa**: la trajiste tú» en inglés pone la negrita en otro sitio, y si
+ * la frase se cose a trozos —texto, <strong>, texto— el orden queda clavado
+ * al del castellano y la traducción no puede moverlo. Aquí la frase entera
+ * vive en el diccionario, con su {hueco}, y cada idioma lo coloca donde le
+ * toca.
+ *
+ *   <Texto clave="agenda.avisoDirecta" partes={{ directa: <strong>directa</strong> }} />
+ */
+export function Texto({
+  clave,
+  valores,
+  partes,
+}: {
+  clave: Clave
+  /** Huecos que se rellenan con texto normal. */
+  valores?: Record<string, string | number>
+  /** Huecos que se rellenan con algo pintado. */
+  partes: Record<string, ReactNode>
+}) {
+  const { t } = useIdioma()
+  const plantilla = t(clave, valores)
+
+  // Se parte por los huecos que van a llevar algo pintado; los demás ya los
+  // ha rellenado t().
+  const trozos = plantilla.split(/(\{\w+\})/g)
+
+  return (
+    <>
+      {trozos.map((trozo, i) => {
+        const hueco = /^\{(\w+)\}$/.exec(trozo)
+        const parte = hueco ? partes[hueco[1]!] : undefined
+        // Un hueco sin parte se deja tal cual: se ve en pantalla y se
+        // arregla, que es mejor que desaparecer sin dejar rastro.
+        return <Fragment key={i}>{parte ?? trozo}</Fragment>
+      })}
+    </>
+  )
+}
 
 /**
  * Singular o plural, eligiendo entre dos claves.
