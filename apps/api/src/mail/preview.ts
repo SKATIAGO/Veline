@@ -25,6 +25,7 @@ const enTresDias = () => {
 }
 
 const EJEMPLO: BookingMailData = {
+  idiomaCliente: 'es',
   code: 'VL-7F3K2',
   startsAt: enTresDias(),
   priceCents: 5900,

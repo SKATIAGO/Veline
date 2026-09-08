@@ -22,6 +22,7 @@ import {
 const MALO = '<img src=x onerror="alert(1)">'
 
 const base: BookingMailData = {
+  idiomaCliente: 'es',
   code: 'VL-TEST',
   startsAt: new Date('2026-09-15T10:00:00Z'),
   priceCents: 2500,
@@ -50,6 +51,7 @@ const plantillas: [string, { html: string }][] = [
       businessName: `${MALO}Peluquería`,
       serviceName: `${MALO}Corte`,
       url: 'https://veline.es/resena/abc',
+      idiomaCliente: 'es',
     }),
   ],
   ['restablecer contraseña', passwordResetMail(persona, 'https://veline.es/x')],
@@ -80,4 +82,37 @@ describe('las plantillas de correo escapan lo que escribe el cliente', () => {
     expect(html).not.toContain('mailto:')
     expect(html).toContain('tel:612345678')
   })
+})
+
+/**
+ * El castellano de los correos, clavado.
+ *
+ * Existe por la fase 3: para poder escribirle a cada cliente en su idioma hay
+ * que meter mano en las seis plantillas, y en ese trabajo es facilísimo mover
+ * una coma, perder un acento o cambiar el orden de una fila sin enterarse. Los
+ * correos no se miran a diario: el fallo saldría semanas después, en el buzón
+ * de un cliente.
+ *
+ * Si una de estas capturas falla y el cambio era a propósito, se actualiza con
+ * `npx vitest -u`. Lo que no puede pasar es que cambie sin que nadie lo vea.
+ */
+const conIdioma = (i: BookingMailData['idiomaCliente']) => ({ ...base, idiomaCliente: i })
+
+describe('los correos en castellano no cambian solos', () => {
+  const persona2 = { email: 'ana@ejemplo.es', name: 'Ana' }
+  const b = conIdioma('es')
+
+  const capturas: [string, { subject: string; html: string; text: string }][] = [
+    ['confirmación al cliente', bookingConfirmedToCustomer(b)],
+    ['aviso al negocio', bookingCreatedToBusiness(b, 'negocio@ejemplo.es')],
+    ['cancelación (cliente)', bookingCancelled(b, persona2, 'cliente')],
+    ['cancelación (negocio)', bookingCancelled(b, persona2, 'negocio')],
+    ['recordatorio', bookingReminderMail(b)],
+  ]
+
+  for (const [nombre, m] of capturas) {
+    it(nombre, () => {
+      expect({ subject: m.subject, html: m.html, text: m.text }).toMatchSnapshot()
+    })
+  }
 })

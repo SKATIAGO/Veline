@@ -93,6 +93,9 @@ export function BookingConfirm() {
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
         notes: notes.trim(),
         source: origenActual(),
+        // El idioma en el que está mirando esta persona ahora mismo. De aquí
+        // saldrán su confirmación, su recordatorio y su petición de reseña.
+        idioma,
         ...(locationId ? { locationId } : {}),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
@@ -116,6 +119,7 @@ export function BookingConfirm() {
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       notes: notes.trim(),
       source: origenActual(),
+      idioma,
       ...(locationId ? { locationId } : {}),
     })
     if (!parsed.success) {

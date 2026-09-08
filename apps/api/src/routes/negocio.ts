@@ -631,6 +631,11 @@ export async function negocioRoutes(app: FastifyInstance) {
               // Una cita apuntada a mano nunca es del marketplace: la trajo el
               // negocio. Por eso no genera comisión.
               source: 'DIRECTO',
+              /* Sin idioma: cae en ES por defecto. La cita la apunta el
+                 negocio de oído —por teléfono o en el mostrador—, así que no
+                 hay ningún idioma que leer. Si algún día atienden a clientes
+                 extranjeros habrá que preguntarlo en este formulario; hasta
+                 entonces, inventarlo sería peor que dejarlo en castellano. */
               isFirstFromMarketplace: false,
               commissionCents: 0,
             },

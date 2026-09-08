@@ -384,6 +384,14 @@ export const createBookingSchema = z.object({
   }),
   notes: z.string().trim().max(500).optional().or(z.literal('')),
   source: z.enum(BOOKING_SOURCES).default('MARKETPLACE'),
+  /**
+   * En qué idioma estaba mirando la web quien reserva.
+   *
+   * Por defecto castellano: así una petición vieja —o cualquiera que no lo
+   * mande— sigue valiendo y se comporta como hasta ahora. De esto salen SUS
+   * avisos; los del negocio van en el idioma del negocio, que es otra cosa.
+   */
+  idioma: z.enum(['es', 'en']).default('es'),
 })
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>

@@ -1,9 +1,11 @@
-import { aceptaReservas, formatLongDate, TIMEZONE } from '@veline/shared'
+import { aceptaReservas } from '@veline/shared'
 import { prisma } from './prisma.js'
 import { sendMail } from './mail/enviar.js'
 import { sendSms } from './mail/acumbamail.js'
 import { registrarEnvio } from './mail/contador.js'
 import { bookingReminderMail } from './mail/templates.js'
+import { idiomaDeLaReserva, idiomaParaCliente } from './mail/idioma.js'
+import { smsRecordatorio } from './mail/sms.js'
 
 /**
  * El recordatorio de la cita del día siguiente.
@@ -25,9 +27,6 @@ const HORAS_ANTES = 24
 const VENTANA_MIN = 30
 
 const CADA_MS = 15 * 60 * 1000
-
-const hora = (d: Date) =>
-  d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: TIMEZONE })
 
 export interface ResultadoTanda {
   revisadas: number
@@ -81,12 +80,13 @@ export async function enviarRecordatoriosPendientes(): Promise<ResultadoTanda> {
       continue
     }
 
-    const cuando = `${formatLongDate(cita.startsAt)} a las ${hora(cita.startsAt)}`
+    const idiomaCliente = idiomaDeLaReserva(cita.idioma)
     const loc = cita.business.locations[0]
 
     if (cita.customer.email) {
       const r = await sendMail(
         bookingReminderMail({
+          idiomaCliente,
           code: cita.code,
           startsAt: cita.startsAt,
           priceCents: cita.priceCents,
@@ -115,7 +115,14 @@ export async function enviarRecordatoriosPendientes(): Promise<ResultadoTanda> {
 
     const sms = await sendSms({
       to: cita.customer.phone,
-      body: `Recordatorio: ${cuando} tienes cita en ${cita.business.name} (${cita.service.name}). Código ${cita.code}.`,
+      body: smsRecordatorio({
+        // Lo lee el cliente, así que el idioma sale de él, igual que el correo.
+        idioma: idiomaParaCliente({ idiomaCliente }),
+        startsAt: cita.startsAt,
+        businessName: cita.business.name,
+        serviceName: cita.service.name,
+        code: cita.code,
+      }),
     }).catch((err) => ({ sent: false as const, reason: (err as Error).message }))
 
     await registrarEnvio({

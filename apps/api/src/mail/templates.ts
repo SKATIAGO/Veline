@@ -1,5 +1,20 @@
-import { formatLongDate, formatPrice, TIMEZONE } from '@veline/shared'
+import { formatLongDate, formatPrice, TIMEZONE, type Idioma } from '@veline/shared'
 import type { MailMessage } from './tipos.js'
+import { idiomaParaCliente, idiomaParaNegocio } from './idioma.js'
+
+/**
+ * En qué idioma se le escribe al negocio.
+ *
+ * Hoy siempre castellano, y a propósito: el negocio no tiene idioma guardado
+ * —la preferencia del panel vive en el navegador de cada persona, no en el
+ * servidor—. Es una constante con nombre y no un 'es' suelto por un motivo
+ * concreto: en la misma reserva conviven DOS idiomas, el del cliente y el del
+ * negocio, y el error fácil es coger el que esté a mano. Con esto, pasarle el
+ * del cliente al correo del negocio se ve al leerlo.
+ *
+ * El día que el negocio tenga idioma propio, se cambia aquí y en quien llame.
+ */
+export const IDIOMA_DEL_NEGOCIO: Idioma = 'es'
 
 /* Paleta de marca. En correo se escriben literales: los clientes de email no
    entienden variables CSS ni hojas externas. */
@@ -12,12 +27,21 @@ const MUTED = '#8A7255'
 
 const webUrl = () => (process.env.PUBLIC_WEB_URL ?? 'http://localhost:5173').replace(/\/$/, '')
 
-const hora = (d: Date) =>
-  d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: TIMEZONE })
+/* La hora se enseña SIEMPRE en la de Madrid: la cita es allí, y convertirla
+   al huso de quien lee haría que un cliente en Londres viera una hora a la que
+   no le van a atender. El idioma solo cambia cómo se escribe. */
+const hora = (d: Date, idioma: Idioma) =>
+  d.toLocaleTimeString(idioma === 'en' ? 'en-GB' : 'es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: TIMEZONE,
+  })
 
 const capitalizar = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 export interface BookingMailData {
+  /** El idioma en el que reservó el cliente. NO es el del negocio. */
+  idiomaCliente: Idioma
   code: string
   startsAt: Date
   priceCents: number
@@ -44,6 +68,9 @@ const esc = (v: string) =>
 
 /** Marco común: cabecera con el logotipo, cuerpo y pie. */
 function layout(opts: {
+  /** Va en <html lang>: es lo que usa el lector de pantalla para elegir voz y
+      el cliente de correo para ofrecer traducir. */
+  idioma: Idioma
   preheader: string
   heading: string
   intro: string
@@ -51,7 +78,7 @@ function layout(opts: {
   cta?: { label: string; url: string }
 }) {
   return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<html lang="${opts.idioma}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:${CREAM};">
 <span style="display:none;font-size:1px;color:${CREAM};">${esc(opts.preheader)}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};padding:32px 16px;">
@@ -102,14 +129,15 @@ const textoDetalles = (rows: [string, string][]) => rows.map(([l, v]) => `  ${l}
 /* ── 1. Confirmación al cliente ───────────────────────────────── */
 
 export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
-  const cuando = `${capitalizar(formatLongDate(b.startsAt))} a las ${hora(b.startsAt)}`
+  const idioma = idiomaParaCliente(b)
+  const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
     ['Cuándo', cuando],
     ...((b.staffName ? [['Te atiende', b.staffName]] : []) as [string, string][]),
     ...((b.address ? [['Dónde', b.address]] : []) as [string, string][]),
     ['Código', b.code],
-    ['Total', formatPrice(b.priceCents)],
+    ['Total', formatPrice(b.priceCents, idioma)],
   ]
 
   return {
@@ -118,6 +146,7 @@ export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
     subject: `Tu cita en ${b.businessName} — ${cuando}`,
     tag: 'reserva-confirmada',
     html: layout({
+      idioma,
       preheader: `${cuando} en ${b.businessName}`,
       heading: '¡Reserva confirmada!',
       intro: `Hola ${esc(b.customerName.split(' ')[0])}, te esperan en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
@@ -139,7 +168,11 @@ export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
 /* ── 2. Aviso al negocio ──────────────────────────────────────── */
 
 export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: string): MailMessage {
-  const cuando = `${capitalizar(formatLongDate(b.startsAt))} a las ${hora(b.startsAt)}`
+  /* Aquí NO se usa b.idiomaCliente: este correo lo lee el negocio. Un taller
+     de Madrid no debe recibir sus avisos en inglés porque el cliente reservara
+     en inglés. */
+  const idioma = idiomaParaNegocio()
+  const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
     ['Cuándo', cuando],
@@ -149,7 +182,7 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
     ...((b.customerEmail ? [['Email', b.customerEmail]] : []) as [string, string][]),
     // Ojo con el orden: estas filas se escapan, así que el enlace de contacto
     // va aparte, más abajo.
-    ['Importe', formatPrice(b.priceCents)],
+    ['Importe', formatPrice(b.priceCents, idioma)],
     ['Código', b.code],
   ]
 
@@ -160,6 +193,7 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
     tag: 'reserva-negocio',
     ...(b.customerEmail ? { replyTo: { email: b.customerEmail, name: b.customerName } } : {}),
     html: layout({
+      idioma,
       preheader: `${b.customerName} ha reservado para el ${cuando}`,
       heading: 'Tienes una cita nueva',
       intro: `<strong style="color:${INK};">${esc(b.customerName)}</strong> acaba de reservar en ${esc(b.businessName)}.`,
@@ -201,7 +235,10 @@ export function bookingCancelled(
   to: { email: string; name: string },
   audience: 'cliente' | 'negocio',
 ): MailMessage {
-  const cuando = `${capitalizar(formatLongDate(b.startsAt))} a las ${hora(b.startsAt)}`
+  /* La única plantilla que sirve a los dos, y por eso la que más fácil se
+     equivoca: el idioma sale de a quién se le escribe, no de la reserva. */
+  const idioma = audience === 'cliente' ? idiomaParaCliente(b) : idiomaParaNegocio()
+  const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
     ['Era el', cuando],
@@ -220,6 +257,7 @@ export function bookingCancelled(
     subject: `Cita cancelada: ${b.serviceName} — ${cuando}`,
     tag: 'reserva-cancelada',
     html: layout({
+      idioma,
       preheader: `La cita del ${cuando} se ha cancelado`,
       heading: 'Cita cancelada',
       intro:
@@ -251,7 +289,8 @@ export function bookingCancelled(
 /* ── 4. Recordatorio de la cita ───────────────────────────────── */
 
 export function bookingReminderMail(b: BookingMailData): MailMessage {
-  const cuando = `${capitalizar(formatLongDate(b.startsAt))} a las ${hora(b.startsAt)}`
+  const idioma = idiomaParaCliente(b)
+  const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
     ['Cuándo', cuando],
@@ -266,6 +305,7 @@ export function bookingReminderMail(b: BookingMailData): MailMessage {
     subject: `Mañana tienes cita en ${b.businessName}`,
     tag: 'recordatorio',
     html: layout({
+      idioma,
       preheader: `${cuando} en ${b.businessName}`,
       heading: 'Te esperamos mañana',
       intro: `Hola ${esc(b.customerName.split(' ')[0])}, un recordatorio de tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
@@ -288,14 +328,17 @@ export function bookingReminderMail(b: BookingMailData): MailMessage {
 
 export function reviewRequestMail(
   to: { email: string; name: string },
-  ctx: { businessName: string; serviceName: string; url: string },
+  ctx: { businessName: string; serviceName: string; url: string; idiomaCliente: Idioma },
 ): MailMessage {
+  const idioma = idiomaParaCliente(ctx)
+
   return {
     to: to.email,
     toName: to.name,
     subject: `¿Qué tal fue en ${ctx.businessName}?`,
     tag: 'resena',
     html: layout({
+      idioma,
       preheader: `Cuéntanos cómo fue tu ${ctx.serviceName}`,
       heading: '¿Cómo fue?',
       intro: `Hola ${esc(to.name.split(' ')[0])}, estuviste en <strong style="color:${INK};">${esc(ctx.businessName)}</strong>. Si te apetece, cuéntalo en medio minuto.`,
@@ -324,6 +367,8 @@ export function passwordResetMail(to: { email: string; name: string }, url: stri
     subject: 'Restablecer tu contraseña de Veline',
     tag: 'restablecer-contrasena',
     html: layout({
+      // Lo lee alguien del panel, no un cliente: idioma del negocio.
+      idioma: idiomaParaNegocio(),
       preheader: 'Enlace para elegir una contraseña nueva',
       heading: 'Restablecer tu contraseña',
       intro: `Hola ${esc(to.name.split(' ')[0])}, hemos recibido una petición para cambiar la contraseña de tu panel.`,
@@ -358,6 +403,11 @@ export function signupVerifyMail(
     subject: 'Confirma tu correo para entrar en Veline',
     tag: 'alta-verificar',
     html: layout({
+      /* Quien se da de alta puede haber rellenado el formulario en inglés,
+         pero no guardamos su idioma en ningún sitio —el negocio no tiene
+         columna para eso—, así que va en castellano. Está anotado en el
+         informe de la fase 3. */
+      idioma: idiomaParaNegocio(),
       preheader: `Un clic y ya puedes preparar la ficha de ${ctx.businessName}`,
       heading: 'Confirma tu correo',
       intro: `Hola ${esc(to.name.split(' ')[0])}, ya casi está. Has dado de alta <strong style="color:${INK};">${esc(ctx.businessName)}</strong> en Veline.`,

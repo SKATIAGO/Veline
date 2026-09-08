@@ -13,6 +13,7 @@ import { getSessionUser } from '../auth/sessions.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { sendMail, sendMailSafely } from '../mail/enviar.js'
 import { registrarEnvio } from '../mail/contador.js'
+import { idiomaDeLaReserva } from '../mail/idioma.js'
 import {
   bookingCancelled,
   bookingConfirmedToCustomer,
@@ -50,6 +51,7 @@ type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclude }>
 
 /** Datos que necesitan las plantillas de correo. */
 const toMailData = (b: BookingRow): BookingMailData => ({
+  idiomaCliente: idiomaDeLaReserva(b.idioma),
   code: b.code,
   startsAt: b.startsAt,
   priceCents: b.priceCents,
@@ -230,6 +232,9 @@ export async function bookingRoutes(app: FastifyInstance) {
               priceCents: service.priceCents,
               notes: input.notes || null,
               source: input.source,
+              // En qué idioma estaba mirando la web quien reservó. De aquí
+              // saldrán SUS avisos, no los del negocio.
+              idioma: input.idioma === 'en' ? 'EN' : 'ES',
               isFirstFromMarketplace,
               commissionCents,
             },

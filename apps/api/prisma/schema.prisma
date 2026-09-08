@@ -41,6 +41,17 @@ enum BookingStatus {
   NO_ASISTIO
 }
 
+/// En qué idioma se le escribe a alguien.
+///
+/// Vive en la reserva y no en el cliente: es el idioma en el que esa persona
+/// estaba mirando la web cuando reservó, que es el dato que de verdad
+/// tenemos. Un mismo teléfono puede reservar un día en castellano y otro en
+/// inglés, y cada cita se responde como se pidió.
+enum Idioma {
+  ES
+  EN
+}
+
 /// De dónde viene la reserva. Determina si se cobra la comisión del 15%.
 enum BookingSource {
   MARKETPLACE
@@ -212,6 +223,13 @@ model Booking {
   status     BookingStatus @default(CONFIRMADA)
   priceCents Int
   notes      String?
+
+  /// Idioma en el que reservó el cliente. De aquí salen SUS avisos —la
+  /// confirmación, el recordatorio, la reseña—, no los del negocio: esos van
+  /// en el idioma del negocio, que es otra cosa.
+  ///
+  /// Las reservas de antes se quedan en ES, que es como se hicieron.
+  idioma     Idioma        @default(ES)
 
   // ── Atribución: de esto depende la comisión del 15% ──
   source                 BookingSource @default(MARKETPLACE)

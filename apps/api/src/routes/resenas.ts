@@ -8,6 +8,7 @@ import { audit } from '../audit/log.js'
 import { sendMail } from '../mail/enviar.js'
 import { registrarEnvio } from '../mail/contador.js'
 import { reviewRequestMail } from '../mail/templates.js'
+import { idiomaDeLaReserva } from '../mail/idioma.js'
 
 /**
  * Reseñas de verdad.
@@ -80,7 +81,12 @@ export async function pedirResena(bookingId: string) {
     const r = await sendMail(
       reviewRequestMail(
         { email: cita.customer.email, name: cita.customer.name },
-        { businessName: cita.business.name, serviceName: cita.service.name, url },
+        {
+          businessName: cita.business.name,
+          serviceName: cita.service.name,
+          url,
+          idiomaCliente: idiomaDeLaReserva(cita.idioma),
+        },
       ),
     ).catch((err) => ({ sent: false as const, reason: (err as Error).message }))
 
