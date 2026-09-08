@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatMinutes, WEEKDAYS_LONG } from '@veline/shared'
+import { formatMinutes, weekdayLong } from '@veline/shared'
 import { api } from '../../lib/api'
 import {
   Button,
@@ -15,6 +15,7 @@ import {
   SuccessNote,
   cx,
 } from '../../components/ui'
+import { useIdioma, usePlural } from '../../i18n/idioma'
 
 interface Range {
   startMin: number
@@ -33,6 +34,8 @@ const MANANA: Range = { startMin: 9 * 60, endMin: 14 * 60 }
 const TARDE: Range = { startMin: 16 * 60, endMin: 20 * 60 }
 
 export function PanelHours() {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
   const [week, setWeek] = useState<Record<number, Range[]>>({})
@@ -109,7 +112,7 @@ export function PanelHours() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Horario de atención" />
+        <PageHeader title={t('hor.titulo')} />
         <Card className="flex flex-col gap-3 p-5">
           {ORDER.map((wd) => (
             <Skeleton key={wd} className="h-12" />
@@ -125,31 +128,29 @@ export function PanelHours() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Horario de atención"
-        hint={`Abierto ${diasAbiertos} ${diasAbiertos === 1 ? 'día' : 'días'} a la semana`}
+        title={t('hor.titulo')}
+        hint={plural(diasAbiertos, 'hor.abiertoUnDia', 'hor.abiertoVariosDias')}
         actions={
           <>
-            {dirty && <span className="text-meta text-muted">Cambios sin guardar</span>}
+            {dirty && <span className="text-meta text-muted">{t('hor.sinGuardar')}</span>}
             <Button
               onClick={() => save.mutate()}
               disabled={!dirty || invalid}
               loading={save.isPending}
             >
-              Guardar horario
+              {t('hor.guardar')}
             </Button>
           </>
         }
       />
 
-      {invalid && (
-        <ErrorNote>Alguna franja termina antes de empezar. Revísala antes de guardar.</ErrorNote>
-      )}
+      {invalid && <ErrorNote>{t('hor.franjaInvalida')}</ErrorNote>}
       {save.isError && <ErrorNote>{(save.error as Error).message}</ErrorNote>}
-      {save.isSuccess && !dirty && <SuccessNote>Horario guardado.</SuccessNote>}
+      {save.isSuccess && !dirty && <SuccessNote>{t('hor.guardado')}</SuccessNote>}
 
       {varios && (
         <label className="flex max-w-xs flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">Local</span>
+          <span className="text-meta font-semibold text-body-2">{t('hor.local')}</span>
           <Select
             value={localActual}
             onChange={(e) => {
@@ -179,9 +180,9 @@ export function PanelHours() {
               >
                 <div className="flex w-[104px] shrink-0 flex-col">
                   <span className="text-ui font-semibold text-ink capitalize">
-                    {WEEKDAYS_LONG[wd]}
+                    {weekdayLong(wd, idioma)}
                   </span>
-                  {cerrado && <span className="text-meta text-disabled">Cerrado</span>}
+                  {cerrado && <span className="text-meta text-disabled">{t('comun.cerrado')}</span>}
                 </div>
 
                 <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-2">
@@ -190,7 +191,10 @@ export function PanelHours() {
                       <Input
                         type="time"
                         step={900}
-                        aria-label={`${WEEKDAYS_LONG[wd]}: inicio de la franja ${i + 1}`}
+                        aria-label={t('hor.inicioFranja', {
+                          dia: weekdayLong(wd, idioma),
+                          n: i + 1,
+                        })}
                         value={formatMinutes(r.startMin)}
                         invalid={r.endMin <= r.startMin}
                         onChange={(e) =>
@@ -209,7 +213,7 @@ export function PanelHours() {
                       <Input
                         type="time"
                         step={900}
-                        aria-label={`${WEEKDAYS_LONG[wd]}: fin de la franja ${i + 1}`}
+                        aria-label={t('hor.finFranja', { dia: weekdayLong(wd, idioma), n: i + 1 })}
                         value={formatMinutes(r.endMin)}
                         invalid={r.endMin <= r.startMin}
                         onChange={(e) =>
@@ -223,7 +227,7 @@ export function PanelHours() {
                         className="w-[116px] px-2.5"
                       />
                       <IconButton
-                        label={`Quitar la franja ${i + 1} del ${WEEKDAYS_LONG[wd]}`}
+                        label={t('hor.quitarFranja', { n: i + 1, dia: weekdayLong(wd, idioma) })}
                         onClick={() =>
                           mutate(
                             wd,
@@ -246,11 +250,11 @@ export function PanelHours() {
                     variant="quiet"
                     onClick={() => mutate(wd, [...ranges, ranges.length ? TARDE : MANANA])}
                   >
-                    + Franja
+                    {t('hor.anadirFranja')}
                   </Button>
                   {!cerrado && wd >= 1 && wd <= 5 && (
                     <Button size="sm" variant="quiet" onClick={() => copiarALaborables(wd)}>
-                      Copiar a L–V
+                      {t('hor.copiarLV')}
                     </Button>
                   )}
                 </div>
@@ -260,10 +264,7 @@ export function PanelHours() {
         </ul>
       </Card>
 
-      <p className="text-meta text-subtle">
-        Varias franjas en un mismo día sirven para la jornada partida. Los huecos se ofrecen cada 30
-        minutos dentro de cada franja. Un día sin franjas es un día cerrado.
-      </p>
+      <p className="text-meta text-subtle">{t('hor.aviso')}</p>
     </div>
   )
 }

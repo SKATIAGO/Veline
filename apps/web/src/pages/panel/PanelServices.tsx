@@ -16,6 +16,7 @@ import {
   Textarea,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 interface Draft {
   name: string
@@ -36,16 +37,17 @@ const emptyDraft: Draft = {
 /** "59,50" o "59.50" → 5950 céntimos */
 const toCents = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
 
-/** Qué impide guardar. Se comprueba aquí para poder decirlo antes de enviar. */
-function validar(d: Draft): string | null {
-  if (d.name.trim().length < 2) return 'Ponle un nombre al servicio.'
+/** Qué impide guardar. Devuelve la clave del aviso, no el aviso: quien lo
+    pinta sabe en qué idioma está mirando; esta función, no. */
+function validar(d: Draft): Clave | null {
+  if (d.name.trim().length < 2) return 'serv.errNombre'
   const dur = Number(d.durationMin)
-  if (!Number.isFinite(dur) || dur < 5) return 'La duración mínima es de 5 minutos.'
-  if (dur > 480) return 'La duración no puede pasar de 8 horas.'
+  if (!Number.isFinite(dur) || dur < 5) return 'serv.errDuracionMin'
+  if (dur > 480) return 'serv.errDuracionMax'
   const margen = Number(d.bufferMin || 0)
-  if (!Number.isFinite(margen) || margen < 0) return 'El margen no puede ser negativo.'
+  if (!Number.isFinite(margen) || margen < 0) return 'serv.errMargen'
   const cents = toCents(d.price || '0')
-  if (!Number.isFinite(cents) || cents < 0) return 'El precio no es un número válido.'
+  if (!Number.isFinite(cents) || cents < 0) return 'serv.errPrecio'
   return null
 }
 
@@ -66,6 +68,7 @@ function ServiceForm({
   pending: boolean
   error?: string | null
 }) {
+  const { t } = useIdioma()
   const id = useId()
   // Se avisa al intentar guardar, no mientras se escribe: corregir a alguien
   // en mitad de una palabra es molesto y no ayuda.
@@ -82,16 +85,21 @@ function ServiceForm({
       className="flex flex-col gap-4"
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Nombre" htmlFor={`${id}-name`} required className="sm:col-span-2">
+        <Field label={t('serv.nombre')} htmlFor={`${id}-name`} required className="sm:col-span-2">
           <Input
             id={`${id}-name`}
-            placeholder="Corte de pelo"
+            placeholder={t('serv.nombreEjemplo')}
             value={draft.name}
             autoComplete="off"
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           />
         </Field>
-        <Field label="Duración" htmlFor={`${id}-dur`} hint="En minutos" required>
+        <Field
+          label={t('serv.duracion')}
+          htmlFor={`${id}-dur`}
+          hint={t('serv.duracionPista')}
+          required
+        >
           <Input
             id={`${id}-dur`}
             inputMode="numeric"
@@ -100,19 +108,24 @@ function ServiceForm({
             onChange={(e) => setDraft({ ...draft, durationMin: e.target.value })}
           />
         </Field>
-        <Field label="Precio" htmlFor={`${id}-price`} hint="En euros" required>
+        <Field
+          label={t('serv.precio')}
+          htmlFor={`${id}-price`}
+          hint={t('serv.precioPista')}
+          required
+        >
           <Input
             id={`${id}-price`}
             inputMode="decimal"
-            placeholder="25,00"
+            placeholder={t('serv.precioEjemplo')}
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
           />
         </Field>
         <Field
-          label="Margen"
+          label={t('serv.margen')}
           htmlFor={`${id}-buffer`}
-          hint="Minutos que se bloquean después"
+          hint={t('serv.margenPista')}
           className="sm:col-span-1"
         >
           <Input
@@ -124,23 +137,23 @@ function ServiceForm({
           />
         </Field>
         <Field
-          label="Descripción"
+          label={t('serv.descripcion')}
           htmlFor={`${id}-desc`}
-          hint="Se muestra al cliente al elegir el servicio"
+          hint={t('serv.descripcionPista')}
           className="sm:col-span-2 lg:col-span-3"
         >
           <Textarea
             id={`${id}-desc`}
             rows={2}
             maxLength={300}
-            placeholder="Lavado, corte y peinado."
+            placeholder={t('serv.descripcionEjemplo')}
             value={draft.description}
             onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           />
         </Field>
       </div>
 
-      {tocado && problema && <ErrorNote>{problema}</ErrorNote>}
+      {tocado && problema && <ErrorNote>{t(problema)}</ErrorNote>}
       {error && <ErrorNote>{error}</ErrorNote>}
 
       <div className="flex flex-wrap gap-2">
@@ -149,7 +162,7 @@ function ServiceForm({
         </Button>
         {onCancel && (
           <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancelar
+            {t('serv.cancelar')}
           </Button>
         )}
       </div>
@@ -158,6 +171,8 @@ function ServiceForm({
 }
 
 export function PanelServices() {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
   const [creating, setCreating] = useState(false)
@@ -229,18 +244,21 @@ export function PanelServices() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Servicios"
+        title={t('panel.servicios')}
         hint={
           services
-            ? `${activos} ${activos === 1 ? 'activo' : 'activos'}${
-                services.length > activos ? ` · ${services.length - activos} sin publicar` : ''
-              }`
+            ? [
+                plural(activos, 'serv.unoActivo', 'serv.variosActivos'),
+                ...(services.length > activos
+                  ? [t('serv.sinPublicarCuenta', { n: services.length - activos })]
+                  : []),
+              ].join(' · ')
             : undefined
         }
         actions={
           !creating && (
             <Button onClick={() => setCreating(true)}>
-              <span aria-hidden>+</span> Añadir servicio
+              <span aria-hidden>+</span> {t('serv.anadir')}
             </Button>
           )
         }
@@ -248,7 +266,7 @@ export function PanelServices() {
 
       {creating && (
         <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">Nuevo servicio</h2>
+          <h2 className="mb-4 text-ui font-semibold text-ink">{t('serv.nuevo')}</h2>
           <ServiceForm
             draft={draft}
             setDraft={setDraft}
@@ -257,7 +275,7 @@ export function PanelServices() {
               setCreating(false)
               setDraft(emptyDraft)
             }}
-            submitLabel="Guardar servicio"
+            submitLabel={t('serv.guardar')}
             pending={create.isPending}
             error={create.isError ? (create.error as Error).message : null}
           />
@@ -272,9 +290,13 @@ export function PanelServices() {
         </Card>
       ) : !services?.length ? (
         <EmptyState
-          title="Todavía no hay servicios"
-          hint="Un negocio sin servicios no puede recibir reservas: es lo primero que elige el cliente."
-          action={!creating && <Button onClick={() => setCreating(true)}>Añadir el primero</Button>}
+          title={t('serv.todaviaNoHay')}
+          hint={t('serv.todaviaNoHayPista')}
+          action={
+            !creating && (
+              <Button onClick={() => setCreating(true)}>{t('serv.anadirPrimero')}</Button>
+            )
+          }
         />
       ) : (
         <Card className="overflow-hidden">
@@ -288,7 +310,7 @@ export function PanelServices() {
                       setDraft={setEditDraft}
                       onSubmit={() => update.mutate(s.id)}
                       onCancel={() => setEditingId(null)}
-                      submitLabel="Guardar cambios"
+                      submitLabel={t('serv.guardarCambios')}
                       pending={update.isPending}
                       error={update.isError ? (update.error as Error).message : null}
                     />
@@ -298,11 +320,11 @@ export function PanelServices() {
                     <div className={cx('min-w-[200px] flex-1', !s.active && 'opacity-55')}>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-ui font-semibold text-ink">{s.name}</span>
-                        {!s.active && <Badge tone="off">Sin publicar</Badge>}
+                        {!s.active && <Badge tone="off">{t('serv.sinPublicar')}</Badge>}
                       </div>
                       <p className="mt-0.5 text-meta text-muted">
-                        {formatDuration(s.durationMin)}
-                        {s.bufferMin > 0 && ` + ${s.bufferMin} min de margen`}
+                        {formatDuration(s.durationMin, idioma)}
+                        {s.bufferMin > 0 && ` ${t('serv.masMargen', { n: s.bufferMin })}`}
                       </p>
                       {s.description && (
                         <p className="mt-1 line-clamp-1 text-meta text-subtle">{s.description}</p>
@@ -315,12 +337,12 @@ export function PanelServices() {
                         !s.active && 'opacity-55',
                       )}
                     >
-                      {formatPrice(s.priceCents)}
+                      {formatPrice(s.priceCents, idioma)}
                     </div>
 
                     <div className="flex gap-1">
                       <Button size="sm" variant="quiet" onClick={() => startEdit(s)}>
-                        Editar
+                        {t('serv.editar')}
                       </Button>
                       <Button
                         size="sm"
@@ -328,7 +350,7 @@ export function PanelServices() {
                         loading={toggle.isPending && toggle.variables?.id === s.id}
                         onClick={() => toggle.mutate({ id: s.id, active: !s.active })}
                       >
-                        {s.active ? 'Ocultar' : 'Publicar'}
+                        {s.active ? t('serv.ocultar') : t('serv.publicar')}
                       </Button>
                     </div>
                   </div>
@@ -342,11 +364,15 @@ export function PanelServices() {
       {toggle.isError && <ErrorNote>{(toggle.error as Error).message}</ErrorNote>}
 
       <p className="text-meta text-subtle">
-        <strong className="font-semibold text-body-2">Ocultar</strong> no borra nada: el servicio
-        deja de ofrecerse pero las citas ya reservadas siguen en pie. El{' '}
-        <strong className="font-semibold text-body-2">margen</strong> es el tiempo que se bloquea
-        después de cada cita (limpieza, papeleo…). No se le muestra al cliente, pero sí se descuenta
-        de los huecos disponibles.
+        <Texto
+          clave="serv.aviso"
+          partes={{
+            ocultar: (
+              <strong className="font-semibold text-body-2">{t('serv.avisoOcultar')}</strong>
+            ),
+            margen: <strong className="font-semibold text-body-2">{t('serv.avisoMargen')}</strong>,
+          }}
+        />
       </p>
     </div>
   )

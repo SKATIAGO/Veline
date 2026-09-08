@@ -13,6 +13,7 @@ import {
   PageHeader,
   Skeleton,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
 /**
  * Los locales del negocio.
@@ -40,19 +41,20 @@ function Formulario({
   onGuardar: (d: typeof vacio) => void
   onCancelar: () => void
 }) {
+  const { t } = useIdioma()
   const id = useId()
   const [form, setForm] = useState(inicial)
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }))
 
   const problema =
     form.name.trim().length < 2
-      ? 'Ponle un nombre al local.'
+      ? t('loc.errNombre')
       : form.street.trim().length < 3
-        ? 'Falta la calle.'
+        ? t('loc.errCalle')
         : form.city.trim().length < 2
-          ? 'Falta la ciudad.'
+          ? t('loc.errCiudad')
           : !/^\d{5}$/.test(form.postalCode.trim())
-            ? 'El código postal son 5 cifras.'
+            ? t('loc.errCp')
             : null
 
   return (
@@ -66,36 +68,31 @@ function Formulario({
         className="flex flex-col gap-4"
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Nombre"
-            htmlFor={`${id}-n`}
-            hint="Como lo llamáis vosotros: Centro, Sur…"
-            required
-          >
+          <Field label={t('loc.nombre')} htmlFor={`${id}-n`} hint={t('loc.nombrePista')} required>
             <Input
               id={`${id}-n`}
-              placeholder="Taller Sur"
+              placeholder={t('loc.nombreEjemplo')}
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
             />
           </Field>
-          <Field label="Calle y número" htmlFor={`${id}-c`} required>
+          <Field label={t('loc.calle')} htmlFor={`${id}-c`} required>
             <Input
               id={`${id}-c`}
-              placeholder="Avenida del Sur, 44"
+              placeholder={t('loc.calleEjemplo')}
               value={form.street}
               onChange={(e) => set('street', e.target.value)}
             />
           </Field>
-          <Field label="Ciudad" htmlFor={`${id}-ci`} required>
+          <Field label={t('loc.ciudad')} htmlFor={`${id}-ci`} required>
             <Input
               id={`${id}-ci`}
-              placeholder="Madrid"
+              placeholder={t('loc.ciudadEjemplo')}
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
             />
           </Field>
-          <Field label="Código postal" htmlFor={`${id}-cp`} required>
+          <Field label={t('loc.cp')} htmlFor={`${id}-cp`} required>
             <Input
               id={`${id}-cp`}
               inputMode="numeric"
@@ -111,10 +108,10 @@ function Formulario({
 
         <div className="flex flex-wrap items-center gap-2">
           <Button type="submit" loading={enviando} disabled={!!problema}>
-            Guardar
+            {t('loc.guardar')}
           </Button>
           <Button type="button" variant="secondary" onClick={onCancelar}>
-            Cancelar
+            {t('loc.cancelar')}
           </Button>
           {problema && <span className="text-meta text-muted">{problema}</span>}
         </div>
@@ -124,6 +121,8 @@ function Formulario({
 }
 
 export function PanelLocales() {
+  const { t } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
   const [creando, setCreando] = useState(false)
@@ -161,25 +160,23 @@ export function PanelLocales() {
     onSuccess: refrescar,
   })
 
-  const mensaje = (e: unknown) => (e instanceof ApiError ? e.message : 'No se ha podido guardar')
+  const mensaje = (e: unknown) => (e instanceof ApiError ? e.message : t('loc.noSePudoGuardar'))
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Locales"
-        hint={
-          locales ? `${locales.length} ${locales.length === 1 ? 'local' : 'locales'}` : undefined
-        }
+        title={t('panel.locales')}
+        hint={locales ? plural(locales.length, 'loc.unLocal', 'loc.variosLocales') : undefined}
         actions={
           !creando &&
-          !editando && <Button onClick={() => setCreando(true)}>+ Abrir un local</Button>
+          !editando && <Button onClick={() => setCreando(true)}>{t('loc.abrir')}</Button>
         }
       />
 
       {creando && (
         <Formulario
           inicial={vacio}
-          titulo="Nuevo local"
+          titulo={t('loc.nuevo')}
           enviando={crear.isPending}
           error={crear.isError ? mensaje(crear.error) : null}
           onGuardar={(d) => crear.mutate(d)}
@@ -195,7 +192,7 @@ export function PanelLocales() {
             city: editando.city,
             postalCode: editando.postalCode,
           }}
-          titulo={`Editar «${editando.name}»`}
+          titulo={t('loc.editarComillas', { nombre: editando.name })}
           enviando={editar.isPending}
           error={editar.isError ? mensaje(editar.error) : null}
           onGuardar={(d) => editar.mutate(d)}
@@ -218,8 +215,8 @@ export function PanelLocales() {
               // Un local sin horario o sin nadie que atienda no ofrece huecos:
               // existe, pero no se puede reservar en él.
               const falta = [
-                !l.tieneHorario && 'horario',
-                l.personas === 0 && 'personas que atiendan',
+                !l.tieneHorario && t('loc.faltaHorario'),
+                l.personas === 0 && t('loc.faltaPersonas'),
               ].filter(Boolean)
 
               return (
@@ -230,22 +227,22 @@ export function PanelLocales() {
                   <div className="min-w-[200px] flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-ui font-semibold text-ink">{l.name}</span>
-                      {falta.length > 0 && <Badge tone="warn">No acepta reservas</Badge>}
+                      {falta.length > 0 && <Badge tone="warn">{t('loc.noAceptaReservas')}</Badge>}
                     </div>
                     <p className="mt-0.5 text-meta text-muted">
                       {l.street}, {l.postalCode} {l.city}
                     </p>
                     {falta.length > 0 && (
                       <p className="mt-1 text-meta text-brand-text">
-                        Le falta {falta.join(' y ')}.
+                        {t('loc.leFalta', { que: falta.join(t('loc.y')) })}
                       </p>
                     )}
                   </div>
 
                   <dl className="flex gap-5 text-meta text-muted">
                     {[
-                      ['Personas', l.personas],
-                      ['Citas', l.citas],
+                      [t('loc.personas'), l.personas],
+                      [t('loc.citas'), l.citas],
                     ].map(([et, n]) => (
                       <div key={et as string}>
                         <dt className="text-caption">{et}</dt>
@@ -256,13 +253,13 @@ export function PanelLocales() {
 
                   <div className="ml-auto flex gap-1 sm:ml-0">
                     <Button size="sm" variant="quiet" onClick={() => setEditando(l)}>
-                      Editar
+                      {t('loc.editar')}
                     </Button>
                     {(locales ?? []).length > 1 && (
                       <ConfirmAction
-                        label="Cerrar"
-                        question={`¿Cerrar «${l.name}»?`}
-                        confirmLabel="Sí, cerrar"
+                        label={t('loc.cerrar')}
+                        question={t('loc.cerrarPregunta', { nombre: l.name })}
+                        confirmLabel={t('loc.siCerrar')}
                         loading={cerrar.isPending && cerrar.variables === l.id}
                         onConfirm={() => cerrar.mutate(l.id)}
                       />
@@ -276,23 +273,27 @@ export function PanelLocales() {
       )}
 
       <p className="text-meta text-subtle">
-        Cada local tiene su propio{' '}
-        <Link
-          to={`/panel/${slug}/horario`}
-          className="font-semibold text-brand-text hover:underline"
-        >
-          horario
-        </Link>{' '}
-        y sus propias{' '}
-        <Link
-          to={`/panel/${slug}/personas`}
-          className="font-semibold text-brand-text hover:underline"
-        >
-          personas
-        </Link>
-        , así que un local recién abierto no ofrece huecos hasta que le pongas las dos cosas. Una
-        persona sin local asignado atiende en todos. Un local con citas no se puede cerrar: primero
-        hay que moverlas o cancelarlas.
+        <Texto
+          clave="loc.aviso"
+          partes={{
+            horario: (
+              <Link
+                to={`/panel/${slug}/horario`}
+                className="font-semibold text-brand-text hover:underline"
+              >
+                {t('loc.avisoHorario')}
+              </Link>
+            ),
+            personas: (
+              <Link
+                to={`/panel/${slug}/personas`}
+                className="font-semibold text-brand-text hover:underline"
+              >
+                {t('loc.avisoPersonas')}
+              </Link>
+            ),
+          }}
+        />
       </p>
     </div>
   )

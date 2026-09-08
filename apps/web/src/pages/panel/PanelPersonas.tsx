@@ -16,6 +16,7 @@ import {
   Skeleton,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
 /**
  * Las personas que atienden las citas.
@@ -26,6 +27,8 @@ import {
  * Esto es además lo que se cuenta para la cuota: el plan Negocio incluye dos.
  */
 export function PanelPersonas() {
+  const { t } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
   const id = useId()
@@ -83,12 +86,15 @@ export function PanelPersonas() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Personas"
+        title={t('panel.personas')}
         hint={
           personas
-            ? `${activas} ${activas === 1 ? 'atiende' : 'atienden'} citas${
-                personas.length > activas ? ` · ${personas.length - activas} de baja` : ''
-              }`
+            ? [
+                plural(activas, 'pers.unaAtiende', 'pers.variasAtienden'),
+                ...(personas.length > activas
+                  ? [t('pers.deBajaCuenta', { n: personas.length - activas })]
+                  : []),
+              ].join(' · ')
             : undefined
         }
       />
@@ -102,27 +108,27 @@ export function PanelPersonas() {
           className="flex flex-col gap-4 sm:flex-row sm:items-end"
         >
           <Field
-            label="Añadir una persona"
+            label={t('pers.anadirUna')}
             htmlFor={`${id}-nueva`}
-            hint="El nombre que verá el cliente al reservar"
+            hint={t('pers.anadirPista')}
             className="flex-1"
           >
             <Input
               id={`${id}-nueva`}
-              placeholder="Marta Gil"
+              placeholder={t('pers.nombreEjemplo')}
               autoComplete="off"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
           </Field>
           {varios && (
-            <Field label="Dónde atiende" htmlFor={`${id}-local`} className="sm:w-[220px]">
+            <Field label={t('pers.dondeAtiende')} htmlFor={`${id}-local`} className="sm:w-[220px]">
               <Select
                 id={`${id}-local`}
                 value={localNuevo}
                 onChange={(e) => setLocalNuevo(e.target.value)}
               >
-                <option value="">En todos</option>
+                <option value="">{t('pers.enTodos')}</option>
                 {locales?.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.name}
@@ -132,13 +138,13 @@ export function PanelPersonas() {
             </Field>
           )}
           <Button type="submit" loading={crear.isPending} disabled={nombre.trim().length < 2}>
-            Añadir
+            {t('pers.anadir')}
           </Button>
         </form>
         {crear.isError && (
           <div className="mt-4">
             <ErrorNote>
-              {crear.error instanceof ApiError ? crear.error.message : 'No se ha podido añadir'}
+              {crear.error instanceof ApiError ? crear.error.message : t('pers.noSePudoAnadir')}
             </ErrorNote>
           </div>
         )}
@@ -148,7 +154,7 @@ export function PanelPersonas() {
         <ErrorNote>
           {cambiarEstado.error instanceof ApiError
             ? cambiarEstado.error.message
-            : 'No se ha podido cambiar'}
+            : t('pers.noSePudoCambiar')}
         </ErrorNote>
       )}
 
@@ -159,10 +165,7 @@ export function PanelPersonas() {
           ))}
         </Card>
       ) : !personas?.length ? (
-        <EmptyState
-          title="Todavía no hay nadie que atienda"
-          hint="Sin al menos una persona no se pueden repartir las citas: el buscador no ofrecerá ningún hueco."
-        />
+        <EmptyState title={t('pers.todaviaNadie')} hint={t('pers.todaviaNadiePista')} />
       ) : (
         <Card className="overflow-hidden">
           <ul>
@@ -192,12 +195,12 @@ export function PanelPersonas() {
                     <Input
                       value={nombreEdit}
                       onChange={(e) => setNombreEdit(e.target.value)}
-                      aria-label={`Nuevo nombre para ${p.name}`}
+                      aria-label={t('pers.nuevoNombre', { nombre: p.name })}
                       className="max-w-xs flex-1"
                       autoFocus
                     />
                     <Button type="submit" size="sm" loading={renombrar.isPending}>
-                      Guardar
+                      {t('pers.guardar')}
                     </Button>
                     <Button
                       type="button"
@@ -205,7 +208,7 @@ export function PanelPersonas() {
                       variant="quiet"
                       onClick={() => setEditando(null)}
                     >
-                      Cancelar
+                      {t('pers.cancelar')}
                     </Button>
                   </form>
                 ) : (
@@ -213,19 +216,23 @@ export function PanelPersonas() {
                     <div className={cx('min-w-[160px] flex-1', !p.active && 'opacity-60')}>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-ui font-semibold text-ink">{p.name}</span>
-                        {!p.active && <Badge tone="off">De baja</Badge>}
+                        {!p.active && <Badge tone="off">{t('pers.deBaja')}</Badge>}
                       </div>
                       <p className="mt-0.5 text-meta text-muted">
                         {varios && (
                           <>
                             {locales?.find((l) => l.id === p.locationId)?.name ??
-                              'En todos los locales'}
+                              t('pers.enTodosLosLocales')}
                             {' · '}
                           </>
                         )}
                         {p.upcomingBookings
-                          ? `${p.upcomingBookings} ${p.upcomingBookings === 1 ? 'cita' : 'citas'} por delante`
-                          : 'Sin citas pendientes'}
+                          ? plural(
+                              p.upcomingBookings,
+                              'pers.unaCitaPorDelante',
+                              'pers.variasCitasPorDelante',
+                            )
+                          : t('pers.sinCitasPendientes')}
                       </p>
                     </div>
 
@@ -238,12 +245,12 @@ export function PanelPersonas() {
                           setNombreEdit(p.name)
                         }}
                       >
-                        Renombrar
+                        {t('pers.renombrar')}
                       </Button>
                       {p.active ? (
                         <ConfirmAction
-                          label="Dar de baja"
-                          confirmLabel="Sí, de baja"
+                          label={t('pers.darDeBaja')}
+                          confirmLabel={t('pers.siDeBaja')}
                           loading={
                             cambiarEstado.isPending && cambiarEstado.variables?.personaId === p.id
                           }
@@ -258,7 +265,7 @@ export function PanelPersonas() {
                           }
                           onClick={() => cambiarEstado.mutate({ personaId: p.id, active: true })}
                         >
-                          Volver a activar
+                          {t('pers.volverAActivar')}
                         </Button>
                       )}
                     </div>
@@ -271,12 +278,14 @@ export function PanelPersonas() {
       )}
 
       <p className="text-meta text-subtle">
-        Cada cita se asigna a una persona libre a esa hora, así que{' '}
-        <strong className="font-semibold text-body-2">
-          cuantas más personas, más citas a la vez
-        </strong>
-        . Dar de baja a alguien con citas por delante no se permite: primero hay que moverlas o
-        cancelarlas. Esto no son las cuentas para entrar al panel — eso está en Equipo.
+        <Texto
+          clave="pers.aviso"
+          partes={{
+            negrita: (
+              <strong className="font-semibold text-body-2">{t('pers.avisoNegrita')}</strong>
+            ),
+          }}
+        />
       </p>
     </div>
   )

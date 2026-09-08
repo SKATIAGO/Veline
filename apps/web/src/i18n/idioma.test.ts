@@ -39,6 +39,8 @@ describe('diccionarios', () => {
    */
   it('no hay español colado en el inglés', () => {
     const IGUALES: (keyof typeof es)[] = [
+      // Nombres propios y palabras que en inglés se escriben igual.
+
       'nav.marketplace',
       'pie.marketplace',
       'pie.contacto',
@@ -50,9 +52,15 @@ describe('diccionarios', () => {
       'confirmar.email',
       'agenda.email',
       'panel.rolSuperadmin',
-      // Los ejemplos de los campos: un nombre y un correo, no son texto.
+      'neg.email',
+      // Ejemplos de campos: un nombre propio, un correo y una dirección
+      // española. El negocio está en España aunque quien lo lleva lea en
+      // inglés, así que la calle de ejemplo sigue siendo una calle española.
       'confirmar.nombreEjemplo',
       'confirmar.emailEjemplo',
+      'pers.nombreEjemplo',
+      'loc.calleEjemplo',
+      'loc.ciudadEjemplo',
     ]
     const sospechosas = claves.filter(
       (c) => en[c] === es[c] && !IGUALES.includes(c) && /[a-zá-ú]/i.test(es[c]),

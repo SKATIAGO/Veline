@@ -16,6 +16,7 @@ import {
   SuccessNote,
   Textarea,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
 /**
  * La ficha pública del negocio y sus cierres.
@@ -28,15 +29,18 @@ import {
 
 const hoy = () => new Date().toISOString().slice(0, 10)
 
-const formatoDia = (key: string) =>
-  new Date(`${key}T00:00:00`).toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-
 export function PanelNegocio() {
+  const { t, idioma, locale } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
+
+  const formatoDia = (key: string) =>
+    new Date(`${key}T00:00:00`).toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
   const queryClient = useQueryClient()
   const id = useId()
 
@@ -109,7 +113,7 @@ export function PanelNegocio() {
   if (isLoading || !form) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="El negocio" />
+        <PageHeader title={t('panel.elNegocio')} />
         <Card className="flex flex-col gap-3 p-5">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-12" />
@@ -121,31 +125,31 @@ export function PanelNegocio() {
 
   const problema =
     form.name.trim().length < 2
-      ? 'El nombre es demasiado corto.'
+      ? t('neg.errNombre')
       : form.street.trim().length < 3
-        ? 'Falta la calle.'
+        ? t('neg.errCalle')
         : form.city.trim().length < 2
-          ? 'Falta la ciudad.'
+          ? t('neg.errCiudad')
           : !/^\d{5}$/.test(form.postalCode.trim())
-            ? 'El código postal son 5 cifras.'
+            ? t('neg.errCp')
             : form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)
-              ? 'El email no es válido.'
+              ? t('neg.errEmail')
               : null
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="El negocio"
-        hint="Lo que ve un cliente en tu ficha del marketplace."
+        title={t('panel.elNegocio')}
+        hint={t('neg.pista')}
         actions={
           <>
-            {tocado && <span className="text-meta text-muted">Cambios sin guardar</span>}
+            {tocado && <span className="text-meta text-muted">{t('neg.sinGuardar')}</span>}
             <Button
               onClick={() => guardar.mutate()}
               loading={guardar.isPending}
               disabled={!tocado || !!problema}
             >
-              Guardar
+              {t('neg.guardar')}
             </Button>
           </>
         }
@@ -153,14 +157,14 @@ export function PanelNegocio() {
 
       {guardar.isError && (
         <ErrorNote>
-          {guardar.error instanceof ApiError ? guardar.error.message : 'No se ha podido guardar'}
+          {guardar.error instanceof ApiError ? guardar.error.message : t('neg.noSePudoGuardar')}
         </ErrorNote>
       )}
-      {guardar.isSuccess && !tocado && <SuccessNote>Ficha guardada.</SuccessNote>}
+      {guardar.isSuccess && !tocado && <SuccessNote>{t('neg.guardada')}</SuccessNote>}
 
       <Card padded>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nombre" htmlFor={`${id}-name`} required>
+          <Field label={t('neg.nombre')} htmlFor={`${id}-name`} required>
             <Input
               id={`${id}-name`}
               value={form.name}
@@ -169,9 +173,9 @@ export function PanelNegocio() {
           </Field>
 
           <Field
-            label="Categoría"
+            label={t('neg.categoria')}
             htmlFor={`${id}-cat`}
-            hint="Determina en qué categoría del marketplace apareces"
+            hint={t('neg.categoriaPista')}
             required
           >
             <Select
@@ -181,16 +185,16 @@ export function PanelNegocio() {
             >
               {CATEGORIES.map((c) => (
                 <option key={c.slug} value={c.slug}>
-                  {c.label}
+                  {idioma === 'en' ? c.labelEn : c.label}
                 </option>
               ))}
             </Select>
           </Field>
 
           <Field
-            label="Descripción"
+            label={t('neg.descripcion')}
             htmlFor={`${id}-desc`}
-            hint="Un par de frases sobre el negocio"
+            hint={t('neg.descripcionPista')}
             className="sm:col-span-2"
           >
             <Textarea
@@ -202,7 +206,7 @@ export function PanelNegocio() {
             />
           </Field>
 
-          <Field label="Teléfono" htmlFor={`${id}-tel`} hint="Se muestra en la ficha">
+          <Field label={t('neg.telefono')} htmlFor={`${id}-tel`} hint={t('neg.telefonoPista')}>
             <Input
               id={`${id}-tel`}
               value={form.phone}
@@ -210,11 +214,7 @@ export function PanelNegocio() {
             />
           </Field>
 
-          <Field
-            label="Email"
-            htmlFor={`${id}-mail`}
-            hint="Aquí llegan los avisos de cita nueva y de cancelación"
-          >
+          <Field label={t('neg.email')} htmlFor={`${id}-mail`} hint={t('neg.emailPista')}>
             <Input
               id={`${id}-mail`}
               type="email"
@@ -223,7 +223,7 @@ export function PanelNegocio() {
             />
           </Field>
 
-          <Field label="Calle y número" htmlFor={`${id}-calle`} required className="sm:col-span-2">
+          <Field label={t('neg.calle')} htmlFor={`${id}-calle`} required className="sm:col-span-2">
             <Input
               id={`${id}-calle`}
               value={form.street}
@@ -231,7 +231,7 @@ export function PanelNegocio() {
             />
           </Field>
 
-          <Field label="Ciudad" htmlFor={`${id}-ciudad`} required>
+          <Field label={t('neg.ciudad')} htmlFor={`${id}-ciudad`} required>
             <Input
               id={`${id}-ciudad`}
               value={form.city}
@@ -239,7 +239,7 @@ export function PanelNegocio() {
             />
           </Field>
 
-          <Field label="Código postal" htmlFor={`${id}-cp`} required>
+          <Field label={t('neg.cp')} htmlFor={`${id}-cp`} required>
             <Input
               id={`${id}-cp`}
               inputMode="numeric"
@@ -253,19 +253,20 @@ export function PanelNegocio() {
         {problema && <p className="mt-4 text-meta text-brand-text">{problema}</p>}
 
         <p className="mt-5 border-t border-line pt-4 text-meta text-subtle">
-          La dirección web de tu ficha (
-          <strong className="font-semibold text-body-2">/{form.slug}</strong>) no cambia aunque
-          cambies el nombre: si cambiara, se romperían todos los enlaces que ya hayas compartido.
+          <Texto
+            clave="neg.direccionWeb"
+            partes={{
+              slug: <strong className="font-semibold text-body-2">/{form.slug}</strong>,
+            }}
+          />
         </p>
       </Card>
 
       <div>
         <h2 className="mb-1 font-display text-subheading font-semibold text-ink">
-          Vacaciones y festivos
+          {t('neg.vacaciones')}
         </h2>
-        <p className="mb-4 text-body text-muted">
-          Los días cerrados desaparecen del buscador: nadie podrá reservar en ellos.
-        </p>
+        <p className="mb-4 text-body text-muted">{t('neg.vacacionesPista')}</p>
 
         <Card padded>
           <form
@@ -275,7 +276,7 @@ export function PanelNegocio() {
             }}
             className="grid gap-4 sm:grid-cols-[repeat(3,1fr)_auto] sm:items-end"
           >
-            <Field label="Desde" htmlFor={`${id}-desde`} required>
+            <Field label={t('neg.desde')} htmlFor={`${id}-desde`} required>
               <Input
                 id={`${id}-desde`}
                 type="date"
@@ -287,7 +288,7 @@ export function PanelNegocio() {
                 }}
               />
             </Field>
-            <Field label="Hasta" htmlFor={`${id}-hasta`} required>
+            <Field label={t('neg.hasta')} htmlFor={`${id}-hasta`} required>
               <Input
                 id={`${id}-hasta`}
                 type="date"
@@ -297,16 +298,16 @@ export function PanelNegocio() {
                 onChange={(e) => setHasta(e.target.value)}
               />
             </Field>
-            <Field label="Motivo" htmlFor={`${id}-motivo`} hint="Opcional, solo lo ves tú">
+            <Field label={t('neg.motivo')} htmlFor={`${id}-motivo`} hint={t('neg.motivoPista')}>
               <Input
                 id={`${id}-motivo`}
-                placeholder="Vacaciones"
+                placeholder={t('neg.motivoEjemplo')}
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
               />
             </Field>
             <Button type="submit" loading={crearCierre.isPending} disabled={hasta < desde}>
-              Cerrar esos días
+              {t('neg.cerrarEsosDias')}
             </Button>
           </form>
 
@@ -315,7 +316,7 @@ export function PanelNegocio() {
               <ErrorNote>
                 {crearCierre.error instanceof ApiError
                   ? crearCierre.error.message
-                  : 'No se ha podido cerrar'}
+                  : t('neg.noSePudoCerrar')}
               </ErrorNote>
             </div>
           )}
@@ -323,11 +324,8 @@ export function PanelNegocio() {
           {crearCierre.isSuccess && crearCierre.data.affectedBookings > 0 && (
             <div className="mt-4">
               <ErrorNote>
-                Ojo: hay {crearCierre.data.affectedBookings}{' '}
-                {crearCierre.data.affectedBookings === 1
-                  ? 'cita ya reservada'
-                  : 'citas ya reservadas'}{' '}
-                dentro de esos días. No se han tocado — muévelas o cancélalas desde la agenda.
+                {plural(crearCierre.data.affectedBookings, 'neg.ojoUnaCita', 'neg.ojoVariasCitas')}{' '}
+                {t('neg.ojoCola')}
               </ErrorNote>
             </div>
           )}
@@ -345,17 +343,20 @@ export function PanelNegocio() {
                     <div className="text-ui font-semibold text-ink">
                       {c.from === c.to
                         ? formatoDia(c.from)
-                        : `Del ${formatoDia(c.from)} al ${formatoDia(c.to)}`}
+                        : t('neg.delAl', {
+                            desde: formatoDia(c.from),
+                            hasta: formatoDia(c.to),
+                          })}
                     </div>
                     <p className="mt-0.5 text-meta text-muted">
-                      {c.ids.length} {c.ids.length === 1 ? 'día' : 'días'}
+                      {plural(c.ids.length, 'neg.unDia', 'neg.variosDias')}
                       {c.reason && ` · ${c.reason}`}
                     </p>
                   </div>
                   <div className="ml-auto sm:ml-0">
                     <ConfirmAction
-                      label="Quitar"
-                      confirmLabel="Sí, abrir"
+                      label={t('neg.quitar')}
+                      confirmLabel={t('neg.siAbrir')}
                       loading={borrarCierre.isPending}
                       onConfirm={() => borrarCierre.mutate(c.ids)}
                     />
@@ -368,7 +369,7 @@ export function PanelNegocio() {
 
         {borrarCierre.isError && (
           <div className="mt-4">
-            <ErrorNote>No se ha podido quitar el cierre.</ErrorNote>
+            <ErrorNote>{t('neg.noSePudoQuitar')}</ErrorNote>
           </div>
         )}
       </div>
