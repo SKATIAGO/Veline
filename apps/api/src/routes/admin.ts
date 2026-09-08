@@ -8,19 +8,12 @@ import { audit } from '../audit/log.js'
 import { hashPassword } from '../auth/passwords.js'
 import { canManagePlatform } from '../auth/permissions.js'
 import { requireUser } from '../auth/sessions.js'
+import { slugLibre } from '../slug.js'
 
 /**
  * Gestión de la plataforma. SOLO superadmin: dar de alta negocios, crear el
  * administrador de cada uno y ver el estado general.
  */
-
-const slugify = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
 
 const createBusinessSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -78,6 +71,7 @@ export async function adminRoutes(app: FastifyInstance) {
       counts: b._count,
       subStatus: b.subStatus,
       trialEndsAt: b.trialEndsAt?.toISOString() ?? null,
+      approvedAt: b.approvedAt?.toISOString() ?? null,
       adminNotes: b.adminNotes,
       /** Lo que costaría este mes con las personas que tiene ahora. */
       monthlyCents: cuotaMensualCents(b.plan, b._count.staff),
@@ -96,12 +90,9 @@ export async function adminRoutes(app: FastifyInstance) {
     }
     const d = parsed.data
 
-    // Slug único: si ya existe, se le añade un sufijo numérico.
-    const base = slugify(d.name)
-    if (!base) return reply.code(400).send({ error: 'El nombre no genera un identificador válido' })
-    let slug = base
-    for (let i = 2; await prisma.business.findUnique({ where: { slug } }); i++) {
-      slug = `${base}-${i}`
+    const slug = await slugLibre(d.name)
+    if (!slug) {
+      return reply.code(400).send({ error: 'El nombre no genera un identificador válido' })
     }
 
     const business = await prisma.business.create({
@@ -117,6 +108,8 @@ export async function adminRoutes(app: FastifyInstance) {
         // promete 15 días — el negocio tiene que empezar a contarlos desde
         // que se crea, no desde que alguien se acuerde de ponerlos a mano.
         trialEndsAt: new Date(Date.now() + PRUEBA_DIAS_DEFECTO * 86_400_000),
+        // Darlo de alta a mano ES la revisión: nace publicado.
+        approvedAt: new Date(),
         locations: {
           create: { street: d.street, city: d.city, postalCode: d.postalCode },
         },
@@ -302,6 +295,49 @@ export async function adminRoutes(app: FastifyInstance) {
       actor: user,
       businessId: target.businessId,
       entity: 'User',
+      entityId: id,
+    })
+
+    return { ok: true }
+  })
+
+  /**
+   * Dar por bueno un negocio que se dio de alta por su cuenta.
+   *
+   * Hace DOS cosas, y la segunda no es un descuido: publica la ficha y da por
+   * confirmado el correo de su dueño. Aprobar significa que alguien ha mirado
+   * quién es y le ha dado el visto bueno, así que exigirle además que pinche
+   * un enlace no añade seguridad — y sí lo dejaría fuera del panel si el
+   * correo nunca le llegó.
+   */
+  app.patch('/api/admin/businesses/:id/approve', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const { id } = req.params as { id: string }
+    const before = await prisma.business.findUnique({
+      where: { id },
+      select: { name: true, approvedAt: true },
+    })
+    if (!before) return reply.code(404).send({ error: 'Negocio no encontrado' })
+    if (before.approvedAt) return reply.code(409).send({ error: 'Ya estaba aprobado' })
+
+    const ahora = new Date()
+    await prisma.$transaction([
+      prisma.business.update({ where: { id }, data: { approvedAt: ahora } }),
+      prisma.user.updateMany({
+        where: { businessId: id, emailVerifiedAt: null },
+        data: { emailVerifiedAt: ahora },
+      }),
+    ])
+
+    audit(req, {
+      action: 'NEGOCIO_REACTIVADO',
+      summary: `Ha aprobado y publicado «${before.name}»`,
+      actor: user,
+      businessId: id,
+      entity: 'Business',
       entityId: id,
     })
 

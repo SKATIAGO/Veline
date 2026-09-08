@@ -13,7 +13,9 @@ import {
 } from '../auth/sessions.js'
 import { audit } from '../audit/log.js'
 import { mailMode, sendMail } from '../mail/enviar.js'
-import { passwordResetMail } from '../mail/templates.js'
+import { passwordResetMail, signupVerifyMail } from '../mail/templates.js'
+import { consumirVerificacion, crearAlta } from '../auth/alta.js'
+import { CATEGORIES, phoneES } from '@veline/shared'
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -29,6 +31,23 @@ const nuevaContrasena = z
   .max(200)
 
 const resetSchema = z.object({ token: z.string().min(10), password: nuevaContrasena })
+
+const altaSchema = z.object({
+  negocio: z.string().trim().min(2, 'Escribe el nombre del negocio').max(120),
+  categoria: z.enum(CATEGORIES.map((c) => c.slug) as [string, ...string[]]),
+  email: z.string().trim().toLowerCase().email('Revisa el email'),
+  telefono: phoneES.optional().or(z.literal('')),
+  calle: z.string().trim().min(3, 'Falta la calle').max(160),
+  ciudad: z.string().trim().min(2, 'Falta la ciudad').max(80),
+  codigoPostal: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, 'El código postal son 5 cifras'),
+  responsable: z.string().trim().min(2, 'Escribe tu nombre').max(120),
+  password: nuevaContrasena,
+})
+
+const verificarSchema = z.object({ token: z.string().min(10) })
 
 const changeSchema = z.object({
   current: z.string().min(1).max(200),
@@ -78,6 +97,18 @@ export async function authRoutes(app: FastifyInstance) {
           },
         })
         return reply.code(401).send({ error: 'Email o contraseña incorrectos' })
+      }
+
+      /* Sin confirmar el correo no se entra. Aquí SÍ se dice el motivo, al
+         contrario que arriba: quien llega hasta aquí ya ha acertado la
+         contraseña, así que no se le revela nada que no supiera, y dejarle
+         con un «email o contraseña incorrectos» sería mentirle sobre por qué
+         no puede pasar. */
+      if (!user.emailVerifiedAt) {
+        return reply.code(403).send({
+          error: 'Falta confirmar tu correo. Mira el enlace que te enviamos al darte de alta.',
+          code: 'email-sin-verificar',
+        })
       }
 
       await createSession(reply, user.id)
@@ -243,6 +274,84 @@ export async function authRoutes(app: FastifyInstance) {
       actor: user,
       entity: 'User',
       entityId: user.id,
+    })
+
+    return { ok: true }
+  })
+
+  /* ── Alta por su cuenta ──────────────────────────────────────
+     Sale del formulario público de /alta. Crea el negocio SIN aprobar y la
+     cuenta SIN verificar: hasta que no confirme el correo no entra, y hasta
+     que no lo revisemos no sale en el marketplace. */
+  app.post(
+    '/api/auth/signup',
+    {
+      // Crear cuentas es caro de deshacer: un bot podría llenar la base de
+      // negocios inventados en un minuto.
+      config: { rateLimit: { max: 3, timeWindow: '10 minutes' } },
+    },
+    async (req, reply) => {
+      const parsed = altaSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+      }
+
+      const alta = await crearAlta(parsed.data)
+      if (!alta.ok) {
+        return reply.code(409).send({
+          error:
+            alta.motivo === 'email-ocupado'
+              ? 'Ya hay una cuenta con ese email. Si es tuya, entra o pide una contraseña nueva.'
+              : 'Ese nombre no genera una dirección válida. Prueba con otro.',
+        })
+      }
+
+      const url = `${webUrl()}/verificar?token=${encodeURIComponent(alta.token)}`
+      const correo = await sendMail(
+        signupVerifyMail(
+          { email: parsed.data.email, name: parsed.data.responsable },
+          { businessName: parsed.data.negocio, url },
+        ),
+      ).catch((err) => ({ sent: false as const, reason: (err as Error).message }))
+
+      audit(req, {
+        action: 'NEGOCIO_CREADO',
+        summary: `«${parsed.data.negocio}» se ha dado de alta desde la web`,
+        businessId: alta.businessId,
+        entity: 'Business',
+        entityId: alta.businessId,
+        metadata: { slug: alta.slug, categoria: parsed.data.categoria, ciudad: parsed.data.ciudad },
+      })
+
+      /* Si el correo no sale, el alta ya está hecha: no se puede deshacer sin
+         perder lo que la persona acaba de escribir. Se avisa para que la
+         pantalla pueda decir la verdad en vez de mandarla a mirar un buzón
+         donde no va a haber nada. */
+      return reply.code(201).send({ ok: true, correoEnviado: correo.sent })
+    },
+  )
+
+  /** Confirma el correo con el token del enlace. */
+  app.post('/api/auth/verify', async (req, reply) => {
+    const parsed = verificarSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: 'Enlace inválido' })
+
+    const r = await consumirVerificacion(parsed.data.token)
+    if (!r.ok) {
+      const mensajes = {
+        invalido: 'Este enlace no es válido.',
+        caducado: 'Este enlace ha caducado. Escríbenos y te mandamos otro.',
+        usado: 'Este correo ya estaba confirmado. Puedes entrar con tu contraseña.',
+      }
+      return reply.code(400).send({ error: mensajes[r.motivo], code: r.motivo })
+    }
+
+    audit(req, {
+      action: 'USUARIO_ACTIVADO',
+      summary: `${r.name} ha confirmado su correo`,
+      actorEmail: r.email,
+      entity: 'User',
+      entityId: r.userId,
     })
 
     return { ok: true }

@@ -112,8 +112,12 @@ export function Pricing() {
                 </span>
                 <span className="text-sm font-medium text-subtle">{plan.period}</span>
               </div>
+              {/* `to` para las pantallas de Veline y `href` para salir fuera
+                  (el mailto de Equipo). Con href a una ruta interna el
+                  navegador recargaría la aplicación entera. */}
               <ButtonLink
-                href={plan.href}
+                to={'to' in plan ? plan.to : undefined}
+                href={'href' in plan ? plan.href : undefined}
                 variant={plan.variant}
                 size="lg"
                 block
@@ -251,7 +255,7 @@ export function Pricing() {
           Pruébalo {PRUEBA_DIAS} días. Sin compromiso.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ButtonLink href={PLANES[0].href} size="lg" className="sheen">
+          <ButtonLink to="/alta" size="lg" className="sheen">
             Empezar la prueba
           </ButtonLink>
           <ButtonLink to="/" variant="secondary" size="lg">

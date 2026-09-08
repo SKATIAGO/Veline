@@ -120,7 +120,12 @@ export async function bookingRoutes(app: FastifyInstance) {
       where: { slug },
       include: { locations: { take: 1 } },
     })
-    if (!business) return reply.code(404).send({ error: 'Negocio no encontrado' })
+    // Sin revisar todavía: para el público no existe, ni por enlace directo ni
+    // llamando aquí. Mismo 404 que la ficha, para no confirmar que el slug
+    // corresponde a algo.
+    if (!business || !business.approvedAt) {
+      return reply.code(404).send({ error: 'Negocio no encontrado' })
+    }
 
     // Un negocio suspendido, dado de baja o con la prueba caducada deja de
     // aceptar reservas. Se comprueba aquí y no solo al pintar la ficha: si no,

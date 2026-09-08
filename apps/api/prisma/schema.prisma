@@ -68,6 +68,12 @@ model Business {
   /// prueba o cortado. Sin esto la prueba de 15 días no tenía ni fecha.
   subStatus   SubStatus @default(PRUEBA)
   trialEndsAt DateTime?
+
+  /// Cuándo se revisó y se dio por bueno. Null = se dio de alta por su cuenta
+  /// y todavía nadie lo ha mirado: no sale en el marketplace ni tiene página
+  /// pública. Los que damos de alta nosotros nacen ya aprobados — darlos de
+  /// alta ES la revisión.
+  approvedAt  DateTime?
   /// Cuándo se le cortó o se dio de baja, para poder contarlo después.
   endedAt     DateTime?
   /// Nota interna de la ficha: por qué se suspendió, con quién se habló.
@@ -257,12 +263,38 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  business       Business?       @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  sessions       Session[]
-  passwordResets PasswordReset[]
-  auditLogs      AuditLog[]
+  /// Cuándo confirmó su correo pinchando el enlace. Null = todavía no.
+  /// Importa porque a ese correo le llegan los avisos de cita nueva: si está
+  /// mal escrito, el negocio no se entera de sus reservas y no sabe por qué.
+  /// Las cuentas que creamos nosotros nacen verificadas: el correo lo hemos
+  /// comprobado al darlas de alta.
+  emailVerifiedAt DateTime?
+
+  business           Business?           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions           Session[]
+  passwordResets     PasswordReset[]
+  emailVerifications EmailVerification[]
+  auditLogs          AuditLog[]
 
   @@index([businessId])
+}
+
+/// Enlace de un solo uso para confirmar el correo al darse de alta.
+/// Mismo patrón que PasswordReset: se guarda el hash, nunca el token, para que
+/// quien lea la base no pueda confirmar el correo de otro.
+model EmailVerification {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  /// Sella el momento de uso: un enlace solo sirve una vez.
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 /// Sesión de panel. Se guarda el hash del token, no el token: si alguien

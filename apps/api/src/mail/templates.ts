@@ -345,3 +345,43 @@ export function passwordResetMail(to: { email: string; name: string }, url: stri
     ].join('\n'),
   }
 }
+
+/* ── 7. Confirmar el correo al darse de alta ──────────────────── */
+
+export function signupVerifyMail(
+  to: { email: string; name: string },
+  ctx: { businessName: string; url: string },
+): MailMessage {
+  return {
+    to: to.email,
+    toName: to.name,
+    subject: 'Confirma tu correo para entrar en Veline',
+    tag: 'alta-verificar',
+    html: layout({
+      preheader: `Un clic y ya puedes preparar la ficha de ${ctx.businessName}`,
+      heading: 'Confirma tu correo',
+      intro: `Hola ${esc(to.name.split(' ')[0])}, ya casi está. Has dado de alta <strong style="color:${INK};">${esc(ctx.businessName)}</strong> en Veline.`,
+      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
+        Confirma que esta dirección es tuya y podrás entrar al panel a poner tus
+        servicios y tu horario. Es importante que sea correcta: aquí es donde te
+        avisaremos de cada cita nueva.
+      </p>
+      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:#5C4A34;">
+        El enlace vale <strong style="color:${INK};">48 horas</strong>. Después
+        revisaremos tu ficha antes de publicarla en el marketplace — te
+        escribiremos en cuanto esté.
+      </p>`,
+      cta: { label: 'Confirmar mi correo', url: ctx.url },
+    }),
+    text: [
+      'Confirma tu correo',
+      '',
+      `Has dado de alta ${ctx.businessName} en Veline.`,
+      'Confirma que esta dirección es tuya y podrás entrar al panel:',
+      '',
+      ctx.url,
+      '',
+      'El enlace vale 48 horas. Después revisaremos tu ficha antes de publicarla.',
+    ].join('\n'),
+  }
+}

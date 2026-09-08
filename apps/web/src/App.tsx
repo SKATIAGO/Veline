@@ -27,6 +27,8 @@ import { PanelActividad } from './pages/panel/PanelActividad'
 import { EmptyState } from './components/ui'
 import { ScrollToTop } from './components/ScrollToTop'
 import { Legal } from './pages/Legal'
+import { Alta } from './pages/Alta'
+import { Verificar } from './pages/Verificar'
 
 export function App() {
   return (
@@ -43,6 +45,8 @@ function AppRoutes() {
       {/* Panel del negocio — layout propio, sin la cabecera pública */}
       <Route path="/login" element={<Login />} />
       <Route path="/recuperar" element={<ForgotPassword />} />
+      <Route path="/alta" element={<Alta />} />
+      <Route path="/verificar" element={<Verificar />} />
       <Route path="/restablecer" element={<ResetPassword />} />
       <Route path="/panel" element={<PanelIndex />} />
       {/* /panel/admin va ANTES que /panel/:slug: el segmento estático gana */}

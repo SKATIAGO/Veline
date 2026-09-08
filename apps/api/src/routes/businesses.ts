@@ -25,6 +25,10 @@ export async function businessRoutes(app: FastifyInstance) {
 
     const rows = await prisma.business.findMany({
       where: {
+        /* Solo los revisados. El marketplace es la cara pública de Veline:
+           sin esto, cualquiera que se diera de alta desde la web aparecería
+           publicado al instante, con el nombre que quisiera. */
+        approvedAt: { not: null },
         ...(category ? { category } : {}),
         ...(city ? { locations: { some: { city: { equals: city, mode: 'insensitive' } } } } : {}),
         ...(q
@@ -71,7 +75,11 @@ export async function businessRoutes(app: FastifyInstance) {
         staff: { where: { active: true }, orderBy: { name: 'asc' } },
       },
     })
-    if (!b) return reply.code(404).send({ error: 'Negocio no encontrado' })
+    /* Sin aprobar se comporta como si no existiera, también por enlace
+       directo: si respondiera, bastaría con compartir la dirección para
+       saltarse la revisión y empezar a recibir reservas. Su dueño ya puede
+       verla y prepararla desde el panel. */
+    if (!b || !b.approvedAt) return reply.code(404).send({ error: 'Negocio no encontrado' })
 
     const main = b.locations[0]
     const dto: BusinessDTO = {

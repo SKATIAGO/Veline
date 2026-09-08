@@ -129,6 +129,25 @@ export const api = {
       body: JSON.stringify({ token, password }),
     }),
 
+  signup: (body: {
+    negocio: string
+    categoria: string
+    email: string
+    telefono?: string
+    calle: string
+    ciudad: string
+    codigoPostal: string
+    responsable: string
+    password: string
+  }) =>
+    request<{ ok: true; correoEnviado: boolean }>('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  verifyEmail: (token: string) =>
+    request<{ ok: true }>('/auth/verify', { method: 'POST', body: JSON.stringify({ token }) }),
+
   changePassword: (current: string, next: string) =>
     request<{ ok: true }>('/auth/password', {
       method: 'POST',
@@ -303,6 +322,9 @@ export const api = {
   // ── Plataforma (SUPERADMIN) ────────────────────────────────
   adminBusinesses: () => request<AdminBusiness[]>('/admin/businesses'),
 
+  approveBusiness: (id: string) =>
+    request<{ ok: true }>(`/admin/businesses/${id}/approve`, { method: 'PATCH' }),
+
   createAdminBusiness: (body: {
     name: string
     category: string
@@ -424,6 +446,8 @@ export interface AdminBusiness {
   counts: { bookings: number; users: number; services: number; staff: number }
   subStatus: 'PRUEBA' | 'ACTIVA' | 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA'
   trialEndsAt: string | null
+  /** Null = se dio de alta por su cuenta y todavía nadie lo ha revisado. */
+  approvedAt: string | null
   adminNotes: string | null
   monthlyCents: number
   accepting: boolean

@@ -302,6 +302,15 @@ export function PanelAdmin() {
     },
   })
 
+  const aprobar = useMutation({
+    mutationFn: (id: string) => api.approveBusiness(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] })
+      queryClient.invalidateQueries({ queryKey: ['businesses'] })
+      queryClient.invalidateQueries({ queryKey: ['audit'] })
+    },
+  })
+
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
     if (!q) return businesses ?? []
@@ -323,6 +332,9 @@ export function PanelAdmin() {
       // Un negocio sin servicios no puede recibir reservas: es el aviso que
       // de verdad le sirve a quien lleva la plataforma.
       sinServicios: list.filter((b) => b.counts.services === 0).length,
+      // Los que se dieron de alta solos y nadie ha mirado todavía. Mientras
+      // tanto no salen en el marketplace, así que cuanto antes se vean mejor.
+      pendientes: list.filter((b) => !b.approvedAt).length,
     }
   }, [businesses])
 
@@ -390,6 +402,7 @@ export function PanelAdmin() {
         <Stat label="Citas totales" value={totales.citas} />
         <Stat label="Cuentas de acceso" value={totales.usuarios} />
         <Stat label="Sin servicios" value={totales.sinServicios} />
+        <Stat label="Sin aprobar" value={totales.pendientes} />
       </div>
 
       {credencial && <Credencial {...credencial} onClose={() => setCredencial(null)} />}
@@ -637,6 +650,7 @@ export function PanelAdmin() {
                         ? ` · ${Math.max(0, diasHasta(b.trialEndsAt))} d`
                         : ''}
                     </Badge>
+                    {!b.approvedAt && <Badge tone="warn">Sin aprobar</Badge>}
                     {!b.accepting && <Badge tone="off">No acepta reservas</Badge>}
                     {b.counts.services === 0 && <Badge tone="warn">Sin servicios</Badge>}
                     {b.counts.users === 0 && <Badge tone="off">Sin acceso</Badge>}
@@ -661,6 +675,15 @@ export function PanelAdmin() {
                 </dl>
 
                 <div className="ml-auto flex gap-1 sm:ml-0">
+                  {!b.approvedAt && (
+                    <Button
+                      size="sm"
+                      loading={aprobar.isPending && aprobar.variables === b.id}
+                      onClick={() => aprobar.mutate(b.id)}
+                    >
+                      Aprobar
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="quiet"
@@ -694,6 +717,19 @@ export function PanelAdmin() {
           </ul>
         </Card>
       )}
+
+      {aprobar.isError && (
+        <ErrorNote>
+          {aprobar.error instanceof ApiError ? aprobar.error.message : 'No se ha podido aprobar'}
+        </ErrorNote>
+      )}
+
+      <p className="text-meta text-subtle">
+        <strong className="font-semibold text-body-2">Sin aprobar</strong> es un negocio que se dio
+        de alta desde la web y nadie ha mirado todavía: no sale en el marketplace ni tiene página
+        pública, aunque su dueño ya puede entrar y prepararla. Aprobarlo la publica y da por bueno
+        su correo. Los que das de alta tú desde aquí nacen aprobados.
+      </p>
 
       <p className="text-meta text-subtle">
         Un negocio se crea con el plan Gratis y sin horario. Hasta que no tenga{' '}

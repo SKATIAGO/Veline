@@ -5,11 +5,13 @@
  */
 import { CONTACT_EMAIL, PRUEBA_DIAS_DEFECTO } from '@veline/shared'
 
-/* Los tres botones de plan llevaban a /panel, que es la pantalla de entrada:
-   quien venía a contratar se topaba con un «inicia sesión» que no puede pasar
-   —todavía no hay alta sola, la damos nosotros— y parecía que el botón se
-   había equivocado de sitio. Hasta que exista el alta, escriben. El asunto va
-   relleno para saber de qué plan viene cada correo sin preguntarlo. */
+/* Antes los tres botones llevaban a /panel —la pantalla de entrada— y quien
+   venía a contratar se topaba con un «inicia sesión» que no podía pasar. Ya
+   existe el alta, así que van ahí.
+
+   El de Equipo no: ese plan se cierra hablando (locales ilimitados, soporte
+   dedicado, precio por persona), así que sigue abriendo el correo con el
+   asunto puesto para saber de qué viene sin preguntarlo. */
 const escribirPor = (asunto: string) =>
   `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(asunto)}`
 
@@ -25,7 +27,7 @@ export const PLANES = [
     price: 'Gratis',
     period: `${PRUEBA_DIAS} días`,
     cta: 'Empezar la prueba',
-    href: escribirPor('Quiero empezar la prueba de 15 días'),
+    to: '/alta',
     variant: 'secondary' as const,
     features: [
       'Todo lo del plan Negocio',
@@ -41,7 +43,7 @@ export const PLANES = [
     period: '/mes',
     popular: true,
     cta: 'Contratar',
-    href: escribirPor('Quiero contratar el plan Negocio'),
+    to: '/alta',
     variant: 'primary' as const,
     features: [
       'Incluye 2 personas en el calendario',
