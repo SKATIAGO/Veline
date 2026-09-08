@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ButtonLink, Logo, cx } from './ui'
 import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
+import { AvisoCookies } from './AvisoCookies'
 
 const NAV = [
   { to: '/#como-funciona', label: 'Cómo funciona' },
@@ -155,6 +156,8 @@ function Footer() {
         // Contacto es un mailto, no una ruta: la página no existe y el enlace
         // llevaba a la home, que no es contactar con nadie.
         { label: 'Contacto', href: `mailto:${CONTACT_EMAIL}` },
+        { label: 'Privacidad', to: '/privacidad' },
+        { label: 'Cookies', to: '/cookies' },
       ],
     },
   ]
@@ -215,6 +218,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <AvisoCookies />
     </div>
   )
 }

@@ -26,6 +26,7 @@ import { PanelClientes } from './pages/panel/PanelClientes'
 import { PanelActividad } from './pages/panel/PanelActividad'
 import { EmptyState } from './components/ui'
 import { ScrollToTop } from './components/ScrollToTop'
+import { Legal } from './pages/Legal'
 
 export function App() {
   return (
@@ -73,6 +74,11 @@ function AppRoutes() {
         {/* La home ya es la página de negocio; /negocios se mantiene por los
             enlaces que ya se hayan compartido. */}
         <Route path="/negocios" element={<Navigate to="/" replace />} />
+        {/* Antes de /:slug: esa ruta se traga cualquier camino de un solo
+            segmento, así que /privacidad se leería como el identificador de un
+            negocio y saldría «este negocio no existe». */}
+        <Route path="/privacidad" element={<Legal />} />
+        <Route path="/cookies" element={<Legal />} />
         <Route path="/reserva/:code" element={<BookingDone />} />
         <Route path="/resena/:token" element={<Resena />} />
         <Route path="/:slug" element={<Business />} />
