@@ -18,6 +18,7 @@ import {
   Skeleton,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
 
 /**
  * Equipo del negocio: los usuarios que pueden entrar a este panel.
@@ -25,16 +26,16 @@ import {
  * pestaña, y la API lo rechazaría igualmente.
  */
 
-const ROL_LABEL: Record<string, string> = {
-  ADMIN: 'Administrador',
-  EMPLEADO: 'Equipo',
-  SUPERADMIN: 'Superadmin',
+const ROL_CLAVE: Record<string, Clave> = {
+  ADMIN: 'panel.rolAdmin',
+  EMPLEADO: 'panel.rolEmpleado',
+  SUPERADMIN: 'panel.rolSuperadmin',
 }
 
-const ROL_AYUDA: Record<string, string> = {
-  ADMIN: 'Agenda, servicios, horario y equipo',
-  EMPLEADO: 'Solo la agenda',
-  SUPERADMIN: 'Toda la plataforma',
+const ROL_AYUDA: Record<string, Clave> = {
+  ADMIN: 'eq.ayudaAdmin',
+  EMPLEADO: 'eq.ayudaEmpleado',
+  SUPERADMIN: 'eq.ayudaSuperadmin',
 }
 
 interface Draft {
@@ -55,6 +56,7 @@ function generarPassword() {
 }
 
 export function PanelUsers() {
+  const { t } = useIdioma()
   const { slug = '' } = useParams()
   const { user: me } = useAuth()
   const queryClient = useQueryClient()
@@ -94,11 +96,11 @@ export function PanelUsers() {
 
   const problema =
     draft.name.trim().length < 2
-      ? 'Escribe el nombre completo.'
+      ? t('eq.errNombre')
       : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(draft.email.trim())
-        ? 'El email no tiene un formato válido.'
+        ? t('eq.errEmail')
         : draft.password.length < 10
-          ? 'La contraseña debe tener al menos 10 caracteres.'
+          ? t('eq.errContrasena')
           : null
 
   const abrirAlta = () => {
@@ -112,30 +114,32 @@ export function PanelUsers() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Equipo"
+        title={t('panel.equipo')}
         hint={
           users
-            ? `${activos} con acceso${users.length > activos ? ` · ${users.length - activos} desactivados` : ''}`
+            ? [
+                t('eq.conAcceso', { n: activos }),
+                ...(users.length > activos
+                  ? [t('eq.desactivados', { n: users.length - activos })]
+                  : []),
+              ].join(' · ')
             : undefined
         }
-        actions={!creating && <Button onClick={abrirAlta}>+ Añadir persona</Button>}
+        actions={!creating && <Button onClick={abrirAlta}>{t('eq.anadirPersona')}</Button>}
       />
 
       {creada && (
         <Card className="border-brand/40 bg-brand/5 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-ui font-semibold text-ink">Cuenta creada</p>
+              <p className="text-ui font-semibold text-ink">{t('eq.cuentaCreada')}</p>
               <p className="mt-1 text-body text-body">
-                Pásale estos datos a <strong>{creada.email}</strong>:
+                <Texto clave="eq.pasaleDatos" partes={{ email: <strong>{creada.email}</strong> }} />
               </p>
               <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
                 {creada.password}
               </code>
-              <p className="mt-2 text-meta text-muted">
-                Guárdala ahora: por seguridad no se puede volver a consultar. Quien entre podrá
-                cambiarla desde su cuenta.
-              </p>
+              <p className="mt-2 text-meta text-muted">{t('eq.guardalaAhora')}</p>
             </div>
             <div className="flex shrink-0 gap-1">
               <Button
@@ -145,9 +149,9 @@ export function PanelUsers() {
                   void navigator.clipboard.writeText(creada.password).then(() => setCopiado(true))
                 }}
               >
-                {copiado ? 'Copiada' : 'Copiar'}
+                {copiado ? t('eq.copiada') : t('eq.copiar')}
               </Button>
-              <IconButton label="Cerrar el aviso" onClick={() => setCreada(null)}>
+              <IconButton label={t('eq.cerrarAviso')} onClick={() => setCreada(null)}>
                 <span aria-hidden className="text-subheading leading-none">
                   ×
                 </span>
@@ -159,7 +163,7 @@ export function PanelUsers() {
 
       {creating && (
         <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">Nueva persona</h2>
+          <h2 className="mb-4 text-ui font-semibold text-ink">{t('eq.nuevaPersona')}</h2>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -168,34 +172,34 @@ export function PanelUsers() {
             className="flex flex-col gap-4"
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nombre" htmlFor={`${id}-name`} required>
+              <Field label={t('eq.nombre')} htmlFor={`${id}-name`} required>
                 <Input
                   id={`${id}-name`}
-                  placeholder="Marta Gil"
+                  placeholder={t('eq.nombreEjemplo')}
                   autoComplete="off"
                   value={draft.name}
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                 />
               </Field>
               <Field
-                label="Email"
+                label={t('eq.email')}
                 htmlFor={`${id}-email`}
-                hint="Con esto entrará al panel"
+                hint={t('eq.emailPista')}
                 required
               >
                 <Input
                   id={`${id}-email`}
                   type="email"
-                  placeholder="marta@negocio.es"
+                  placeholder={t('eq.emailEjemplo')}
                   autoComplete="off"
                   value={draft.email}
                   onChange={(e) => setDraft({ ...draft, email: e.target.value })}
                 />
               </Field>
               <Field
-                label="Contraseña inicial"
+                label={t('eq.contrasenaInicial')}
                 htmlFor={`${id}-pass`}
-                hint="Generada al azar. Podrá cambiarla al entrar."
+                hint={t('eq.contrasenaPista')}
                 required
               >
                 <div className="flex gap-2">
@@ -210,34 +214,39 @@ export function PanelUsers() {
                     variant="secondary"
                     onClick={() => setDraft({ ...draft, password: generarPassword() })}
                   >
-                    Otra
+                    {t('eq.otra')}
                   </Button>
                 </div>
               </Field>
-              <Field label="Permisos" htmlFor={`${id}-role`} hint={ROL_AYUDA[draft.role]} required>
+              <Field
+                label={t('eq.permisos')}
+                htmlFor={`${id}-role`}
+                hint={t(ROL_AYUDA[draft.role]!)}
+                required
+              >
                 <Select
                   id={`${id}-role`}
                   value={draft.role}
                   onChange={(e) => setDraft({ ...draft, role: e.target.value as Draft['role'] })}
                 >
-                  <option value="EMPLEADO">Equipo</option>
-                  <option value="ADMIN">Administrador</option>
+                  <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
+                  <option value="ADMIN">{t('panel.rolAdmin')}</option>
                 </Select>
               </Field>
             </div>
 
             {create.isError && (
               <ErrorNote>
-                {create.error instanceof ApiError ? create.error.message : 'No se ha podido crear'}
+                {create.error instanceof ApiError ? create.error.message : t('eq.noSePudoCrear')}
               </ErrorNote>
             )}
 
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" loading={create.isPending} disabled={!!problema}>
-                Crear cuenta
+                {t('eq.crearCuenta')}
               </Button>
               <Button type="button" variant="secondary" onClick={() => setCreating(false)}>
-                Cancelar
+                {t('eq.cancelar')}
               </Button>
               {problema && <span className="text-meta text-muted">{problema}</span>}
             </div>
@@ -253,9 +262,9 @@ export function PanelUsers() {
         </Card>
       ) : !users?.length ? (
         <EmptyState
-          title="Todavía no hay nadie en el equipo"
-          hint="Añade a la primera persona para que pueda entrar al panel y llevar la agenda."
-          action={!creating && <Button onClick={abrirAlta}>Añadir a la primera persona</Button>}
+          title={t('eq.todaviaNadie')}
+          hint={t('eq.todaviaNadiePista')}
+          action={!creating && <Button onClick={abrirAlta}>{t('eq.anadirPrimera')}</Button>}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -278,27 +287,28 @@ export function PanelUsers() {
                 <div className={cx('min-w-[180px] flex-1', !u.active && 'opacity-60')}>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-ui font-semibold text-ink">{u.name}</span>
-                    {u.id === me?.id && <Badge>Tú</Badge>}
-                    {!u.active && <Badge tone="off">Sin acceso</Badge>}
+                    {u.id === me?.id && <Badge>{t('eq.tu')}</Badge>}
+                    {!u.active && <Badge tone="off">{t('eq.sinAcceso')}</Badge>}
                   </div>
                   <p className="mt-0.5 text-meta text-muted">{u.email}</p>
                 </div>
 
                 <div className={cx('w-[150px]', !u.active && 'opacity-60')}>
                   <div className="text-meta font-semibold text-body-2">
-                    {ROL_LABEL[u.role] ?? u.role}
+                    {ROL_CLAVE[u.role] ? t(ROL_CLAVE[u.role]) : u.role}
                   </div>
-                  <div className="text-caption text-subtle">{ROL_AYUDA[u.role]}</div>
+                  <div className="text-caption text-subtle">
+                    {ROL_AYUDA[u.role] ? t(ROL_AYUDA[u.role]) : ''}
+                  </div>
                 </div>
 
                 <div className="ml-auto flex justify-end sm:ml-0 sm:w-[170px]">
                   {u.id === me?.id ? (
-                    <span className="text-meta text-subtle">No puedes desactivarte</span>
+                    <span className="text-meta text-subtle">{t('eq.noPuedesDesactivarte')}</span>
                   ) : u.active ? (
                     <ConfirmAction
-                      label="Quitar acceso"
-                      question="¿Seguro?"
-                      confirmLabel="Sí, quitar"
+                      label={t('eq.quitarAcceso')}
+                      confirmLabel={t('eq.siQuitar')}
                       loading={toggle.isPending && toggle.variables?.id === u.id}
                       onConfirm={() => toggle.mutate({ id: u.id, active: false })}
                     />
@@ -309,7 +319,7 @@ export function PanelUsers() {
                       loading={toggle.isPending && toggle.variables?.id === u.id}
                       onClick={() => toggle.mutate({ id: u.id, active: true })}
                     >
-                      Devolver acceso
+                      {t('eq.devolverAcceso')}
                     </Button>
                   )}
                 </div>
@@ -322,9 +332,13 @@ export function PanelUsers() {
       {toggle.isError && <ErrorNote>{(toggle.error as Error).message}</ErrorNote>}
 
       <p className="text-meta text-subtle">
-        <strong className="font-semibold text-body-2">Equipo</strong> ve y gestiona la agenda.{' '}
-        <strong className="font-semibold text-body-2">Administrador</strong> además configura
-        servicios, horario y este equipo. Quitar el acceso cierra sus sesiones abiertas al momento.
+        <Texto
+          clave="eq.aviso"
+          partes={{
+            equipo: <strong className="font-semibold text-body-2">{t('panel.rolEmpleado')}</strong>,
+            admin: <strong className="font-semibold text-body-2">{t('panel.rolAdmin')}</strong>,
+          }}
+        />
       </p>
     </div>
   )

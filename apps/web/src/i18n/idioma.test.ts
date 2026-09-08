@@ -51,8 +51,10 @@ describe('diccionarios', () => {
       'comun.no',
       'confirmar.email',
       'agenda.email',
-      'panel.rolSuperadmin',
       'neg.email',
+      'eq.email',
+      'act.no',
+      'panel.rolSuperadmin',
       // Ejemplos de campos: un nombre propio, un correo y una dirección
       // española. El negocio está en España aunque quien lo lleva lea en
       // inglés, así que la calle de ejemplo sigue siendo una calle española.
@@ -61,6 +63,8 @@ describe('diccionarios', () => {
       'pers.nombreEjemplo',
       'loc.calleEjemplo',
       'loc.ciudadEjemplo',
+      'eq.nombreEjemplo',
+      'eq.emailEjemplo',
     ]
     const sospechosas = claves.filter(
       (c) => en[c] === es[c] && !IGUALES.includes(c) && /[a-zá-ú]/i.test(es[c]),

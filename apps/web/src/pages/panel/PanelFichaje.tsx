@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { formatDuration } from '@veline/shared'
 import { api, ApiError, type Fichaje } from '../../lib/api'
 import {
   Badge,
@@ -14,6 +15,7 @@ import {
   Skeleton,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma } from '../../i18n/idioma'
 
 /**
  * Registro de jornada.
@@ -26,18 +28,27 @@ import {
  * corregir un olvido y sacar el archivo para la Inspección.
  */
 
-const hora = (iso: string) =>
-  new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+/**
+ * Los formatos de esta pantalla, en el idioma de quien mira.
+ *
+ * Van juntos porque los usan las tres piezas del fichaje y todas necesitan lo
+ * mismo: la hora, el día y la duración de una jornada.
+ */
+function useFormatos() {
+  const { t, idioma, locale } = useIdioma()
 
-const dia = (iso: string) =>
-  new Date(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  const hora = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
-/** 485 → «8 h 5 min». Se lee mejor que 8,08 horas. */
-const duracion = (min: number) => {
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  if (!h) return `${m} min`
-  return m ? `${h} h ${m} min` : `${h} h`
+  const dia = (iso: string) =>
+    new Date(iso).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+
+  /* La duración la escribe formatDuration, la misma de los servicios: 485 →
+     «8 h 5 min». Tenerla dos veces acabó con el panel diciendo «1 hr 30 min»
+     en un sitio y «8 h 5 min» en el otro dentro de la misma pantalla. */
+  const duracion = (min: number) => formatDuration(min, idioma)
+
+  return { t, hora, dia, duracion }
 }
 
 /** Fecha y hora en el formato que espera un <input type="datetime-local">. */
@@ -61,6 +72,7 @@ function Corregir({
   onHecho: () => void
   onCancelar: () => void
 }) {
+  const { t } = useFormatos()
   const id = useId()
   const [entrada, setEntrada] = useState(paraInput(f.entrada))
   const [salida, setSalida] = useState(f.salida ? paraInput(f.salida) : '')
@@ -78,9 +90,9 @@ function Corregir({
 
   const problema =
     motivo.trim().length < 3
-      ? 'Escribe por qué se corrige.'
+      ? t('fic.errMotivo')
       : salida && new Date(salida) <= new Date(entrada)
-        ? 'La salida no puede ser anterior a la entrada.'
+        ? t('fic.errSalida')
         : null
 
   return (
@@ -92,7 +104,7 @@ function Corregir({
       className="border-t border-line bg-canvas/50 px-4 py-4 sm:px-5"
     >
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Entrada" htmlFor={`${id}-e`} required>
+        <Field label={t('fic.entrada')} htmlFor={`${id}-e`} required>
           <Input
             id={`${id}-e`}
             type="datetime-local"
@@ -100,7 +112,7 @@ function Corregir({
             onChange={(e) => setEntrada(e.target.value)}
           />
         </Field>
-        <Field label="Salida" htmlFor={`${id}-s`} hint="Vacío = jornada abierta">
+        <Field label={t('fic.salida')} htmlFor={`${id}-s`} hint={t('fic.salidaPista')}>
           <Input
             id={`${id}-s`}
             type="datetime-local"
@@ -108,10 +120,10 @@ function Corregir({
             onChange={(e) => setSalida(e.target.value)}
           />
         </Field>
-        <Field label="Motivo" htmlFor={`${id}-m`} hint="Queda guardado" required>
+        <Field label={t('fic.motivo')} htmlFor={`${id}-m`} hint={t('fic.motivoPista')} required>
           <Input
             id={`${id}-m`}
-            placeholder="Se olvidó de fichar la salida"
+            placeholder={t('fic.motivoEjemplo')}
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
           />
@@ -123,17 +135,17 @@ function Corregir({
           <ErrorNote>
             {corregir.error instanceof ApiError
               ? corregir.error.message
-              : 'No se ha podido corregir'}
+              : t('fic.noSePudoCorregir')}
           </ErrorNote>
         </div>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Button type="submit" loading={corregir.isPending} disabled={!!problema}>
-          Guardar corrección
+          {t('fic.guardarCorreccion')}
         </Button>
         <Button type="button" variant="quiet" onClick={onCancelar}>
-          Cancelar
+          {t('fic.cancelar')}
         </Button>
         {problema && <span className="text-meta text-muted">{problema}</span>}
       </div>
@@ -142,6 +154,7 @@ function Corregir({
 }
 
 export function PanelFichaje() {
+  const { t, hora, dia, duracion } = useFormatos()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
   const [desde, setDesde] = useState('')
@@ -183,12 +196,8 @@ export function PanelFichaje() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Fichaje"
-        hint={
-          puedeVerTodos
-            ? 'El registro de jornada de todo el equipo.'
-            : 'Tu registro de jornada. Solo lo ves tú y quien administra.'
-        }
+        title={t('panel.fichaje')}
+        hint={puedeVerTodos ? t('fic.pistaTodos') : t('fic.pistaMio')}
       />
 
       {/* El botón grande: lo que se viene a hacer aquí el 95 % de las veces. */}
@@ -196,12 +205,12 @@ export function PanelFichaje() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="font-display text-subheading font-semibold text-ink">
-              {dentro ? 'Estás dentro' : 'Estás fuera'}
+              {dentro ? t('fic.estasDentro') : t('fic.estasFuera')}
             </p>
             <p className="mt-1 text-body text-muted">
               {dentro && abierto?.fichaje
-                ? `Entraste a las ${hora(abierto.fichaje.entrada)}.`
-                : 'Ficha al empezar y al terminar tu jornada.'}
+                ? t('fic.entrasteALas', { hora: hora(abierto.fichaje.entrada) })
+                : t('fic.fichaAlEmpezar')}
             </p>
           </div>
           <Button
@@ -210,13 +219,13 @@ export function PanelFichaje() {
             loading={fichar.isPending}
             onClick={() => fichar.mutate(dentro ? 'salida' : 'entrada')}
           >
-            {dentro ? 'Fichar salida' : 'Fichar entrada'}
+            {dentro ? t('fic.ficharSalida') : t('fic.ficharEntrada')}
           </Button>
         </div>
         {fichar.isError && (
           <div className="mt-4">
             <ErrorNote>
-              {fichar.error instanceof ApiError ? fichar.error.message : 'No se ha podido fichar'}
+              {fichar.error instanceof ApiError ? fichar.error.message : t('fic.noSePudoFichar')}
             </ErrorNote>
           </div>
         )}
@@ -224,7 +233,7 @@ export function PanelFichaje() {
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">Desde</span>
+          <span className="text-meta font-semibold text-body-2">{t('fic.desde')}</span>
           <Input
             type="date"
             value={desde}
@@ -234,7 +243,7 @@ export function PanelFichaje() {
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">Hasta</span>
+          <span className="text-meta font-semibold text-body-2">{t('fic.hasta')}</span>
           <Input
             type="date"
             value={hasta}
@@ -251,12 +260,12 @@ export function PanelFichaje() {
               setHasta('')
             }}
           >
-            Quitar filtro
+            {t('fic.quitarFiltro')}
           </Button>
         )}
         {puedeVerTodos && (
           <Button variant="secondary" className="ml-auto" onClick={exportar}>
-            Descargar archivo
+            {t('fic.descargar')}
           </Button>
         )}
       </div>
@@ -268,10 +277,7 @@ export function PanelFichaje() {
           ))}
         </Card>
       ) : !data?.fichajes.length ? (
-        <EmptyState
-          title="Todavía no hay fichajes"
-          hint="En cuanto alguien fiche su entrada aparecerá aquí."
-        />
+        <EmptyState title={t('fic.todaviaNoHay')} hint={t('fic.todaviaNoHayPista')} />
       ) : (
         <Card className="overflow-hidden">
           <ul>
@@ -283,8 +289,8 @@ export function PanelFichaje() {
                       {puedeVerTodos && (
                         <span className="text-ui font-semibold text-ink">{f.persona}</span>
                       )}
-                      {!f.salida && <Badge tone="ok">Dentro ahora</Badge>}
-                      {f.correccion && <Badge tone="warn">Corregido</Badge>}
+                      {!f.salida && <Badge tone="ok">{t('fic.dentroAhora')}</Badge>}
+                      {f.correccion && <Badge tone="warn">{t('fic.corregido')}</Badge>}
                     </div>
                     <p className="mt-0.5 text-meta text-muted first-letter:uppercase">
                       {dia(f.entrada)}
@@ -305,7 +311,7 @@ export function PanelFichaje() {
                       variant="quiet"
                       onClick={() => setCorrigiendo(corrigiendo === f.id ? null : f.id)}
                     >
-                      {corrigiendo === f.id ? 'Cerrar' : 'Corregir'}
+                      {corrigiendo === f.id ? t('fic.cerrar') : t('fic.corregir')}
                     </Button>
                   )}
                 </div>
@@ -320,11 +326,15 @@ export function PanelFichaje() {
                       corrigiendo === f.id && 'pb-4',
                     )}
                   >
-                    Corregido por {f.correccion.por} ·{' '}
+                    {t('fic.corregidoPor', { quien: f.correccion.por })} ·{' '}
                     {f.correccion.entradaOriginal && (
                       <>
-                        antes era {hora(f.correccion.entradaOriginal)} –{' '}
-                        {f.correccion.salidaOriginal ? hora(f.correccion.salidaOriginal) : '…'}{' '}
+                        {t('fic.antesEra', {
+                          desde: hora(f.correccion.entradaOriginal),
+                          hasta: f.correccion.salidaOriginal
+                            ? hora(f.correccion.salidaOriginal)
+                            : '…',
+                        })}{' '}
                         ·{' '}
                       </>
                     )}
@@ -350,11 +360,12 @@ export function PanelFichaje() {
       )}
 
       <p className="text-meta text-subtle">
-        Cada persona ficha con su cuenta: nadie puede fichar por otro, y eso es lo que hace que el
-        registro valga. Corregir un fichaje{' '}
-        <strong className="font-semibold text-body-2">no borra lo que se fichó</strong>: se guarda
-        la hora original, quién la cambió y por qué, y queda en Actividad. En España este registro
-        es obligatorio y hay que conservarlo cuatro años.
+        <Texto
+          clave="fic.aviso"
+          partes={{
+            negrita: <strong className="font-semibold text-body-2">{t('fic.avisoNegrita')}</strong>,
+          }}
+        />
       </p>
     </div>
   )

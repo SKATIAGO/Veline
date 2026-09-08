@@ -14,6 +14,7 @@ import {
   PageHeader,
   Skeleton,
 } from '../../components/ui'
+import { useIdioma, type Clave } from '../../i18n/idioma'
 
 /**
  * Registro de actividad: quién hizo qué y cuándo.
@@ -25,82 +26,100 @@ import {
 /** Cómo se presenta cada tipo de hecho. El color agrupa por naturaleza. */
 type Tono = 'neutral' | 'warn' | 'ok' | 'off'
 
-const ACCIONES: Record<string, { label: string; tono: Tono }> = {
-  SESION_INICIADA: { label: 'Inicio de sesión', tono: 'neutral' },
-  SESION_FALLIDA: { label: 'Acceso fallido', tono: 'warn' },
-  SESION_CERRADA: { label: 'Cierre de sesión', tono: 'neutral' },
-  CONTRASENA_CAMBIADA: { label: 'Contraseña cambiada', tono: 'warn' },
-  CONTRASENA_RESTABLECIDA: { label: 'Contraseña restablecida', tono: 'warn' },
-  CONTRASENA_OLVIDADA: { label: 'Contraseña olvidada', tono: 'warn' },
-  USUARIO_CREADO: { label: 'Usuario creado', tono: 'ok' },
-  USUARIO_ACTIVADO: { label: 'Usuario reactivado', tono: 'ok' },
-  USUARIO_DESACTIVADO: { label: 'Usuario desactivado', tono: 'off' },
-  NEGOCIO_CREADO: { label: 'Negocio creado', tono: 'ok' },
-  SERVICIO_CREADO: { label: 'Servicio creado', tono: 'ok' },
-  SERVICIO_EDITADO: { label: 'Servicio editado', tono: 'neutral' },
-  SERVICIO_ELIMINADO: { label: 'Servicio dado de baja', tono: 'off' },
-  HORARIO_EDITADO: { label: 'Horario cambiado', tono: 'neutral' },
-  RESERVA_CREADA: { label: 'Reserva creada', tono: 'ok' },
-  RESERVA_CANCELADA: { label: 'Reserva cancelada', tono: 'off' },
+const ACCIONES: Record<string, { clave: Clave; tono: Tono }> = {
+  SESION_INICIADA: { clave: 'act.sesionIniciada', tono: 'neutral' },
+  SESION_FALLIDA: { clave: 'act.sesionFallida', tono: 'warn' },
+  SESION_CERRADA: { clave: 'act.sesionCerrada', tono: 'neutral' },
+  CONTRASENA_CAMBIADA: { clave: 'act.contrasenaCambiada', tono: 'warn' },
+  CONTRASENA_RESTABLECIDA: { clave: 'act.contrasenaRestablecida', tono: 'warn' },
+  CONTRASENA_OLVIDADA: { clave: 'act.contrasenaOlvidada', tono: 'warn' },
+  USUARIO_CREADO: { clave: 'act.usuarioCreado', tono: 'ok' },
+  USUARIO_ACTIVADO: { clave: 'act.usuarioActivado', tono: 'ok' },
+  USUARIO_DESACTIVADO: { clave: 'act.usuarioDesactivado', tono: 'off' },
+  NEGOCIO_CREADO: { clave: 'act.negocioCreado', tono: 'ok' },
+  SERVICIO_CREADO: { clave: 'act.servicioCreado', tono: 'ok' },
+  SERVICIO_EDITADO: { clave: 'act.servicioEditado', tono: 'neutral' },
+  SERVICIO_ELIMINADO: { clave: 'act.servicioEliminado', tono: 'off' },
+  HORARIO_EDITADO: { clave: 'act.horarioEditado', tono: 'neutral' },
+  RESERVA_CREADA: { clave: 'act.reservaCreada', tono: 'ok' },
+  RESERVA_CANCELADA: { clave: 'act.reservaCancelada', tono: 'off' },
 }
 
 /** Filtros rápidos: los tres motivos reales por los que se abre esta pantalla. */
 const FILTROS = [
-  { key: '', label: 'Todo' },
-  { key: 'RESERVA_CANCELADA', label: 'Cancelaciones' },
-  { key: 'SESION_FALLIDA', label: 'Accesos fallidos' },
-  { key: 'USUARIO_CREADO', label: 'Altas de usuario' },
-] as const
-
-const fecha = (iso: string) =>
-  new Date(iso).toLocaleString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Madrid',
-  })
+  { key: '', clave: 'act.filtroTodo' },
+  { key: 'RESERVA_CANCELADA', clave: 'act.filtroCancelaciones' },
+  { key: 'SESION_FALLIDA', clave: 'act.filtroAccesosFallidos' },
+  { key: 'USUARIO_CREADO', clave: 'act.filtroAltas' },
+] as const satisfies readonly { key: string; clave: Clave }[]
 
 /** Nombres legibles para las claves del detalle. Sin esto se leen en crudo. */
-const ETIQUETAS: Record<string, string> = {
-  codigo: 'Código',
-  cuando: 'Cita',
-  motivo: 'Motivo',
-  canceladaPor: 'Cancelada por',
-  origen: 'Origen',
-  precioCents: 'Precio',
-  duracionMin: 'Duración',
-  bufferMin: 'Margen',
-  rol: 'Rol',
-  negocio: 'Negocio',
-  categoria: 'Categoría',
-  ciudad: 'Ciudad',
-  slug: 'Identificador',
-  activo: 'Activo',
-  active: 'Activo',
-  name: 'Nombre',
-  description: 'Descripción',
-  durationMin: 'Duración',
-  priceCents: 'Precio',
-  antes: 'Antes',
-  despues: 'Después',
+const ETIQUETAS: Record<string, Clave> = {
+  codigo: 'act.campoCodigo',
+  cuando: 'act.campoCuando',
+  motivo: 'act.campoMotivo',
+  canceladaPor: 'act.campoCanceladaPor',
+  origen: 'act.campoOrigen',
+  precioCents: 'act.campoPrecio',
+  duracionMin: 'act.campoDuracion',
+  bufferMin: 'act.campoMargen',
+  rol: 'act.campoRol',
+  negocio: 'act.campoNegocio',
+  categoria: 'act.campoCategoria',
+  ciudad: 'act.campoCiudad',
+  slug: 'act.campoIdentificador',
+  activo: 'act.campoActivo',
+  active: 'act.campoActivo',
+  name: 'act.campoNombre',
+  description: 'act.campoDescripcion',
+  durationMin: 'act.campoDuracion',
+  priceCents: 'act.campoPrecio',
+  antes: 'act.campoAntes',
+  despues: 'act.campoDespues',
 }
 
 const ES_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
 
-/** Un valor suelto del detalle, ya legible: fechas, precios y booleanos. */
-function valorLegible(clave: string, v: unknown): string {
-  if (v === null || v === undefined) return '—'
-  if (typeof v === 'boolean') return v ? 'sí' : 'no'
-  if (typeof v === 'string' && ES_ISO.test(v)) return fecha(v)
-  if (typeof v === 'number' && /cents$/i.test(clave)) return formatPrice(v)
-  if (typeof v === 'number' && /min$/i.test(clave)) return `${v} min`
-  if (typeof v === 'object') return JSON.stringify(v)
-  return String(v)
+/**
+ * Los textos del registro, en el idioma de quien mira.
+ *
+ * Se agrupan aquí porque los usan tres piezas de esta pantalla y todas
+ * necesitan lo mismo: la fecha con su formato y los valores sueltos legibles.
+ *
+ * La zona horaria NO sigue al idioma: la hora que se registró es la de
+ * Madrid, que es donde ocurrió. Enseñarla en otra convertiría el registro en
+ * algo que no cuadra con lo que vio quien estaba delante.
+ */
+function useTextosRegistro() {
+  const { t, idioma, locale } = useIdioma()
+
+  const fecha = (iso: string) =>
+    new Date(iso).toLocaleString(locale, {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid',
+    })
+
+  /** Un valor suelto del detalle, ya legible: fechas, precios y booleanos. */
+  const valorLegible = (clave: string, v: unknown): string => {
+    if (v === null || v === undefined) return '—'
+    if (typeof v === 'boolean') return v ? t('act.si') : t('act.no')
+    if (typeof v === 'string' && ES_ISO.test(v)) return fecha(v)
+    if (typeof v === 'number' && /cents$/i.test(clave)) return formatPrice(v, idioma)
+    if (typeof v === 'number' && /min$/i.test(clave)) return `${v} min`
+    if (typeof v === 'object') return JSON.stringify(v)
+    return String(v)
+  }
+
+  return { t, fecha, valorLegible }
 }
 
 /** El detalle solo se muestra si dice algo: un objeto vacío es ruido. */
 function Detalle({ metadata }: { metadata: unknown }) {
+  const { t, valorLegible } = useTextosRegistro()
+
   if (!metadata || typeof metadata !== 'object') return null
   const filas = Object.entries(metadata as Record<string, unknown>).filter(
     ([, v]) => v !== null && v !== undefined && !(typeof v === 'object' && !Object.keys(v).length),
@@ -114,7 +133,7 @@ function Detalle({ metadata }: { metadata: unknown }) {
         const par = v as Record<string, unknown>
         return (
           <div key={k} className="flex gap-1.5 text-meta">
-            <dt className="text-muted">{ETIQUETAS[k] ?? k}:</dt>
+            <dt className="text-muted">{ETIQUETAS[k] ? t(ETIQUETAS[k]) : k}:</dt>
             <dd className="font-medium text-subtle">
               {esCambio
                 ? `${valorLegible(k, par.antes)} → ${valorLegible(k, par.despues)}`
@@ -128,14 +147,18 @@ function Detalle({ metadata }: { metadata: unknown }) {
 }
 
 function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
-  const meta = ACCIONES[e.action] ?? { label: e.action, tono: 'neutral' as const }
+  const { t, fecha } = useTextosRegistro()
+  const meta = ACCIONES[e.action]
 
   return (
     <li className="border-b border-line py-3.5 last:border-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <Badge tone={meta.tono}>{meta.label}</Badge>
+            {/* e.summary lo escribió el servidor el día que pasó y está
+                guardado tal cual: es un registro, no interfaz. Traducirlo
+                ahora sería reescribir lo que quedó anotado. */}
+            <Badge tone={meta?.tono ?? 'neutral'}>{meta ? t(meta.clave) : e.action}</Badge>
             <span className="text-body text-ink">{e.summary}</span>
           </div>
 
@@ -147,7 +170,7 @@ function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
             ) : e.actorEmail ? (
               e.actorEmail
             ) : (
-              'Sin sesión (cliente)'
+              t('act.sinSesion')
             )}
             {e.business && <> · {e.business.name}</>}
             {verIp && e.ip && <> · {e.ip}</>}
@@ -165,6 +188,7 @@ function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
 }
 
 export function PanelActividad() {
+  const { t } = useTextosRegistro()
   const { slug } = useParams()
   const { user } = useAuth()
   const [filtro, setFiltro] = useState<string>('')
@@ -200,23 +224,19 @@ export function PanelActividad() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Registro de actividad"
-        hint={
-          esSuperadmin
-            ? 'Quién ha hecho qué y cuándo, en toda la plataforma.'
-            : 'Quién ha hecho qué y cuándo en tu negocio.'
-        }
+        title={t('act.titulo')}
+        hint={esSuperadmin ? t('act.pistaPlataforma') : t('act.pistaNegocio')}
       />
 
       <div className="flex flex-wrap gap-2">
         {FILTROS.map((f) => (
           <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-            {f.label}
+            {t(f.clave)}
           </FilterChip>
         ))}
       </div>
 
-      {error && <ErrorNote>No se ha podido cargar el registro de actividad.</ErrorNote>}
+      {error && <ErrorNote>{t('act.noSePudoCargar')}</ErrorNote>}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -225,10 +245,7 @@ export function PanelActividad() {
           ))}
         </Card>
       ) : entries.length === 0 ? (
-        <EmptyState
-          title="Todavía no hay actividad registrada"
-          hint="Aquí aparecerán los accesos, los cambios de configuración y las cancelaciones."
-        />
+        <EmptyState title={t('act.todaviaNoHay')} hint={t('act.todaviaNoHayPista')} />
       ) : (
         <Card className="px-5 py-1">
           <ul>
@@ -246,7 +263,7 @@ export function PanelActividad() {
             onClick={() => void fetchNextPage()}
             disabled={isFetchingNextPage}
           >
-            {isFetchingNextPage ? 'Cargando…' : 'Ver más'}
+            {isFetchingNextPage ? t('comun.cargando') : t('act.verMas')}
           </Button>
         </div>
       )}

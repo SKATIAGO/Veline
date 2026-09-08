@@ -60,11 +60,18 @@ export function origenActual(): BookingSource {
   return 'MARKETPLACE'
 }
 
-/** Los enlaces que el negocio comparte en cada sitio. */
+/** Los enlaces que el negocio comparte en cada sitio.
+    Instagram y Google son nombres propios; «tu web» es lo único que se
+    traduce, así que va como clave y lo pinta quien lo enseña. */
 export function enlacesDeOrigen(base: string, slug: string) {
   return [
-    { label: 'Instagram', param: 'instagram', url: `${base}/${slug}?origen=instagram` },
-    { label: 'Google', param: 'google', url: `${base}/${slug}?origen=google` },
-    { label: 'Tu web', param: 'web', url: `${base}/${slug}?origen=web` },
+    {
+      label: 'Instagram',
+      clave: null,
+      param: 'instagram',
+      url: `${base}/${slug}?origen=instagram`,
+    },
+    { label: 'Google', clave: null, param: 'google', url: `${base}/${slug}?origen=google` },
+    { label: null, clave: 'fac.tuWeb' as const, param: 'web', url: `${base}/${slug}?origen=web` },
   ]
 }

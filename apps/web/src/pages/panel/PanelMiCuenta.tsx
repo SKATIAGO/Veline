@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatPrice, PLAN_INFO, SUB_STATUS_LABEL } from '@veline/shared'
+import { formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
 import { api } from '../../lib/api'
 import { enlacesDeOrigen } from '../../lib/origen'
 import { Badge, Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /**
  * Lo que el negocio paga y por qué, más los enlaces que le ahorran comisión.
@@ -20,17 +21,11 @@ const TONO: Record<string, 'ok' | 'warn' | 'off'> = {
   ANULADO: 'off',
 }
 
-const ESTADO_LABEL: Record<string, string> = {
-  COBRADO: 'Cobrado',
-  PENDIENTE: 'Pendiente',
-  ANULADO: 'Anulado',
+const ESTADO_CLAVE: Record<string, Clave> = {
+  COBRADO: 'fac.cobrado',
+  PENDIENTE: 'fac.pendiente',
+  ANULADO: 'fac.anulado',
 }
-
-const mesLargo = (period: string) =>
-  new Date(`${period}-01T00:00:00`).toLocaleDateString('es-ES', {
-    month: 'long',
-    year: 'numeric',
-  })
 
 function Linea({
   label,
@@ -43,6 +38,8 @@ function Linea({
   cents: number
   fuerte?: boolean
 }) {
+  const { idioma } = useIdioma()
+
   return (
     <div
       className={cx(
@@ -62,15 +59,23 @@ function Linea({
           fuerte ? 'text-subheading font-semibold text-ink' : 'text-body text-body-2',
         )}
       >
-        {formatPrice(cents)}
+        {formatPrice(cents, idioma)}
       </span>
     </div>
   )
 }
 
 export function PanelMiCuenta() {
+  const { t, idioma, locale } = useIdioma()
+  const plural = usePlural()
   const { slug = '' } = useParams()
   const [copiado, setCopiado] = useState<string | null>(null)
+
+  const mesLargo = (period: string) =>
+    new Date(`${period}-01T00:00:00`).toLocaleDateString(locale, {
+      month: 'long',
+      year: 'numeric',
+    })
 
   const { data: cuenta, isLoading } = useQuery({
     queryKey: ['panel', slug, 'cuenta'],
@@ -88,7 +93,7 @@ export function PanelMiCuenta() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Tu cuenta" hint="Lo que pagas, por qué, y cómo pagar menos comisión." />
+      <PageHeader title={t('panel.tuCuenta')} hint={t('fac.pista')} />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -105,11 +110,13 @@ export function PanelMiCuenta() {
           <Card padded>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-subheading font-semibold text-ink">
-                {cuenta?.current ? `Este mes · ${mesLargo(cuenta.current.period)}` : 'Este mes'}
+                {cuenta?.current
+                  ? t('fac.esteMesCon', { mes: mesLargo(cuenta.current.period) })
+                  : t('fac.esteMes')}
               </h2>
               {sub && (
                 <Badge tone={sub.status === 'ACTIVA' ? 'ok' : 'neutral'}>
-                  {SUB_STATUS_LABEL[sub.status]}
+                  {subStatusLabel(sub.status, idioma)}
                 </Badge>
               )}
             </div>
@@ -117,43 +124,53 @@ export function PanelMiCuenta() {
             {cuenta?.current ? (
               <div className="mt-3">
                 <Linea
-                  label={`Plan ${PLAN_INFO[cuenta.current.plan].label}`}
-                  hint={`${cuenta.current.seats} ${cuenta.current.seats === 1 ? 'persona' : 'personas'} · ${PLAN_INFO[cuenta.current.plan].seatsIncluded} incluidas`}
+                  label={t('fac.plan', { nombre: planLabel(cuenta.current.plan, idioma) })}
+                  hint={[
+                    plural(cuenta.current.seats, 'fac.unaPersona', 'fac.variasPersonas'),
+                    t('fac.incluidas', {
+                      n: PLAN_INFO[cuenta.current.plan].seatsIncluded,
+                    }),
+                  ].join(' · ')}
                   cents={cuenta.current.subscriptionCents}
                 />
                 <Linea
-                  label="Comisión del marketplace"
-                  hint="15 % del primer cliente que te descubre en Veline"
+                  label={t('fac.comision')}
+                  hint={t('fac.comisionPista')}
                   cents={cuenta.current.commissionCents}
                 />
                 <Linea
-                  label="Mensajes de más"
+                  label={t('fac.mensajesDeMas')}
                   hint={
                     sub
-                      ? `${sub.messages.enviados} enviados · ${sub.messages.incluidos} incluidos`
+                      ? t('fac.mensajesPista', {
+                          enviados: sub.messages.enviados,
+                          incluidos: sub.messages.incluidos,
+                        })
                       : undefined
                   }
                   cents={cuenta.current.messagesCents}
                 />
-                <Linea label="Total del mes" cents={cuenta.current.totalCents} fuerte />
-                <p className="mt-3 text-meta text-subtle">
-                  El mes todavía está corriendo: esta cifra sube si entran más citas del marketplace
-                  o se pasan los mensajes incluidos.
-                </p>
+                <Linea label={t('fac.totalMes')} cents={cuenta.current.totalCents} fuerte />
+                <p className="mt-3 text-meta text-subtle">{t('fac.mesCorriendo')}</p>
               </div>
             ) : (
-              <p className="mt-3 text-body text-muted">Todavía no hay nada que cobrar este mes.</p>
+              <p className="mt-3 text-body text-muted">{t('fac.nadaQueCobrar')}</p>
             )}
           </Card>
 
           <Card padded>
             <h2 className="font-display text-subheading font-semibold text-ink">
-              Tus enlaces para no pagar comisión
+              {t('fac.tusEnlaces')}
             </h2>
             <p className="mt-1 mb-4 text-body text-muted">
-              Comparte estos enlaces en vez del normal. Los clientes que entren por ellos cuentan
-              como tuyos, no del marketplace, y{' '}
-              <strong className="font-semibold text-body-2">no generan comisión</strong>.
+              <Texto
+                clave="fac.enlacesTexto"
+                partes={{
+                  sinComision: (
+                    <strong className="font-semibold text-body-2">{t('fac.sinComision')}</strong>
+                  ),
+                }}
+              />
             </p>
 
             <ul className="flex flex-col gap-2.5">
@@ -163,7 +180,7 @@ export function PanelMiCuenta() {
                   className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-canvas/40 px-3 py-2.5"
                 >
                   <span className="w-[76px] shrink-0 text-meta font-semibold text-body-2">
-                    {e.label}
+                    {e.clave ? t(e.clave) : e.label}
                   </span>
                   {/* En el móvil se parte en varias líneas en vez de recortarse: lo
                       que se recortaba era el final —«?origen=instagram»—, que es
@@ -178,7 +195,7 @@ export function PanelMiCuenta() {
                       void navigator.clipboard.writeText(e.url).then(() => setCopiado(e.param))
                     }}
                   >
-                    {copiado === e.param ? 'Copiado' : 'Copiar'}
+                    {copiado === e.param ? t('fac.copiado') : t('fac.copiar')}
                   </Button>
                 </li>
               ))}
@@ -189,13 +206,10 @@ export function PanelMiCuenta() {
 
       <div>
         <h2 className="mb-3 font-display text-subheading font-semibold text-ink">
-          Meses anteriores
+          {t('fac.mesesAnteriores')}
         </h2>
         {!cuenta?.history.length ? (
-          <EmptyState
-            title="Todavía no hay meses cerrados"
-            hint="Al acabar cada mes aparecerá aquí el resumen de lo que tocaba pagar."
-          />
+          <EmptyState title={t('fac.sinMeses')} hint={t('fac.sinMesesPista')} />
         ) : (
           <Card className="overflow-hidden">
             <ul>
@@ -209,15 +223,19 @@ export function PanelMiCuenta() {
                       <span className="text-ui font-semibold text-ink capitalize">
                         {mesLargo(h.period)}
                       </span>
-                      <Badge tone={TONO[h.status] ?? 'neutral'}>{ESTADO_LABEL[h.status]}</Badge>
+                      <Badge tone={TONO[h.status] ?? 'neutral'}>
+                        {ESTADO_CLAVE[h.status] ? t(ESTADO_CLAVE[h.status]) : h.status}
+                      </Badge>
                     </div>
                     <p className="mt-0.5 text-meta text-muted">
-                      {PLAN_INFO[h.plan].label} · {h.seats} {h.seats === 1 ? 'persona' : 'personas'}
-                      {h.extraMessages > 0 && ` · ${h.extraMessages} mensajes de más`}
+                      {planLabel(h.plan, idioma)} ·{' '}
+                      {plural(h.seats, 'fac.unaPersona', 'fac.variasPersonas')}
+                      {h.extraMessages > 0 &&
+                        ` · ${t('fac.mensajesDeMasCuenta', { n: h.extraMessages })}`}
                     </p>
                   </div>
                   <span className="text-ui font-semibold text-ink tabular-nums">
-                    {formatPrice(h.totalCents)}
+                    {formatPrice(h.totalCents, idioma)}
                   </span>
                 </li>
               ))}
@@ -226,10 +244,7 @@ export function PanelMiCuenta() {
         )}
       </div>
 
-      <p className="text-meta text-subtle">
-        El cobro es por transferencia o recibo: no te pedimos tarjeta ni se te cobra nada
-        automáticamente. Si algo no cuadra, escríbenos antes de pagar.
-      </p>
+      <p className="text-meta text-subtle">{t('fac.avisoCobro')}</p>
     </div>
   )
 }

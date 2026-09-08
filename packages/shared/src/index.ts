@@ -38,6 +38,7 @@ export const PRUEBA_DIAS_DEFECTO = 15
 export const PLAN_INFO = {
   GRATIS: {
     label: 'Gratis',
+    labelEn: 'Free',
     /** Cuota mensual base, en céntimos. */
     priceCents: 0,
     /** Personas que atienden incluidas en la cuota. */
@@ -49,6 +50,7 @@ export const PLAN_INFO = {
   },
   NEGOCIO: {
     label: 'Negocio',
+    labelEn: 'Business',
     priceCents: 1895,
     seatsIncluded: 2,
     extraSeatCents: 1095,
@@ -56,6 +58,7 @@ export const PLAN_INFO = {
   },
   EQUIPOS: {
     label: 'Equipo',
+    labelEn: 'Team',
     priceCents: 1895,
     seatsIncluded: 2,
     extraSeatCents: 1095,
@@ -64,6 +67,13 @@ export const PLAN_INFO = {
 } as const
 
 export type PlanKey = keyof typeof PLAN_INFO
+
+/** El nombre del plan, en el idioma que toque. */
+export const planLabel = (plan: string, idioma: Idioma = 'es') => {
+  const info = PLAN_INFO[plan as PlanKey]
+  if (!info) return plan
+  return idioma === 'en' ? info.labelEn : info.label
+}
 
 /** Cada mensaje que pasa del cupo mensual. */
 export const MENSAJE_EXTRA_CENTS = 6
@@ -79,7 +89,19 @@ export const SUB_STATUS_LABEL = {
   CANCELADA: 'Dada de baja',
 } as const
 
+const SUB_STATUS_LABEL_EN = {
+  PRUEBA: 'On trial',
+  ACTIVA: 'Active',
+  IMPAGADA: 'Unpaid',
+  SUSPENDIDA: 'Suspended',
+  CANCELADA: 'Closed',
+} as const
+
 export type SubStatusKey = keyof typeof SUB_STATUS_LABEL
+
+/** El estado de la suscripción, en el idioma que toque. */
+export const subStatusLabel = (estado: string, idioma: Idioma = 'es') =>
+  (idioma === 'en' ? SUB_STATUS_LABEL_EN : SUB_STATUS_LABEL)[estado as SubStatusKey] ?? estado
 
 /**
  * Lo que cuesta un mes con este plan y estas personas.

@@ -14,17 +14,18 @@ import {
   SuccessNote,
   cx,
 } from '../../components/ui'
+import { useIdioma, type Clave } from '../../i18n/idioma'
 
-const ROL_LABEL: Record<string, string> = {
-  SUPERADMIN: 'Superadmin',
-  ADMIN: 'Administrador',
-  EMPLEADO: 'Equipo',
+const ROL_CLAVE: Record<string, Clave> = {
+  SUPERADMIN: 'panel.rolSuperadmin',
+  ADMIN: 'panel.rolAdmin',
+  EMPLEADO: 'panel.rolEmpleado',
 }
 
-const ROL_ALCANCE: Record<string, string> = {
-  SUPERADMIN: 'Toda la plataforma: negocios, cuentas y actividad.',
-  ADMIN: 'Tu negocio entero: agenda, servicios, horario y equipo.',
-  EMPLEADO: 'La agenda de tu negocio.',
+const ROL_ALCANCE: Record<string, Clave> = {
+  SUPERADMIN: 'cta.alcanceSuperadmin',
+  ADMIN: 'cta.alcanceAdmin',
+  EMPLEADO: 'cta.alcanceEmpleado',
 }
 
 /**
@@ -40,14 +41,15 @@ function fuerza(valor: string) {
   if (/\d/.test(valor)) puntos++
   if (/[^A-Za-z0-9]/.test(valor)) puntos++
 
-  if (valor.length < 10) return { nivel: 0, texto: 'Demasiado corta', tono: 'bg-rose-400' }
-  if (puntos <= 2) return { nivel: 1, texto: 'Justa', tono: 'bg-amber-400' }
-  if (puntos === 3) return { nivel: 2, texto: 'Bien', tono: 'bg-emerald-400' }
-  return { nivel: 3, texto: 'Muy bien', tono: 'bg-emerald-500' }
+  if (valor.length < 10) return { nivel: 0, clave: 'cta.fuerzaCorta' as Clave, tono: 'bg-rose-400' }
+  if (puntos <= 2) return { nivel: 1, clave: 'cta.fuerzaJusta' as Clave, tono: 'bg-amber-400' }
+  if (puntos === 3) return { nivel: 2, clave: 'cta.fuerzaBien' as Clave, tono: 'bg-emerald-400' }
+  return { nivel: 3, clave: 'cta.fuerzaMuyBien' as Clave, tono: 'bg-emerald-500' }
 }
 
 /** Tu cuenta: quién eres y cambiar la contraseña estando dentro. */
 export function PanelCuenta() {
+  const { t } = useIdioma()
   const { user, loading } = useAuth()
   const id = useId()
   const [current, setCurrent] = useState('')
@@ -68,7 +70,7 @@ export function PanelCuenta() {
     setError(null)
     setHecho(false)
     if (next !== repeat) {
-      setError('Las dos contraseñas nuevas no coinciden.')
+      setError(t('cta.noCoincidenLargo'))
       return
     }
     setSending(true)
@@ -79,7 +81,7 @@ export function PanelCuenta() {
       setRepeat('')
       setHecho(true)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'No se ha podido cambiar la contraseña.')
+      setError(err instanceof ApiError ? err.message : t('cta.noSePudoCambiar'))
     } finally {
       setSending(false)
     }
@@ -87,7 +89,7 @@ export function PanelCuenta() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Tu cuenta" />
+      <PageHeader title={t('panel.tuCuenta')} />
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <Card padded>
@@ -106,39 +108,38 @@ export function PanelCuenta() {
 
           <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-5 text-body">
             <div className="flex items-center justify-between gap-4">
-              <dt className="text-muted">Permisos</dt>
+              <dt className="text-muted">{t('cta.permisos')}</dt>
               <dd>
                 <Badge tone={user.role === 'SUPERADMIN' ? 'brand' : 'neutral'}>
-                  {ROL_LABEL[user.role] ?? user.role}
+                  {ROL_CLAVE[user.role] ? t(ROL_CLAVE[user.role]) : user.role}
                 </Badge>
               </dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted">Alcance</dt>
+              <dt className="text-muted">{t('cta.alcance')}</dt>
               <dd className="max-w-[62%] text-right text-meta text-body-2">
-                {ROL_ALCANCE[user.role]}
+                {ROL_ALCANCE[user.role] ? t(ROL_ALCANCE[user.role]) : ''}
               </dd>
             </div>
             {user.businessName && (
               <div className="flex justify-between gap-4">
-                <dt className="text-muted">Negocio</dt>
+                <dt className="text-muted">{t('cta.negocio')}</dt>
                 <dd className="font-semibold text-ink">{user.businessName}</dd>
               </div>
             )}
           </dl>
 
           <p className="mt-5 border-t border-line pt-4 text-meta text-subtle">
-            El nombre y el email los cambia quien administra tu negocio. Si algo no cuadra, díselo a
-            esa persona.
+            {t('cta.loCambiaAdmin')}
           </p>
         </Card>
 
         <Card padded>
           <h2 className="mb-4 font-display text-subheading font-semibold text-ink">
-            Cambiar contraseña
+            {t('cta.cambiarContrasena')}
           </h2>
           <form onSubmit={submit} className="flex flex-col gap-4">
-            <Field label="Contraseña actual" htmlFor={`${id}-cur`} required>
+            <Field label={t('cta.actual')} htmlFor={`${id}-cur`} required>
               <Input
                 id={`${id}-cur`}
                 type="password"
@@ -149,12 +150,7 @@ export function PanelCuenta() {
               />
             </Field>
 
-            <Field
-              label="Nueva contraseña"
-              htmlFor={`${id}-new`}
-              hint="Mínimo 10 caracteres"
-              required
-            >
+            <Field label={t('cta.nueva')} htmlFor={`${id}-new`} hint={t('cta.nuevaPista')} required>
               <Input
                 id={`${id}-new`}
                 type="password"
@@ -177,15 +173,15 @@ export function PanelCuenta() {
                       />
                     ))}
                   </span>
-                  <span className="text-caption font-semibold text-muted">{nivel.texto}</span>
+                  <span className="text-caption font-semibold text-muted">{t(nivel.clave)}</span>
                 </div>
               )}
             </Field>
 
             <Field
-              label="Repítela"
+              label={t('cta.repitela')}
               htmlFor={`${id}-rep`}
-              error={noCoinciden ? 'No coinciden.' : undefined}
+              error={noCoinciden ? t('cta.noCoinciden') : undefined}
               required
             >
               <Input
@@ -201,11 +197,7 @@ export function PanelCuenta() {
             </Field>
 
             {error && <ErrorNote>{error}</ErrorNote>}
-            {hecho && (
-              <SuccessNote>
-                Contraseña cambiada. Las demás sesiones abiertas se han cerrado.
-              </SuccessNote>
-            )}
+            {hecho && <SuccessNote>{t('cta.cambiada')}</SuccessNote>}
 
             <Button
               type="submit"
@@ -213,7 +205,7 @@ export function PanelCuenta() {
               disabled={!current || next.length < 10 || noCoinciden}
               block
             >
-              Cambiar contraseña
+              {t('cta.cambiarContrasena')}
             </Button>
           </form>
         </Card>
