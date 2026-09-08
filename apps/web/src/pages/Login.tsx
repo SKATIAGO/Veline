@@ -5,8 +5,11 @@ import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { Button, ErrorNote, Logo, Spinner } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
+import { SelectorIdioma } from '../components/SelectorIdioma'
+import { Texto, useIdioma } from '../i18n/idioma'
 
 export function Login() {
+  const { t } = useIdioma()
   const { user, loading, refresh } = useAuth()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -16,7 +19,7 @@ export function Login() {
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
 
-  if (loading) return <Spinner label="Comprobando sesión…" />
+  if (loading) return <Spinner label={t('panel.comprobandoSesion')} />
   if (user) return <Navigate to="/panel" replace />
 
   const submit = async (e: FormEvent) => {
@@ -28,9 +31,7 @@ export function Login() {
       await refresh()
       navigate('/panel', { replace: true })
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'No se ha podido iniciar sesión. Prueba de nuevo.',
-      )
+      setError(err instanceof ApiError ? err.message : t('acc.noSePudoEntrar'))
     } finally {
       setSending(false)
     }
@@ -38,6 +39,12 @@ export function Login() {
 
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
+      {/* Aquí no hay cabecera, así que el idioma vive en una esquina: quien
+          llega desde un correo en inglés no tiene otro sitio donde cambiarlo. */}
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+        <SelectorIdioma />
+      </div>
+
       <Glow className="-top-40 -left-32" color="rgba(169,106,62,.35)" size={620} />
       <Glow className="-right-40 -bottom-52" color="rgba(217,164,65,.18)" size={560} />
       <DoorMotif
@@ -59,20 +66,18 @@ export function Login() {
         <div className="mb-8 flex justify-center">
           <Logo size={24} />
         </div>
-        <h1 className="text-center text-[24px] font-semibold text-ink">Panel de gestión</h1>
-        <p className="mt-2 mb-8 text-center text-sm text-muted">
-          Entra con tu cuenta para gestionar tu negocio.
-        </p>
+        <h1 className="text-center text-[24px] font-semibold text-ink">{t('acc.panelGestion')}</h1>
+        <p className="mt-2 mb-8 text-center text-sm text-muted">{t('acc.entraConTuCuenta')}</p>
 
         {recienRestablecida && (
           <p className="mb-5 rounded-lg border border-brand/40 bg-brand/8 px-4 py-3 text-center text-sm text-body-2">
-            Contraseña cambiada. Ya puedes entrar con la nueva.
+            {t('acc.restablecida')}
           </p>
         )}
 
         <form onSubmit={submit} className="flex flex-col gap-4">
           <label className="block">
-            <span className="mb-1.5 block text-meta font-semibold text-body">Email</span>
+            <span className="mb-1.5 block text-meta font-semibold text-body">{t('acc.email')}</span>
             <input
               type="email"
               value={email}
@@ -80,11 +85,13 @@ export function Login() {
               autoComplete="email"
               required
               className="w-full rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-brand"
-              placeholder="tu@negocio.es"
+              placeholder={t('acc.emailEjemplo')}
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-meta font-semibold text-body">Contraseña</span>
+            <span className="mb-1.5 block text-meta font-semibold text-body">
+              {t('acc.contrasena')}
+            </span>
             <input
               type="password"
               value={password}
@@ -99,7 +106,7 @@ export function Login() {
           {error && <ErrorNote>{error}</ErrorNote>}
 
           <Button type="submit" disabled={sending} className="sheen mt-2 w-full">
-            {sending ? 'Entrando…' : 'Iniciar sesión'}
+            {sending ? t('acc.entrando') : t('acc.entrar')}
           </Button>
         </form>
 
@@ -107,14 +114,20 @@ export function Login() {
           to="/recuperar"
           className="mt-5 block text-center text-meta font-medium text-muted hover:text-brand"
         >
-          ¿Olvidaste la contraseña?
+          {t('acc.olvidaste')}
         </Link>
 
         <p className="mt-5 text-center text-meta text-subtle">
-          ¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand-text">
-            {CONTACT_EMAIL}
-          </a>
+          <Texto
+            clave="acc.sinCuenta"
+            partes={{
+              correo: (
+                <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand-text">
+                  {CONTACT_EMAIL}
+                </a>
+              ),
+            }}
+          />
         </p>
       </div>
     </div>

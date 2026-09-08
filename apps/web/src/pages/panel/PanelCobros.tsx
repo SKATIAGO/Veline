@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatPrice, PLAN_INFO } from '@veline/shared'
+import { formatPrice, planLabel } from '@veline/shared'
 import { api, ApiError, type Charge } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
@@ -19,6 +19,7 @@ import {
   SuccessNote,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /**
  * Quién debe qué. El cobro es manual por ahora (transferencia o recibo), así
@@ -33,17 +34,21 @@ const TONO: Record<string, 'ok' | 'warn' | 'off'> = {
   ANULADO: 'off',
 }
 
-const ESTADO_LABEL: Record<string, string> = {
-  COBRADO: 'Cobrado',
-  PENDIENTE: 'Pendiente',
-  ANULADO: 'Anulado',
+const ESTADO_CLAVE: Record<string, Clave> = {
+  COBRADO: 'cob.cobrado',
+  PENDIENTE: 'cob.pendiente',
+  ANULADO: 'cob.anulado',
 }
 
-const mesLargo = (period: string) =>
-  new Date(`${period}-01T00:00:00`).toLocaleDateString('es-ES', {
-    month: 'long',
-    year: 'numeric',
-  })
+/** El nombre del mes, en el idioma de quien mira. */
+function useMesLargo() {
+  const { locale } = useIdioma()
+  return (period: string) =>
+    new Date(`${period}-01T00:00:00`).toLocaleDateString(locale, {
+      month: 'long',
+      year: 'numeric',
+    })
+}
 
 /** El mes anterior, que es el que normalmente se cierra. */
 function mesAnterior() {
@@ -54,6 +59,9 @@ function mesAnterior() {
 }
 
 function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
+  const { t, idioma, locale } = useIdioma()
+  const plural = usePlural()
+  const mesLargo = useMesLargo()
   const [nota, setNota] = useState(c.paidNote ?? '')
   const [abierto, setAbierto] = useState(false)
 
@@ -69,24 +77,29 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         <div className="min-w-[190px] flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-ui font-semibold text-ink">{c.business.name}</span>
-            <Badge tone={TONO[c.status] ?? 'neutral'}>{ESTADO_LABEL[c.status]}</Badge>
+            <Badge tone={TONO[c.status] ?? 'neutral'}>
+              {ESTADO_CLAVE[c.status] ? t(ESTADO_CLAVE[c.status]) : c.status}
+            </Badge>
           </div>
           <p className="mt-0.5 text-meta text-muted">
-            {mesLargo(c.period)} · {PLAN_INFO[c.plan].label} · {c.seats}{' '}
-            {c.seats === 1 ? 'persona' : 'personas'}
+            {mesLargo(c.period)} · {planLabel(c.plan, idioma)} ·{' '}
+            {plural(c.seats, 'cob.unaPersona', 'cob.variasPersonas')}
           </p>
         </div>
 
         <dl className="flex flex-wrap gap-5 text-meta text-muted">
           {[
-            ['Cuota', c.subscriptionCents],
-            ['Comisión', c.commissionCents],
-            [`Mensajes${c.extraMessages ? ` (${c.extraMessages})` : ''}`, c.messagesCents],
+            [t('cob.cuota'), c.subscriptionCents],
+            [t('cob.comision'), c.commissionCents],
+            [
+              c.extraMessages ? t('cob.mensajesCon', { n: c.extraMessages }) : t('cob.mensajes'),
+              c.messagesCents,
+            ],
           ].map(([label, cents]) => (
             <div key={label as string}>
               <dt className="text-caption">{label}</dt>
               <dd className="font-semibold text-body-2 tabular-nums">
-                {formatPrice(cents as number)}
+                {formatPrice(cents as number, idioma)}
               </dd>
             </div>
           ))}
@@ -94,11 +107,11 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
 
         <div className="w-[104px] text-right">
           <div className="text-ui font-semibold text-ink tabular-nums">
-            {formatPrice(c.totalCents)}
+            {formatPrice(c.totalCents, idioma)}
           </div>
           {c.paidAt && (
             <div className="text-caption text-subtle">
-              {new Date(c.paidAt).toLocaleDateString('es-ES')}
+              {new Date(c.paidAt).toLocaleDateString(locale)}
             </div>
           )}
         </div>
@@ -112,11 +125,11 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
                 loading={marcar.isPending && marcar.variables === 'COBRADO'}
                 onClick={() => setAbierto((a) => !a)}
               >
-                Marcar cobrado
+                {t('cob.marcarCobrado')}
               </Button>
               <ConfirmAction
-                label="Anular"
-                confirmLabel="Sí, anular"
+                label={t('cob.anular')}
+                confirmLabel={t('cob.siAnular')}
                 loading={marcar.isPending && marcar.variables === 'ANULADO'}
                 onConfirm={() => marcar.mutate('ANULADO')}
               />
@@ -128,7 +141,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
               loading={marcar.isPending}
               onClick={() => marcar.mutate('PENDIENTE')}
             >
-              Volver a pendiente
+              {t('cob.volverPendiente')}
             </Button>
           )}
         </div>
@@ -143,19 +156,19 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
           className="flex flex-wrap items-end gap-2 border-t border-line bg-canvas/50 px-4 py-4 sm:px-5"
         >
           <label className="flex min-w-[240px] flex-1 flex-col gap-1.5">
-            <span className="text-meta font-semibold text-body-2">Cómo se cobró</span>
+            <span className="text-meta font-semibold text-body-2">{t('cob.comoSeCobro')}</span>
             <Input
               value={nota}
               onChange={(e) => setNota(e.target.value)}
-              placeholder="Transferencia del 4 de septiembre"
+              placeholder={t('cob.comoSeCobroEjemplo')}
               autoFocus
             />
           </label>
           <Button type="submit" loading={marcar.isPending}>
-            Marcar cobrado
+            {t('cob.marcarCobrado')}
           </Button>
           <Button type="button" variant="quiet" onClick={() => setAbierto(false)}>
-            Cancelar
+            {t('cob.cancelar')}
           </Button>
         </form>
       )}
@@ -163,7 +176,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
       {marcar.isError && (
         <div className="px-4 pb-4 sm:px-5">
           <ErrorNote>
-            {marcar.error instanceof ApiError ? marcar.error.message : 'No se ha podido marcar'}
+            {marcar.error instanceof ApiError ? marcar.error.message : t('cob.noSePudoMarcar')}
           </ErrorNote>
         </div>
       )}
@@ -172,6 +185,8 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
 }
 
 export function PanelCobros() {
+  const { t, idioma } = useIdioma()
+  const mesLargo = useMesLargo()
   const { user, loading } = useAuth()
   const queryClient = useQueryClient()
   const [filtro, setFiltro] = useState<'todos' | 'PENDIENTE' | 'COBRADO'>('todos')
@@ -200,34 +215,36 @@ export function PanelCobros() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Cobros"
-        hint="El cobro es manual: esto dice cuánto se debe y guarda constancia de lo que ya está pagado."
+        title={t('panel.cobros')}
+        hint={t('cob.pista')}
         actions={
           <Button variant="secondary" loading={cerrar.isPending} onClick={() => cerrar.mutate()}>
-            Cerrar {mesLargo(mesAnterior())}
+            {t('cob.cerrarMes', { mes: mesLargo(mesAnterior()) })}
           </Button>
         }
       />
 
       {cerrar.isError && (
         <ErrorNote>
-          {cerrar.error instanceof ApiError ? cerrar.error.message : 'No se ha podido cerrar'}
+          {cerrar.error instanceof ApiError ? cerrar.error.message : t('cob.noSePudoCerrar')}
         </ErrorNote>
       )}
       {cerrar.isSuccess && (
         <SuccessNote>
           {cerrar.data.creados === 0
-            ? `${mesLargo(cerrar.data.period)} ya estaba cerrado: no hay cobros nuevos.`
-            : `${mesLargo(cerrar.data.period)} cerrado: ${cerrar.data.creados} ${
-                cerrar.data.creados === 1 ? 'cobro nuevo' : 'cobros nuevos'
-              } de ${cerrar.data.negocios} negocios.`}
+            ? t('cob.yaCerrado', { mes: mesLargo(cerrar.data.period) })
+            : t(cerrar.data.creados === 1 ? 'cob.cerradoUno' : 'cob.cerradoVarios', {
+                mes: mesLargo(cerrar.data.period),
+                n: cerrar.data.creados,
+                negocios: cerrar.data.negocios,
+              })}
         </SuccessNote>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {[
-          ['Por cobrar', data?.totals.pendienteCents ?? 0, 'warn'],
-          ['Cobrado', data?.totals.cobradoCents ?? 0, 'ok'],
+          [t('cob.porCobrar'), data?.totals.pendienteCents ?? 0, 'warn'],
+          [t('cob.cobrado'), data?.totals.cobradoCents ?? 0, 'ok'],
         ].map(([label, cents, tono]) => (
           <Card key={label as string} className="p-5">
             <div className="text-meta font-medium text-muted">{label}</div>
@@ -237,7 +254,7 @@ export function PanelCobros() {
                 tono === 'warn' ? 'text-amber-800' : 'text-emerald-800',
               )}
             >
-              {formatPrice(cents as number)}
+              {formatPrice(cents as number, idioma)}
             </div>
           </Card>
         ))}
@@ -246,13 +263,13 @@ export function PanelCobros() {
       <div className="flex flex-wrap gap-2">
         {(
           [
-            ['todos', 'Todos'],
-            ['PENDIENTE', 'Pendientes'],
-            ['COBRADO', 'Cobrados'],
-          ] as const
-        ).map(([key, label]) => (
+            ['todos', 'cob.todos'],
+            ['PENDIENTE', 'cob.pendientes'],
+            ['COBRADO', 'cob.cobrados'],
+          ] as const satisfies readonly (readonly [string, Clave])[]
+        ).map(([key, clave]) => (
           <FilterChip key={key} active={filtro === key} onClick={() => setFiltro(key)}>
-            {label}
+            {t(clave)}
           </FilterChip>
         ))}
       </div>
@@ -265,12 +282,8 @@ export function PanelCobros() {
         </Card>
       ) : !filtrados.length ? (
         <EmptyState
-          title={data?.charges.length ? 'Nada con este filtro' : 'Todavía no hay cobros'}
-          hint={
-            data?.charges.length
-              ? undefined
-              : 'Los cobros se generan al cerrar un mes con el botón de arriba.'
-          }
+          title={data?.charges.length ? t('cob.nadaConFiltro') : t('cob.todaviaNoHay')}
+          hint={data?.charges.length ? undefined : t('cob.todaviaNoHayPista')}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -283,9 +296,14 @@ export function PanelCobros() {
       )}
 
       <p className="text-meta text-subtle">
-        Un mes se cierra <strong className="font-semibold text-body-2">una sola vez</strong>: las
-        cifras se congelan al cerrarlo, así que si un negocio cambia de plan en octubre, septiembre
-        no se mueve. Volver a cerrar el mismo mes no duplica nada.
+        <Texto
+          clave="cob.aviso"
+          partes={{
+            unaSolaVez: (
+              <strong className="font-semibold text-body-2">{t('cob.unaSolaVez')}</strong>
+            ),
+          }}
+        />
       </p>
     </div>
   )

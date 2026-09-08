@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import { Button, ErrorNote, Logo } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
+import { SelectorIdioma } from '../components/SelectorIdioma'
+import { useIdioma } from '../i18n/idioma'
 
 /** Marco compartido con la pantalla de login, para que se reconozca igual. */
 function AuthCard({
@@ -16,6 +18,11 @@ function AuthCard({
 }) {
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
+      {/* Igual que en el login: sin cabecera, el idioma vive en la esquina. */}
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+        <SelectorIdioma />
+      </div>
+
       <Glow className="-top-40 -left-32" color="rgba(169,106,62,.35)" size={620} />
       <Glow className="-right-40 -bottom-52" color="rgba(217,164,65,.18)" size={560} />
       <DoorMotif
@@ -42,6 +49,7 @@ const inputClass =
 
 /** Paso 1: pedir el enlace por email. */
 export function ForgotPassword() {
+  const { t } = useIdioma()
   const [email, setEmail] = useState('')
   const [enviado, setEnviado] = useState(false)
   const [sending, setSending] = useState(false)
@@ -58,31 +66,23 @@ export function ForgotPassword() {
 
   if (enviado) {
     return (
-      <AuthCard
-        title="Revisa tu correo"
-        subtitle="Si esa dirección tiene cuenta, le hemos enviado un enlace para elegir una contraseña nueva."
-      >
-        <p className="text-center text-meta text-muted">
-          El enlace caduca en una hora. Si no llega, mira en spam o vuelve a pedirlo.
-        </p>
+      <AuthCard title={t('acc.revisaCorreo')} subtitle={t('acc.revisaCorreoSub')}>
+        <p className="text-center text-meta text-muted">{t('acc.enlaceCaduca')}</p>
         <Link
           to="/login"
           className="mt-4 flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
         >
-          Volver a iniciar sesión
+          {t('acc.volverEntrar')}
         </Link>
       </AuthCard>
     )
   }
 
   return (
-    <AuthCard
-      title="¿Olvidaste la contraseña?"
-      subtitle="Escribe tu email y te enviamos un enlace para elegir una nueva."
-    >
+    <AuthCard title={t('acc.olvidaste')} subtitle={t('acc.olvidasteSub')}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="block">
-          <span className="mb-1.5 block text-meta font-semibold text-body">Email</span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">{t('acc.email')}</span>
           <input
             type="email"
             value={email}
@@ -90,18 +90,18 @@ export function ForgotPassword() {
             autoComplete="email"
             required
             className={inputClass}
-            placeholder="tu@negocio.es"
+            placeholder={t('acc.emailEjemplo')}
           />
         </label>
         <Button type="submit" disabled={sending} className="sheen mt-2 w-full">
-          {sending ? 'Enviando…' : 'Enviarme el enlace'}
+          {sending ? t('acc.enviando') : t('acc.enviarEnlace')}
         </Button>
       </form>
       <Link
         to="/login"
         className="mt-4 flex min-h-11 items-center justify-center text-body font-medium text-muted hover:text-brand"
       >
-        Volver a iniciar sesión
+        {t('acc.volverEntrar')}
       </Link>
     </AuthCard>
   )
@@ -109,6 +109,7 @@ export function ForgotPassword() {
 
 /** Paso 2: elegir la contraseña nueva con el token del enlace. */
 export function ResetPassword() {
+  const { t } = useIdioma()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const token = params.get('token') ?? ''
@@ -120,12 +121,12 @@ export function ResetPassword() {
 
   if (!token) {
     return (
-      <AuthCard title="Enlace incompleto" subtitle="Este enlace no trae el código necesario.">
+      <AuthCard title={t('acc.enlaceIncompleto')} subtitle={t('acc.enlaceIncompletoSub')}>
         <Link
           to="/recuperar"
           className="flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
         >
-          Pedir un enlace nuevo
+          {t('acc.pedirNuevo')}
         </Link>
       </AuthCard>
     )
@@ -135,7 +136,7 @@ export function ResetPassword() {
     e.preventDefault()
     setError(null)
     if (password !== repeat) {
-      setError('Las dos contraseñas no coinciden.')
+      setError(t('acc.noCoinciden'))
       return
     }
     setSending(true)
@@ -143,17 +144,19 @@ export function ResetPassword() {
       await api.resetPassword(token, password)
       navigate('/login?restablecida=1', { replace: true })
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'No se ha podido cambiar la contraseña.')
+      setError(err instanceof ApiError ? err.message : t('acc.noSePudoCambiar'))
     } finally {
       setSending(false)
     }
   }
 
   return (
-    <AuthCard title="Elige una contraseña nueva" subtitle="Al menos 10 caracteres.">
+    <AuthCard title={t('acc.eligeNueva')} subtitle={t('acc.eligeNuevaSub')}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="block">
-          <span className="mb-1.5 block text-meta font-semibold text-body">Nueva contraseña</span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">
+            {t('acc.nuevaContrasena')}
+          </span>
           <input
             type="password"
             value={password}
@@ -166,7 +169,9 @@ export function ResetPassword() {
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-meta font-semibold text-body">Repítela</span>
+          <span className="mb-1.5 block text-meta font-semibold text-body">
+            {t('acc.repitela')}
+          </span>
           <input
             type="password"
             value={repeat}
@@ -182,12 +187,10 @@ export function ResetPassword() {
         {error && <ErrorNote>{error}</ErrorNote>}
 
         <Button type="submit" disabled={sending} className="sheen mt-2 w-full">
-          {sending ? 'Guardando…' : 'Guardar contraseña'}
+          {sending ? t('acc.guardando') : t('acc.guardarContrasena')}
         </Button>
       </form>
-      <p className="mt-6 text-center text-meta text-subtle">
-        Al cambiarla se cierran todas las sesiones abiertas de tu cuenta.
-      </p>
+      <p className="mt-6 text-center text-meta text-subtle">{t('acc.cierraSesiones')}</p>
     </AuthCard>
   )
 }

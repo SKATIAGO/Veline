@@ -38,9 +38,16 @@ describe('diccionarios', () => {
    * idiomas van aquí, a mano y a propósito.
    */
   it('no hay español colado en el inglés', () => {
-    const IGUALES: (keyof typeof es)[] = [
-      // Nombres propios y palabras que en inglés se escriben igual.
+    /* Los ejemplos que se ven dentro de un campo vacío quedan fuera: la mitad
+       son datos españoles que siguen siendo españoles aunque quien los lea
+       esté en inglés —una calle de Madrid, un nombre propio, un código
+       postal de cinco cifras—. */
+    const esEjemplo = (c: string) => c.endsWith('Ejemplo')
 
+    /* Palabras que se escriben igual en los dos idiomas. Cada una está aquí
+       porque alguien la miró y decidió que sí, no porque nadie se acordara de
+       traducirla. */
+    const IGUALES: (keyof typeof es)[] = [
       'nav.marketplace',
       'pie.marketplace',
       'pie.contacto',
@@ -49,25 +56,21 @@ describe('diccionarios', () => {
       'ficha.tel',
       'comun.total',
       'comun.no',
+      'act.no',
       'confirmar.email',
       'agenda.email',
       'neg.email',
       'eq.email',
-      'act.no',
+      'acc.email',
+      'alta.email',
+      'adm.email',
+      'adm.plan',
       'panel.rolSuperadmin',
-      // Ejemplos de campos: un nombre propio, un correo y una dirección
-      // española. El negocio está en España aunque quien lo lleva lea en
-      // inglés, así que la calle de ejemplo sigue siendo una calle española.
-      'confirmar.nombreEjemplo',
-      'confirmar.emailEjemplo',
-      'pers.nombreEjemplo',
-      'loc.calleEjemplo',
-      'loc.ciudadEjemplo',
-      'eq.nombreEjemplo',
-      'eq.emailEjemplo',
+      'ctas.superadmins',
     ]
+
     const sospechosas = claves.filter(
-      (c) => en[c] === es[c] && !IGUALES.includes(c) && /[a-zá-ú]/i.test(es[c]),
+      (c) => en[c] === es[c] && !IGUALES.includes(c) && !esEjemplo(c) && /[a-zá-ú]/i.test(es[c]),
     )
     expect(sospechosas).toEqual([])
   })

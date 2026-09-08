@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CATEGORIES, categoryLabel, formatPrice, PLAN_INFO, SUB_STATUS_LABEL } from '@veline/shared'
+import { CATEGORIES, categoryLabel, formatPrice, planLabel, subStatusLabel } from '@veline/shared'
 import { api, ApiError, type AdminBusiness } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
@@ -19,6 +19,7 @@ import {
   Skeleton,
   Spinner,
 } from '../../components/ui'
+import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
 /**
  * Gestión de la plataforma — SOLO superadmin. Dar de alta negocios y crear
@@ -72,21 +73,21 @@ function Credencial({
   password: string
   onClose: () => void
 }) {
+  const { t } = useIdioma()
   const [copiado, setCopiado] = useState(false)
+
   return (
     <Card className="border-brand/40 bg-brand/5 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-ui font-semibold text-ink">Cuenta creada</p>
+          <p className="text-ui font-semibold text-ink">{t('adm.cuentaCreada')}</p>
           <p className="mt-1 text-body text-body">
-            Pásale estos datos a <strong>{email}</strong>:
+            <Texto clave="adm.pasaleDatos" partes={{ email: <strong>{email}</strong> }} />
           </p>
           <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
             {password}
           </code>
-          <p className="mt-2 text-meta text-muted">
-            No se puede volver a consultar. Quien entre podrá cambiarla desde su cuenta.
-          </p>
+          <p className="mt-2 text-meta text-muted">{t('adm.noSeConsulta')}</p>
         </div>
         <div className="flex shrink-0 gap-1">
           <Button
@@ -96,9 +97,9 @@ function Credencial({
               void navigator.clipboard.writeText(password).then(() => setCopiado(true))
             }}
           >
-            {copiado ? 'Copiada' : 'Copiar'}
+            {copiado ? t('adm.copiada') : t('adm.copiar')}
           </Button>
-          <IconButton label="Cerrar el aviso" onClick={onClose}>
+          <IconButton label={t('adm.cerrarAviso')} onClick={onClose}>
             <span aria-hidden className="text-subheading leading-none">
               ×
             </span>
@@ -125,6 +126,8 @@ const diasHasta = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now
  * las cifras de esa misma fila.
  */
 function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
+  const { t, idioma, locale } = useIdioma()
+  const plural = usePlural()
   const [notas, setNotas] = useState(b.adminNotes ?? '')
 
   const cambiar = useMutation({
@@ -139,7 +142,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
     <div className="w-full border-t border-line bg-canvas/50 px-4 py-4 sm:px-5">
       <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1.2fr]">
         <div>
-          <p className="mb-2 text-meta font-semibold text-body-2">Plan</p>
+          <p className="mb-2 text-meta font-semibold text-body-2">{t('adm.plan')}</p>
           <div className="flex flex-wrap gap-1.5">
             {(['GRATIS', 'NEGOCIO', 'EQUIPOS'] as const).map((p) => (
               <Button
@@ -149,20 +152,20 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                 loading={cambiar.isPending && cambiar.variables?.plan === p}
                 onClick={() => cambiar.mutate({ plan: p })}
               >
-                {PLAN_INFO[p].label}
+                {planLabel(p, idioma)}
               </Button>
             ))}
           </div>
           <p className="mt-2 text-meta text-muted">
-            Con {b.counts.staff} {b.counts.staff === 1 ? 'persona' : 'personas'}:{' '}
+            {plural(b.counts.staff, 'adm.conUnaPersona', 'adm.conVariasPersonas')}{' '}
             <strong className="font-semibold text-body-2">
-              {formatPrice(b.monthlyCents)} al mes
+              {t('adm.alMesFuerte', { importe: formatPrice(b.monthlyCents, idioma) })}
             </strong>
           </p>
         </div>
 
         <div>
-          <p className="mb-2 text-meta font-semibold text-body-2">Prueba</p>
+          <p className="mb-2 text-meta font-semibold text-body-2">{t('adm.prueba')}</p>
           <div className="flex flex-wrap gap-1.5">
             {[7, 15, 30].map((d) => (
               <Button
@@ -172,19 +175,21 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                 loading={cambiar.isPending && cambiar.variables?.trialDays === d}
                 onClick={() => cambiar.mutate({ trialDays: d })}
               >
-                +{d} días
+                {t('adm.masDias', { n: d })}
               </Button>
             ))}
           </div>
           <p className="mt-2 text-meta text-muted">
             {b.trialEndsAt
-              ? `Termina el ${new Date(b.trialEndsAt).toLocaleDateString('es-ES')}`
-              : 'Sin prueba activa'}
+              ? t('adm.pruebaTermina', {
+                  fecha: new Date(b.trialEndsAt).toLocaleDateString(locale),
+                })
+              : t('adm.sinPrueba')}
           </p>
         </div>
 
         <div>
-          <p className="mb-2 text-meta font-semibold text-body-2">Estado</p>
+          <p className="mb-2 text-meta font-semibold text-body-2">{t('adm.estado')}</p>
           <div className="flex flex-wrap gap-1.5">
             {cortado ? (
               <Button
@@ -192,7 +197,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                 loading={cambiar.isPending && cambiar.variables?.status === 'ACTIVA'}
                 onClick={() => cambiar.mutate({ status: 'ACTIVA' })}
               >
-                Reactivar
+                {t('adm.reactivar')}
               </Button>
             ) : (
               <>
@@ -202,12 +207,12 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                   loading={cambiar.isPending && cambiar.variables?.status === 'IMPAGADA'}
                   onClick={() => cambiar.mutate({ status: 'IMPAGADA' })}
                 >
-                  Marcar impagada
+                  {t('adm.marcarImpagada')}
                 </Button>
                 <ConfirmAction
-                  label="Suspender"
-                  question="¿Deja de aceptar reservas?"
-                  confirmLabel="Sí, suspender"
+                  label={t('adm.suspender')}
+                  question={t('adm.suspenderPregunta')}
+                  confirmLabel={t('adm.siSuspender')}
                   loading={cambiar.isPending && cambiar.variables?.status === 'SUSPENDIDA'}
                   onConfirm={() => cambiar.mutate({ status: 'SUSPENDIDA' })}
                 />
@@ -215,9 +220,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
             )}
           </div>
           <p className="mt-2 text-meta text-muted">
-            {b.accepting
-              ? 'Acepta reservas con normalidad'
-              : 'No acepta reservas nuevas ahora mismo'}
+            {b.accepting ? t('adm.aceptaNormal') : t('adm.noAceptaAhora')}
           </p>
         </div>
       </div>
@@ -230,22 +233,22 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
         className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-4"
       >
         <label className="flex min-w-[260px] flex-1 flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">Nota interna</span>
+          <span className="text-meta font-semibold text-body-2">{t('adm.notaInterna')}</span>
           <Input
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
-            placeholder="Con quién se habló, por qué se suspendió…"
+            placeholder={t('adm.notaEjemplo')}
           />
         </label>
         <Button type="submit" variant="secondary" loading={cambiar.isPending}>
-          Guardar nota
+          {t('adm.guardarNota')}
         </Button>
       </form>
 
       {cambiar.isError && (
         <div className="mt-3">
           <ErrorNote>
-            {cambiar.error instanceof ApiError ? cambiar.error.message : 'No se ha podido cambiar'}
+            {cambiar.error instanceof ApiError ? cambiar.error.message : t('adm.noSePudoCambiar')}
           </ErrorNote>
         </div>
       )}
@@ -265,6 +268,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export function PanelAdmin() {
+  const { t, idioma } = useIdioma()
   const { user, loading } = useAuth()
   const queryClient = useQueryClient()
   const id = useId()
@@ -347,13 +351,13 @@ export function PanelAdmin() {
     : businessDraft.name.trim().length < 2
       ? 'Escribe el nombre del negocio.'
       : !esEmail(businessDraft.email)
-        ? 'El email del negocio no es válido.'
+        ? t('adm.errEmailNegocio')
         : businessDraft.street.trim().length < 3
           ? 'Falta la calle.'
           : businessDraft.city.trim().length < 2
             ? 'Falta la ciudad.'
             : !/^\d{5}$/.test(businessDraft.postalCode.trim())
-              ? 'El código postal son 5 cifras.'
+              ? t('adm.errCp')
               : null
 
   const problemaUsuario = !userDraft
@@ -361,9 +365,9 @@ export function PanelAdmin() {
     : userDraft.name.trim().length < 2
       ? 'Escribe el nombre.'
       : !esEmail(userDraft.email)
-        ? 'El email no es válido.'
+        ? t('adm.errEmail')
         : userDraft.password.length < 10
-          ? 'La contraseña debe tener al menos 10 caracteres.'
+          ? t('adm.errContrasena')
           : null
 
   const abrirCuenta = (b: AdminBusiness) => {
@@ -381,8 +385,8 @@ export function PanelAdmin() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Negocios"
-        hint="Alta de negocios y de sus cuentas de acceso."
+        title={t('panel.negocios')}
+        hint={t('adm.pista')}
         actions={
           !businessDraft && (
             <Button
@@ -391,25 +395,25 @@ export function PanelAdmin() {
                 setBusinessDraft(emptyBusiness)
               }}
             >
-              + Dar de alta un negocio
+              {t('adm.darDeAlta')}
             </Button>
           )
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Negocios" value={totales.negocios} />
-        <Stat label="Citas totales" value={totales.citas} />
-        <Stat label="Cuentas de acceso" value={totales.usuarios} />
-        <Stat label="Sin servicios" value={totales.sinServicios} />
-        <Stat label="Sin aprobar" value={totales.pendientes} />
+        <Stat label={t('adm.negocios')} value={totales.negocios} />
+        <Stat label={t('adm.citasTotales')} value={totales.citas} />
+        <Stat label={t('adm.cuentasAcceso')} value={totales.usuarios} />
+        <Stat label={t('adm.sinServicios')} value={totales.sinServicios} />
+        <Stat label={t('adm.sinAprobar')} value={totales.pendientes} />
       </div>
 
       {credencial && <Credencial {...credencial} onClose={() => setCredencial(null)} />}
 
       {businessDraft && (
         <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">Nuevo negocio</h2>
+          <h2 className="mb-4 text-ui font-semibold text-ink">{t('adm.nuevoNegocio')}</h2>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -418,15 +422,15 @@ export function PanelAdmin() {
             className="flex flex-col gap-4"
           >
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Field label="Nombre" htmlFor={`${id}-bn`} required>
+              <Field label={t('adm.nombre')} htmlFor={`${id}-bn`} required>
                 <Input
                   id={`${id}-bn`}
-                  placeholder="Peluquería Lola"
+                  placeholder={t('adm.nombreNegocioEjemplo')}
                   value={businessDraft.name}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, name: e.target.value })}
                 />
               </Field>
-              <Field label="Categoría" htmlFor={`${id}-bc`} required>
+              <Field label={t('adm.categoria')} htmlFor={`${id}-bc`} required>
                 <Select
                   id={`${id}-bc`}
                   value={businessDraft.category}
@@ -434,26 +438,26 @@ export function PanelAdmin() {
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c.slug} value={c.slug}>
-                      {c.label}
+                      {idioma === 'en' ? c.labelEn : c.label}
                     </option>
                   ))}
                 </Select>
               </Field>
               <Field
-                label="Email"
+                label={t('adm.email')}
                 htmlFor={`${id}-be`}
-                hint="Aquí llegan los avisos de cita nueva"
+                hint={t('adm.emailPista')}
                 required
               >
                 <Input
                   id={`${id}-be`}
                   type="email"
-                  placeholder="hola@peluquerialola.es"
+                  placeholder={t('adm.emailNegocioEjemplo')}
                   value={businessDraft.email}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, email: e.target.value })}
                 />
               </Field>
-              <Field label="Teléfono" htmlFor={`${id}-bp`} hint="Opcional">
+              <Field label={t('adm.telefono')} htmlFor={`${id}-bp`} hint={t('adm.opcional')}>
                 <Input
                   id={`${id}-bp`}
                   placeholder="600 000 000"
@@ -461,23 +465,23 @@ export function PanelAdmin() {
                   onChange={(e) => setBusinessDraft({ ...businessDraft, phone: e.target.value })}
                 />
               </Field>
-              <Field label="Calle y número" htmlFor={`${id}-bs`} required>
+              <Field label={t('adm.calle')} htmlFor={`${id}-bs`} required>
                 <Input
                   id={`${id}-bs`}
-                  placeholder="Calle Mayor, 12"
+                  placeholder={t('adm.calleEjemplo')}
                   value={businessDraft.street}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, street: e.target.value })}
                 />
               </Field>
               <div className="grid grid-cols-[1.6fr_1fr] gap-3">
-                <Field label="Ciudad" htmlFor={`${id}-bci`} required>
+                <Field label={t('adm.ciudad')} htmlFor={`${id}-bci`} required>
                   <Input
                     id={`${id}-bci`}
                     value={businessDraft.city}
                     onChange={(e) => setBusinessDraft({ ...businessDraft, city: e.target.value })}
                   />
                 </Field>
-                <Field label="C. postal" htmlFor={`${id}-bcp`} required>
+                <Field label={t('adm.cp')} htmlFor={`${id}-bcp`} required>
                   <Input
                     id={`${id}-bcp`}
                     inputMode="numeric"
@@ -496,7 +500,7 @@ export function PanelAdmin() {
               <ErrorNote>
                 {createBusiness.error instanceof ApiError
                   ? createBusiness.error.message
-                  : 'No se ha podido crear'}
+                  : t('adm.noSePudoCrear')}
               </ErrorNote>
             )}
 
@@ -529,15 +533,20 @@ export function PanelAdmin() {
             className="flex flex-col gap-4"
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nombre" htmlFor={`${id}-un`} required>
+              <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
                 <Input
                   id={`${id}-un`}
-                  placeholder="Lola Martín"
+                  placeholder={t('adm.nombrePersonaEjemplo')}
                   value={userDraft.name}
                   onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
                 />
               </Field>
-              <Field label="Email" htmlFor={`${id}-ue`} hint="Con esto entrará al panel" required>
+              <Field
+                label={t('adm.email')}
+                htmlFor={`${id}-ue`}
+                hint={t('adm.emailAcceso')}
+                required
+              >
                 <Input
                   id={`${id}-ue`}
                   type="email"
@@ -546,9 +555,9 @@ export function PanelAdmin() {
                 />
               </Field>
               <Field
-                label="Contraseña inicial"
+                label={t('adm.contrasenaInicial')}
                 htmlFor={`${id}-up`}
-                hint="Generada al azar"
+                hint={t('adm.contrasenaPista')}
                 required
               >
                 <div className="flex gap-2">
@@ -567,7 +576,7 @@ export function PanelAdmin() {
                   </Button>
                 </div>
               </Field>
-              <Field label="Permisos" htmlFor={`${id}-ur`} required>
+              <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
                 <Select
                   id={`${id}-ur`}
                   value={userDraft.role}
@@ -575,8 +584,8 @@ export function PanelAdmin() {
                     setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
                   }
                 >
-                  <option value="ADMIN">Administrador</option>
-                  <option value="EMPLEADO">Equipo</option>
+                  <option value="ADMIN">{t('panel.rolAdmin')}</option>
+                  <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
                 </Select>
               </Field>
             </div>
@@ -591,10 +600,10 @@ export function PanelAdmin() {
 
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" loading={createUser.isPending} disabled={!!problemaUsuario}>
-                Crear cuenta
+                {t('adm.crearCuenta')}
               </Button>
               <Button type="button" variant="secondary" onClick={() => setUserDraft(null)}>
-                Cancelar
+                {t('adm.cancelar')}
               </Button>
               {problemaUsuario && <span className="text-meta text-muted">{problemaUsuario}</span>}
             </div>
@@ -605,8 +614,8 @@ export function PanelAdmin() {
       {(businesses?.length ?? 0) > 6 && (
         <Input
           type="search"
-          placeholder="Buscar por nombre, categoría o email…"
-          aria-label="Buscar negocios"
+          placeholder={t('adm.buscar')}
+          aria-label={t('adm.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="max-w-sm"
@@ -621,12 +630,14 @@ export function PanelAdmin() {
         </Card>
       ) : !businesses?.length ? (
         <EmptyState
-          title="Aún no hay negocios dados de alta"
-          hint="Da de alta el primero para empezar a recibir reservas en la plataforma."
-          action={<Button onClick={() => setBusinessDraft(emptyBusiness)}>Dar de alta uno</Button>}
+          title={t('adm.aunNoHay')}
+          hint={t('adm.aunNoHayPista')}
+          action={
+            <Button onClick={() => setBusinessDraft(emptyBusiness)}>{t('adm.darDeAltaUno')}</Button>
+          }
         />
       ) : !filtrados.length ? (
-        <EmptyState title={`Ningún negocio coincide con «${busqueda}»`} />
+        <EmptyState title={t('adm.ningunoCoincide', { q: busqueda })} />
       ) : (
         <Card className="overflow-hidden">
           <ul>
@@ -643,29 +654,30 @@ export function PanelAdmin() {
                     >
                       {b.name}
                     </Link>
-                    <Badge>{categoryLabel(b.category)}</Badge>
+                    <Badge>{categoryLabel(b.category, idioma)}</Badge>
                     <Badge tone={ESTADO_TONO[b.subStatus] ?? 'neutral'}>
-                      {SUB_STATUS_LABEL[b.subStatus]}
+                      {subStatusLabel(b.subStatus, idioma)}
                       {b.subStatus === 'PRUEBA' && b.trialEndsAt
                         ? ` · ${Math.max(0, diasHasta(b.trialEndsAt))} d`
                         : ''}
                     </Badge>
-                    {!b.approvedAt && <Badge tone="warn">Sin aprobar</Badge>}
-                    {!b.accepting && <Badge tone="off">No acepta reservas</Badge>}
-                    {b.counts.services === 0 && <Badge tone="warn">Sin servicios</Badge>}
-                    {b.counts.users === 0 && <Badge tone="off">Sin acceso</Badge>}
+                    {!b.approvedAt && <Badge tone="warn">{t('adm.sinAprobar')}</Badge>}
+                    {!b.accepting && <Badge tone="off">{t('adm.noAceptaReservas')}</Badge>}
+                    {b.counts.services === 0 && <Badge tone="warn">{t('adm.sinServicios')}</Badge>}
+                    {b.counts.users === 0 && <Badge tone="off">{t('adm.sinAcceso')}</Badge>}
                   </div>
                   <p className="mt-0.5 text-meta text-muted">
-                    /{b.slug} · {PLAN_INFO[b.plan].label} · {formatPrice(b.monthlyCents)}/mes
+                    /{b.slug} · {planLabel(b.plan, idioma)} ·{' '}
+                    {t('adm.alMes', { importe: formatPrice(b.monthlyCents, idioma) })}
                     {b.email && ` · ${b.email}`}
                   </p>
                 </div>
 
                 <dl className="flex gap-5 text-meta text-muted">
                   {[
-                    ['Citas', b.counts.bookings],
-                    ['Servicios', b.counts.services],
-                    ['Equipo', b.counts.users],
+                    [t('adm.citas'), b.counts.bookings],
+                    [t('adm.servicios'), b.counts.services],
+                    [t('adm.equipo'), b.counts.users],
                   ].map(([label, n]) => (
                     <div key={label as string}>
                       <dt className="text-caption">{label}</dt>
@@ -681,7 +693,7 @@ export function PanelAdmin() {
                       loading={aprobar.isPending && aprobar.variables === b.id}
                       onClick={() => aprobar.mutate(b.id)}
                     >
-                      Aprobar
+                      {t('adm.aprobar')}
                     </Button>
                   )}
                   <Button
@@ -689,16 +701,16 @@ export function PanelAdmin() {
                     variant="quiet"
                     onClick={() => setAbierto(abierto === b.id ? null : b.id)}
                   >
-                    {abierto === b.id ? 'Cerrar' : 'Suscripción'}
+                    {abierto === b.id ? t('adm.cerrar') : t('adm.suscripcion')}
                   </Button>
                   <Button size="sm" variant="quiet" onClick={() => abrirCuenta(b)}>
-                    Crear cuenta
+                    {t('adm.crearCuenta')}
                   </Button>
                   <Link
                     to={`/panel/${b.slug}`}
                     className="inline-flex min-h-9 items-center rounded-full border border-ink/25 px-3.5 text-meta font-semibold text-ink transition-colors duration-200 hover:bg-ink hover:text-cream"
                   >
-                    Abrir panel
+                    {t('adm.abrirPanel')}
                   </Link>
                 </div>
 
@@ -720,22 +732,30 @@ export function PanelAdmin() {
 
       {aprobar.isError && (
         <ErrorNote>
-          {aprobar.error instanceof ApiError ? aprobar.error.message : 'No se ha podido aprobar'}
+          {aprobar.error instanceof ApiError ? aprobar.error.message : t('adm.noSePudoAprobar')}
         </ErrorNote>
       )}
 
       <p className="text-meta text-subtle">
-        <strong className="font-semibold text-body-2">Sin aprobar</strong> es un negocio que se dio
-        de alta desde la web y nadie ha mirado todavía: no sale en el marketplace ni tiene página
-        pública, aunque su dueño ya puede entrar y prepararla. Aprobarlo la publica y da por bueno
-        su correo. Los que das de alta tú desde aquí nacen aprobados.
+        <Texto
+          clave="adm.avisoAprobar"
+          partes={{
+            sinAprobar: (
+              <strong className="font-semibold text-body-2">{t('adm.sinAprobar')}</strong>
+            ),
+          }}
+        />
       </p>
 
       <p className="text-meta text-subtle">
-        Un negocio se crea con el plan Gratis y sin horario. Hasta que no tenga{' '}
-        <strong className="font-semibold text-body-2">servicios y horario</strong> no puede recibir
-        reservas: entra a su panel para configurarlo, o crea la cuenta del administrador para que lo
-        haga él.
+        <Texto
+          clave="adm.avisoConfigurar"
+          partes={{
+            serviciosYHorario: (
+              <strong className="font-semibold text-body-2">{t('adm.serviciosYHorario')}</strong>
+            ),
+          }}
+        />
       </p>
     </div>
   )

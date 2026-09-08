@@ -4,6 +4,8 @@ import { CONTACT_EMAIL } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { Logo, Spinner } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
+import { SelectorIdioma } from '../components/SelectorIdioma'
+import { Texto, useIdioma } from '../i18n/idioma'
 
 /**
  * Donde aterriza el enlace del correo de alta.
@@ -14,6 +16,7 @@ import { DoorMotif, Glow } from '../components/Ornaments'
  */
 
 export function Verificar() {
+  const { t } = useIdioma()
   const [params] = useSearchParams()
   const token = params.get('token') ?? ''
   const [estado, setEstado] = useState<'yendo' | 'ok' | 'error'>('yendo')
@@ -30,7 +33,7 @@ export function Verificar() {
 
     if (!token) {
       setEstado('error')
-      setMensaje('Este enlace está incompleto: le falta el código.')
+      setMensaje(t('acc.faltaCodigo'))
       return
     }
 
@@ -39,12 +42,16 @@ export function Verificar() {
       .then(() => setEstado('ok'))
       .catch((err) => {
         setEstado('error')
-        setMensaje(err instanceof ApiError ? err.message : 'No hemos podido confirmar tu correo.')
+        setMensaje(err instanceof ApiError ? err.message : t('acc.noConfirmadoTexto'))
       })
   }, [token])
 
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+        <SelectorIdioma />
+      </div>
+
       <Glow className="-top-40 -left-32" color="rgba(169,106,62,.35)" size={620} />
       <Glow className="-right-40 -bottom-52" color="rgba(217,164,65,.18)" size={560} />
       <DoorMotif
@@ -59,20 +66,21 @@ export function Verificar() {
           <Logo size={24} />
         </div>
 
-        {estado === 'yendo' && <Spinner label="Confirmando tu correo…" />}
+        {estado === 'yendo' && <Spinner label={t('acc.confirmando')} />}
 
         {estado === 'ok' && (
           <>
-            <h1 className="font-display text-[26px] font-semibold text-ink">Correo confirmado</h1>
+            <h1 className="font-display text-[26px] font-semibold text-ink">
+              {t('acc.correoConfirmado')}
+            </h1>
             <p className="mt-3 text-body leading-relaxed text-muted">
-              Ya puedes entrar y preparar tus servicios y tu horario. Mientras tanto revisamos la
-              ficha; en cuanto le demos el visto bueno saldrá publicada en el marketplace.
+              {t('acc.correoConfirmadoTexto')}
             </p>
             <Link
               to="/login"
               className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-7 text-ui font-semibold text-white hover:bg-brand-dark"
             >
-              Entrar al panel
+              {t('acc.entrarAlPanel')}
             </Link>
           </>
         )}
@@ -80,24 +88,29 @@ export function Verificar() {
         {estado === 'error' && (
           <>
             <h1 className="font-display text-[26px] font-semibold text-ink">
-              No hemos podido confirmarlo
+              {t('acc.noConfirmado')}
             </h1>
             <p className="mt-3 text-body leading-relaxed text-muted">{mensaje}</p>
             <p className="mt-5 text-meta text-subtle">
-              Escríbenos a{' '}
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="font-semibold text-brand-text hover:underline"
-              >
-                {CONTACT_EMAIL}
-              </a>{' '}
-              y lo arreglamos.
+              <Texto
+                clave="acc.escribenos"
+                partes={{
+                  correo: (
+                    <a
+                      href={`mailto:${CONTACT_EMAIL}`}
+                      className="font-semibold text-brand-text hover:underline"
+                    >
+                      {CONTACT_EMAIL}
+                    </a>
+                  ),
+                }}
+              />
             </p>
             <Link
               to="/login"
               className="mt-6 flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
             >
-              Ir a entrar
+              {t('acc.irAEntrar')}
             </Link>
           </>
         )}

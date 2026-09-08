@@ -6,6 +6,8 @@ import { api, ApiError } from '../lib/api'
 import { Button, ErrorNote, Field, Input, Logo, Select } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { PRUEBA_DIAS } from '../content/precios'
+import { SelectorIdioma } from '../components/SelectorIdioma'
+import { Texto, useIdioma } from '../i18n/idioma'
 
 /**
  * Alta de un negocio por su cuenta.
@@ -32,6 +34,7 @@ const vacio = {
 }
 
 export function Alta() {
+  const { t, idioma } = useIdioma()
   const id = useId()
   const [form, setForm] = useState(vacio)
   const [hecho, setHecho] = useState<{ correoEnviado: boolean } | null>(null)
@@ -46,19 +49,19 @@ export function Alta() {
 
   const problema =
     form.negocio.trim().length < 2
-      ? 'Escribe el nombre del negocio.'
+      ? t('alta.errNegocio')
       : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())
-        ? 'Revisa el email.'
+        ? t('alta.errEmail')
         : form.calle.trim().length < 3
-          ? 'Falta la calle.'
+          ? t('alta.errCalle')
           : form.ciudad.trim().length < 2
-            ? 'Falta la ciudad.'
+            ? t('alta.errCiudad')
             : !/^\d{5}$/.test(form.codigoPostal.trim())
-              ? 'El código postal son 5 cifras.'
+              ? t('alta.errCp')
               : form.responsable.trim().length < 2
-                ? 'Escribe tu nombre.'
+                ? t('alta.errNombre')
                 : form.password.length < 10
-                  ? 'La contraseña necesita al menos 10 caracteres.'
+                  ? t('alta.errContrasena')
                   : null
 
   const enviar = (e: FormEvent) => {
@@ -68,60 +71,70 @@ export function Alta() {
 
   if (hecho) {
     return (
-      <Marco titulo="Ya casi está" subtitulo={`Hemos creado la ficha de ${form.negocio}.`}>
+      <Marco
+        titulo={t('alta.yaCasiEsta')}
+        subtitulo={t('alta.fichaCreada', { negocio: form.negocio })}
+      >
         {hecho.correoEnviado ? (
           <p className="text-body leading-relaxed text-body-2">
-            Te hemos enviado un correo a{' '}
-            <strong className="font-semibold text-ink">{form.email}</strong>. Pincha el enlace para
-            confirmar la dirección y podrás entrar a preparar tus servicios y tu horario. Después
-            revisamos la ficha antes de publicarla en el marketplace.
+            <Texto
+              clave="alta.correoEnviado"
+              partes={{
+                email: <strong className="font-semibold text-ink">{form.email}</strong>,
+              }}
+            />
           </p>
         ) : (
           /* La verdad por delante: si el correo no ha salido, mandar a alguien
              a mirar su buzón es hacerle perder el tiempo y quedar mal. */
           <p className="text-body leading-relaxed text-body-2">
-            La ficha está creada, pero{' '}
-            <strong className="font-semibold text-ink">
-              el correo de confirmación no ha llegado a salir
-            </strong>{' '}
-            por un problema nuestro. Escríbenos a{' '}
-            <a
-              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Alta de ${form.negocio}`)}`}
-              className="font-semibold text-brand-text hover:underline"
-            >
-              {CONTACT_EMAIL}
-            </a>{' '}
-            y te activamos la cuenta a mano hoy mismo. No hace falta que vuelvas a rellenar nada.
+            <Texto
+              clave="alta.correoFallido"
+              partes={{
+                noSalio: (
+                  <strong className="font-semibold text-ink">{t('alta.correoNoSalio')}</strong>
+                ),
+                correo: (
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Alta de ${form.negocio}`)}`}
+                    className="font-semibold text-brand-text hover:underline"
+                  >
+                    {CONTACT_EMAIL}
+                  </a>
+                ),
+              }}
+            />
           </p>
         )}
         <Link
           to="/"
           className="mt-6 flex min-h-11 items-center justify-center text-body font-semibold text-brand-text hover:text-ink"
         >
-          Volver al inicio
+          {t('alta.volverInicio')}
         </Link>
       </Marco>
     )
   }
 
   return (
-    <Marco
-      titulo="Da de alta tu negocio"
-      subtitulo={`${PRUEBA_DIAS} días de prueba, sin permanencia. Se tarda un minuto.`}
-      ancho
-    >
+    <Marco titulo={t('alta.titulo')} subtitulo={t('alta.subtitulo', { dias: PRUEBA_DIAS })} ancho>
       <form onSubmit={enviar} className="flex flex-col gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nombre del negocio" htmlFor={`${id}-n`} required className="sm:col-span-2">
+          <Field
+            label={t('alta.nombreNegocio')}
+            htmlFor={`${id}-n`}
+            required
+            className="sm:col-span-2"
+          >
             <Input
               id={`${id}-n`}
-              placeholder="Peluquería Lola"
+              placeholder={t('alta.nombreEjemplo')}
               value={form.negocio}
               onChange={(e) => set('negocio', e.target.value)}
             />
           </Field>
 
-          <Field label="A qué te dedicas" htmlFor={`${id}-c`} required>
+          <Field label={t('alta.aQueTeDedicas')} htmlFor={`${id}-c`} required>
             <Select
               id={`${id}-c`}
               value={form.categoria}
@@ -129,13 +142,13 @@ export function Alta() {
             >
               {CATEGORIES.map((c) => (
                 <option key={c.slug} value={c.slug}>
-                  {c.label}
+                  {idioma === 'en' ? c.labelEn : c.label}
                 </option>
               ))}
             </Select>
           </Field>
 
-          <Field label="Teléfono" htmlFor={`${id}-t`} hint="Opcional, se muestra en tu ficha">
+          <Field label={t('alta.telefono')} htmlFor={`${id}-t`} hint={t('alta.telefonoPista')}>
             <Input
               id={`${id}-t`}
               placeholder="600 000 000"
@@ -144,25 +157,25 @@ export function Alta() {
             />
           </Field>
 
-          <Field label="Calle y número" htmlFor={`${id}-ca`} required className="sm:col-span-2">
+          <Field label={t('alta.calle')} htmlFor={`${id}-ca`} required className="sm:col-span-2">
             <Input
               id={`${id}-ca`}
-              placeholder="Calle Mayor, 12"
+              placeholder={t('alta.calleEjemplo')}
               value={form.calle}
               onChange={(e) => set('calle', e.target.value)}
             />
           </Field>
 
-          <Field label="Ciudad" htmlFor={`${id}-ci`} required>
+          <Field label={t('alta.ciudad')} htmlFor={`${id}-ci`} required>
             <Input
               id={`${id}-ci`}
-              placeholder="Madrid"
+              placeholder={t('alta.ciudadEjemplo')}
               value={form.ciudad}
               onChange={(e) => set('ciudad', e.target.value)}
             />
           </Field>
 
-          <Field label="Código postal" htmlFor={`${id}-cp`} required>
+          <Field label={t('alta.cp')} htmlFor={`${id}-cp`} required>
             <Input
               id={`${id}-cp`}
               inputMode="numeric"
@@ -176,38 +189,33 @@ export function Alta() {
 
         <div className="mt-2 border-t border-line pt-5">
           <p className="mb-4 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
-            Tu cuenta
+            {t('alta.tuCuenta')}
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Tu nombre" htmlFor={`${id}-r`} required>
+            <Field label={t('alta.tuNombre')} htmlFor={`${id}-r`} required>
               <Input
                 id={`${id}-r`}
-                placeholder="Lola Martín"
+                placeholder={t('alta.tuNombreEjemplo')}
                 value={form.responsable}
                 onChange={(e) => set('responsable', e.target.value)}
               />
             </Field>
 
-            <Field
-              label="Email"
-              htmlFor={`${id}-e`}
-              hint="Aquí llegan los avisos de cita nueva"
-              required
-            >
+            <Field label={t('alta.email')} htmlFor={`${id}-e`} hint={t('alta.emailPista')} required>
               <Input
                 id={`${id}-e`}
                 type="email"
                 autoComplete="email"
-                placeholder="hola@peluquerialola.es"
+                placeholder={t('alta.emailEjemplo')}
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
               />
             </Field>
 
             <Field
-              label="Contraseña"
+              label={t('alta.contrasena')}
               htmlFor={`${id}-p`}
-              hint="Mínimo 10 caracteres"
+              hint={t('alta.contrasenaPista')}
               required
               className="sm:col-span-2"
             >
@@ -224,28 +232,33 @@ export function Alta() {
 
         {alta.isError && (
           <ErrorNote>
-            {alta.error instanceof ApiError ? alta.error.message : 'No se ha podido dar de alta'}
+            {alta.error instanceof ApiError ? alta.error.message : t('alta.noSePudo')}
           </ErrorNote>
         )}
 
         <Button type="submit" size="lg" block loading={alta.isPending} disabled={!!problema}>
-          Crear mi cuenta
+          {t('alta.crearCuenta')}
         </Button>
         {problema && <p className="text-center text-meta text-muted">{problema}</p>}
 
         <p className="text-center text-meta leading-relaxed text-subtle">
-          Al darte de alta aceptas que tratemos tus datos como contamos en{' '}
-          <Link to="/privacidad" className="font-semibold text-brand-text hover:underline">
-            privacidad
-          </Link>
-          . Revisamos cada ficha antes de publicarla en el marketplace.
+          <Texto
+            clave="alta.avisoPrivacidad"
+            partes={{
+              privacidad: (
+                <Link to="/privacidad" className="font-semibold text-brand-text hover:underline">
+                  {t('alta.privacidad')}
+                </Link>
+              ),
+            }}
+          />
         </p>
       </form>
 
       <p className="mt-6 text-center text-meta text-subtle">
-        ¿Ya tienes cuenta?{' '}
+        {t('alta.yaTienesCuenta')}{' '}
         <Link to="/login" className="font-semibold text-brand-text hover:underline">
-          Entrar
+          {t('alta.entrar')}
         </Link>
       </p>
     </Marco>
@@ -266,6 +279,10 @@ function Marco({
 }) {
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 py-12">
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+        <SelectorIdioma />
+      </div>
+
       <Glow className="-top-40 -left-32" color="rgba(169,106,62,.35)" size={620} />
       <Glow className="-right-40 -bottom-52" color="rgba(217,164,65,.18)" size={560} />
       <DoorMotif

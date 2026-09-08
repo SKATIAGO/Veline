@@ -17,6 +17,7 @@ import {
   Spinner,
   cx,
 } from '../../components/ui'
+import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
 
 /**
  * Todas las cuentas de acceso de la plataforma, de un vistazo — solo
@@ -24,27 +25,28 @@ import {
  * «¿quién tiene acceso a Veline?» obligaba a recorrerlos todos.
  */
 
-const ROL_LABEL = {
-  SUPERADMIN: 'Superadmin',
-  ADMIN: 'Administrador',
-  EMPLEADO: 'Equipo',
-} as const
+const ROL_CLAVE = {
+  SUPERADMIN: 'panel.rolSuperadmin',
+  ADMIN: 'panel.rolAdmin',
+  EMPLEADO: 'panel.rolEmpleado',
+} as const satisfies Record<string, Clave>
 
 const FILTROS = [
-  { key: 'todos', label: 'Todos' },
-  { key: 'SUPERADMIN', label: 'Superadmins' },
-  { key: 'ADMIN', label: 'Administradores' },
-  { key: 'EMPLEADO', label: 'Equipo' },
-  { key: 'inactivos', label: 'Sin acceso' },
-] as const
+  { key: 'todos', clave: 'ctas.todos' },
+  { key: 'SUPERADMIN', clave: 'ctas.superadmins' },
+  { key: 'ADMIN', clave: 'ctas.administradores' },
+  { key: 'EMPLEADO', clave: 'ctas.equipo' },
+  { key: 'inactivos', clave: 'ctas.sinAcceso' },
+] as const satisfies readonly { key: string; clave: Clave }[]
 
 type FiltroKey = (typeof FILTROS)[number]['key']
 
-const fecha = (iso: string) =>
-  new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-
 export function PanelAdminUsers() {
+  const { t, locale } = useIdioma()
   const { user: me, loading } = useAuth()
+
+  const fecha = (iso: string) =>
+    new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
   const queryClient = useQueryClient()
   const [filtro, setFiltro] = useState<FiltroKey>('todos')
   const [busqueda, setBusqueda] = useState('')
@@ -88,10 +90,13 @@ export function PanelAdminUsers() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Cuentas de acceso"
+        title={t('ctas.titulo')}
         hint={
           users
-            ? `${users.length} en total${sinAcceso ? ` · ${sinAcceso} sin acceso` : ''}`
+            ? [
+                t('ctas.enTotal', { n: users.length }),
+                ...(sinAcceso ? [t('ctas.sinAccesoCuenta', { n: sinAcceso })] : []),
+              ].join(' · ')
             : undefined
         }
       />
@@ -100,14 +105,14 @@ export function PanelAdminUsers() {
         <div className="flex flex-wrap gap-2">
           {FILTROS.map((f) => (
             <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-              {f.label}
+              {t(f.clave)}
             </FilterChip>
           ))}
         </div>
         <Input
           type="search"
-          placeholder="Buscar por nombre, email o negocio…"
-          aria-label="Buscar cuentas"
+          placeholder={t('ctas.buscar')}
+          aria-label={t('ctas.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="ml-auto max-w-xs"
@@ -124,8 +129,8 @@ export function PanelAdminUsers() {
         </Card>
       ) : !filtrados.length ? (
         <EmptyState
-          title={busqueda ? `Ninguna cuenta coincide con «${busqueda}»` : 'Ninguna cuenta aquí'}
-          hint={busqueda ? undefined : 'Prueba con otro filtro.'}
+          title={busqueda ? t('ctas.ningunaCoincide', { q: busqueda }) : t('ctas.ningunaAqui')}
+          hint={busqueda ? undefined : t('ctas.pruebaOtroFiltro')}
         />
       ) : (
         <Card className="overflow-hidden">
@@ -152,14 +157,14 @@ export function PanelAdminUsers() {
                 <div className={cx('min-w-[180px] flex-1', !u.active && 'opacity-60')}>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-ui font-semibold text-ink">{u.name}</span>
-                    {u.id === me.id && <Badge>Tú</Badge>}
-                    {!u.active && <Badge tone="off">Sin acceso</Badge>}
+                    {u.id === me.id && <Badge>{t('ctas.tu')}</Badge>}
+                    {!u.active && <Badge tone="off">{t('ctas.sinAcceso')}</Badge>}
                   </div>
                   <p className="mt-0.5 text-meta text-muted">{u.email}</p>
                 </div>
 
                 <div className={cx('w-[150px]', !u.active && 'opacity-60')}>
-                  <div className="text-meta font-semibold text-body-2">{ROL_LABEL[u.role]}</div>
+                  <div className="text-meta font-semibold text-body-2">{t(ROL_CLAVE[u.role])}</div>
                   {u.business ? (
                     <Link
                       to={`/panel/${u.business.slug}`}
@@ -168,21 +173,21 @@ export function PanelAdminUsers() {
                       {u.business.name}
                     </Link>
                   ) : (
-                    <span className="text-meta text-subtle">Toda la plataforma</span>
+                    <span className="text-meta text-subtle">{t('ctas.todaLaPlataforma')}</span>
                   )}
                 </div>
 
                 <div className="hidden w-[110px] text-meta text-subtle lg:block">
-                  Alta {fecha(u.createdAt)}
+                  {t('ctas.altaFecha', { fecha: fecha(u.createdAt) })}
                 </div>
 
                 <div className="ml-auto flex justify-end sm:ml-0 sm:w-[170px]">
                   {u.id === me.id ? (
-                    <span className="text-meta text-subtle">No puedes desactivarte</span>
+                    <span className="text-meta text-subtle">{t('ctas.noPuedesDesactivarte')}</span>
                   ) : u.active ? (
                     <ConfirmAction
-                      label="Quitar acceso"
-                      confirmLabel="Sí, quitar"
+                      label={t('ctas.quitarAcceso')}
+                      confirmLabel={t('ctas.siQuitar')}
                       loading={toggle.isPending && toggle.variables?.id === u.id}
                       onConfirm={() => toggle.mutate({ id: u.id, active: false })}
                     />
@@ -193,7 +198,7 @@ export function PanelAdminUsers() {
                       loading={toggle.isPending && toggle.variables?.id === u.id}
                       onClick={() => toggle.mutate({ id: u.id, active: true })}
                     >
-                      Devolver acceso
+                      {t('ctas.devolverAcceso')}
                     </Button>
                   )}
                 </div>
@@ -204,12 +209,19 @@ export function PanelAdminUsers() {
       )}
 
       <p className="text-meta text-subtle">
-        Quitar el acceso cierra al momento las sesiones abiertas de esa persona y le impide entrar,
-        pero no borra nada de lo que haya hecho. Queda registrado en{' '}
-        <Link to="/panel/admin/actividad" className="font-semibold text-brand-text hover:underline">
-          Actividad
-        </Link>
-        .
+        <Texto
+          clave="ctas.aviso"
+          partes={{
+            actividad: (
+              <Link
+                to="/panel/admin/actividad"
+                className="font-semibold text-brand-text hover:underline"
+              >
+                {t('ctas.actividad')}
+              </Link>
+            ),
+          }}
+        />
       </p>
     </div>
   )
