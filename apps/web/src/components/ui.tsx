@@ -138,23 +138,43 @@ export function Button({
   )
 }
 
+/**
+ * Botón que en realidad es un enlace.
+ *
+ * `to` para ir a otra pantalla de Veline y `href` para salir fuera — un
+ * mailto, otra web. La diferencia importa: `Link` de React Router no sabe
+ * abrir un `mailto:`, lo trata como una ruta interna y deja al usuario en una
+ * página que no existe.
+ */
 export function ButtonLink({
   variant = 'primary',
   size = 'md',
   block,
   className,
   to,
+  href,
   children,
 }: {
   variant?: ButtonVariant
   size?: ButtonSize
   block?: boolean
   className?: string
-  to: string
+  to?: string
+  href?: string
   children: ReactNode
 }) {
+  const clase = cx(buttonClass(variant, size, block), className)
+
+  if (href) {
+    return (
+      <a href={href} className={clase}>
+        {children}
+      </a>
+    )
+  }
+
   return (
-    <Link to={to} className={cx(buttonClass(variant, size, block), className)}>
+    <Link to={to ?? '/'} className={clase}>
       {children}
     </Link>
   )

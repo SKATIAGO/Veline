@@ -3,7 +3,15 @@
  * Los importes van en céntimos para formatearlos con el mismo helper que el
  * resto del producto.
  */
-import { PRUEBA_DIAS_DEFECTO } from '@veline/shared'
+import { CONTACT_EMAIL, PRUEBA_DIAS_DEFECTO } from '@veline/shared'
+
+/* Los tres botones de plan llevaban a /panel, que es la pantalla de entrada:
+   quien venía a contratar se topaba con un «inicia sesión» que no puede pasar
+   —todavía no hay alta sola, la damos nosotros— y parecía que el botón se
+   había equivocado de sitio. Hasta que exista el alta, escriben. El asunto va
+   relleno para saber de qué plan viene cada correo sin preguntarlo. */
+const escribirPor = (asunto: string) =>
+  `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(asunto)}`
 
 /* No un 15 propio: el mismo con el que el servidor pone fecha de caducidad a
    la prueba al crear el negocio. Dos copias del mismo número acaban diciendo
@@ -17,6 +25,7 @@ export const PLANES = [
     price: 'Gratis',
     period: `${PRUEBA_DIAS} días`,
     cta: 'Empezar la prueba',
+    href: escribirPor('Quiero empezar la prueba de 15 días'),
     variant: 'secondary' as const,
     features: [
       'Todo lo del plan Negocio',
@@ -32,6 +41,7 @@ export const PLANES = [
     period: '/mes',
     popular: true,
     cta: 'Contratar',
+    href: escribirPor('Quiero contratar el plan Negocio'),
     variant: 'primary' as const,
     features: [
       'Incluye 2 personas en el calendario',
@@ -49,6 +59,7 @@ export const PLANES = [
     pricePrefix: '+',
     period: '/mes por persona de más',
     cta: 'Hablar con ventas',
+    href: escribirPor('Consulta sobre el plan Equipo'),
     variant: 'secondary' as const,
     features: [
       'Todo lo de Negocio',

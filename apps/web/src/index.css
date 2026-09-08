@@ -101,6 +101,30 @@
   }
 }
 
+/* ── Ningún campo por debajo de 16 px en el móvil ─────────────
+ *
+ * Safari en iPhone amplía la página entera al enfocar un campo cuya letra
+ * baje de 16 px. Al volver del teclado la deja descuadrada, y el usuario no
+ * relaciona el zoom con haber tocado un campo: lo vive como que «la web se
+ * mueve sola». Los campos estaban a 14 px, así que pasaba en todos: entrar,
+ * buscar, reservar y el panel entero.
+ *
+ * Va deliberadamente FUERA de @layer: así gana a las utilidades de Tailwind
+ * (text-sm, text-body…) sin tener que perseguirlas campo por campo. Es una
+ * red de seguridad, no un estilo: el día que alguien añada un campo nuevo con
+ * la letra pequeña, en el iPhone seguirá sin hacer zoom.
+ *
+ * Solo por debajo de 640 px: en el ordenador no existe el problema y ahí la
+ * densidad de 14 px del panel es la que se quiere.
+ */
+@media (max-width: 639px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* ── Movimiento ──────────────────────────────────────────────
    Todo lo de aquí se apaga con prefers-reduced-motion: con esta
    cantidad de animación, respetarlo no es un detalle, es obligatorio. */
