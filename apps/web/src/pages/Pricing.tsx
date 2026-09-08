@@ -55,7 +55,11 @@ function FaqRow({ q, a }: { q: string; a: string }) {
 
 export function Pricing() {
   return (
-    <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
+    // overflow-x-clip: el halo decorativo mide 620 px y va centrado, así que en
+    // un móvil de 375 asomaba 122 px por cada lado y la página entera se movía
+    // de lado. Se recorta en vez de ocultarse («clip» y no «hidden») para no
+    // convertir esto en un contenedor de scroll.
+    <div className="relative mx-auto max-w-[1440px] overflow-x-clip px-6 py-16 lg:px-16">
       <Glow className="-top-32 left-1/2 -translate-x-1/2" color="rgba(217,164,65,.2)" size={620} />
       <DoorMotif
         className="top-40 left-[-3%] hidden xl:block"
