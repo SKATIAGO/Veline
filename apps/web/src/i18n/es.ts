@@ -1112,4 +1112,7 @@ export const es = {
   // Cierre
   'pre.pruebaloSinCompromiso': 'Pruébalo {n} días. Sin compromiso.',
   'pre.verTodoIncluye': 'Ver todo lo que incluye',
+
+  'comun.paginaNoExiste': 'Esta página no existe',
+  'comun.paginaNoExistePista': 'Vuelve al inicio y prueba de nuevo.',
 } as const

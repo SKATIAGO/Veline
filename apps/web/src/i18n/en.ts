@@ -1109,4 +1109,7 @@ export const en: Record<keyof typeof es, string> = {
   // Closing
   'pre.pruebaloSinCompromiso': 'Try it for {n} days. No strings.',
   'pre.verTodoIncluye': 'See everything it includes',
+
+  'comun.paginaNoExiste': 'This page doesn’t exist',
+  'comun.paginaNoExistePista': 'Head back to the home page and try again.',
 }

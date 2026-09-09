@@ -31,6 +31,19 @@ import { ScrollToTop } from './components/ScrollToTop'
 import { Legal } from './pages/Legal'
 import { Alta } from './pages/Alta'
 import { Verificar } from './pages/Verificar'
+import { useIdioma } from './i18n/idioma'
+
+/** El 404 público. Es un componente y no un element={} suelto porque
+    necesita el idioma, y para eso hace falta un hook. */
+function NoExiste() {
+  const { t } = useIdioma()
+
+  return (
+    <div className="mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
+      <EmptyState title={t('comun.paginaNoExiste')} hint={t('comun.paginaNoExistePista')} />
+    </div>
+  )
+}
 
 export function App() {
   return (
@@ -92,17 +105,7 @@ function AppRoutes() {
         <Route path="/:slug" element={<Business />} />
         <Route path="/:slug/reservar/fecha" element={<BookingDate />} />
         <Route path="/:slug/reservar/confirmar" element={<BookingConfirm />} />
-        <Route
-          path="*"
-          element={
-            <div className="mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
-              <EmptyState
-                title="Esta página no existe"
-                hint="Vuelve al inicio y prueba de nuevo."
-              />
-            </div>
-          }
-        />
+        <Route path="*" element={<NoExiste />} />
       </Route>
     </Routes>
   )
