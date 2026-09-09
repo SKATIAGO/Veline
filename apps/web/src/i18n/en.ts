@@ -1112,4 +1112,89 @@ export const en: Record<keyof typeof es, string> = {
 
   'comun.paginaNoExiste': 'This page doesn’t exist',
   'comun.paginaNoExistePista': 'Head back to the home page and try again.',
+
+  // ── Privacy and cookies ───────────────────────────────────
+  'leg.privacidad': 'Privacy',
+  'leg.cookies': 'Cookies',
+  'leg.ultimaRevision': 'Last reviewed: {fecha}',
+  'leg.intro':
+    'Veline is a booking tool for local businesses. We keep only what an appointment needs to work: who is coming, when, and for what. We do not sell anyone’s data and we do not track you across other websites.',
+  'leg.queDatos': 'What we keep',
+
+  // Cookies
+  'leg.queCookies': 'What cookies we use',
+  'leg.sinPublicidad': 'we use no advertising, analytics or social-media cookies',
+  'leg.cookiesTexto':
+    'Just one, and the dashboard needs it to work: {sinPublicidad}. That is why you will not see a banner asking you to accept or reject them: there is nothing optional to accept. If there ever were, we would ask you before setting it.',
+  'leg.colCookie': 'Cookie',
+  'leg.colParaQue': 'What for',
+  'leg.colDura': 'Lasts',
+  'leg.sesionQuien': 'Veline (first-party)',
+  'leg.sesionPara':
+    'Keeping you logged in to the dashboard. Without it you would have to type your password on every screen.',
+  'leg.sesionDura': '14 days',
+  'leg.ademasGuardamos':
+    'We also keep one thing in your browser that is not a cookie, but counts just the same:',
+  'leg.origenPara':
+    'Remembering whether you reached a business through its Instagram, its Google listing or its website, so we do not charge it commission for a customer who was already theirs.',
+  'leg.origenDura': 'Until you close the tab',
+  'leg.puedesBorrarlas':
+    'You can delete either of them from your browser settings. If you delete the session one, you will simply have to log in to the dashboard again.',
+
+  // Data
+  'leg.queDatosPorQue': 'What we keep and why',
+  'leg.etQue': 'What',
+  'leg.etParaQue': 'What for',
+  'leg.etCuanto': 'How long',
+  'leg.reservaQuien': 'If you book an appointment',
+  'leg.reservaQue':
+    'Your name, your phone number and, if you give it, your email. Also any notes you write for the business.',
+  'leg.reservaPara':
+    'So the business knows who is coming, so we can tell you if anything changes, and to send you the confirmation and the reminder.',
+  'leg.reservaCuanto':
+    'For as long as the business is registered. You can ask us to delete it by writing to the address below.',
+  'leg.resenaQuien': 'If you leave a review',
+  'leg.resenaQue':
+    'The rating and, if you write anything, your comment. It is published with your first name.',
+  'leg.resenaPara': 'To help other people decide.',
+  'leg.resenaCuanto': 'For as long as the business’s page is published.',
+  'leg.cuentaQuien': 'If you have a dashboard account',
+  'leg.cuentaQue':
+    'Your name, your email and your password, encrypted. The password is never stored in plain text.',
+  'leg.cuentaPara': 'To let you in and to know what you can do once you are there.',
+  'leg.cuentaCuanto': 'For as long as the account is active.',
+  'leg.registroQuien': 'Activity log',
+  'leg.registroQue':
+    'For every significant action in the dashboard we record who did it, when, their IP address and their browser.',
+  'leg.registroPara':
+    'So we can tell who changed what if something goes wrong, and to spot attempts to get into someone else’s account.',
+  'leg.registroCuanto': 'For as long as the business is registered.',
+
+  // Third parties
+  'leg.quienMasLosVe': 'Who else sees it',
+  'leg.tercerosIntro':
+    'Nobody for their own purposes. Only the companies the service needs to work, and only with what is strictly necessary:',
+  'leg.espana': 'Spain',
+  'leg.acumbamailPara':
+    'Sending the confirmation and reminder emails and text messages. It receives the destination email address or phone number and the text of the message.',
+  'leg.ionosPara': 'The server where Veline and its database live.',
+  'leg.elNegocioTambien':
+    'The business you book with also sees your details for that appointment: they are the ones seeing you. Each business sees only its own, never another’s.',
+
+  // Rights
+  'leg.quePuedesPedir': 'What you can ask us for',
+  'leg.escribiendoA': 'By writing to {correo} you can ask, without giving any reason, to:',
+  'leg.ver': 'See',
+  'leg.verTexto': '{accion} what we hold about you.',
+  'leg.corregir': 'Correct',
+  'leg.corregirTexto': '{accion} anything that is wrong.',
+  'leg.borrar': 'Delete',
+  'leg.borrarTexto': '{accion} anything you no longer want us to have.',
+  'leg.oponerte': 'Object',
+  'leg.oponerteTexto': '{accion} to us using it, or ask us to keep it stored without touching it.',
+  'leg.llevartelo': 'Take it',
+  'leg.llevarteloTexto': '{accion} somewhere else, in a file.',
+  'leg.autoridades':
+    'In Spain those are your rights under the General Data Protection Regulation, and if you think we are not honouring them you can go to the Agencia Española de Protección de Datos, the Spanish data protection authority. In Mexico they are the ARCO rights — access, rectification, cancellation and objection — under the Ley Federal de Protección de Datos Personales en Posesión de los Particulares, and the authority is the INAI. You ask for them the same way: by email, to the address above.',
+  'leg.contestamos': 'We answer as soon as we can and, at the latest, within one month.',
 }

@@ -1,4 +1,5 @@
 import { CONTACT_EMAIL } from '@veline/shared'
+import type { Clave } from '../i18n/idioma'
 
 /**
  * Lo que Veline guarda de verdad, escrito una sola vez.
@@ -11,66 +12,79 @@ import { CONTACT_EMAIL } from '@veline/shared'
  * mapas, vídeo incrustado— hay que añadirla AQUÍ, y de paso repasar el aviso
  * del banner: en cuanto haya una cookie que no sea necesaria, informar deja de
  * bastar y hace falta pedir permiso de verdad, con opción de rechazar.
+ *
+ * ── Sobre las dos versiones ──
+ * El texto vive en i18n, en castellano y en inglés. Las dos son el mismo
+ * aviso: no es una traducción de cortesía, es el mismo compromiso legal dicho
+ * dos veces. Si se cambia una frase HAY QUE CAMBIAR LAS DOS — que digan cosas
+ * distintas sobre lo que se guarda o cuánto tiempo es peor que tener solo una.
+ * La prueba de i18n obliga a que exista la pareja, pero no puede leer si
+ * significan lo mismo: eso lo tiene que mirar una persona.
  */
 
-/** Fecha de la última revisión de estos textos. */
-export const LEGAL_ACTUALIZADO = '8 de septiembre de 2026'
+/** Fecha de la última revisión. En ISO y no escrita a mano: así se enseña en
+    castellano o en inglés sin tener dos fechas que se desincronizan. */
+export const LEGAL_ACTUALIZADO = '2026-09-08'
 
 export const COOKIES = [
   {
     nombre: 'veline_session',
-    quien: 'Veline (propia)',
-    para: 'Mantener la sesión abierta en el panel de gestión. Sin ella habría que escribir la contraseña en cada pantalla.',
-    dura: '14 días',
+    quien: 'leg.sesionQuien',
+    para: 'leg.sesionPara',
+    dura: 'leg.sesionDura',
     necesaria: true,
   },
-] as const
+] as const satisfies readonly {
+  nombre: string
+  quien: Clave
+  para: Clave
+  dura: Clave
+  necesaria: boolean
+}[]
 
 /** No son cookies, pero se guardan en el navegador y se cuentan igual. */
 export const ALMACENAMIENTO = [
   {
     nombre: 'veline:origen',
-    donde: 'Almacenamiento de sesión del navegador',
-    para: 'Recordar si has llegado a un negocio desde su Instagram, su Google o su web, para no cobrarle comisión por un cliente que ya era suyo.',
-    dura: 'Hasta que cierras la pestaña',
+    para: 'leg.origenPara',
+    dura: 'leg.origenDura',
   },
-] as const
+] as const satisfies readonly { nombre: string; para: Clave; dura: Clave }[]
 
 /** Qué datos se guardan, de quién y para qué. */
 export const DATOS = [
   {
-    quien: 'Si reservas una cita',
-    que: 'Nombre, teléfono y, si lo das, tu correo. También las notas que escribas para el negocio.',
-    para: 'Que el negocio sepa quién va, poder avisarte si algo cambia y mandarte la confirmación y el recordatorio.',
-    cuanto:
-      'Mientras el negocio siga dado de alta. Puedes pedir que se borren escribiendo al correo de abajo.',
+    quien: 'leg.reservaQuien',
+    que: 'leg.reservaQue',
+    para: 'leg.reservaPara',
+    cuanto: 'leg.reservaCuanto',
   },
   {
-    quien: 'Si dejas una reseña',
-    que: 'La puntuación y, si escribes algo, tu comentario. Se publica con tu nombre de pila.',
-    para: 'Ayudar a otras personas a decidir.',
-    cuanto: 'Mientras la ficha del negocio esté publicada.',
+    quien: 'leg.resenaQuien',
+    que: 'leg.resenaQue',
+    para: 'leg.resenaPara',
+    cuanto: 'leg.resenaCuanto',
   },
   {
-    quien: 'Si tienes cuenta en el panel',
-    que: 'Nombre, correo y la contraseña cifrada. Nunca se guarda la contraseña en claro.',
-    para: 'Dejarte entrar y saber qué puedes hacer dentro.',
-    cuanto: 'Mientras la cuenta siga activa.',
+    quien: 'leg.cuentaQuien',
+    que: 'leg.cuentaQue',
+    para: 'leg.cuentaPara',
+    cuanto: 'leg.cuentaCuanto',
   },
   {
-    quien: 'Registro de actividad',
-    que: 'De cada acción importante en el panel se guarda quién la hizo, cuándo, su dirección IP y el navegador.',
-    para: 'Poder saber quién cambió qué si algo sale mal, y detectar intentos de entrar en una cuenta ajena.',
-    cuanto: 'Mientras el negocio siga dado de alta.',
+    quien: 'leg.registroQuien',
+    que: 'leg.registroQue',
+    para: 'leg.registroPara',
+    cuanto: 'leg.registroCuanto',
   },
-] as const
+] as const satisfies readonly { quien: Clave; que: Clave; para: Clave; cuanto: Clave }[]
 
 /** Con quién se comparten los datos, y para qué exactamente. */
 export const ENCARGADOS = [
   {
     nombre: 'Acumbamail',
-    donde: 'España',
-    para: 'Mandar los correos y los SMS de confirmación y recordatorio. Recibe el correo o el teléfono de destino y el texto del mensaje.',
+    donde: 'leg.espana',
+    para: 'leg.acumbamailPara',
   },
   {
     /* Región confirmada por Santiago el 9 sep 2026: los datos están en España.
@@ -82,9 +96,9 @@ export const ENCARGADOS = [
        centro de datos se elige al contratar y no siempre coincide con el país
        de la empresa (IONOS es alemana). */
     nombre: 'IONOS',
-    donde: 'España',
-    para: 'El servidor donde vive Veline y su base de datos.',
+    donde: 'leg.espana',
+    para: 'leg.ionosPara',
   },
-] as const
+] as const satisfies readonly { nombre: string; donde: Clave; para: Clave }[]
 
 export const CONTACTO_LEGAL = CONTACT_EMAIL

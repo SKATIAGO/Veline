@@ -1115,4 +1115,90 @@ export const es = {
 
   'comun.paginaNoExiste': 'Esta página no existe',
   'comun.paginaNoExistePista': 'Vuelve al inicio y prueba de nuevo.',
+
+  // ── Privacidad y cookies ──────────────────────────────────
+  'leg.privacidad': 'Privacidad',
+  'leg.cookies': 'Cookies',
+  'leg.ultimaRevision': 'Última revisión: {fecha}',
+  'leg.intro':
+    'Veline es una herramienta de reservas para negocios de barrio. Guardamos lo justo para que una cita funcione: quién viene, cuándo y a qué. Ni vendemos datos a nadie ni te seguimos por otras webs.',
+  'leg.queDatos': 'Qué datos guardamos',
+
+  // Cookies
+  'leg.queCookies': 'Qué cookies usamos',
+  'leg.sinPublicidad': 'no usamos cookies de publicidad, ni de analítica, ni de redes sociales',
+  'leg.cookiesTexto':
+    'Una sola, y hace falta para que el panel funcione: {sinPublicidad}. Por eso no verás un cartel pidiéndote permiso para aceptarlas o rechazarlas: no hay nada opcional que aceptar. Si algún día lo hubiera, te lo preguntaríamos antes de ponerla.',
+  'leg.colCookie': 'Cookie',
+  'leg.colParaQue': 'Para qué',
+  'leg.colDura': 'Dura',
+  'leg.sesionQuien': 'Veline (propia)',
+  'leg.sesionPara':
+    'Mantener la sesión abierta en el panel de gestión. Sin ella habría que escribir la contraseña en cada pantalla.',
+  'leg.sesionDura': '14 días',
+  'leg.ademasGuardamos':
+    'Además guardamos una cosa en el navegador que no es una cookie, pero se cuenta igual:',
+  'leg.origenPara':
+    'Recordar si has llegado a un negocio desde su Instagram, su Google o su web, para no cobrarle comisión por un cliente que ya era suyo.',
+  'leg.origenDura': 'Hasta que cierras la pestaña',
+  'leg.puedesBorrarlas':
+    'Puedes borrar unas y otra desde los ajustes de tu navegador. Si borras la de sesión, simplemente tendrás que volver a entrar en el panel.',
+
+  // Datos
+  'leg.queDatosPorQue': 'Qué datos guardamos y por qué',
+  'leg.etQue': 'Qué',
+  'leg.etParaQue': 'Para qué',
+  'leg.etCuanto': 'Cuánto tiempo',
+  'leg.reservaQuien': 'Si reservas una cita',
+  'leg.reservaQue':
+    'Nombre, teléfono y, si lo das, tu correo. También las notas que escribas para el negocio.',
+  'leg.reservaPara':
+    'Que el negocio sepa quién va, poder avisarte si algo cambia y mandarte la confirmación y el recordatorio.',
+  'leg.reservaCuanto':
+    'Mientras el negocio siga dado de alta. Puedes pedir que se borren escribiendo al correo de abajo.',
+  'leg.resenaQuien': 'Si dejas una reseña',
+  'leg.resenaQue':
+    'La puntuación y, si escribes algo, tu comentario. Se publica con tu nombre de pila.',
+  'leg.resenaPara': 'Ayudar a otras personas a decidir.',
+  'leg.resenaCuanto': 'Mientras la ficha del negocio esté publicada.',
+  'leg.cuentaQuien': 'Si tienes cuenta en el panel',
+  'leg.cuentaQue':
+    'Nombre, correo y la contraseña cifrada. Nunca se guarda la contraseña en claro.',
+  'leg.cuentaPara': 'Dejarte entrar y saber qué puedes hacer dentro.',
+  'leg.cuentaCuanto': 'Mientras la cuenta siga activa.',
+  'leg.registroQuien': 'Registro de actividad',
+  'leg.registroQue':
+    'De cada acción importante en el panel se guarda quién la hizo, cuándo, su dirección IP y el navegador.',
+  'leg.registroPara':
+    'Poder saber quién cambió qué si algo sale mal, y detectar intentos de entrar en una cuenta ajena.',
+  'leg.registroCuanto': 'Mientras el negocio siga dado de alta.',
+
+  // Terceros
+  'leg.quienMasLosVe': 'Quién más los ve',
+  'leg.tercerosIntro':
+    'Nadie con fines propios. Solo las empresas que hacen falta para que el servicio funcione, y únicamente con lo imprescindible:',
+  'leg.espana': 'España',
+  'leg.acumbamailPara':
+    'Mandar los correos y los SMS de confirmación y recordatorio. Recibe el correo o el teléfono de destino y el texto del mensaje.',
+  'leg.ionosPara': 'El servidor donde vive Veline y su base de datos.',
+  'leg.elNegocioTambien':
+    'El negocio en el que reservas también ve tus datos de esa cita: es quien te va a atender. Cada negocio ve solo los suyos, nunca los de otro.',
+
+  // Derechos
+  'leg.quePuedesPedir': 'Qué puedes pedirnos',
+  'leg.escribiendoA': 'Escribiendo a {correo} puedes pedir, sin dar explicaciones:',
+  'leg.ver': 'Ver',
+  'leg.verTexto': '{accion} qué tenemos tuyo.',
+  'leg.corregir': 'Corregir',
+  'leg.corregirTexto': '{accion} lo que esté mal.',
+  'leg.borrar': 'Borrar',
+  'leg.borrarTexto': '{accion} lo que ya no quieras que tengamos.',
+  'leg.oponerte': 'Oponerte',
+  'leg.oponerteTexto':
+    '{accion} a que lo usemos, o pedir que lo dejemos solo guardado sin tocarlo.',
+  'leg.llevartelo': 'Llevártelo',
+  'leg.llevarteloTexto': '{accion} a otro sitio en un archivo.',
+  'leg.autoridades':
+    'En España esos son los derechos del Reglamento General de Protección de Datos, y si crees que no los atendemos bien puedes acudir a la Agencia Española de Protección de Datos. En México son los derechos ARCO de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, y la autoridad es el INAI. Se piden igual: por correo, a la dirección de arriba.',
+  'leg.contestamos': 'Contestamos lo antes posible y, como muy tarde, en un mes.',
 } as const

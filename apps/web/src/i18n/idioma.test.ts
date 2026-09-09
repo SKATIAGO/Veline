@@ -52,6 +52,8 @@ describe('diccionarios', () => {
       'pie.marketplace',
       'pie.contacto',
       'pie.cookies',
+      'leg.cookies',
+      'leg.colCookie',
       'ficha.info',
       'ficha.tel',
       'comun.total',
