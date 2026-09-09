@@ -1,41 +1,34 @@
+import type { Clave } from '../i18n/idioma'
+
 /**
  * Contenido del lado negocio, tal y como viene del brief de Eli
  * ("GESTIÓN 1 VELINE", 26 jul 2026). Se centraliza aquí para que la home y la
  * página /negocios no se desincronicen.
+ *
+ * Aquí viven las CLAVES y el orden, no el texto: el texto está en i18n/es.ts
+ * y en i18n/en.ts. Antes estaba escrito aquí, y traducirlo habría significado
+ * tener dos copias de la misma lista que acabarían diciendo cosas distintas.
+ * El orden sí es de este archivo: es una decisión del brief, no del idioma.
  */
 
 /** Eslogan marcado como favorito en el brief. */
-export const ESLOGAN = 'Donde cada cita encuentra su lugar'
+export const ESLOGAN: Clave = 'home.eslogan'
 
 /** Eslogan de la sección para negocios. */
-export const ESLOGAN_NEGOCIO = 'Gestiona tu negocio de forma inteligente'
+export const ESLOGAN_NEGOCIO: Clave = 'home.esloganNegocio'
 
-/** Los otros dos candidatos del brief, pendientes de decidir. */
+/** Los otros dos candidatos del brief, pendientes de decidir. Siguen en
+    castellano porque no se usan en ninguna pantalla todavía. */
 export const ESLOGANES_ALTERNATIVOS = ['Creado para cuidar cada detalle', 'El lujo de la sencillez']
 
 /** "Qué destacaría en la home" — los cinco puntos del brief. */
 export const DESTACADOS = [
-  {
-    title: 'Reservas 24/7',
-    text: 'Tus clientes reservan incluso cuando el negocio está cerrado.',
-  },
-  {
-    title: 'Recordatorios automáticos',
-    text: 'Reduce las ausencias y cancelaciones de última hora.',
-  },
-  {
-    title: 'Gestión de clientes',
-    text: 'Toda la información en un único lugar.',
-  },
-  {
-    title: 'Gestión de empleados',
-    text: 'Controla horarios, servicios y disponibilidad.',
-  },
-  {
-    title: 'Informes y métricas',
-    text: 'Conoce el rendimiento real de tu negocio.',
-  },
-] as const
+  { titulo: 'home.reservas247', texto: 'home.reservas247Texto' },
+  { titulo: 'home.recordatorios', texto: 'home.recordatoriosTexto' },
+  { titulo: 'home.gestionClientes', texto: 'home.gestionClientesTexto' },
+  { titulo: 'home.gestionEmpleados', texto: 'home.gestionEmpleadosTexto' },
+  { titulo: 'home.informes', texto: 'home.informesTexto' },
+] as const satisfies readonly { titulo: Clave; texto: Clave }[]
 
 /**
  * "Servicios para ofrecer a las empresas".
@@ -46,35 +39,11 @@ export const DESTACADOS = [
  * retiraron el 2 ago 2026: no se van a ofrecer.
  */
 export const SERVICIOS_EMPRESA = [
-  {
-    title: 'Área administrativa cómoda y sencilla',
-    text: 'Un panel que se entiende sin manual: agenda, clientes y servicios con un click.',
-  },
-  {
-    title: 'Calendario adaptable',
-    text: 'Gestión de calendario que se ajusta a cómo trabaja cada negocio, no al revés.',
-  },
-  {
-    title: 'Gestión administrativa',
-    text: 'Nos ocupamos del papeleo del día a día para quien prefiera delegarlo.',
-    plus: true,
-  },
-  {
-    title: 'Soporte y atención',
-    text: 'Un equipo disponible para ayudarte cuando lo necesites.',
-  },
-  {
-    title: 'Web personalizada',
-    text: 'Creamos la web de tu empresa, con tu marca y tu propio motor de reservas.',
-    plus: true,
-  },
-  {
-    title: 'Aplicación para tu local',
-    text: 'Tu propia aplicación personalizada para reforzar tu marca y facilitar a tus clientes el acceso a todos tus servicios.',
-    plus: true,
-  },
-  {
-    title: 'Análisis de rendimiento',
-    text: 'Rendimiento del trabajo y fidelidad de los clientes, en datos claros.',
-  },
-] as const
+  { titulo: 'home.areaAdmin', texto: 'home.areaAdminTexto' },
+  { titulo: 'home.calendario', texto: 'home.calendarioTexto' },
+  { titulo: 'home.gestionAdmin', texto: 'home.gestionAdminTexto', plus: true },
+  { titulo: 'home.soporte', texto: 'home.soporteTexto' },
+  { titulo: 'home.webPersonalizada', texto: 'home.webPersonalizadaTexto', plus: true },
+  { titulo: 'home.appLocal', texto: 'home.appLocalTexto', plus: true },
+  { titulo: 'home.analisis', texto: 'home.analisisTexto' },
+] as const satisfies readonly { titulo: Clave; texto: Clave; plus?: boolean }[]

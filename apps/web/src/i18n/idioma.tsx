@@ -66,11 +66,20 @@ function leerGuardado(): Idioma {
 export function ProveedorIdioma({ children }: { children: ReactNode }) {
   const [idioma, setIdioma] = useState<Idioma>(leerGuardado)
 
-  // El atributo lang del documento importa de verdad: es lo que usan los
-  // lectores de pantalla para elegir la voz y el navegador para ofrecer
-  // traducir la página.
+  /* Lo que hay fuera del <div id="root">, que React no toca.
+     - lang: lo usan los lectores de pantalla para elegir la voz y el navegador
+       para ofrecer traducir la página.
+     - title: es la pestaña, y lo que se guarda al marcar el sitio.
+     - description: es lo que enseña Google debajo del enlace.
+     Se escriben aquí y no en index.html porque index.html es un archivo
+     estático: solo puede estar en un idioma, y estaba en castellano. */
   useEffect(() => {
-    document.documentElement.lang = idioma
+    const doc = document.documentElement
+    doc.lang = idioma
+    document.title = DICCIONARIOS[idioma]['meta.titulo']
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', DICCIONARIOS[idioma]['meta.descripcion'])
   }, [idioma])
 
   const cambiar = useCallback((i: Idioma) => {

@@ -924,4 +924,192 @@ export const es = {
   'adm.notaEjemplo': 'Con quién se habló, por qué se suspendió…',
   'adm.guardarNota': 'Guardar nota',
   'adm.noSePudoCambiar': 'No se ha podido cambiar',
+
+  // ── Portada ───────────────────────────────────────────────
+  'home.eslogan': 'Donde cada cita encuentra su lugar',
+  'home.esloganNegocio': 'Gestiona tu negocio de forma inteligente',
+  'home.entradilla':
+    'Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.',
+  'home.verPanel': 'Ver el panel',
+  'home.pruebaDias': '{n} días de prueba sin permanencia',
+  'home.videoAlt': 'Vista previa del panel de Veline',
+
+  // Destacados
+  'home.todoLoQueNecesitas': 'Todo lo que tu negocio necesita',
+  'home.citasNoProblema': 'Las citas dejan de ser un problema el primer día',
+  'home.reservas247': 'Reservas 24/7',
+  'home.reservas247Texto': 'Tus clientes reservan incluso cuando el negocio está cerrado.',
+  'home.recordatorios': 'Recordatorios automáticos',
+  'home.recordatoriosTexto': 'Reduce las ausencias y cancelaciones de última hora.',
+  'home.gestionClientes': 'Gestión de clientes',
+  'home.gestionClientesTexto': 'Toda la información en un único lugar.',
+  'home.gestionEmpleados': 'Gestión de empleados',
+  'home.gestionEmpleadosTexto': 'Controla horarios, servicios y disponibilidad.',
+  'home.informes': 'Informes y métricas',
+  'home.informesTexto': 'Conoce el rendimiento real de tu negocio.',
+  'home.echasAlgoEnFalta': '¿Echas algo en falta?',
+  'home.echasAlgoEnFaltaTexto': 'Cuéntanoslo y lo estudiamos. La lista está abierta a propósito.',
+
+  // Cómo funciona
+  'home.comoFunciona': 'Cómo funciona',
+  'home.paso1': 'Crea el perfil de tu negocio',
+  'home.paso1Texto': 'Servicios, precios y horarios en unos minutos. Sin conocimientos técnicos.',
+  'home.paso2': 'Comparte tu enlace',
+  'home.paso2Texto':
+    'En Instagram, en Google o en la puerta del local. Tus clientes reservan solos.',
+  'home.paso3': 'Gestiona todo desde el panel',
+  'home.paso3Texto':
+    'Agenda, clientes y métricas en un único sitio, desde el móvil o el ordenador.',
+
+  // Servicios para empresas
+  'home.desdeLaAgenda': 'Desde la agenda hasta el último detalle',
+  'home.plusExplicacion':
+    'Lo básico entra con la suscripción. Lo marcado como {plus} se contrata aparte, según lo que cada negocio necesite.',
+  'home.plus': 'Plus',
+  'home.areaAdmin': 'Área administrativa cómoda y sencilla',
+  'home.areaAdminTexto':
+    'Un panel que se entiende sin manual: agenda, clientes y servicios con un click.',
+  'home.calendario': 'Calendario adaptable',
+  'home.calendarioTexto':
+    'Gestión de calendario que se ajusta a cómo trabaja cada negocio, no al revés.',
+  'home.gestionAdmin': 'Gestión administrativa',
+  'home.gestionAdminTexto': 'Nos ocupamos del papeleo del día a día para quien prefiera delegarlo.',
+  'home.soporte': 'Soporte y atención',
+  'home.soporteTexto': 'Un equipo disponible para ayudarte cuando lo necesites.',
+  'home.webPersonalizada': 'Web personalizada',
+  'home.webPersonalizadaTexto':
+    'Creamos la web de tu empresa, con tu marca y tu propio motor de reservas.',
+  'home.appLocal': 'Aplicación para tu local',
+  'home.appLocalTexto':
+    'Tu propia aplicación personalizada para reforzar tu marca y facilitar a tus clientes el acceso a todos tus servicios.',
+  'home.analisis': 'Análisis de rendimiento',
+  'home.analisisTexto': 'Rendimiento del trabajo y fidelidad de los clientes, en datos claros.',
+
+  // El marketplace
+  'home.clientesNuevos': 'Y además, clientes nuevos',
+  'home.asiTeVen': 'Así te ven tus clientes',
+  'home.marketplaceTexto':
+    'Tu negocio entra en el marketplace de Veline, donde la gente de tu zona busca y reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre ahí; si ya era tuyo, es gratis siempre.',
+  'home.verMarketplace': 'Ver el marketplace',
+
+  // Cierre
+  'home.pruebaloYDecide': 'Pruébalo {n} días y decide después.',
+  'home.verPlanes': 'Ver planes y precios',
+
+  // La pestaña del navegador y lo que sale en Google.
+  'meta.titulo': 'Veline — Gestiona tu negocio de forma inteligente',
+  'meta.descripcion':
+    'Reservas 24/7, recordatorios automáticos y gestión de clientes, empleados y métricas para tu negocio. Sin conocimientos técnicos y sin comisiones ocultas.',
+
+  // ── Precios ───────────────────────────────────────────────
+  'pre.titulo': 'Un precio simple, sin sorpresas',
+  'pre.entradilla':
+    'Pruébalo {n} días sin compromiso. Después, una cuota mes a mes que entiendes de una lectura — nunca por adelantado, nunca letra pequeña.',
+  'pre.masElegido': 'Más elegido',
+
+  // Planes
+  'pre.pruebaNombre': 'Prueba gratis',
+  'pre.pruebaTagline': 'Sin compromiso',
+  'pre.gratis': 'Gratis',
+  'pre.pruebaPeriodo': '{n} días',
+  'pre.empezarPrueba': 'Empezar la prueba',
+  'pre.pruebaF1': 'Todo lo del plan Negocio',
+  'pre.pruebaF2': 'Sin permanencia',
+  'pre.pruebaF3': 'Tu perfil en el marketplace desde el primer día',
+  'pre.pruebaF4': 'Al acabar decides si sigues',
+
+  'pre.negocioNombre': 'Negocio',
+  'pre.negocioTagline': 'Para el día a día de tu local',
+  'pre.alMes': '/mes',
+  'pre.contratar': 'Contratar',
+  'pre.negocioF1': 'Incluye 2 personas en el calendario',
+  'pre.negocioF2': 'Reservas ilimitadas desde tu web, Instagram o Google',
+  'pre.negocioF3':
+    'Recordatorios por SMS y email — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
+  'pre.negocioF4': 'Estadísticas del negocio',
+  'pre.negocioF5': 'Reseñas de clientes',
+  'pre.negocioF6': 'Soporte prioritario',
+
+  'pre.equipoNombre': 'Equipo',
+  'pre.equipoTagline': 'Cuando sois más de dos',
+  'pre.equipoPeriodo': '/mes por persona de más',
+  'pre.hablarVentas': 'Hablar con ventas',
+  'pre.equipoAsunto': 'Consulta sobre el plan Equipo',
+  'pre.equipoF1': 'Todo lo de Negocio',
+  'pre.equipoF2': 'Personas y locales ilimitados',
+  'pre.equipoF3': 'Panel multi-sucursal',
+  'pre.equipoF4': 'Soporte dedicado',
+
+  // Comisión
+  'pre.soloPrimeraVez': '15 % solo la primera vez',
+  'pre.comision':
+    'Sobre el marketplace: cobramos {soloPrimeraVez} que un cliente nuevo te descubre y reserva a través de la plataforma. Si ya lo conocías, o llega por tu Instagram, Google o boca a boca — es gratis, siempre.',
+
+  // Extras
+  'pre.serviciosAparte': 'Servicios aparte',
+  'pre.siQuieresMas': 'Si quieres que hagamos más',
+  'pre.extrasTexto':
+    'Se contratan cuando los necesitas y se quitan cuando no. Nada de esto es obligatorio para empezar a recibir reservas.',
+  'pre.webNombre': 'Creación de web y app móvil',
+  'pre.webPrecio': 'Desde 350 €',
+  'pre.pagoUnico': 'pago único',
+  'pre.webI1': 'Imagen propia de tu negocio',
+  'pre.webI2': 'Motor de reservas integrado',
+  'pre.webI3': 'Administrador propio',
+  'pre.webI4': 'Gestión de varios locales',
+  'pre.webI5': 'Correo corporativo — a consultar',
+  'pre.gestionNombre': 'Gestión administrativa',
+  'pre.gestionPrecio': '50 € /mes',
+  'pre.gestionNota': 'nos ocupamos nosotros',
+  'pre.gestionI1': 'Cambios de horarios y precios',
+  'pre.gestionI2': 'Información del negocio al día',
+  'pre.gestionI3': 'Altas y bajas de personas y del equipo',
+  'pre.resenasNombre': 'Reseñas',
+  'pre.incluidoSiempre': 'incluido siempre',
+  'pre.resenasI1': 'Recogida y publicación de las reseñas de tus clientes',
+  'pre.recordatoriosNombre': 'Recordatorios',
+  'pre.recordatoriosPrecio': '200 msj/mes gratis',
+  'pre.recordatoriosNota': 'luego 0,06 € por mensaje',
+  'pre.recordatoriosI1': 'Los SMS y el email comparten el mismo cupo mensual',
+
+  // Reseñas (hueco reservado)
+  'pre.loQueDicen': 'Lo que dicen los negocios que ya lo usan',
+  'pre.resenasPendientes':
+    'Aquí van las opiniones reales de los primeros negocios. El espacio está montado y maquetado: en cuanto tengamos sus frases y su permiso, se colocan tal cual.',
+  'pre.resenaHueco': 'Reseña de un negocio — cita textual',
+  'pre.nombreYNegocio': 'Nombre y negocio',
+  'pre.sectorCiudad': 'Sector · Ciudad',
+
+  // Preguntas
+  'pre.preguntas': 'Preguntas frecuentes',
+  'pre.loQuePreguntan': 'Lo que suelen preguntarnos',
+  'pre.q1': '¿Necesito saber de informática?',
+  'pre.a1':
+    'No. Creas el perfil, pones tus servicios y tus horarios, y ya puedes recibir reservas. Si prefieres no tocar nada, contratas la gestión administrativa y lo hacemos por ti.',
+  'pre.q2': '¿Qué pasa cuando acaban los {n} días de prueba?',
+  'pre.a2':
+    'Nada automático: no se te cobra nada sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
+  'pre.q3': '¿Hay permanencia?',
+  'pre.a3': 'No. Es mes a mes y puedes darte de baja cuando quieras desde el panel.',
+  'pre.q4': '¿Cuántas personas entran en el precio?',
+  'pre.a4':
+    'El plan Negocio incluye 2 personas en el calendario. A partir de ahí, cada persona de más son 10,95 € al mes.',
+  'pre.q5': '¿Cómo funciona la comisión del 15 %?',
+  'pre.a5':
+    'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
+  'pre.q6': '¿Los recordatorios por SMS tienen coste extra?',
+  'pre.a6':
+    'Los primeros 200 mensajes de cada mes están incluidos en el plan, sean SMS o email. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
+  'pre.q7': '¿Puedo usar Veline sin salir en el marketplace?',
+  'pre.a7':
+    'Sí. Puedes usarlo solo como motor de reservas en tu web y tus redes. En ese caso no hay comisión, porque los clientes no llegan por nosotros.',
+  'pre.q8': '¿Qué pasa con la agenda que ya tengo?',
+  'pre.a8':
+    'Puedes seguir apuntando citas a mano en el panel mientras te acostumbras: la agenda es la misma para las reservas online y las de siempre, así que no acabas con dos calendarios.',
+  'pre.escribenos': 'Escríbenos',
+  'pre.algunaDuda': '¿Te queda alguna duda? {escribenos} y te contestamos.',
+
+  // Cierre
+  'pre.pruebaloSinCompromiso': 'Pruébalo {n} días. Sin compromiso.',
+  'pre.verTodoIncluye': 'Ver todo lo que incluye',
 } as const

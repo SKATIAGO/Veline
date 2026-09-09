@@ -65,6 +65,7 @@ describe('diccionarios', () => {
       'alta.email',
       'adm.email',
       'adm.plan',
+      'home.plus',
       'panel.rolSuperadmin',
       'ctas.superadmins',
     ]

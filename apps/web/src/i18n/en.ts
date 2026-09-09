@@ -922,4 +922,191 @@ export const en: Record<keyof typeof es, string> = {
   'adm.notaEjemplo': 'Who was spoken to, why it was suspended…',
   'adm.guardarNota': 'Save note',
   'adm.noSePudoCambiar': 'Couldn’t change that',
+
+  // ── Home ──────────────────────────────────────────────────
+  'home.eslogan': 'Where every appointment finds its place',
+  'home.esloganNegocio': 'Run your business the easy way',
+  'home.entradilla':
+    'Veline handles the bookings, the reminders and the numbers so you can get on with the work. No technical know-how, no hidden fees.',
+  'home.verPanel': 'See the dashboard',
+  'home.pruebaDias': '{n} days free, no tie-in',
+  'home.videoAlt': 'A preview of the Veline dashboard',
+
+  // Highlights
+  'home.todoLoQueNecesitas': 'Everything your business needs',
+  'home.citasNoProblema': 'Bookings stop being a problem on day one',
+  'home.reservas247': 'Bookings round the clock',
+  'home.reservas247Texto': 'Your customers book even when you’re closed.',
+  'home.recordatorios': 'Automatic reminders',
+  'home.recordatoriosTexto': 'Fewer no-shows and last-minute cancellations.',
+  'home.gestionClientes': 'Customer records',
+  'home.gestionClientesTexto': 'Everything in one place.',
+  'home.gestionEmpleados': 'Staff management',
+  'home.gestionEmpleadosTexto': 'Keep hours, services and availability under control.',
+  'home.informes': 'Reports and figures',
+  'home.informesTexto': 'See how your business is really doing.',
+  'home.echasAlgoEnFalta': 'Something missing?',
+  'home.echasAlgoEnFaltaTexto': 'Tell us and we’ll look into it. The list is open on purpose.',
+
+  // How it works
+  'home.comoFunciona': 'How it works',
+  'home.paso1': 'Set up your business page',
+  'home.paso1Texto': 'Services, prices and hours in a few minutes. No technical know-how.',
+  'home.paso2': 'Share your link',
+  'home.paso2Texto':
+    'On Instagram, on Google or on your front door. Your customers book by themselves.',
+  'home.paso3': 'Run it all from the dashboard',
+  'home.paso3Texto': 'Diary, customers and figures in one place, from your phone or your computer.',
+
+  // Services for companies
+  'home.desdeLaAgenda': 'From the diary to the last detail',
+  'home.plusExplicacion':
+    'The basics come with the subscription. Anything marked {plus} is arranged separately, depending on what each business needs.',
+  'home.plus': 'Plus',
+  'home.areaAdmin': 'An admin area that makes sense',
+  'home.areaAdminTexto':
+    'A dashboard you understand without a manual: diary, customers and services with one click.',
+  'home.calendario': 'A calendar that adapts',
+  'home.calendarioTexto':
+    'Calendar management that fits how each business works, not the other way round.',
+  'home.gestionAdmin': 'Admin taken off your hands',
+  'home.gestionAdminTexto': 'We handle the day-to-day paperwork for anyone who would rather not.',
+  'home.soporte': 'Support when you need it',
+  'home.soporteTexto': 'A team on hand to help whenever you need them.',
+  'home.webPersonalizada': 'Your own website',
+  'home.webPersonalizadaTexto':
+    'We build your company’s website, with your branding and its own booking engine.',
+  'home.appLocal': 'An app for your business',
+  'home.appLocalTexto':
+    'Your own branded app, so your customers reach everything you offer from one place.',
+  'home.analisis': 'Performance insights',
+  'home.analisisTexto': 'How the work is going and how loyal your customers are, in plain numbers.',
+
+  // The marketplace
+  'home.clientesNuevos': 'And new customers too',
+  'home.asiTeVen': 'This is how your customers see you',
+  'home.marketplaceTexto':
+    'Your business goes into the Veline marketplace, where people in your area search and book. We charge 15% only the first time a new customer finds you there; if they were already yours, it’s free for good.',
+  'home.verMarketplace': 'See the marketplace',
+
+  // Closing
+  'home.pruebaloYDecide': 'Try it for {n} days and decide after that.',
+  'home.verPlanes': 'See plans and pricing',
+
+  // The browser tab and what shows up in Google.
+  'meta.titulo': 'Veline — Run your business the easy way',
+  'meta.descripcion':
+    'Round-the-clock bookings, automatic reminders and one place for customers, staff and figures. No technical know-how, no hidden fees.',
+
+  // ── Pricing ───────────────────────────────────────────────
+  'pre.titulo': 'One simple price, no surprises',
+  'pre.entradilla':
+    'Try it for {n} days, no strings. After that, a month-by-month fee you understand in one read — never in advance, never any small print.',
+  'pre.masElegido': 'Most popular',
+
+  // Plans
+  'pre.pruebaNombre': 'Free trial',
+  'pre.pruebaTagline': 'No strings',
+  'pre.gratis': 'Free',
+  'pre.pruebaPeriodo': '{n} days',
+  'pre.empezarPrueba': 'Start the trial',
+  'pre.pruebaF1': 'Everything in the Business plan',
+  'pre.pruebaF2': 'No tie-in',
+  'pre.pruebaF3': 'Your page on the marketplace from day one',
+  'pre.pruebaF4': 'You decide whether to carry on at the end',
+
+  'pre.negocioNombre': 'Business',
+  'pre.negocioTagline': 'For the day-to-day of your place',
+  'pre.alMes': '/month',
+  'pre.contratar': 'Sign up',
+  'pre.negocioF1': 'Includes 2 people in the diary',
+  'pre.negocioF2': 'Unlimited bookings from your website, Instagram or Google',
+  'pre.negocioF3':
+    'SMS and email reminders — 200 messages a month included, then €0.06 per message',
+  'pre.negocioF4': 'Business figures',
+  'pre.negocioF5': 'Customer reviews',
+  'pre.negocioF6': 'Priority support',
+
+  'pre.equipoNombre': 'Team',
+  'pre.equipoTagline': 'When there are more than two of you',
+  'pre.equipoPeriodo': '/month per extra person',
+  'pre.hablarVentas': 'Talk to sales',
+  'pre.equipoAsunto': 'Question about the Team plan',
+  'pre.equipoF1': 'Everything in Business',
+  'pre.equipoF2': 'Unlimited people and locations',
+  'pre.equipoF3': 'Multi-branch dashboard',
+  'pre.equipoF4': 'Dedicated support',
+
+  // Commission
+  'pre.soloPrimeraVez': '15% only the first time',
+  'pre.comision':
+    'About the marketplace: we charge {soloPrimeraVez} a new customer finds you and books through the platform. If you already knew them, or they come via your Instagram, Google or word of mouth — it’s free, always.',
+
+  // Extras
+  'pre.serviciosAparte': 'Extra services',
+  'pre.siQuieresMas': 'If you want us to do more',
+  'pre.extrasTexto':
+    'You take them on when you need them and drop them when you don’t. None of this is required to start taking bookings.',
+  'pre.webNombre': 'Website and mobile app',
+  'pre.webPrecio': 'From €350',
+  'pre.pagoUnico': 'one-off payment',
+  'pre.webI1': 'Your business’s own look',
+  'pre.webI2': 'Booking engine built in',
+  'pre.webI3': 'Your own dashboard',
+  'pre.webI4': 'Several locations handled',
+  'pre.webI5': 'Company email — ask us',
+  'pre.gestionNombre': 'Admin taken off your hands',
+  'pre.gestionPrecio': '€50 /month',
+  'pre.gestionNota': 'we take care of it',
+  'pre.gestionI1': 'Changes to hours and prices',
+  'pre.gestionI2': 'Business details kept up to date',
+  'pre.gestionI3': 'Adding and removing staff and team members',
+  'pre.resenasNombre': 'Reviews',
+  'pre.incluidoSiempre': 'always included',
+  'pre.resenasI1': 'Collecting and publishing your customers’ reviews',
+  'pre.recordatoriosNombre': 'Reminders',
+  'pre.recordatoriosPrecio': '200 msgs/month free',
+  'pre.recordatoriosNota': 'then €0.06 per message',
+  'pre.recordatoriosI1': 'SMS and email share the same monthly allowance',
+
+  // Reviews (space held)
+  'pre.loQueDicen': 'What the businesses already using it say',
+  'pre.resenasPendientes':
+    'Real opinions from the first businesses go here. The space is built and laid out: as soon as we have their words and their permission, they go in as they are.',
+  'pre.resenaHueco': 'A business’s review — their own words',
+  'pre.nombreYNegocio': 'Name and business',
+  'pre.sectorCiudad': 'Sector · City',
+
+  // Questions
+  'pre.preguntas': 'Frequently asked',
+  'pre.loQuePreguntan': 'What people usually ask us',
+  'pre.q1': 'Do I need to be good with computers?',
+  'pre.a1':
+    'No. You set up the page, add your services and your hours, and you can take bookings. If you would rather not touch any of it, take on the admin service and we do it for you.',
+  'pre.q2': 'What happens when the {n}-day trial ends?',
+  'pre.a2':
+    'Nothing automatic: you are never charged without deciding to be. If you carry on, you move to the Business plan; if not, your page stops taking new bookings and your data stays there in case you come back.',
+  'pre.q3': 'Is there a tie-in?',
+  'pre.a3': 'No. It is month by month and you can cancel whenever you like from the dashboard.',
+  'pre.q4': 'How many people does the price cover?',
+  'pre.a4':
+    'The Business plan includes 2 people in the diary. Beyond that, each extra person is €10.95 a month.',
+  'pre.q5': 'How does the 15% commission work?',
+  'pre.a5':
+    'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',
+  'pre.q6': 'Do SMS reminders cost extra?',
+  'pre.a6':
+    'The first 200 messages each month are included in the plan, whether SMS or email. After that, each extra message costs €0.06.',
+  'pre.q7': 'Can I use Veline without appearing on the marketplace?',
+  'pre.a7':
+    'Yes. You can use it purely as a booking engine on your website and your social media. In that case there is no commission, because the customers do not come through us.',
+  'pre.q8': 'What about the diary I already have?',
+  'pre.a8':
+    'You can carry on writing appointments in by hand while you get used to it: the diary is the same one for online bookings and the usual ones, so you do not end up with two calendars.',
+  'pre.escribenos': 'Write to us',
+  'pre.algunaDuda': 'Still not sure about something? {escribenos} and we will answer.',
+
+  // Closing
+  'pre.pruebaloSinCompromiso': 'Try it for {n} days. No strings.',
+  'pre.verTodoIncluye': 'See everything it includes',
 }

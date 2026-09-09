@@ -73,12 +73,16 @@ export const ENCARGADOS = [
     para: 'Mandar los correos y los SMS de confirmación y recordatorio. Recibe el correo o el teléfono de destino y el texto del mensaje.',
   },
   {
-    /* La región del centro de datos NO está confirmada aquí: depende de lo
-       contratado en el panel de IONOS. Antes de dar el aviso por bueno hay que
-       mirarlo y escribirlo, porque si el servidor estuviera fuera del Espacio
-       Económico Europeo habría que declararlo como transferencia internacional. */
+    /* Región confirmada por Santiago el 9 sep 2026: los datos están en España.
+       Importa porque fuera del Espacio Económico Europeo habría que declararlo
+       como transferencia internacional, y eso cambia el aviso entero.
+
+       Es una afirmación legal, así que conviene comprobarla una vez en el
+       panel de IONOS antes de publicar el aviso definitivo: la región del
+       centro de datos se elige al contratar y no siempre coincide con el país
+       de la empresa (IONOS es alemana). */
     nombre: 'IONOS',
-    donde: 'Proveedor alemán',
+    donde: 'España',
     para: 'El servidor donde vive Veline y su base de datos.',
   },
 ] as const

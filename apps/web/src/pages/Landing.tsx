@@ -8,6 +8,7 @@ import { Reveal } from '../components/Reveal'
 import { DoorMotif, Glow, SectorMarquee } from '../components/Ornaments'
 import { DESTACADOS, ESLOGAN, ESLOGAN_NEGOCIO, SERVICIOS_EMPRESA } from '../content/negocio'
 import { PRUEBA_DIAS } from '../content/precios'
+import { Texto, useIdioma, type Clave } from '../i18n/idioma'
 
 /**
  * Home orientada al negocio. El marketplace dejó de ser la portada: aparece
@@ -15,19 +16,10 @@ import { PRUEBA_DIAS } from '../content/precios'
  */
 
 const PASOS = [
-  {
-    title: 'Crea el perfil de tu negocio',
-    text: 'Servicios, precios y horarios en unos minutos. Sin conocimientos técnicos.',
-  },
-  {
-    title: 'Comparte tu enlace',
-    text: 'En Instagram, en Google o en la puerta del local. Tus clientes reservan solos.',
-  },
-  {
-    title: 'Gestiona todo desde el panel',
-    text: 'Agenda, clientes y métricas en un único sitio, desde el móvil o el ordenador.',
-  },
-]
+  { titulo: 'home.paso1', texto: 'home.paso1Texto' },
+  { titulo: 'home.paso2', texto: 'home.paso2Texto' },
+  { titulo: 'home.paso3', texto: 'home.paso3Texto' },
+] as const satisfies readonly { titulo: Clave; texto: Clave }[]
 
 function Check() {
   return (
@@ -41,6 +33,7 @@ function Check() {
 }
 
 export function Landing() {
+  const { t, idioma } = useIdioma()
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['businesses', 'home'],
     queryFn: () => api.listBusinesses({ limit: 3 }),
@@ -70,24 +63,23 @@ export function Landing() {
         <div className="relative mx-auto flex max-w-[1440px] flex-col items-center gap-14 px-6 py-20 lg:flex-row lg:px-16 lg:py-24">
           <div className="min-w-0 flex-1">
             <p className="rise mb-5 text-meta font-semibold tracking-[0.08em] text-accent uppercase">
-              {ESLOGAN}
+              {t(ESLOGAN)}
             </p>
             <h1
               className="rise text-[34px] leading-[1.12] font-semibold text-ondark sm:text-[44px] lg:text-[52px]"
               style={{ animationDelay: '80ms' }}
             >
-              {ESLOGAN_NEGOCIO}
+              {t(ESLOGAN_NEGOCIO)}
             </h1>
             <p
               className="rise mt-5 mb-8 max-w-[500px] text-[17px] leading-relaxed text-ondark-muted-2"
               style={{ animationDelay: '160ms' }}
             >
-              Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te
-              dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.
+              {t('home.entradilla')}
             </p>
             <div className="rise flex flex-wrap gap-3" style={{ animationDelay: '240ms' }}>
               <ButtonLink to="/precios" variant="accent" size="lg" className="sheen">
-                Añadir mi negocio
+                {t('nav.anadirNegocio')}
               </ButtonLink>
               <ButtonLink
                 to="/panel"
@@ -95,14 +87,14 @@ export function Landing() {
                 size="lg"
                 className="border-ondark-muted text-ondark hover:bg-ondark hover:text-ink"
               >
-                Ver el panel
+                {t('home.verPanel')}
               </ButtonLink>
             </div>
             <p
               className="rise mt-5 text-meta font-medium text-ondark-muted"
               style={{ animationDelay: '320ms' }}
             >
-              {PRUEBA_DIAS} días de prueba sin permanencia
+              {t('home.pruebaDias', { n: PRUEBA_DIAS })}
             </p>
           </div>
 
@@ -120,14 +112,14 @@ export function Landing() {
               muted
               loop
               playsInline
-              aria-label="Vista previa del panel de Veline"
+              aria-label={t('home.videoAlt')}
             />
           </div>
         </div>
       </section>
 
       {/* CINTA DE SECTORES */}
-      <SectorMarquee items={CATEGORIES.map((c) => c.label)} />
+      <SectorMarquee items={CATEGORIES.map((c) => (idioma === 'en' ? c.labelEn : c.label))} />
 
       {/* DESTACADOS */}
       <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
@@ -138,30 +130,30 @@ export function Landing() {
           tilt={8}
         />
         <Reveal>
-          <Eyebrow>Todo lo que tu negocio necesita</Eyebrow>
+          <Eyebrow>{t('home.todoLoQueNecesitas')}</Eyebrow>
           <h2 className="quill mb-10 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-            Las citas dejan de ser un problema el primer día
+            {t('home.citasNoProblema')}
           </h2>
         </Reveal>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {DESTACADOS.map((d, i) => (
-            <Reveal key={d.title} delay={i * 80} variant="zoom">
+            <Reveal key={d.titulo} delay={i * 80} variant="zoom">
               <Card className="lift group h-full p-6">
                 <div className="mb-2 font-display text-lg font-semibold text-ink transition-colors duration-300 group-hover:text-brand">
-                  {d.title}
+                  {t(d.titulo)}
                 </div>
-                <p className="text-sm leading-relaxed text-muted">{d.text}</p>
+                <p className="text-sm leading-relaxed text-muted">{t(d.texto)}</p>
               </Card>
             </Reveal>
           ))}
           <Reveal delay={DESTACADOS.length * 80} variant="zoom">
             <Card className="lift flex h-full flex-col justify-center border-dashed bg-transparent p-6">
               <div className="mb-2 font-display text-lg font-semibold text-ink">
-                ¿Echas algo en falta?
+                {t('home.echasAlgoEnFalta')}
               </div>
               <p className="text-sm leading-relaxed text-muted">
-                Cuéntanoslo y lo estudiamos. La lista está abierta a propósito.
+                {t('home.echasAlgoEnFaltaTexto')}
               </p>
             </Card>
           </Reveal>
@@ -181,7 +173,7 @@ export function Landing() {
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
           <Reveal>
             <h2 className="mb-14 text-center text-[26px] font-semibold text-ink sm:text-[32px]">
-              Cómo funciona
+              {t('home.comoFunciona')}
             </h2>
           </Reveal>
           <div className="relative flex flex-col gap-12 sm:flex-row">
@@ -191,13 +183,13 @@ export function Landing() {
               className="pointer-events-none absolute top-[22px] right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-transparent via-line-strong to-transparent sm:block"
             />
             {PASOS.map((paso, i) => (
-              <Reveal key={paso.title} delay={i * 140} className="relative flex-1 text-center">
+              <Reveal key={paso.titulo} delay={i * 140} className="relative flex-1 text-center">
                 <div className="mx-auto mb-4 flex size-11 items-center justify-center rounded-full bg-ink font-semibold text-cream ring-8 ring-canvas transition-transform duration-300 hover:scale-110">
                   {i + 1}
                 </div>
-                <div className="mb-2 font-semibold text-ink">{paso.title}</div>
+                <div className="mb-2 font-semibold text-ink">{t(paso.titulo)}</div>
                 <p className="mx-auto max-w-[280px] text-sm leading-relaxed text-muted">
-                  {paso.text}
+                  {t(paso.texto)}
                 </p>
               </Reveal>
             ))}
@@ -206,9 +198,16 @@ export function Landing() {
       </section>
 
       {/* SERVICIOS PARA EMPRESAS */}
+      {/* overflow-x-clip: las tarjetas de abajo entran deslizándose 26 px desde
+          los lados, y mientras se mueven asoman por el borde y ensanchan la
+          página. En un móvil eso se ve como la página moviéndose sola mientras
+          bajas. Se recorta aquí y no en el <body> para que un desbordamiento
+          nuevo en otra sección siga saltando a la vista en vez de quedar
+          tapado. «clip» y no «hidden»: hidden crearía un contenedor de scroll
+          y rompería el sticky de dentro. */}
       <section
         id="servicios"
-        className="relative mx-auto max-w-[1440px] scroll-mt-24 px-6 py-20 lg:px-16"
+        className="relative mx-auto max-w-[1440px] scroll-mt-24 overflow-x-clip px-6 py-20 lg:px-16"
       >
         <DoorMotif
           className="top-24 left-[-2%] hidden xl:block"
@@ -218,32 +217,33 @@ export function Landing() {
           delay={800}
         />
         <Reveal>
-          <Eyebrow>Servicios para empresas</Eyebrow>
+          <Eyebrow>{t('pie.serviciosEmpresas')}</Eyebrow>
           <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-            Desde la agenda hasta el último detalle
+            {t('home.desdeLaAgenda')}
           </h2>
           <p className="mb-10 max-w-[560px] text-ui leading-relaxed text-body">
-            Lo básico entra con la suscripción. Lo marcado como{' '}
-            <span className="font-semibold text-ink">Plus</span> se contrata aparte, según lo que
-            cada negocio necesite.
+            <Texto
+              clave="home.plusExplicacion"
+              partes={{ plus: <span className="font-semibold text-ink">{t('home.plus')}</span> }}
+            />
           </p>
         </Reveal>
 
         <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
           {SERVICIOS_EMPRESA.map((s, i) => (
-            <Reveal key={s.title} delay={i * 70} variant={i % 2 === 0 ? 'left' : 'right'}>
+            <Reveal key={s.titulo} delay={i * 70} variant={i % 2 === 0 ? 'left' : 'right'}>
               <div className="group/item flex gap-3.5">
                 <Check />
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-ink">{s.title}</span>
+                    <span className="font-semibold text-ink">{t(s.titulo)}</span>
                     {'plus' in s && s.plus && (
                       <span className="rounded-full bg-accent px-2 py-0.5 text-caption font-semibold tracking-wide text-ink uppercase">
-                        Plus
+                        {t('home.plus')}
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-body leading-relaxed text-muted">{s.text}</p>
+                  <p className="mt-1 text-body leading-relaxed text-muted">{t(s.texto)}</p>
                 </div>
               </div>
             </Reveal>
@@ -256,14 +256,12 @@ export function Landing() {
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <Reveal>
-              <Eyebrow>Y además, clientes nuevos</Eyebrow>
+              <Eyebrow>{t('home.clientesNuevos')}</Eyebrow>
               <h2 className="quill max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-                Así te ven tus clientes
+                {t('home.asiTeVen')}
               </h2>
               <p className="mt-6 max-w-[560px] text-ui leading-relaxed text-body">
-                Tu negocio entra en el marketplace de Veline, donde la gente de tu zona busca y
-                reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre ahí;
-                si ya era tuyo, es gratis siempre.
+                {t('home.marketplaceTexto')}
               </p>
             </Reveal>
             <Reveal delay={120}>
@@ -271,7 +269,7 @@ export function Landing() {
                 to="/buscar"
                 className="group inline-flex min-h-10 items-center gap-1.5 px-1 text-body font-semibold text-brand-text hover:text-ink"
               >
-                Ver el marketplace
+                {t('home.verMarketplace')}
                 <span className="transition-transform duration-300 group-hover:translate-x-1">
                   →
                 </span>
@@ -303,17 +301,17 @@ export function Landing() {
         <div className="relative mx-auto max-w-[1440px] px-6 py-24 text-center lg:px-16">
           <Reveal variant="zoom">
             <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">
-              {ESLOGAN}
+              {t(ESLOGAN)}
             </p>
             <p className="mx-auto mt-4 mb-8 max-w-[460px] text-ui leading-relaxed text-muted">
-              Pruébalo {PRUEBA_DIAS} días y decide después.
+              {t('home.pruebaloYDecide', { n: PRUEBA_DIAS })}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <ButtonLink to="/precios" variant="dark" size="lg" className="sheen">
-                Ver planes y precios
+                {t('home.verPlanes')}
               </ButtonLink>
               <ButtonLink to="/panel" variant="secondary" size="lg">
-                Ver el panel
+                {t('home.verPanel')}
               </ButtonLink>
             </div>
           </Reveal>
