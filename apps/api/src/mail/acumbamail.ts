@@ -18,7 +18,9 @@
  * a Brevo es cambiar una variable, no rehacer esto.
  */
 
-const ENDPOINT_SMS = 'https://acumbamail.com/api/1/sendSMS/'
+/* Sin barra final: es la dirección exacta de la llamada que funcionó en
+   Postman (10 sep 2026, 201 con status 0). */
+const ENDPOINT_SMS = 'https://acumbamail.com/api/1/sendSMS'
 /** sendOne: un correo transaccional. Ver apidoc/function/sendOne. */
 const ENDPOINT_MAIL = 'https://acumbamail.com/api/1/sendOne/'
 
@@ -32,7 +34,11 @@ export interface SmsMessage {
   body: string
 }
 
-export type SmsResult = { sent: true; id?: string } | { sent: false; reason: string }
+export type SmsResult =
+  | { sent: true; id?: string }
+  /** `freno`: no se ha enviado A PROPÓSITO (modo off o dry, sin token,
+      teléfono que no es español). Sin marca, es un fallo de verdad. */
+  | { sent: false; reason: string; freno?: boolean }
 
 interface SmsConfig {
   mode: SmsMode
@@ -90,74 +96,83 @@ interface RespuestaSms {
 export async function sendSms(message: SmsMessage): Promise<SmsResult> {
   const cfg = readConfig()
 
-  if (cfg.mode === 'off') return { sent: false, reason: 'SMS_MODE=off' }
+  if (cfg.mode === 'off') return { sent: false, reason: 'SMS_MODE=off', freno: true }
 
   const destino = normalizaTelefono(cfg.overrideTo ?? message.to)
-  if (!destino) return { sent: false, reason: 'teléfono no válido' }
+  if (!destino) return { sent: false, reason: 'teléfono no válido', freno: true }
 
   if (cfg.mode === 'dry') {
     console.log(`[sms:dry] ${destino} · ${message.body.slice(0, 60)}`)
-    return { sent: false, reason: 'SMS_MODE=dry' }
+    return { sent: false, reason: 'SMS_MODE=dry', freno: true }
   }
 
-  if (!cfg.token) return { sent: false, reason: 'sin ACUMBAMAIL_TOKEN' }
+  if (!cfg.token) return { sent: false, reason: 'sin ACUMBAMAIL_TOKEN', freno: true }
 
-  /* Confirmado contra el ejemplo que mandó soporte (Ana, 10 sep 2026) y NO lo
-     que había aquí antes: un único campo `messages` con una lista en JSON, y
-     el remitente va DENTRO de cada mensaje — no como campo `sender` aparte, y
-     no hay ningún campo `recipients` ni `phone`. Multipart (como su `curl -F`)
-     y no formulario codificado, por si su lado solo espera eso. */
-  const form = new FormData()
-  form.set('auth_token', cfg.token)
-  form.set(
-    'messages',
-    JSON.stringify([{ recipient: destino, body: message.body, sender: cfg.sender }]),
-  )
+  /** Tapa el token en cualquier texto antes de escribirlo en un log o de
+      guardarlo como motivo en la base: si algún error devolviera la URL
+      entera, el token iría dentro. */
+  const tapa = (t: string) => t.split(cfg.token).join('***')
+
+  /* Exactamente la llamada que Santiago probó a mano en Postman el 10 sep
+     2026 y devolvió 201 con status 0: POST, con auth_token y messages como
+     PARÁMETROS DE LA URL, sin cuerpo.
+
+     El ejemplo de soporte usaba `curl -F` (cuerpo multipart) y seguramente
+     también vale, pero la de la URL es la que está probada con esta cuenta.
+     Con dinero de por medio, se usa la probada.
+
+     OJO: esta URL lleva el token dentro. Por el camino viaja cifrada (HTTPS);
+     el riesgo es dejarla escrita en algún sitio, así que NO se escribe en
+     ningún log. Hay una prueba que lo vigila. */
+  const params = new URLSearchParams({
+    auth_token: cfg.token,
+    messages: JSON.stringify([{ recipient: destino, body: message.body, sender: cfg.sender }]),
+  })
 
   let res: Response
   try {
-    res = await fetch(ENDPOINT_SMS, {
+    res = await fetch(`${ENDPOINT_SMS}?${params}`, {
       method: 'POST',
-      body: form,
       signal: AbortSignal.timeout(10_000),
     })
   } catch (err) {
-    return { sent: false, reason: `red: ${(err as Error).message}` }
+    return { sent: false, reason: tapa(`red: ${(err as Error).message}`) }
   }
 
   const texto = await res.text().catch(() => '')
 
+  // 201 es lo normal —es lo que devolvió en Postman—; res.ok cubre 200-299.
   if (!res.ok) {
-    console.error(`[sms] Acumbamail ${res.status}: ${texto.slice(0, 300)}`)
+    console.error(`[sms] Acumbamail ${res.status}: ${tapa(texto).slice(0, 300)}`)
     return { sent: false, reason: `Acumbamail ${res.status}` }
   }
 
-  /* Un 200 no significa que se haya mandado: Acumbamail contesta 200 incluso
-     cuando rechaza el SMS, y pone el motivo dentro del cuerpo, por mensaje
-     (status 0 = enviado; cualquier otro valor trae `error`). Sin leer esto,
-     un teléfono rechazado o sin crédito se habría dado por enviado — que es
-     justo el fallo que tenía esto antes de mirar la documentación real. */
+  /* Que la petición vaya bien no significa que el SMS salga: Acumbamail
+     contesta con éxito HTTP incluso cuando RECHAZA el mensaje, y pone el
+     motivo dentro del cuerpo, por mensaje (status 0 = enviado; cualquier otro
+     valor trae `error`). Sin leer esto, un teléfono rechazado o una cuenta
+     sin crédito se darían por enviados. */
   let cuerpo: { messages?: RespuestaSms[] }
   try {
     cuerpo = JSON.parse(texto) as { messages?: RespuestaSms[] }
   } catch {
-    console.error(`[sms] Acumbamail no devolvió JSON: ${texto.slice(0, 300)}`)
-    return { sent: false, reason: 'respuesta no válida' }
+    console.error(`[sms] Acumbamail no devolvió JSON: ${tapa(texto).slice(0, 300)}`)
+    return { sent: false, reason: 'Acumbamail: respuesta no válida' }
   }
 
   const resultado = cuerpo.messages?.[0]
   if (!resultado) {
-    console.error(`[sms] Acumbamail sin "messages" en la respuesta: ${texto.slice(0, 300)}`)
-    return { sent: false, reason: 'sin respuesta de Acumbamail' }
+    console.error(`[sms] Acumbamail sin "messages" en la respuesta: ${tapa(texto).slice(0, 300)}`)
+    return { sent: false, reason: 'Acumbamail: respuesta sin mensajes' }
   }
 
   if (resultado.status !== 0) {
-    const motivo = resultado.error ?? `status ${resultado.status}`
+    const motivo = tapa(resultado.error ?? `status ${resultado.status}`)
     console.error(`[sms] Acumbamail rechazó el envío a ${destino}: ${motivo}`)
-    return { sent: false, reason: motivo }
+    return { sent: false, reason: `Acumbamail: ${motivo}` }
   }
 
-  const creditos = resultado.credits ? ` · ${resultado.credits} créditos` : ''
+  const creditos = resultado.credits !== undefined ? ` · ${resultado.credits} créditos` : ''
   console.log(`[sms] enviado a ${destino}${creditos}`)
   return { sent: true, id: resultado.id !== undefined ? String(resultado.id) : undefined }
 }

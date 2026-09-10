@@ -25,6 +25,9 @@ import { smsRecordatorio } from './mail/sms.js'
 const HORAS_ANTES = 24
 /** Margen de la ventana: el proceso corre cada 15 min, se coge algo más. */
 const VENTANA_MIN = 30
+/** Si la reserva es más reciente que esto, el cliente acaba de recibir la
+    confirmación y el recordatorio sobra. */
+const CONFIRMACION_RECIENTE_H = 12
 
 const CADA_MS = 15 * 60 * 1000
 
@@ -76,6 +79,24 @@ export async function enviarRecordatoriosPendientes(): Promise<ResultadoTanda> {
         to: cita.customer.email ?? cita.customer.phone,
         status: 'OMITIDO',
         reason: 'negocio no activo',
+      })
+      continue
+    }
+
+    /* Una reserva hecha hace menos de 12 horas acaba de recibir la
+       confirmación, con la misma fecha y hora. Un recordatorio encima sería un
+       segundo SMS diciendo lo mismo a las pocas horas —o minutos—, molesto
+       para el cliente y un mensaje más en el cupo del negocio. Pasa con toda
+       reserva hecha entre 24 y 36 horas antes de la cita. */
+    if (ahora - cita.createdAt.getTime() < CONFIRMACION_RECIENTE_H * 3_600_000) {
+      await registrarEnvio({
+        businessId: cita.businessId,
+        bookingId: cita.id,
+        channel: 'SMS',
+        kind: 'RECORDATORIO',
+        to: cita.customer.phone,
+        status: 'OMITIDO',
+        reason: 'confirmación reciente',
       })
       continue
     }
@@ -135,7 +156,9 @@ export async function enviarRecordatoriosPendientes(): Promise<ResultadoTanda> {
       reason: sms.sent ? null : 'reason' in sms ? sms.reason : null,
     })
     if (sms.sent) res.smss++
-    else if ('reason' in sms && sms.reason?.startsWith('Acumbamail')) res.fallos++
+    // Un «no enviado» a propósito (modo dry, sin token…) no es un fallo; todo
+    // lo demás sí, incluido que Acumbamail rechace el mensaje o se caiga la red.
+    else if (!('freno' in sms && sms.freno)) res.fallos++
   }
 
   return res

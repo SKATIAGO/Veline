@@ -12,6 +12,8 @@ import {
 import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
+import { bookingCode } from '../codigo.js'
+import { avisarConfirmacion } from '../mail/confirmar.js'
 
 /**
  * Lo que un negocio necesita para gestionarse solo: las personas que atienden,
@@ -617,7 +619,7 @@ export async function negocioRoutes(app: FastifyInstance) {
 
           return tx.booking.create({
             data: {
-              code: `VL-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+              code: bookingCode(),
               businessId: auth.business.id,
               locationId: auth.business.locationId,
               serviceId: service.id,
@@ -654,6 +656,10 @@ export async function negocioRoutes(app: FastifyInstance) {
         entityId: booking.id,
         metadata: { codigo: booking.code, cuando: booking.startsAt, origen: 'panel' },
       })
+
+      // La misma confirmación que al reservar por la web: el formulario del
+      // panel promete que el cliente la recibe, y hasta ahora no salía nada.
+      void avisarConfirmacion(booking.id)
 
       return reply.code(201).send({ id: booking.id, code: booking.code })
     } catch (err) {

@@ -1,4 +1,3 @@
-import { randomInt } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import {
@@ -14,30 +13,16 @@ import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { sendMail, sendMailSafely } from '../mail/enviar.js'
 import { registrarEnvio } from '../mail/contador.js'
 import { idiomaDeLaReserva } from '../mail/idioma.js'
+import { avisarConfirmacion } from '../mail/confirmar.js'
+import { bookingCode } from '../codigo.js'
 import {
   bookingCancelled,
-  bookingConfirmedToCustomer,
   bookingCreatedToBusiness,
   type BookingMailData,
 } from '../mail/templates.js'
 
 /** Comisión de marketplace: 15% y solo en la primera reserva del cliente. */
 const COMMISSION_RATE = 0.15
-
-/**
- * Código de reserva. Es lo único que protege los datos del cliente en
- * /reserva/{código}, así que se genera con el generador criptográfico del
- * sistema, no con Math.random() (predecible con suficientes muestras).
- *
- * Alfabeto sin caracteres que se confundan al dictarlo por teléfono: sin
- * I, O, 0, 1. Con 8 caracteres son 32^8 ≈ 1,1 billones de combinaciones;
- * junto al límite de peticiones, recorrerlos deja de ser viable.
- */
-const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-const CODE_LENGTH = 8
-
-const bookingCode = () =>
-  'VL-' + Array.from({ length: CODE_LENGTH }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
 
 const bookingInclude = {
   business: { select: { id: true, slug: true, name: true, email: true } },
@@ -244,17 +229,11 @@ export async function bookingRoutes(app: FastifyInstance) {
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
 
-      // El correo no bloquea la respuesta: la cita ya está hecha y confirmada.
+      // Los avisos no bloquean la respuesta: la cita ya está hecha y confirmada.
+      // Al cliente, correo y SMS, con la misma función que usa el panel.
+      void avisarConfirmacion(booking.id)
+
       const mailData = toMailData(booking)
-      if (booking.customer.email) {
-        void avisar({
-          businessId: booking.businessId,
-          bookingId: booking.id,
-          kind: 'RESERVA_CONFIRMADA',
-          to: booking.customer.email,
-          message: bookingConfirmedToCustomer(mailData),
-        })
-      }
       if (booking.business.email) {
         // El aviso AL NEGOCIO no cuenta para su cupo: es nuestro, no suyo.
         void sendMailSafely(bookingCreatedToBusiness(mailData, booking.business.email))
