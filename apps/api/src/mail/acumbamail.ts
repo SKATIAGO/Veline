@@ -78,6 +78,15 @@ export function normalizaTelefono(raw: string): string | null {
   return null
 }
 
+/** Un SMS ya enviado a Acumbamail, tal y como lo describe su API real. */
+interface RespuestaSms {
+  status: number
+  /** Solo viene cuando status no es 0. */
+  error?: string
+  credits?: number
+  id?: number
+}
+
 export async function sendSms(message: SmsMessage): Promise<SmsResult> {
   const cfg = readConfig()
 
@@ -93,20 +102,22 @@ export async function sendSms(message: SmsMessage): Promise<SmsResult> {
 
   if (!cfg.token) return { sent: false, reason: 'sin ACUMBAMAIL_TOKEN' }
 
-  // La API de Acumbamail es de formulario, no JSON.
-  const form = new URLSearchParams({
-    auth_token: cfg.token,
-    sender: cfg.sender,
-    message: message.body,
-    // Espera una lista JSON de destinatarios aunque solo vaya uno.
-    recipients: JSON.stringify([{ phone: destino }]),
-  })
+  /* Confirmado contra el ejemplo que mandó soporte (Ana, 10 sep 2026) y NO lo
+     que había aquí antes: un único campo `messages` con una lista en JSON, y
+     el remitente va DENTRO de cada mensaje — no como campo `sender` aparte, y
+     no hay ningún campo `recipients` ni `phone`. Multipart (como su `curl -F`)
+     y no formulario codificado, por si su lado solo espera eso. */
+  const form = new FormData()
+  form.set('auth_token', cfg.token)
+  form.set(
+    'messages',
+    JSON.stringify([{ recipient: destino, body: message.body, sender: cfg.sender }]),
+  )
 
   let res: Response
   try {
     res = await fetch(ENDPOINT_SMS, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: form,
       signal: AbortSignal.timeout(10_000),
     })
@@ -114,14 +125,41 @@ export async function sendSms(message: SmsMessage): Promise<SmsResult> {
     return { sent: false, reason: `red: ${(err as Error).message}` }
   }
 
+  const texto = await res.text().catch(() => '')
+
   if (!res.ok) {
-    const detalle = await res.text().catch(() => '')
-    console.error(`[sms] Acumbamail ${res.status}: ${detalle.slice(0, 300)}`)
+    console.error(`[sms] Acumbamail ${res.status}: ${texto.slice(0, 300)}`)
     return { sent: false, reason: `Acumbamail ${res.status}` }
   }
 
-  console.log(`[sms] enviado a ${destino}`)
-  return { sent: true }
+  /* Un 200 no significa que se haya mandado: Acumbamail contesta 200 incluso
+     cuando rechaza el SMS, y pone el motivo dentro del cuerpo, por mensaje
+     (status 0 = enviado; cualquier otro valor trae `error`). Sin leer esto,
+     un teléfono rechazado o sin crédito se habría dado por enviado — que es
+     justo el fallo que tenía esto antes de mirar la documentación real. */
+  let cuerpo: { messages?: RespuestaSms[] }
+  try {
+    cuerpo = JSON.parse(texto) as { messages?: RespuestaSms[] }
+  } catch {
+    console.error(`[sms] Acumbamail no devolvió JSON: ${texto.slice(0, 300)}`)
+    return { sent: false, reason: 'respuesta no válida' }
+  }
+
+  const resultado = cuerpo.messages?.[0]
+  if (!resultado) {
+    console.error(`[sms] Acumbamail sin "messages" en la respuesta: ${texto.slice(0, 300)}`)
+    return { sent: false, reason: 'sin respuesta de Acumbamail' }
+  }
+
+  if (resultado.status !== 0) {
+    const motivo = resultado.error ?? `status ${resultado.status}`
+    console.error(`[sms] Acumbamail rechazó el envío a ${destino}: ${motivo}`)
+    return { sent: false, reason: motivo }
+  }
+
+  const creditos = resultado.credits ? ` · ${resultado.credits} créditos` : ''
+  console.log(`[sms] enviado a ${destino}${creditos}`)
+  return { sent: true, id: resultado.id !== undefined ? String(resultado.id) : undefined }
 }
 
 /* ── Correo transaccional ─────────────────────────────────── */
