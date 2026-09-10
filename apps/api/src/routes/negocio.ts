@@ -13,7 +13,7 @@ import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
 import { bookingCode } from '../codigo.js'
-import { avisarConfirmacion } from '../mail/confirmar.js'
+import { avisarConfirmacion } from '../mail/avisos.js'
 
 /**
  * Lo que un negocio necesita para gestionarse solo: las personas que atienden,

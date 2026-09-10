@@ -19,7 +19,7 @@ import {
   Skeleton,
   Spinner,
 } from '../../components/ui'
-import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /**
  * Gestión de la plataforma — SOLO superadmin. Dar de alta negocios y crear
@@ -267,6 +267,104 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   )
 }
 
+const TIPO_CLAVE: Record<string, Clave> = {
+  RESERVA_CONFIRMADA: 'env.tipoConfirmacion',
+  RESERVA_CANCELADA: 'env.tipoCancelacion',
+  RECORDATORIO: 'env.tipoRecordatorio',
+  RESENA_PEDIDA: 'env.tipoResena',
+  RESTABLECER_CONTRASENA: 'env.tipoContrasena',
+}
+
+/**
+ * Qué sale de verdad del servidor. Va arriba del todo porque es lo único de
+ * esta pantalla que puede estar roto sin que nada lo parezca: con los SMS en
+ * modo de prueba las citas se confirman igual y nadie recibe nada.
+ *
+ * La línea de cada canal la escribe el servidor tal cual la pone en su log de
+ * arranque, en castellano: es un diagnóstico, y reescribirlo aquí sería
+ * perder precisión justo donde importa. Lo de alrededor sí va traducido.
+ */
+function Envios({ habilitado }: { habilitado: boolean }) {
+  const { t, locale } = useIdioma()
+  const { data } = useQuery({
+    queryKey: ['admin', 'envios'],
+    queryFn: api.adminEnvios,
+    enabled: habilitado,
+  })
+  if (!data) return null
+
+  const sms = data.ultimos7dias.filter((f) => f.canal === 'SMS')
+  const canales = [
+    ['env.correo', data.correo],
+    ['env.sms', data.sms],
+  ] as const
+
+  return (
+    <Card padded>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-subheading font-semibold text-ink">{t('env.titulo')}</h2>
+        <p className="text-meta text-subtle">{t('env.pista')}</p>
+      </div>
+
+      <dl className="flex flex-col gap-3">
+        {canales.map(([clave, canal]) => (
+          <div key={clave} className="flex flex-wrap items-start gap-x-3 gap-y-1">
+            <dt className="w-[60px] shrink-0 pt-0.5 text-meta font-semibold text-body-2">
+              {t(clave)}
+            </dt>
+            <dd className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <Badge tone={canal.activo ? 'ok' : 'warn'}>
+                {canal.activo ? t('env.activo') : t('env.noSale')}
+              </Badge>
+              <span className="min-w-0 text-meta break-words text-muted">{canal.texto}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-4 border-t border-line pt-3">
+        <p className="mb-2 text-meta font-semibold text-body-2">
+          {t('env.smsUltimos7')}
+          {data.ultimoSmsEnviado && (
+            <span className="ml-2 font-normal text-subtle">
+              {t('env.ultimoSms', {
+                fecha: new Date(data.ultimoSmsEnviado).toLocaleString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })}
+            </span>
+          )}
+        </p>
+        {sms.length === 0 ? (
+          <p className="text-meta text-subtle">{t('env.sinSms')}</p>
+        ) : (
+          <ul className="flex flex-col gap-1 text-meta">
+            {sms.map((f) => (
+              <li
+                key={`${f.tipo}-${f.estado}-${f.motivo ?? ''}`}
+                className="flex flex-wrap gap-x-2 text-body-2"
+              >
+                <span className="font-semibold text-ink">
+                  {TIPO_CLAVE[f.tipo] ? t(TIPO_CLAVE[f.tipo]!) : f.tipo}
+                </span>
+                <span>
+                  {f.estado === 'ENVIADO'
+                    ? t('env.enviados', { n: f.total })
+                    : t('env.noEnviados', { n: f.total })}
+                </span>
+                {f.motivo && <span className="text-subtle">· {f.motivo}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 export function PanelAdmin() {
   const { t, idioma } = useIdioma()
   const { user, loading } = useAuth()
@@ -400,6 +498,8 @@ export function PanelAdmin() {
           )
         }
       />
+
+      <Envios habilitado={user?.role === 'SUPERADMIN'} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label={t('adm.negocios')} value={totales.negocios} />

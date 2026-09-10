@@ -377,6 +377,9 @@ export const api = {
     request<{ entries: AuditEntry[]; nextCursor: string | null }>(`/audit${qs(params)}`),
 
   // ── Plataforma (SUPERADMIN) ────────────────────────────────
+  /** Qué sale de verdad del servidor: correo y SMS. */
+  adminEnvios: () => request<EstadoEnvios>('/admin/envios'),
+
   adminBusinesses: () => request<AdminBusiness[]>('/admin/businesses'),
 
   approveBusiness: (id: string) =>
@@ -646,4 +649,25 @@ export interface PanelCustomer {
   gastadoCents: number
   ultima: string | null
   proxima: string | null
+}
+
+/** Un canal de envío, tal como lo ve el servidor. */
+export interface CanalEnvio {
+  /** Sale de verdad: modo live, credencial puesta y sin redirección. */
+  activo: boolean
+  /** La misma línea que el servidor escribe al arrancar. */
+  texto: string
+}
+
+export interface EstadoEnvios {
+  correo: CanalEnvio
+  sms: CanalEnvio
+  ultimoSmsEnviado: string | null
+  ultimos7dias: {
+    canal: 'EMAIL' | 'SMS'
+    tipo: string
+    estado: 'ENVIADO' | 'FALLIDO' | 'OMITIDO'
+    motivo: string | null
+    total: number
+  }[]
 }

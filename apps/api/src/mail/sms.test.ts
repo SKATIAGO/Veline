@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aGsm7, smsConfirmacion, smsRecordatorio, tramosSms } from './sms.js'
+import { aGsm7, smsCancelacion, smsConfirmacion, smsRecordatorio, tramosSms } from './sms.js'
 
 /**
  * El SMS es el mensaje más caro y el que más se lee: llega al bolsillo, no a
@@ -123,5 +123,48 @@ describe('tramosSms', () => {
   it('el «€» ocupa el doble dentro de GSM', () => {
     expect(tramosSms('€'.repeat(80))).toBe(1)
     expect(tramosSms('€'.repeat(81))).toBe(2)
+  })
+})
+
+describe('el SMS de cancelación', () => {
+  const cancelacion = {
+    idioma: 'es' as const,
+    startsAt: martes,
+    businessName: 'Taller Mecánico Rivas',
+    businessSlug: 'taller-mecanico-rivas',
+    web: 'veline.es',
+  }
+
+  it('dice qué cita se ha cancelado y enlaza para reservar otra', () => {
+    expect(smsCancelacion(cancelacion)).toBe(
+      'Se ha cancelado tu cita en Taller Mecanico Rivas del martes 15 de septiembre a las 09:00. ' +
+        'Reservar otra: veline.es/taller-mecanico-rivas',
+    )
+  })
+
+  it('con el negocio y el día más largos, sigue en un tramo y con enlace', () => {
+    const texto = smsCancelacion({
+      ...cancelacion,
+      startsAt: miercoles,
+      businessName: largo.businessName,
+      businessSlug: 'clinica-veterinaria-los-alamos',
+    })
+    expect(texto).toContain('Reservar otra:')
+    expect(tramosSms(texto)).toBe(1)
+  })
+
+  /** Lo primero que sobra es el enlace: mejor sin él que cobrado dos veces. */
+  it('si con el enlace no cabe en un tramo, sale sin él', () => {
+    const texto = smsCancelacion({
+      ...cancelacion,
+      startsAt: miercoles,
+      businessName: 'Centro de Estética Integral Lola y Asociados',
+      businessSlug: 'centro-de-estetica-integral-lola-y-asociados',
+    })
+    expect(texto).not.toContain('Reservar otra')
+    expect(texto).toContain(
+      'Se ha cancelado tu cita en Centro de Estética Integral Lola y Asociados',
+    )
+    expect(tramosSms(texto)).toBe(1)
   })
 })

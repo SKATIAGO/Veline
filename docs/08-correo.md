@@ -187,7 +187,7 @@ malicioso.
 Los SMS salen por Acumbamail, igual que el correo.
 
 ```bash
-SMS_MODE=dry                 # off | dry | live
+SMS_MODE=dry                 # off | dry | live (en el VPS: live)
 ACUMBAMAIL_TOKEN=            # panel de Acumbamail → API
 SMS_SENDER=Veline            # alfanumérico, 11 caracteres como mucho
 SMS_OVERRIDE_TO=             # manda TODO aquí, sea quien sea el destinatario
@@ -196,6 +196,46 @@ SMS_OVERRIDE_TO=             # manda TODO aquí, sea quien sea el destinatario
 Los tres modos y los dos frenos funcionan igual que en el correo, y aquí importan más: un
 correo a una dirección inventada rebota y ya, pero **un SMS a un número equivocado le llega a
 alguien**, y además se cobra.
+
+### Qué SMS salen
+
+Tres, todos al cliente, y los tres también por correo si el cliente dejó uno:
+
+| Cuándo                                   | Qué dice                                         | Dónde se decide    |
+| ---------------------------------------- | ------------------------------------------------ | ------------------ |
+| Al reservar, por la web o desde el panel | Dónde, cuándo, y enlace para ver o cancelar      | `mail/avisos.ts`   |
+| 24 h antes de la cita                    | Recordatorio con el código                       | `recordatorios.ts` |
+| Al cancelar, lo cancele quien lo cancele | Qué cita se ha cancelado y enlace para otra hora | `mail/avisos.ts`   |
+
+Lo que no se ve a simple vista:
+
+- **Sin tildes.** Una sola «ó» pasa el SMS del alfabeto GSM a Unicode, y el tramo baja de 160 a
+  70 caracteres: un recordatorio con nombres largos se cobraba en tres tramos. El texto sale en
+  GSM (`aGsm7`): «á» → «a»; la «é», la «ñ», la «ü», «¿» y «¡» sí están en GSM y se quedan.
+- **No se pisan.** Si la reserva tiene menos de 12 horas, el recordatorio no sale: la
+  confirmación acaba de llegar.
+- **Una cita con fecha pasada no avisa**, ni al apuntarla ni al cancelarla.
+- **La cancelación avisa aunque el negocio esté suspendido**: el cliente tiene que saberlo para
+  no presentarse. La confirmación y el recordatorio, no.
+- **El envío** es un POST a `/api/1/sendSMS` con `auth_token` y `messages` como parámetros de la
+  URL, igual que la llamada probada en Postman el 10 de septiembre de 2026. Acumbamail contesta
+  con éxito HTTP aunque rechace el SMS: el resultado real va en `status` (0 = enviado). Como el
+  token va en la URL, se tapa en los logs y en el motivo que se guarda en la base.
+
+### Comprobar que salen de verdad
+
+Panel de superadmin → **Envíos**: la línea de correo y la de SMS tal como las ve el servidor, y
+los SMS de los últimos siete días con su resultado.
+
+Hace falta mirarlo: con `SMS_MODE=dry` todo parece funcionar —las citas se confirman, el contador
+sube— y no sale ni un mensaje.
+
+### Ojo con `MAIL_PROVIDER` al activar los SMS
+
+`docker-compose.prod.yml` pone `MAIL_PROVIDER=acumbamail` si el `.env` no dice nada. El token de
+Acumbamail hace falta para los SMS, así que **al ponerlo, el correo también se iría por
+Acumbamail**. Mientras el correo siga por Brevo, el `.env` del servidor tiene que llevar
+`MAIL_PROVIDER=brevo` escrito.
 
 ### El recordatorio
 

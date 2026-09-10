@@ -152,3 +152,31 @@ export function smsConfirmacion(c: SmsConfirmacion): string {
     `Reserva confirmada en ${c.businessName}: ${cuando(c.startsAt, c.idioma)}. Ver o cancelar: ${c.web}/reserva/${c.code}`,
   )
 }
+
+export interface SmsCancelacion {
+  idioma: Idioma
+  startsAt: Date
+  businessName: string
+  businessSlug: string
+  /** La web sin «https://». */
+  web: string
+}
+
+/**
+ * «Se ha cancelado tu cita en X del martes 15 de septiembre a las 09:00.
+ * Reservar otra: veline.es/x».
+ *
+ * Sirve igual la cancele quien la cancele. Si fue el negocio, el cliente se
+ * entera antes de presentarse; si fue el cliente, le queda el comprobante. Y
+ * si alguien la cancelara con un código que no es suyo, el dueño de la cita
+ * lo sabría al momento.
+ *
+ * El enlace para reservar otra hora es lo primero que sobra: si con él no cabe
+ * en un tramo —un negocio con un nombre muy largo—, el SMS sale sin él. Mejor
+ * sin enlace que cobrado dos veces.
+ */
+export function smsCancelacion(c: SmsCancelacion): string {
+  const aviso = `Se ha cancelado tu cita en ${c.businessName} del ${cuando(c.startsAt, c.idioma)}.`
+  const conEnlace = aGsm7(`${aviso} Reservar otra: ${c.web}/${c.businessSlug}`)
+  return tramosSms(conEnlace) === 1 ? conEnlace : aGsm7(aviso)
+}

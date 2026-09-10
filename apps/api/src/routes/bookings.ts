@@ -10,10 +10,9 @@ import { prisma } from '../prisma.js'
 import { audit } from '../audit/log.js'
 import { getSessionUser } from '../auth/sessions.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
-import { sendMail, sendMailSafely } from '../mail/enviar.js'
-import { registrarEnvio } from '../mail/contador.js'
+import { sendMailSafely } from '../mail/enviar.js'
 import { idiomaDeLaReserva } from '../mail/idioma.js'
-import { avisarConfirmacion } from '../mail/confirmar.js'
+import { avisarCancelacion, avisarConfirmacion } from '../mail/avisos.js'
 import { bookingCode } from '../codigo.js'
 import {
   bookingCancelled,
@@ -66,33 +65,6 @@ const toDTO = (b: BookingRow): BookingDTO => ({
   staff: b.staff,
   customer: b.customer,
 })
-
-/**
- * Manda el correo y lo apunta en el contador del negocio, que es de donde
- * sale lo que se le cobra a partir del mensaje 201. Ni el envío ni el
- * registro pueden tumbar la reserva: ya está hecha.
- */
-async function avisar(opts: {
-  businessId: string
-  bookingId: string
-  kind: 'RESERVA_CONFIRMADA' | 'RESERVA_CANCELADA'
-  to: string
-  message: Parameters<typeof sendMail>[0]
-}) {
-  const r = await sendMail(opts.message).catch((err) => ({
-    sent: false as const,
-    reason: (err as Error).message,
-  }))
-  await registrarEnvio({
-    businessId: opts.businessId,
-    bookingId: opts.bookingId,
-    channel: 'EMAIL',
-    kind: opts.kind,
-    to: opts.to,
-    status: r.sent ? 'ENVIADO' : 'OMITIDO',
-    reason: r.sent ? null : 'reason' in r ? r.reason : null,
-  })
-}
 
 export async function bookingRoutes(app: FastifyInstance) {
   app.post('/api/businesses/:slug/bookings', async (req, reply) => {
@@ -313,20 +285,12 @@ export async function bookingRoutes(app: FastifyInstance) {
       include: bookingInclude,
     })
 
+    // Al cliente, correo y SMS, la haya cancelado quien la haya cancelado: si
+    // fue el negocio, se entera antes de presentarse; si fue él, le queda el
+    // comprobante. Misma función que avisa desde el panel.
+    void avisarCancelacion(booking.id)
+
     const mailData = toMailData(booking)
-    if (booking.customer.email) {
-      void avisar({
-        businessId: booking.businessId,
-        bookingId: booking.id,
-        kind: 'RESERVA_CANCELADA',
-        to: booking.customer.email,
-        message: bookingCancelled(
-          mailData,
-          { email: booking.customer.email, name: booking.customer.name },
-          'cliente',
-        ),
-      })
-    }
     if (booking.business.email) {
       void sendMailSafely(
         bookingCancelled(

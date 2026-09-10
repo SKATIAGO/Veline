@@ -1201,4 +1201,22 @@ export const es = {
   'leg.autoridades':
     'En España esos son los derechos del Reglamento General de Protección de Datos, y si crees que no los atendemos bien puedes acudir a la Agencia Española de Protección de Datos. En México son los derechos ARCO de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, y la autoridad es el INAI. Se piden igual: por correo, a la dirección de arriba.',
   'leg.contestamos': 'Contestamos lo antes posible y, como muy tarde, en un mes.',
+
+  // ── Trastienda · envíos ───────────────────────────────────
+  'env.titulo': 'Envíos',
+  'env.pista': 'Lo que de verdad sale del servidor.',
+  'env.correo': 'Correo',
+  'env.sms': 'SMS',
+  'env.activo': 'Sale',
+  'env.noSale': 'No sale',
+  'env.smsUltimos7': 'SMS de los últimos 7 días',
+  'env.ultimoSms': 'último enviado: {fecha}',
+  'env.sinSms': 'Ningún SMS en los últimos 7 días.',
+  'env.tipoConfirmacion': 'Confirmación',
+  'env.tipoCancelacion': 'Cancelación',
+  'env.tipoRecordatorio': 'Recordatorio',
+  'env.tipoResena': 'Reseña',
+  'env.tipoContrasena': 'Contraseña',
+  'env.enviados': '{n} enviados',
+  'env.noEnviados': '{n} sin enviar',
 } as const

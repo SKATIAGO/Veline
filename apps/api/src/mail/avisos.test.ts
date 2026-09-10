@@ -9,12 +9,12 @@ import { prisma } from '../prisma.js'
 import { sendMail } from './enviar.js'
 import { sendSms } from './acumbamail.js'
 import { registrarEnvio } from './contador.js'
-import { avisarConfirmacion } from './confirmar.js'
+import { avisarCancelacion, avisarConfirmacion } from './avisos.js'
 
 /**
- * La confirmación que recibe el cliente al reservar, por la web o desde el
- * panel. Se prueba contra una base simulada porque lo que importa aquí no es
- * la base, sino las decisiones: a quién se avisa, por qué canal, cuándo NO se
+ * Los avisos que recibe el cliente sobre su cita: al reservar y al cancelar.
+ * Se prueban contra una base simulada porque lo que importa aquí no es la
+ * base, sino las decisiones: a quién se avisa, por qué canal, cuándo NO se
  * avisa, y que nunca se dé por enviado algo que no salió.
  */
 
@@ -44,6 +44,15 @@ const cita = (o: Cita = {}): Cita => ({
   },
   ...o,
 })
+
+const suspendido = {
+  business: {
+    name: 'Peluquería Lola',
+    slug: 'peluqueria-lola',
+    subStatus: 'SUSPENDIDA',
+    trialEndsAt: null,
+  },
+}
 
 const conCita = (c: Cita | null) =>
   vi.mocked(prisma.booking.findUnique).mockResolvedValue(c as never)
@@ -118,12 +127,8 @@ describe('avisarConfirmacion', () => {
     expect(registrarEnvio).not.toHaveBeenCalled()
   })
 
-  it('un negocio suspendido no manda nada en su nombre, pero queda apuntado', async () => {
-    conCita(
-      cita({
-        business: { name: 'X', slug: 'x', subStatus: 'SUSPENDIDA', trialEndsAt: null },
-      }),
-    )
+  it('un negocio suspendido no confirma nada en su nombre, pero queda apuntado', async () => {
+    conCita(cita(suspendido))
 
     await avisarConfirmacion('b1')
 
@@ -171,5 +176,91 @@ describe('avisarConfirmacion', () => {
 
     expect(sendSms).not.toHaveBeenCalled()
     expect(registrarEnvio).not.toHaveBeenCalled()
+  })
+})
+
+describe('avisarCancelacion', () => {
+  it('con correo: manda correo y SMS de cancelación, y apunta los dos', async () => {
+    conCita(cita())
+
+    await avisarCancelacion('b1')
+
+    expect(sendMail).toHaveBeenCalledTimes(1)
+    expect(sendSms).toHaveBeenCalledTimes(1)
+    expect(registros('EMAIL')).toMatchObject([
+      { kind: 'RESERVA_CANCELADA', status: 'ENVIADO', to: 'marina@ejemplo.es' },
+    ])
+    expect(registros('SMS')).toMatchObject([
+      { kind: 'RESERVA_CANCELADA', status: 'ENVIADO', to: '633492344', bookingId: 'b1' },
+    ])
+  })
+
+  it('el SMS dice que se ha cancelado y enlaza para reservar otra hora', async () => {
+    conCita(cita())
+
+    await avisarCancelacion('b1')
+
+    const { body } = vi.mocked(sendSms).mock.calls[0]![0]
+    expect(body).toContain('Se ha cancelado tu cita en Peluqueria Lola')
+    expect(body).toContain('veline.es/peluqueria-lola')
+  })
+
+  it('el correo va al cliente, no al negocio', async () => {
+    conCita(cita())
+
+    await avisarCancelacion('b1')
+
+    expect(vi.mocked(sendMail).mock.calls[0]![0]).toMatchObject({ to: 'marina@ejemplo.es' })
+  })
+
+  it('sin correo: el SMS sale igualmente', async () => {
+    conCita(cita({ customer: { name: 'Marina', phone: '633492344', email: null } }))
+
+    await avisarCancelacion('b1')
+
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(sendSms).toHaveBeenCalledTimes(1)
+  })
+
+  /** Al revés que la confirmación: que se ha cancelado, hay que saberlo igual. */
+  it('un negocio suspendido SÍ avisa de la cancelación: si no, el cliente se presenta', async () => {
+    conCita(cita(suspendido))
+
+    await avisarCancelacion('b1')
+
+    expect(sendSms).toHaveBeenCalledTimes(1)
+    expect(registros('SMS')).toMatchObject([{ status: 'ENVIADO' }])
+  })
+
+  it('cancelar una cita que ya pasó —limpiar la agenda— no avisa a nadie', async () => {
+    conCita(cita({ startsAt: new Date(Date.now() - 3_600_000) }))
+
+    await avisarCancelacion('b1')
+
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(sendSms).not.toHaveBeenCalled()
+    expect(registrarEnvio).not.toHaveBeenCalled()
+  })
+
+  it('si Acumbamail rechaza el SMS, queda OMITIDO con su motivo', async () => {
+    conCita(cita())
+    vi.mocked(sendSms).mockResolvedValue({
+      sent: false,
+      reason: 'Acumbamail: Insufficient credits',
+    })
+
+    await avisarCancelacion('b1')
+
+    expect(registros('SMS')).toMatchObject([
+      { kind: 'RESERVA_CANCELADA', status: 'OMITIDO', reason: 'Acumbamail: Insufficient credits' },
+    ])
+  })
+
+  it('si la base falla, no lanza: la cita ya está cancelada', async () => {
+    vi.mocked(prisma.booking.findUnique).mockRejectedValue(new Error('base caída'))
+
+    await expect(avisarCancelacion('b1')).resolves.toBeUndefined()
+
+    expect(sendSms).not.toHaveBeenCalled()
   })
 })

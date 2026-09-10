@@ -70,6 +70,7 @@ describe('diccionarios', () => {
       'home.plus',
       'panel.rolSuperadmin',
       'ctas.superadmins',
+      'env.sms',
     ]
 
     const sospechosas = claves.filter(

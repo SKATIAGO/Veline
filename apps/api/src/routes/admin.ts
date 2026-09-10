@@ -9,6 +9,9 @@ import { hashPassword } from '../auth/passwords.js'
 import { canManagePlatform } from '../auth/permissions.js'
 import { requireUser } from '../auth/sessions.js'
 import { slugLibre } from '../slug.js'
+import { describeMailConfig } from '../mail/enviar.js'
+import { describeSmsConfig, smsMode } from '../mail/acumbamail.js'
+import { readMailConfig } from '../mail/tipos.js'
 
 /**
  * Gestión de la plataforma. SOLO superadmin: dar de alta negocios, crear el
@@ -77,6 +80,62 @@ export async function adminRoutes(app: FastifyInstance) {
       monthlyCents: cuotaMensualCents(b.plan, b._count.staff),
       accepting: aceptaReservas(b.subStatus, b.trialEndsAt),
     }))
+  })
+
+  /**
+   * Qué sale de verdad del servidor: correo y SMS.
+   *
+   * Existe porque la configuración de envío vive en el .env del servidor, que
+   * no está en el repositorio, y la única forma de verla era entrar por SSH y
+   * leer el log de arranque. Con SMS_MODE en dry todo parece funcionar —las
+   * citas se confirman, los contadores suben— y no sale ni un mensaje.
+   *
+   * Dice si el token y la clave están puestos, pero NUNCA los devuelve.
+   */
+  app.get('/api/admin/envios', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const correo = readMailConfig()
+    const claveCorreo =
+      correo.provider === 'brevo' ? !!process.env.BREVO_API_KEY : !!process.env.ACUMBAMAIL_TOKEN
+    const desde = new Date(Date.now() - 7 * 86_400_000)
+
+    const [grupos, ultimoSms] = await Promise.all([
+      prisma.messageLog.groupBy({
+        by: ['channel', 'kind', 'status', 'reason'],
+        where: { createdAt: { gte: desde } },
+        _count: { _all: true },
+      }),
+      prisma.messageLog.findFirst({
+        where: { channel: 'SMS', status: 'ENVIADO' },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true },
+      }),
+    ])
+
+    return {
+      correo: {
+        activo: correo.mode === 'live' && claveCorreo && !!correo.fromEmail && !correo.overrideTo,
+        texto: describeMailConfig(),
+      },
+      sms: {
+        activo:
+          smsMode() === 'live' && !!process.env.ACUMBAMAIL_TOKEN && !process.env.SMS_OVERRIDE_TO,
+        texto: describeSmsConfig(),
+      },
+      ultimoSmsEnviado: ultimoSms?.createdAt.toISOString() ?? null,
+      ultimos7dias: grupos
+        .map((g) => ({
+          canal: g.channel,
+          tipo: g.kind,
+          estado: g.status,
+          motivo: g.reason,
+          total: g._count._all,
+        }))
+        .sort((a, b) => b.total - a.total),
+    }
   })
 
   app.post('/api/admin/businesses', async (req, reply) => {

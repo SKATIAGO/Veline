@@ -1197,4 +1197,22 @@ export const en: Record<keyof typeof es, string> = {
   'leg.autoridades':
     'In Spain those are your rights under the General Data Protection Regulation, and if you think we are not honouring them you can go to the Agencia Española de Protección de Datos, the Spanish data protection authority. In Mexico they are the ARCO rights — access, rectification, cancellation and objection — under the Ley Federal de Protección de Datos Personales en Posesión de los Particulares, and the authority is the INAI. You ask for them the same way: by email, to the address above.',
   'leg.contestamos': 'We answer as soon as we can and, at the latest, within one month.',
+
+  // ── Back office · messages ────────────────────────────────
+  'env.titulo': 'Messages',
+  'env.pista': 'What actually leaves the server.',
+  'env.correo': 'Email',
+  'env.sms': 'SMS',
+  'env.activo': 'Sending',
+  'env.noSale': 'Not sending',
+  'env.smsUltimos7': 'Text messages, last 7 days',
+  'env.ultimoSms': 'last sent: {fecha}',
+  'env.sinSms': 'No text messages in the last 7 days.',
+  'env.tipoConfirmacion': 'Confirmation',
+  'env.tipoCancelacion': 'Cancellation',
+  'env.tipoRecordatorio': 'Reminder',
+  'env.tipoResena': 'Review request',
+  'env.tipoContrasena': 'Password reset',
+  'env.enviados': '{n} sent',
+  'env.noEnviados': '{n} not sent',
 }
