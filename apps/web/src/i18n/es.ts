@@ -273,7 +273,7 @@ export const es = {
   'agenda.servicio': 'Servicio',
   'agenda.cuando': 'Cuándo',
   'agenda.email': 'Email',
-  'agenda.emailPista': 'Si lo pones, recibe la confirmación',
+  'agenda.emailPista': 'Si lo pones, también recibe la confirmación por correo',
   'agenda.notasEjemplo': 'Llamó por teléfono',
   'agenda.faltaServicio': 'Primero hay que tener algún servicio publicado.',
   'agenda.faltaNombre': 'Escribe el nombre del cliente.',

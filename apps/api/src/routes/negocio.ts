@@ -730,6 +730,12 @@ export async function negocioRoutes(app: FastifyInstance) {
               startsAt: start,
               endsAt: end,
               blockedTo,
+              /* El recordatorio era para la hora vieja. Si ya había salido, la
+                 hora nueva se quedaría sin él: se deja pendiente otra vez y el
+                 proceso de recordatorios lo manda cuando toque. No duplica,
+                 porque solo busca citas que empiezan dentro de 24 h y media:
+                 una cita movida a dentro de pocas horas no entra. */
+              reminderSentAt: null,
             },
           })
         },

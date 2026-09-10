@@ -273,7 +273,7 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.servicio': 'Service',
   'agenda.cuando': 'When',
   'agenda.email': 'Email',
-  'agenda.emailPista': 'If you add it, they get the confirmation',
+  'agenda.emailPista': 'If you add it, they also get the confirmation by email',
   'agenda.notasEjemplo': 'Rang up',
   'agenda.faltaServicio': 'You need at least one published service first.',
   'agenda.faltaNombre': 'Write the customer’s name.',
