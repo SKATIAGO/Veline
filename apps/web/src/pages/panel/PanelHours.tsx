@@ -14,8 +14,10 @@ import {
   Skeleton,
   SuccessNote,
   cx,
+  BarraGuardar,
 } from '../../components/ui'
 import { useIdioma, usePlural } from '../../i18n/idioma'
+import { useCambiosSinGuardar } from '../../lib/cambios'
 
 interface Range {
   startMin: number
@@ -68,15 +70,10 @@ export function PanelHours() {
     setDirty(false)
   }, [hours])
 
-  /* Avisa antes de cerrar la pestaña con cambios sin guardar. Rellenar el
-     horario de la semana entera y perderlo por recargar es de las cosas que
-     más molestan de un panel. */
-  useEffect(() => {
-    if (!dirty) return
-    const aviso = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener('beforeunload', aviso)
-    return () => window.removeEventListener('beforeunload', aviso)
-  }, [dirty])
+  /* Avisa antes de irse con cambios sin guardar: al cerrar la pestaña y al
+     cambiar de sección en el panel. Rellenar el horario de la semana entera y
+     perderlo por un toque de más es de las cosas que más molestan. */
+  useCambiosSinGuardar(dirty)
 
   const save = useMutation({
     mutationFn: () =>
@@ -144,6 +141,15 @@ export function PanelHours() {
         }
       />
 
+      <BarraGuardar visible={dirty}>
+        <span className="min-w-0 truncate text-meta text-muted">
+          {invalid ? t('hor.franjaInvalida') : t('hor.sinGuardar')}
+        </span>
+        <Button size="sm" onClick={() => save.mutate()} disabled={invalid} loading={save.isPending}>
+          {t('hor.guardar')}
+        </Button>
+      </BarraGuardar>
+
       {invalid && <ErrorNote>{t('hor.franjaInvalida')}</ErrorNote>}
       {save.isError && <ErrorNote>{(save.error as Error).message}</ErrorNote>}
       {save.isSuccess && !dirty && <SuccessNote>{t('hor.guardado')}</SuccessNote>}
@@ -154,6 +160,8 @@ export function PanelHours() {
           <Select
             value={localActual}
             onChange={(e) => {
+              // Cambiar de local también tiraba lo escrito sin preguntar.
+              if (dirty && !window.confirm(t('panel.salirSinGuardar'))) return
               setLocal(e.target.value)
               setDirty(false)
             }}

@@ -190,6 +190,11 @@ export const en: Record<keyof typeof es, string> = {
   'panel.comprobandoSesion': 'Checking your session',
   'panel.cambiarNegocio': 'Switch business',
   'panel.tuPerfil': 'Your profile',
+  'panel.facturacion': 'Billing',
+  'panel.salirSinGuardar': 'You have unsaved changes. Leave and lose them?',
+  'panel.noExiste': 'This section doesn’t exist',
+  'panel.noExistePista': 'The link may be mistyped, or the section may no longer be here.',
+  'panel.volverInicio': 'Back to the panel',
   'panel.salir': 'Log out',
   'panel.mas': 'More',
   'panel.masSecciones': 'More sections',
@@ -214,7 +219,6 @@ export const en: Record<keyof typeof es, string> = {
   'panel.equipo': 'Team',
   'panel.elNegocio': 'The business',
   'panel.locales': 'Locations',
-  'panel.tuCuenta': 'Your account',
   'panel.actividad': 'Activity',
   'panel.negocios': 'Businesses',
   'panel.cuentas': 'Accounts',
@@ -699,7 +703,7 @@ export const en: Record<keyof typeof es, string> = {
   'acc.entrar': 'Log in',
   'acc.noSePudoEntrar': 'Couldn’t log you in. Try again.',
   'acc.olvidaste': 'Forgotten your password?',
-  'acc.sinCuenta': 'No account yet? Veline sets those up: write to us at {correo}',
+  'acc.sinCuenta': 'No account yet? {alta} or write to us at {correo}',
 
   'acc.revisaCorreo': 'Check your email',
   'acc.revisaCorreoSub':

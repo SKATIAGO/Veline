@@ -3,9 +3,20 @@ import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from '
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Button, Logo, LogoMark, Select, Sheet, Skeleton, cx } from '../../components/ui'
+import {
+  Button,
+  Logo,
+  LogoMark,
+  Select,
+  Sheet,
+  Skeleton,
+  cx,
+  ButtonLink,
+  EmptyState,
+} from '../../components/ui'
 import { SelectorIdioma } from '../../components/SelectorIdioma'
 import { useIdioma, type Clave } from '../../i18n/idioma'
+import { puedeSalir } from '../../lib/cambios'
 
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
@@ -253,6 +264,9 @@ function BotonBarra({ seccion }: { seccion: Seccion }) {
     <NavLink
       to={seccion.to}
       end={seccion.end}
+      onClick={(e) => {
+        if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+      }}
       className={({ isActive }) =>
         cx(
           'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
@@ -275,6 +289,9 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
     <NavLink
       to={seccion.to}
       end={seccion.end}
+      onClick={(e) => {
+        if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+      }}
       className={({ isActive }) =>
         cx(
           'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body',
@@ -317,7 +334,16 @@ export function PanelLayout() {
   })
 
   if (loading) return <MarcoCargando />
-  if (!user) return <Navigate to="/login" replace />
+  /* Con la dirección de vuelta: quien abre un enlace del panel o se queda sin
+     sesión en Horario tiene que volver a Horario, no a la agenda. */
+  if (!user) {
+    return (
+      <Navigate
+        to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    )
+  }
 
   // Un admin o empleado solo tiene un negocio: si la URL apunta a otro,
   // se le lleva al suyo (la API rechazaría igualmente, esto es cortesía).
@@ -423,8 +449,8 @@ export function PanelLayout() {
               },
               {
                 to: `/panel/${slug}/facturacion`,
-                clave: 'panel.tuCuenta',
-                icono: 'cuenta',
+                clave: 'panel.facturacion',
+                icono: 'cobros',
                 grupo: 'panel.grupoCuenta',
               },
               {
@@ -443,11 +469,31 @@ export function PanelLayout() {
   const grupos = [...new Set(secciones.map((s) => s.grupo))]
 
   const enBarra = secciones.filter((s) => s.enBarra)
-  const enMas = secciones.filter((s) => !s.enBarra)
+  /* «Tu perfil» —nombre y contraseña— en el móvil solo tenía como puerta el
+     círculo con la inicial de la cabecera, sin texto. Va también en «Más»,
+     que es donde se busca. En el menú lateral no: allí ya está a la vista,
+     con el nombre y el rol. */
+  const enMas: Seccion[] = [
+    ...secciones.filter((s) => !s.enBarra),
+    {
+      to: esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`,
+      clave: 'panel.tuPerfil',
+      icono: 'cuenta',
+      grupo: 'panel.grupoCuenta',
+    },
+  ]
+  const gruposMas = [...new Set(enMas.map((s) => s.grupo))]
+  /* Dentro de una sección de «Más» la barra no marcaba nada, y no había
+     forma de saber dónde estabas. Se ilumina «Más», como hace cualquier app
+     con un botón de «más secciones». */
+  const masActivo = enMas.some(
+    (s) => location.pathname === s.to || location.pathname.startsWith(`${s.to}/`),
+  )
   // En la plataforma no hay ninguna cita que apuntar.
   const conBotonCentral = !esPlataforma
 
   const irA = (to: string) => {
+    if (!puedeSalir(t('panel.salirSinGuardar'))) return
     /* Desde la ficha «Más», navegar SUSTITUYE la entrada del historial que
        abrió la ficha en vez de añadir otra encima: así «atrás» vuelve a la
        sección de antes, y no a la misma con la ficha cerrada. Desde el menú
@@ -457,6 +503,7 @@ export function PanelLayout() {
   }
 
   const salir = () => {
+    if (!puedeSalir(t('panel.salirSinGuardar'))) return
     setMasAbierto(false)
     // logout() ya lleva a /login con una carga limpia.
     void logout()
@@ -545,6 +592,9 @@ export function PanelLayout() {
 
           <NavLink
             to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+            onClick={(e) => {
+              if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+            }}
             className={({ isActive }) =>
               cx(
                 'flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-meta',
@@ -592,6 +642,9 @@ export function PanelLayout() {
             </div>
             <NavLink
               to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+              onClick={(e) => {
+                if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+              }}
               aria-label={t('panel.tuPerfil')}
               className={({ isActive }) =>
                 cx(
@@ -651,7 +704,9 @@ export function PanelLayout() {
                   URL, así que además es un enlace que se puede guardar. */}
               <button
                 type="button"
-                onClick={() => navigate(`/panel/${slug}?nueva=1`)}
+                onClick={() =>
+                  puedeSalir(t('panel.salirSinGuardar')) && navigate(`/panel/${slug}?nueva=1`)
+                }
                 aria-label={t('panel.apuntarCita')}
                 className={cx(
                   'grid size-14 place-items-center rounded-full bg-brand text-cream',
@@ -678,7 +733,8 @@ export function PanelLayout() {
             aria-expanded={masAbierto}
             className={cx(
               'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
-              'text-caption font-semibold text-subtle transition-colors duration-200',
+              'text-caption font-semibold transition-colors duration-200',
+              masActivo ? 'text-brand-text' : 'text-subtle',
             )}
           >
             <Icono>{TRAZOS.mas}</Icono>
@@ -704,48 +760,46 @@ export function PanelLayout() {
           </label>
         )}
 
-        {grupos
-          .filter((g) => enMas.some((s) => s.grupo === g))
-          .map((grupo) => (
-            <div key={grupo} className="mb-2">
-              <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
-                {t(grupo)}
-              </p>
-              <ul className="-mx-1 flex flex-col">
-                {enMas
-                  .filter((s) => s.grupo === grupo)
-                  .map((s) => {
-                    const activo = location.pathname === s.to
-                    return (
-                      <li key={s.to}>
-                        <button
-                          type="button"
-                          onClick={() => irA(s.to)}
+        {gruposMas.map((grupo) => (
+          <div key={grupo} className="mb-2">
+            <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
+              {t(grupo)}
+            </p>
+            <ul className="-mx-1 flex flex-col">
+              {enMas
+                .filter((s) => s.grupo === grupo)
+                .map((s) => {
+                  const activo = location.pathname === s.to
+                  return (
+                    <li key={s.to}>
+                      <button
+                        type="button"
+                        onClick={() => irA(s.to)}
+                        className={cx(
+                          'flex min-h-12 w-full items-center gap-3 rounded-xl px-3',
+                          'text-ui transition-colors duration-200 hover:bg-canvas',
+                          activo ? 'font-semibold text-ink' : 'text-body-2',
+                        )}
+                      >
+                        <Icono
                           className={cx(
-                            'flex min-h-12 w-full items-center gap-3 rounded-xl px-3',
-                            'text-ui transition-colors duration-200 hover:bg-canvas',
-                            activo ? 'font-semibold text-ink' : 'text-body-2',
+                            'size-[19px] shrink-0',
+                            activo ? 'text-brand' : 'text-subtle',
                           )}
                         >
-                          <Icono
-                            className={cx(
-                              'size-[19px] shrink-0',
-                              activo ? 'text-brand' : 'text-subtle',
-                            )}
-                          >
-                            {TRAZOS[s.icono]}
-                          </Icono>
-                          <span className="flex-1 text-left">{t(s.clave)}</span>
-                          <span aria-hidden className="text-subtle">
-                            ›
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
-              </ul>
-            </div>
-          ))}
+                          {TRAZOS[s.icono]}
+                        </Icono>
+                        <span className="flex-1 text-left">{t(s.clave)}</span>
+                        <span aria-hidden className="text-subtle">
+                          ›
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+            </ul>
+          </div>
+        ))}
 
         <div className="mt-4 flex flex-col gap-2 border-t border-line pt-4">
           {esSuperadmin && (
@@ -771,5 +825,22 @@ export function PanelLayout() {
         </div>
       </Sheet>
     </div>
+  )
+}
+
+/**
+ * Una dirección del panel que no lleva a ninguna sección: un enlace mal
+ * copiado o una sección que ya no existe. Antes caía en el 404 de la web
+ * pública, con su cabecera y sin la barra del panel: para volver había que
+ * saber la dirección de memoria.
+ */
+export function PanelNoExiste() {
+  const { t } = useIdioma()
+  return (
+    <EmptyState
+      title={t('panel.noExiste')}
+      hint={t('panel.noExistePista')}
+      action={<ButtonLink to="/panel">{t('panel.volverInicio')}</ButtonLink>}
+    />
   )
 }

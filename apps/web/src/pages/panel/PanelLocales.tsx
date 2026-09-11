@@ -12,6 +12,7 @@ import {
   Input,
   PageHeader,
   Skeleton,
+  useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
@@ -127,6 +128,8 @@ export function PanelLocales() {
   const queryClient = useQueryClient()
   const [creando, setCreando] = useState(false)
   const [editando, setEditando] = useState<PanelLocal | null>(null)
+  const vistaNuevo = useALaVista<HTMLDivElement>(creando)
+  const vistaEditar = useALaVista<HTMLDivElement>(editando?.id)
 
   const { data: locales, isLoading } = useQuery({
     queryKey: ['panel', slug, 'locales'],
@@ -174,30 +177,34 @@ export function PanelLocales() {
       />
 
       {creando && (
-        <Formulario
-          inicial={vacio}
-          titulo={t('loc.nuevo')}
-          enviando={crear.isPending}
-          error={crear.isError ? mensaje(crear.error) : null}
-          onGuardar={(d) => crear.mutate(d)}
-          onCancelar={() => setCreando(false)}
-        />
+        <div ref={vistaNuevo} className="scroll-mt-4">
+          <Formulario
+            inicial={vacio}
+            titulo={t('loc.nuevo')}
+            enviando={crear.isPending}
+            error={crear.isError ? mensaje(crear.error) : null}
+            onGuardar={(d) => crear.mutate(d)}
+            onCancelar={() => setCreando(false)}
+          />
+        </div>
       )}
 
       {editando && (
-        <Formulario
-          inicial={{
-            name: editando.name,
-            street: editando.street,
-            city: editando.city,
-            postalCode: editando.postalCode,
-          }}
-          titulo={t('loc.editarComillas', { nombre: editando.name })}
-          enviando={editar.isPending}
-          error={editar.isError ? mensaje(editar.error) : null}
-          onGuardar={(d) => editar.mutate(d)}
-          onCancelar={() => setEditando(null)}
-        />
+        <div ref={vistaEditar} className="scroll-mt-4">
+          <Formulario
+            inicial={{
+              name: editando.name,
+              street: editando.street,
+              city: editando.city,
+              postalCode: editando.postalCode,
+            }}
+            titulo={t('loc.editarComillas', { nombre: editando.name })}
+            enviando={editar.isPending}
+            error={editar.isError ? mensaje(editar.error) : null}
+            onGuardar={(d) => editar.mutate(d)}
+            onCancelar={() => setEditando(null)}
+          />
+        </div>
       )}
 
       {cerrar.isError && <ErrorNote>{mensaje(cerrar.error)}</ErrorNote>}
@@ -251,7 +258,7 @@ export function PanelLocales() {
                     ))}
                   </dl>
 
-                  <div className="ml-auto flex gap-1 sm:ml-0">
+                  <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
                     <Button size="sm" variant="quiet" onClick={() => setEditando(l)}>
                       {t('loc.editar')}
                     </Button>

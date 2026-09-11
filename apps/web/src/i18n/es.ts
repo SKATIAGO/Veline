@@ -190,6 +190,11 @@ export const es = {
   'panel.comprobandoSesion': 'Comprobando sesión',
   'panel.cambiarNegocio': 'Cambiar de negocio',
   'panel.tuPerfil': 'Tu perfil',
+  'panel.facturacion': 'Facturación',
+  'panel.salirSinGuardar': 'Tienes cambios sin guardar. ¿Salir y perderlos?',
+  'panel.noExiste': 'Esta sección no existe',
+  'panel.noExistePista': 'Puede que el enlace esté mal copiado o que la sección ya no esté.',
+  'panel.volverInicio': 'Volver al panel',
   'panel.salir': 'Salir',
   'panel.mas': 'Más',
   'panel.masSecciones': 'Más secciones',
@@ -214,7 +219,6 @@ export const es = {
   'panel.equipo': 'Equipo',
   'panel.elNegocio': 'El negocio',
   'panel.locales': 'Locales',
-  'panel.tuCuenta': 'Tu cuenta',
   'panel.actividad': 'Actividad',
   'panel.negocios': 'Negocios',
   'panel.cuentas': 'Cuentas',
@@ -702,7 +706,7 @@ export const es = {
   'acc.entrar': 'Iniciar sesión',
   'acc.noSePudoEntrar': 'No se ha podido iniciar sesión. Prueba de nuevo.',
   'acc.olvidaste': '¿Olvidaste la contraseña?',
-  'acc.sinCuenta': '¿Aún no tienes cuenta? El alta la gestiona Veline: escríbenos a {correo}',
+  'acc.sinCuenta': '¿Aún no tienes cuenta? {alta} o escríbenos a {correo}',
 
   'acc.revisaCorreo': 'Revisa tu correo',
   'acc.revisaCorreoSub':

@@ -18,6 +18,7 @@ import {
   Select,
   Skeleton,
   Spinner,
+  useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
@@ -441,6 +442,7 @@ export function PanelAdmin() {
   }, [businesses])
 
   if (loading) return <Spinner />
+  const vistaCuenta = useALaVista<HTMLDivElement>(userDraft?.businessId)
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN') return <Navigate to="/panel" replace />
 
@@ -618,97 +620,99 @@ export function PanelAdmin() {
       )}
 
       {userDraft && (
-        <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">
-            Nueva cuenta para{' '}
-            <span className="text-brand-text">
-              {businesses?.find((b) => b.id === userDraft.businessId)?.name}
-            </span>
-          </h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!problemaUsuario) createUser.mutate(userDraft)
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
-                <Input
-                  id={`${id}-un`}
-                  placeholder={t('adm.nombrePersonaEjemplo')}
-                  value={userDraft.name}
-                  onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
-                />
-              </Field>
-              <Field
-                label={t('adm.email')}
-                htmlFor={`${id}-ue`}
-                hint={t('adm.emailAcceso')}
-                required
-              >
-                <Input
-                  id={`${id}-ue`}
-                  type="email"
-                  value={userDraft.email}
-                  onChange={(e) => setUserDraft({ ...userDraft, email: e.target.value })}
-                />
-              </Field>
-              <Field
-                label={t('adm.contrasenaInicial')}
-                htmlFor={`${id}-up`}
-                hint={t('adm.contrasenaPista')}
-                required
-              >
-                <div className="flex gap-2">
+        <div ref={vistaCuenta} className="scroll-mt-4">
+          <Card padded>
+            <h2 className="mb-4 text-ui font-semibold text-ink">
+              Nueva cuenta para{' '}
+              <span className="text-brand-text">
+                {businesses?.find((b) => b.id === userDraft.businessId)?.name}
+              </span>
+            </h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!problemaUsuario) createUser.mutate(userDraft)
+              }}
+              className="flex flex-col gap-4"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
                   <Input
-                    id={`${id}-up`}
-                    autoComplete="new-password"
-                    value={userDraft.password}
-                    onChange={(e) => setUserDraft({ ...userDraft, password: e.target.value })}
+                    id={`${id}-un`}
+                    placeholder={t('adm.nombrePersonaEjemplo')}
+                    value={userDraft.name}
+                    onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
                   />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setUserDraft({ ...userDraft, password: generarPassword() })}
-                  >
-                    Otra
-                  </Button>
-                </div>
-              </Field>
-              <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
-                <Select
-                  id={`${id}-ur`}
-                  value={userDraft.role}
-                  onChange={(e) =>
-                    setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
-                  }
+                </Field>
+                <Field
+                  label={t('adm.email')}
+                  htmlFor={`${id}-ue`}
+                  hint={t('adm.emailAcceso')}
+                  required
                 >
-                  <option value="ADMIN">{t('panel.rolAdmin')}</option>
-                  <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
-                </Select>
-              </Field>
-            </div>
+                  <Input
+                    id={`${id}-ue`}
+                    type="email"
+                    value={userDraft.email}
+                    onChange={(e) => setUserDraft({ ...userDraft, email: e.target.value })}
+                  />
+                </Field>
+                <Field
+                  label={t('adm.contrasenaInicial')}
+                  htmlFor={`${id}-up`}
+                  hint={t('adm.contrasenaPista')}
+                  required
+                >
+                  <div className="flex gap-2">
+                    <Input
+                      id={`${id}-up`}
+                      autoComplete="new-password"
+                      value={userDraft.password}
+                      onChange={(e) => setUserDraft({ ...userDraft, password: e.target.value })}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setUserDraft({ ...userDraft, password: generarPassword() })}
+                    >
+                      Otra
+                    </Button>
+                  </div>
+                </Field>
+                <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
+                  <Select
+                    id={`${id}-ur`}
+                    value={userDraft.role}
+                    onChange={(e) =>
+                      setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
+                    }
+                  >
+                    <option value="ADMIN">{t('panel.rolAdmin')}</option>
+                    <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
+                  </Select>
+                </Field>
+              </div>
 
-            {createUser.isError && (
-              <ErrorNote>
-                {createUser.error instanceof ApiError
-                  ? createUser.error.message
-                  : 'No se ha podido crear'}
-              </ErrorNote>
-            )}
+              {createUser.isError && (
+                <ErrorNote>
+                  {createUser.error instanceof ApiError
+                    ? createUser.error.message
+                    : 'No se ha podido crear'}
+                </ErrorNote>
+              )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" loading={createUser.isPending} disabled={!!problemaUsuario}>
-                {t('adm.crearCuenta')}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setUserDraft(null)}>
-                {t('adm.cancelar')}
-              </Button>
-              {problemaUsuario && <span className="text-meta text-muted">{problemaUsuario}</span>}
-            </div>
-          </form>
-        </Card>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="submit" loading={createUser.isPending} disabled={!!problemaUsuario}>
+                  {t('adm.crearCuenta')}
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setUserDraft(null)}>
+                  {t('adm.cancelar')}
+                </Button>
+                {problemaUsuario && <span className="text-meta text-muted">{problemaUsuario}</span>}
+              </div>
+            </form>
+          </Card>
+        </div>
       )}
 
       {(businesses?.length ?? 0) > 6 && (
@@ -786,7 +790,7 @@ export function PanelAdmin() {
                   ))}
                 </dl>
 
-                <div className="ml-auto flex gap-1 sm:ml-0">
+                <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
                   {!b.approvedAt && (
                     <Button
                       size="sm"

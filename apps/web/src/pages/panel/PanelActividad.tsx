@@ -132,9 +132,9 @@ function Detalle({ metadata }: { metadata: unknown }) {
         const esCambio = typeof v === 'object' && v !== null && 'antes' in v && 'despues' in v
         const par = v as Record<string, unknown>
         return (
-          <div key={k} className="flex gap-1.5 text-meta">
+          <div key={k} className="flex min-w-0 gap-1.5 text-meta">
             <dt className="text-muted">{ETIQUETAS[k] ? t(ETIQUETAS[k]) : k}:</dt>
-            <dd className="font-medium text-subtle">
+            <dd className="min-w-0 font-medium text-subtle [overflow-wrap:anywhere]">
               {esCambio
                 ? `${valorLegible(k, par.antes)} → ${valorLegible(k, par.despues)}`
                 : valorLegible(k, v)}

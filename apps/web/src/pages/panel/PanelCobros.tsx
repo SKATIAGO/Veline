@@ -116,7 +116,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
           )}
         </div>
 
-        <div className="ml-auto flex gap-1 sm:ml-0">
+        <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
           {c.status === 'PENDIENTE' ? (
             <>
               <Button

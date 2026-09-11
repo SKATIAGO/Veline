@@ -217,7 +217,8 @@ export function IconButton({
  * imposible de vestir y que en móvil tapa la pantalla entera.
  *
  * El botón se convierte en la pregunta y la respuesta, sin mover nada de
- * sitio. Se sale con Escape o pulsando fuera de la acción.
+ * sitio. Se sale con Escape o tocando fuera de la acción, y si no cabe en la
+ * fila baja a la siguiente línea en vez de salirse por el borde.
  */
 export function ConfirmAction({
   label,
@@ -238,6 +239,19 @@ export function ConfirmAction({
 }) {
   const { t } = useIdioma()
   const [armado, setArmado] = useState(false)
+  const accion = useRef<HTMLSpanElement>(null)
+
+  /* Tocar fuera cancela. Con onBlur no basta: en iOS, tocar una zona que no
+     es un control no le quita el foco a nadie, y la pregunta se quedaba
+     armada hasta pulsar «No». */
+  useEffect(() => {
+    if (!armado) return
+    const fuera = (e: PointerEvent) => {
+      if (!accion.current?.contains(e.target as Node)) setArmado(false)
+    }
+    document.addEventListener('pointerdown', fuera, true)
+    return () => document.removeEventListener('pointerdown', fuera, true)
+  }, [armado])
   const pregunta = question ?? t('comun.seguro')
   const siLabel = confirmLabel ?? t('comun.si')
 
@@ -251,7 +265,8 @@ export function ConfirmAction({
 
   return (
     <span
-      className="inline-flex items-center gap-1"
+      ref={accion}
+      className="inline-flex flex-wrap items-center gap-1"
       onKeyDown={(e) => e.key === 'Escape' && setArmado(false)}
     >
       <span className="pl-1 text-meta text-muted">{pregunta}</span>
@@ -271,6 +286,46 @@ export function ConfirmAction({
         {t('comun.no')}
       </Button>
     </span>
+  )
+}
+
+/**
+ * Lleva a la vista un formulario que se acaba de abrir.
+ *
+ * En el panel varios formularios aparecen arriba de la página (crear una
+ * cuenta desde la lista de negocios, editar un local, apuntar una cita),
+ * pero el botón que los abre está más abajo. En un móvil, con la página
+ * bajada, pulsar no parecía hacer nada: el formulario salía fuera de la
+ * pantalla. Si ya se ve, no se mueve nada.
+ */
+export function useALaVista<T extends HTMLElement>(abierto: unknown) {
+  const ref = useRef<T>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!abierto || !el) return
+    const { top } = el.getBoundingClientRect()
+    if (top >= 0 && top < window.innerHeight * 0.5) return
+    const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: quieto ? 'auto' : 'smooth', block: 'start' })
+  }, [abierto])
+  return ref
+}
+
+/**
+ * Guardar a mano del pulgar en el móvil.
+ *
+ * El botón de guardar vive en la cabecera de la página, y en un formulario
+ * largo —el horario de la semana, la ficha del negocio— hay que volver a
+ * subir para pulsarlo después de tocar el domingo o el código postal. Con
+ * cambios pendientes, esta barra se queda fija justo encima de la barra de
+ * secciones. En pantalla grande no hace falta: la cabecera se ve.
+ */
+export function BarraGuardar({ visible, children }: { visible: boolean; children: ReactNode }) {
+  if (!visible) return null
+  return (
+    <div className="fixed inset-x-0 bottom-[calc(65px+env(safe-area-inset-bottom))] z-30 border-t border-line bg-cream/95 px-4 py-2.5 shadow-[0_-2px_12px_rgba(46,33,25,.06)] backdrop-blur md:hidden">
+      <div className="mx-auto flex max-w-md items-center justify-between gap-3">{children}</div>
+    </div>
   )
 }
 

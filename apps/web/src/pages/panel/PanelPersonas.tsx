@@ -236,7 +236,7 @@ export function PanelPersonas() {
                       </p>
                     </div>
 
-                    <div className="ml-auto flex gap-1 sm:ml-0">
+                    <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
                       <Button
                         size="sm"
                         variant="quiet"

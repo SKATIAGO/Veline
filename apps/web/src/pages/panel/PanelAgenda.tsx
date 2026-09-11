@@ -19,6 +19,7 @@ import {
   Sheet,
   Skeleton,
   cx,
+  useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
@@ -599,6 +600,7 @@ export function PanelAgenda() {
       { replace: true },
     )
   }
+  const vistaNueva = useALaVista<HTMLDivElement>(apuntando)
   const queryClient = useQueryClient()
 
   const { data: summary } = useQuery({
@@ -659,14 +661,16 @@ export function PanelAgenda() {
       <AvisoSuscripcion sub={summary?.subscription ?? null} />
 
       {apuntando && (
-        <NuevaCita
-          slug={slug}
-          onHecho={() => {
-            setApuntando(false)
-            queryClient.invalidateQueries({ queryKey: ['panel', slug] })
-            queryClient.invalidateQueries({ queryKey: ['availability', slug] })
-          }}
-        />
+        <div ref={vistaNueva} className="scroll-mt-4">
+          <NuevaCita
+            slug={slug}
+            onHecho={() => {
+              setApuntando(false)
+              queryClient.invalidateQueries({ queryKey: ['panel', slug] })
+              queryClient.invalidateQueries({ queryKey: ['availability', slug] })
+            }}
+          />
+        </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

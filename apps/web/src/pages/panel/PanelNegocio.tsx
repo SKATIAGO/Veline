@@ -15,8 +15,10 @@ import {
   Skeleton,
   SuccessNote,
   Textarea,
+  BarraGuardar,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+import { useCambiosSinGuardar } from '../../lib/cambios'
 
 /**
  * La ficha pública del negocio y sus cierres.
@@ -56,6 +58,8 @@ export function PanelNegocio() {
 
   const [form, setForm] = useState<PanelProfile | null>(null)
   const [tocado, setTocado] = useState(false)
+  // Antes no avisaba nunca: ni al cambiar de sección ni al cerrar la pestaña.
+  useCambiosSinGuardar(tocado)
 
   // El formulario arranca con lo que hay guardado y solo se rehace cuando
   // llegan datos nuevos del servidor, no en cada render.
@@ -154,6 +158,20 @@ export function PanelNegocio() {
           </>
         }
       />
+
+      <BarraGuardar visible={tocado}>
+        <span className="min-w-0 truncate text-meta text-muted">
+          {problema ?? t('neg.sinGuardar')}
+        </span>
+        <Button
+          size="sm"
+          onClick={() => guardar.mutate()}
+          loading={guardar.isPending}
+          disabled={!!problema}
+        >
+          {t('neg.guardar')}
+        </Button>
+      </BarraGuardar>
 
       {guardar.isError && (
         <ErrorNote>

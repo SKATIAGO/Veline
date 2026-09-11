@@ -10,7 +10,7 @@ import { Pricing } from './pages/Pricing'
 import { Resena } from './pages/Resena'
 import { Login } from './pages/Login'
 import { ForgotPassword, ResetPassword } from './pages/PasswordFlow'
-import { PanelIndex, PanelLayout } from './pages/panel/PanelLayout'
+import { PanelIndex, PanelLayout, PanelNoExiste } from './pages/panel/PanelLayout'
 import { PanelAdmin } from './pages/panel/PanelAdmin'
 import { PanelAdminUsers } from './pages/panel/PanelAdminUsers'
 import { PanelCobros } from './pages/panel/PanelCobros'
@@ -71,6 +71,7 @@ function AppRoutes() {
         <Route path="cobros" element={<PanelCobros />} />
         <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
+        <Route path="*" element={<PanelNoExiste />} />
       </Route>
       <Route path="/panel/:slug" element={<PanelLayout />}>
         <Route index element={<PanelAgenda />} />
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="facturacion" element={<PanelMiCuenta />} />
         <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
+        <Route path="*" element={<PanelNoExiste />} />
       </Route>
 
       {/* Lado cliente */}

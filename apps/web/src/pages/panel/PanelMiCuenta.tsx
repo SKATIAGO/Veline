@@ -93,7 +93,7 @@ export function PanelMiCuenta() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('panel.tuCuenta')} hint={t('fac.pista')} />
+      <PageHeader title={t('panel.facturacion')} hint={t('fac.pista')} />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">

@@ -89,7 +89,7 @@ export function PanelCuenta() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('panel.tuCuenta')} />
+      <PageHeader title={t('panel.tuPerfil')} />
 
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <Card padded>

@@ -14,13 +14,17 @@ export function Login() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const recienRestablecida = params.get('restablecida') === '1'
+  /* A dónde volver después de entrar. Solo a una dirección del panel:
+     aceptar cualquiera convertiría el login en un trampolín hacia otra web. */
+  const next = params.get('next')
+  const destino = next?.startsWith('/panel') ? next : '/panel'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
 
   if (loading) return <Spinner label={t('panel.comprobandoSesion')} />
-  if (user) return <Navigate to="/panel" replace />
+  if (user) return <Navigate to={destino} replace />
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -29,7 +33,7 @@ export function Login() {
     try {
       await api.login(email.trim(), password)
       await refresh()
-      navigate('/panel', { replace: true })
+      navigate(destino, { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('acc.noSePudoEntrar'))
     } finally {
@@ -121,6 +125,11 @@ export function Login() {
           <Texto
             clave="acc.sinCuenta"
             partes={{
+              alta: (
+                <Link to="/alta" className="font-semibold text-brand-text">
+                  {t('alta.titulo')}
+                </Link>
+              ),
               correo: (
                 <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-brand-text">
                   {CONTACT_EMAIL}
