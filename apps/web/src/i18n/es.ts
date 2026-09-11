@@ -26,6 +26,7 @@ export const es = {
   'comun.nuevoEnVeline': 'Nuevo en Veline',
   'comun.inicio': 'Veline — inicio',
   'comun.idioma': 'Idioma',
+  'comun.cerrar': 'Cerrar',
 
   // ── Cabecera y pie ────────────────────────────────────────
   'nav.comoFunciona': 'Cómo funciona',
@@ -34,6 +35,8 @@ export const es = {
   'nav.marketplace': 'Marketplace',
   'nav.entrar': 'Iniciar sesión',
   'nav.anadirNegocio': 'Añadir mi negocio',
+  'nav.menu': 'Menú',
+  'nav.abrirMenu': 'Abrir el menú',
   'pie.eslogan': 'Reservas online para cualquier negocio.',
   'pie.negocios': 'Negocios',
   'pie.marketplace': 'Marketplace',

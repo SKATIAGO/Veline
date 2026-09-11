@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { ButtonLink, Logo, cx } from './ui'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Button, ButtonLink, Logo, Sheet, cx } from './ui'
 import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
 import { AvisoCookies } from './AvisoCookies'
 import { SelectorIdioma } from './SelectorIdioma'
@@ -15,8 +15,19 @@ const NAV: { to: string; clave: Clave }[] = [
 
 function Header() {
   const { t } = useIdioma()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const [menu, setMenu] = useState(false)
   // La barra se compacta y coge sombra en cuanto empiezas a bajar.
   const [scrolled, setScrolled] = useState(false)
+
+  /* Navegar desde el menú sustituye la entrada del historial que abrió la
+     ficha en vez de añadir otra: así «atrás» vuelve a la página de antes y no
+     a la misma página con el menú cerrado. */
+  const ir = (to: string) => {
+    navigate(to, { replace: true })
+    setMenu(false)
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -26,54 +37,124 @@ function Header() {
   }, [])
 
   return (
-    <header
-      className={cx(
-        'sticky top-0 z-20 border-b bg-cream/90 backdrop-blur transition-[box-shadow,background-color,border-color] duration-300',
-        scrolled ? 'border-line-strong shadow-[0_6px_20px_rgba(46,33,25,.07)]' : 'border-line',
-      )}
-    >
-      <div
+    <>
+      <header
         className={cx(
-          'mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-6 transition-[padding] duration-300 lg:px-16',
-          scrolled ? 'py-2.5' : 'py-4',
+          'sticky top-0 z-20 border-b bg-cream/90 backdrop-blur transition-[box-shadow,background-color,border-color] duration-300',
+          scrolled ? 'border-line-strong shadow-[0_6px_20px_rgba(46,33,25,.07)]' : 'border-line',
         )}
       >
-        <Logo />
-        <nav className="hidden items-center gap-9 text-body font-medium text-body-2 lg:flex">
-          {NAV.map((item) =>
-            item.to.startsWith('/#') ? (
-              // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
-              // desde otra página. El scroll hasta la sección lo hace ScrollToTop.
-              <Link key={item.to} to={item.to} className="veline-navlink">
-                {t(item.clave)}
-              </Link>
-            ) : (
-              <NavLink
+        <div
+          className={cx(
+            'mx-auto flex max-w-[1440px] items-center justify-between gap-6 px-6 transition-[padding] duration-300 lg:px-16',
+            scrolled ? 'py-2.5' : 'py-4',
+          )}
+        >
+          <Logo />
+          <nav className="hidden items-center gap-9 text-body font-medium text-body-2 lg:flex">
+            {NAV.map((item) =>
+              item.to.startsWith('/#') ? (
+                // Link y no <a>: con <a> se recargaría la app entera al pulsarlo
+                // desde otra página. El scroll hasta la sección lo hace ScrollToTop.
+                <Link key={item.to} to={item.to} className="veline-navlink">
+                  {t(item.clave)}
+                </Link>
+              ) : (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    cx('veline-navlink', isActive && 'is-active font-semibold text-ink')
+                  }
+                >
+                  {t(item.clave)}
+                </NavLink>
+              ),
+            )}
+          </nav>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* En el móvil el idioma va dentro del menú: con el botón del menú
+              al lado, en 375 px no caben las tres cosas. */}
+            <div className="hidden sm:block">
+              <SelectorIdioma />
+            </div>
+            <Link
+              to="/login"
+              className="hidden min-h-10 items-center px-1 text-body font-medium text-ink hover:text-brand sm:inline-flex"
+            >
+              {t('nav.entrar')}
+            </Link>
+            <ButtonLink to="/precios" size="sm">
+              {t('nav.anadirNegocio')}
+            </ButtonLink>
+            {/* Por debajo de 1024 px la navegación no cabe en la barra, y no
+              había ninguna otra forma de llegar a Cómo funciona, Servicios o
+              el Marketplace —ni de iniciar sesión en un móvil— salvo bajar
+              hasta el pie de la página. */}
+            <button
+              type="button"
+              onClick={() => setMenu(true)}
+              aria-label={t('nav.abrirMenu')}
+              aria-haspopup="dialog"
+              aria-expanded={menu}
+              className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors duration-200 hover:bg-canvas lg:hidden"
+            >
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                className="size-6"
+              >
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Fuera del <header>: su desenfoque atraparía la ficha dentro. */}
+      <Sheet open={menu} onClose={() => setMenu(false)} title={t('nav.menu')}>
+        <nav aria-label={t('nav.menu')} className="-mx-1 flex flex-col">
+          {NAV.map((item) => {
+            const actual = !item.to.startsWith('/#') && pathname === item.to
+            return (
+              <button
                 key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cx('veline-navlink', isActive && 'is-active font-semibold text-ink')
-                }
+                type="button"
+                onClick={() => ir(item.to)}
+                aria-current={actual ? 'page' : undefined}
+                className={cx(
+                  'flex min-h-12 w-full items-center justify-between rounded-xl px-3 text-left text-ui transition-colors duration-200 hover:bg-canvas',
+                  actual ? 'font-semibold text-ink' : 'text-body-2',
+                )}
               >
                 {t(item.clave)}
-              </NavLink>
-            ),
-          )}
+                <span aria-hidden className="text-subtle">
+                  ›
+                </span>
+              </button>
+            )
+          })}
         </nav>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <SelectorIdioma />
-          <Link
-            to="/login"
-            className="hidden min-h-10 items-center px-1 text-body font-medium text-ink hover:text-brand sm:inline-flex"
-          >
-            {t('nav.entrar')}
-          </Link>
-          <ButtonLink to="/precios" size="sm">
+
+        <div className="mt-3 flex flex-col gap-2 border-t border-line pt-4">
+          <Button block onClick={() => ir('/precios')}>
             {t('nav.anadirNegocio')}
-          </ButtonLink>
+          </Button>
+          <Button block variant="secondary" onClick={() => ir('/login')}>
+            {t('nav.entrar')}
+          </Button>
         </div>
-      </div>
-    </header>
+
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-4">
+          <span className="text-meta font-semibold text-body-2">{t('comun.idioma')}</span>
+          <SelectorIdioma />
+        </div>
+      </Sheet>
+    </>
   )
 }
 

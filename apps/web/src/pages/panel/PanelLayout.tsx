@@ -448,8 +448,12 @@ export function PanelLayout() {
   const conBotonCentral = !esPlataforma
 
   const irA = (to: string) => {
+    /* Desde la ficha «Más», navegar SUSTITUYE la entrada del historial que
+       abrió la ficha en vez de añadir otra encima: así «atrás» vuelve a la
+       sección de antes, y no a la misma con la ficha cerrada. Desde el menú
+       lateral no hay ficha abierta y se navega normal. */
+    navigate(to, { replace: masAbierto })
     setMasAbierto(false)
-    navigate(to)
   }
 
   const salir = () => {

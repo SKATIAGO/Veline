@@ -27,6 +27,7 @@ export const en: Record<keyof typeof es, string> = {
   'comun.nuevoEnVeline': 'New on Veline',
   'comun.inicio': 'Veline — home',
   'comun.idioma': 'Language',
+  'comun.cerrar': 'Close',
 
   // ── Header and footer ─────────────────────────────────────
   'nav.comoFunciona': 'How it works',
@@ -35,6 +36,8 @@ export const en: Record<keyof typeof es, string> = {
   'nav.marketplace': 'Marketplace',
   'nav.entrar': 'Log in',
   'nav.anadirNegocio': 'Add my business',
+  'nav.menu': 'Menu',
+  'nav.abrirMenu': 'Open the menu',
   'pie.eslogan': 'Online booking for any business.',
   'pie.negocios': 'For businesses',
   'pie.marketplace': 'Marketplace',

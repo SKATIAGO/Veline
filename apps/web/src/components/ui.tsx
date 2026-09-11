@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from 'react-router-dom'
 import { useIdioma } from '../i18n/idioma'
@@ -621,9 +622,19 @@ export function Skeleton({ className }: { className?: string }) {
  * «No vino» —que significan lo contrario— pegadas. Sacarlas a una ficha les
  * da alto y separación de verdad, y permite poner lo irreversible aparte.
  *
+ * Se cierra de todas las formas que alguien espera en un móvil, porque antes
+ * no se cerraba de ninguna: tocar fuera no hacía nada, no había botón, el asa
+ * no se arrastraba y la tecla Escape no existe en un teléfono. La única
+ * salida era elegir una opción. Ahora: botón de cerrar, tocar el fondo,
+ * arrastrar hacia abajo, el botón «atrás» del móvil y Escape.
+ *
  * Al abrirse manda el foco dentro y al cerrarse lo devuelve donde estaba: si
  * no, quien navega con teclado se queda detrás de la ficha, pulsando cosas
  * que no ve.
+ *
+ * Se pinta en <body> y no donde se declara: un antecesor con transform o
+ * backdrop-filter —la cabecera pública lleva desenfoque— convierte el
+ * `position: fixed` en relativo a él, y la ficha acabaría encajada dentro.
  */
 export function Sheet({
   open,
@@ -636,12 +647,42 @@ export function Sheet({
   title: string
   children: ReactNode
 }) {
+  const { t } = useIdioma()
   const caja = useRef<HTMLDivElement>(null)
+  const fondo = useRef<HTMLDivElement>(null)
   const devolverFoco = useRef<HTMLElement | null>(null)
+  const cerrando = useRef(false)
+
+  /* onClose suele ser una flecha escrita en línea, así que cambia en cada
+     render del padre. Con ella en las dependencias, los efectos de abajo se
+     deshacían y rehacían en cada render: robaban el foco y, ahora que la ficha
+     toca el historial, meterían y sacarían entradas sin parar. */
+  const alCerrar = useRef(onClose)
+  useEffect(() => {
+    alCerrar.current = onClose
+  })
+
+  /** Cierra acompañando el gesto: la ficha baja por donde subió. */
+  const cerrar = useCallback(() => {
+    if (cerrando.current) return
+    const el = caja.current
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      alCerrar.current()
+      return
+    }
+    cerrando.current = true
+    el.style.transition = 'transform 200ms cubic-bezier(.4,0,1,1)'
+    el.style.transform = 'translateY(100%)'
+    if (fondo.current) {
+      fondo.current.style.transition = 'opacity 200ms ease-in'
+      fondo.current.style.opacity = '0'
+    }
+    window.setTimeout(() => alCerrar.current(), 190)
+  }, [])
 
   useEffect(() => {
     if (!open) return
-
+    cerrando.current = false
     devolverFoco.current = document.activeElement as HTMLElement | null
     caja.current?.focus()
 
@@ -650,28 +691,143 @@ export function Sheet({
     document.body.style.overflow = 'hidden'
 
     const alPulsarTecla = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') cerrar()
     }
     document.addEventListener('keydown', alPulsarTecla)
 
+    /* El botón «atrás» del móvil cierra la ficha en vez de sacarte de la
+       página: es lo que hace cualquier app, y quien lo pulsa espera quedarse
+       donde estaba. Para eso la ficha abre una entrada en el historial con la
+       misma dirección, y «atrás» la consume. Se copia el estado que ya había
+       para que el enrutador no pierda la cuenta de sus entradas. */
+    const marca = `ficha-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    let cerradaConAtras = false
+    const alVolverAtras = () => {
+      cerradaConAtras = true
+      alCerrar.current()
+    }
+    /* Un instante después y no ya: en desarrollo, React monta, desmonta y
+       vuelve a montar cada efecto. El «atrás» del desmontaje llega tarde —es
+       asíncrono— y caería después de la segunda entrada, cerrando la ficha
+       nada más abrirse. Con la espera, ese primer montaje no llega a tocar el
+       historial. */
+    let metida = false
+    const meter = window.setTimeout(() => {
+      window.history.pushState({ ...window.history.state, velineFicha: marca }, '')
+      metida = true
+      window.addEventListener('popstate', alVolverAtras)
+    }, 0)
+
     return () => {
       document.removeEventListener('keydown', alPulsarTecla)
+      window.clearTimeout(meter)
+      window.removeEventListener('popstate', alVolverAtras)
       document.body.style.overflow = overflow
+      /* Cerrada de cualquier otra forma, su entrada sigue arriba del todo: se
+         quita, o habría que pulsar «atrás» dos veces para salir de la página.
+         Si ya no está arriba es que se ha navegado a otra parte desde la
+         ficha, y entonces no se toca: volver atrás desharía esa navegación. */
+      if (metida && !cerradaConAtras && window.history.state?.velineFicha === marca) {
+        window.history.back()
+      }
       devolverFoco.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open, cerrar])
+
+  /* Arrastrar hacia abajo para cerrar: el asa lo promete. Con eventos táctiles
+     y no de puntero porque el contenido de la ficha también se desplaza, y un
+     arrastre de puntero se cancela en cuanto el navegador decide que el gesto
+     es un desplazamiento. Solo arrastra si la ficha está arriba del todo: si
+     no, el gesto es para leer lo de abajo. */
+  useEffect(() => {
+    const el = caja.current
+    if (!open || !el) return
+
+    let inicioY = 0
+    let inicioT = 0
+    let dy = 0
+    let posible = false
+    let arrastrando = false
+
+    const alTocar = (e: TouchEvent) => {
+      posible = el.scrollTop <= 0
+      arrastrando = false
+      inicioY = e.touches[0]!.clientY
+      inicioT = performance.now()
+      dy = 0
+    }
+
+    const alMover = (e: TouchEvent) => {
+      if (!posible) return
+      dy = e.touches[0]!.clientY - inicioY
+      if (!arrastrando) {
+        // Hacia arriba es desplazar el contenido; unos píxeles hacia abajo son
+        // el temblor de un toque, no un arrastre.
+        if (dy < 0) {
+          posible = false
+          return
+        }
+        if (dy < 8) return
+        arrastrando = true
+        el.style.transition = 'none'
+        if (fondo.current) fondo.current.style.transition = 'none'
+      }
+      e.preventDefault()
+      const y = Math.max(0, dy)
+      el.style.transform = `translateY(${y}px)`
+      if (fondo.current) {
+        fondo.current.style.opacity = String(1 - Math.min(1, y / el.offsetHeight))
+      }
+    }
+
+    const alSoltar = () => {
+      if (!arrastrando) return
+      arrastrando = false
+      posible = false
+      const velocidad = dy / Math.max(1, performance.now() - inicioT)
+      // Se cierra si se ha bajado un cuarto de la ficha, o con un tirón rápido.
+      if (dy > el.offsetHeight * 0.25 || (velocidad > 0.5 && dy > 40)) {
+        cerrar()
+        return
+      }
+      el.style.transition = 'transform 200ms cubic-bezier(.22,1,.36,1)'
+      el.style.transform = ''
+      if (fondo.current) {
+        fondo.current.style.transition = 'opacity 200ms ease-out'
+        fondo.current.style.opacity = ''
+      }
+    }
+
+    el.addEventListener('touchstart', alTocar, { passive: true })
+    el.addEventListener('touchmove', alMover, { passive: false })
+    el.addEventListener('touchend', alSoltar)
+    el.addEventListener('touchcancel', alSoltar)
+    return () => {
+      el.removeEventListener('touchstart', alTocar)
+      el.removeEventListener('touchmove', alMover)
+      el.removeEventListener('touchend', alSoltar)
+      el.removeEventListener('touchcancel', alSoltar)
+    }
+  }, [open, cerrar])
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
       role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
     >
-      <div className="absolute inset-0 bg-ink/45 motion-safe:animate-[veline-fade_180ms_ease-out]" />
+      {/* El fondo oscuro cierra al tocarlo. Antes el aviso estaba en el
+          contenedor y comprobaba que el toque cayera en él, pero lo que recibe
+          el toque es esta capa, que va encima: tocar fuera no hacía nada.
+          touch-none: en iOS, arrastrar sobre el fondo desplazaba la página de
+          debajo aunque estuviera bloqueada. */}
+      <div
+        ref={fondo}
+        aria-hidden
+        onClick={cerrar}
+        className="absolute inset-0 touch-none bg-ink/45 motion-safe:animate-[veline-fade_180ms_ease-out]"
+      />
       <div
         ref={caja}
         role="dialog"
@@ -680,16 +836,29 @@ export function Sheet({
         tabIndex={-1}
         className={cx(
           'relative w-full max-w-lg bg-surface shadow-overlay outline-none',
-          'max-h-[88vh] overflow-y-auto rounded-t-2xl px-5 pt-3 pb-6',
-          'sm:mx-4 sm:rounded-2xl sm:px-6 sm:pt-5 sm:pb-6',
+          'max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-2xl px-5',
+          'pb-[max(1.5rem,env(safe-area-inset-bottom))]',
+          'sm:mx-4 sm:rounded-2xl sm:px-6 sm:pb-6',
           'motion-safe:animate-[veline-sheet_220ms_cubic-bezier(.22,1,.36,1)]',
         )}
       >
-        {/* El asa dice «esto se arrastra» sin escribirlo. Solo en móvil,
-            que es donde la ficha nace desde abajo. */}
-        <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-line-strong sm:hidden" />
+        {/* Cabecera pegada arriba: el asa, que ahora sí se arrastra, y un
+            botón de cerrar a la vista. Sin él, en el móvil —donde no hay
+            tecla Escape— la única salida era tocar una de las opciones. */}
+        <div className="sticky top-0 z-10 -mx-5 flex h-12 items-center justify-center bg-surface sm:-mx-6">
+          <span aria-hidden className="h-1 w-10 rounded-full bg-line-strong sm:hidden" />
+          <button
+            type="button"
+            onClick={cerrar}
+            aria-label={t('comun.cerrar')}
+            className="absolute top-0.5 right-1.5 grid size-11 place-items-center rounded-full text-subheading leading-none text-muted transition-colors duration-200 hover:bg-canvas hover:text-ink"
+          >
+            <span aria-hidden>×</span>
+          </button>
+        </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
