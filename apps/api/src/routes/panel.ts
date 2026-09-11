@@ -403,6 +403,9 @@ export async function panelRoutes(app: FastifyInstance) {
         passwordHash: await hashPassword(parsed.data.password),
         role: parsed.data.role,
         businessId: auth.business.id,
+        // Nace verificada, como las del superadmin: no recibe enlace de
+        // confirmación, así que sin esto no podría entrar nunca.
+        emailVerifiedAt: new Date(),
       },
       select: { id: true, name: true, email: true, role: true, active: true, createdAt: true },
     })

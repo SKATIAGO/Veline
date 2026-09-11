@@ -312,6 +312,12 @@ export async function adminRoutes(app: FastifyInstance) {
         passwordHash: await hashPassword(d.password),
         role: d.role,
         businessId: d.businessId,
+        /* Nace verificada: el correo lo ha escrito quien la da de alta, y a
+           esta cuenta no se le manda enlace de confirmación. Sin esto el
+           login la rechazaba con «falta confirmar tu correo» y no había
+           forma de confirmarlo: desde el 8 sep ninguna cuenta creada aquí
+           podía entrar. */
+        emailVerifiedAt: new Date(),
       },
     })
     audit(req, {

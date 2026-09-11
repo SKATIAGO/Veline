@@ -238,6 +238,9 @@ async function ensureUsers() {
           name: 'Superadmin',
           passwordHash: await hashPassword(password),
           role: 'SUPERADMIN',
+          // Sin verificar, el primer superadmin de una instalación nueva no
+          // podría entrar: el login exige el correo confirmado.
+          emailVerifiedAt: new Date(),
         },
       })
       console.log(`✓ superadmin creado: ${email}`)
@@ -262,6 +265,7 @@ async function ensureUsers() {
           name: 'Superadmin de prueba',
           passwordHash: await hashPassword('veline-demo-1234'),
           role: 'SUPERADMIN',
+          emailVerifiedAt: new Date(),
         },
       })
       console.log(`✓ superadmin demo: ${demoSuper} — contraseña: veline-demo-1234`)
@@ -283,6 +287,7 @@ async function ensureUsers() {
               passwordHash: await hashPassword('veline-demo-1234'),
               role: demo.role,
               businessId: taller.id,
+              emailVerifiedAt: new Date(),
             },
           })
           console.log(`✓ usuario demo: ${demo.email} (${demo.role}) — contraseña: veline-demo-1234`)
