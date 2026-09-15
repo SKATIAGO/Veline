@@ -1,8 +1,27 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { CATEGORIES, fromDateKey, type BusinessDTO, type BusinessSummaryDTO } from '@veline/shared'
+import {
+  aceptaReservas,
+  CATEGORIES,
+  fromDateKey,
+  type BusinessDTO,
+  type BusinessSummaryDTO,
+} from '@veline/shared'
+import { SubStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../prisma.js'
 import { getAvailability, MAX_RANGE_DAYS } from '../availability.js'
+
+/* Mismo criterio que aceptaReservas(), pero como condición Prisma: un
+   negocio suspendido, dado de baja o con la prueba caducada no debe
+   aparecer en el marketplace, aunque esté aprobado. */
+const suscripcionActiva: Prisma.BusinessWhereInput = {
+  NOT: {
+    OR: [
+      { subStatus: { in: [SubStatus.SUSPENDIDA, SubStatus.CANCELADA] } },
+      { subStatus: SubStatus.PRUEBA, trialEndsAt: { lt: new Date() } },
+    ],
+  },
+}
 
 const listQuery = z.object({
   q: z.string().trim().optional(),
@@ -31,6 +50,7 @@ export async function businessRoutes(app: FastifyInstance) {
            sin esto, cualquiera que se diera de alta desde la web aparecería
            publicado al instante, con el nombre que quisiera. */
         approvedAt: { not: null },
+        ...suscripcionActiva,
         ...(category ? { category } : {}),
         ...(city ? { locations: { some: { city: { equals: city, mode: 'insensitive' } } } } : {}),
         ...(q
@@ -81,7 +101,9 @@ export async function businessRoutes(app: FastifyInstance) {
        directo: si respondiera, bastaría con compartir la dirección para
        saltarse la revisión y empezar a recibir reservas. Su dueño ya puede
        verla y prepararla desde el panel. */
-    if (!b || !b.approvedAt) return reply.code(404).send({ error: 'Negocio no encontrado' })
+    if (!b || !b.approvedAt || !aceptaReservas(b.subStatus, b.trialEndsAt)) {
+      return reply.code(404).send({ error: 'Negocio no encontrado' })
+    }
 
     const main = b.locations[0]
     const dto: BusinessDTO = {
