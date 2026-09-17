@@ -12,6 +12,9 @@
      texto blanco encima, pero no como color de texto. Esta variante es la que
      se usa cuando el marrón ES la letra (enlaces, botones de texto). */
   --color-brand-text: #8c5833; /* 4,57:1 sobre canvas */
+  /* Rojo para errores de validación: tiene que distinguirse del marrón de
+     marca a simple vista, no solo por contraste con el fondo. */
+  --color-danger: #a3262a; /* 5,67:1 sobre canvas, 7,32:1 sobre surface */
   --color-ink: #2e2119;
   --color-ink-2: #3b2a1f;
   --color-accent: #cdae74;

@@ -32,7 +32,7 @@ function Field({
 }: FieldProps) {
   const cls =
     'w-full rounded-lg border bg-surface px-4 py-3.5 text-sm text-ink outline-none placeholder:text-subtle ' +
-    (error ? 'border-brand' : 'border-line focus:border-brand')
+    (error ? 'border-danger' : 'border-line focus:border-brand')
   return (
     <label className="block">
       <span className="mb-1.5 block text-meta font-semibold text-body">
@@ -56,7 +56,7 @@ function Field({
           className={cls}
         />
       )}
-      {error && <span className="mt-1.5 block text-meta text-brand-text">{error}</span>}
+      {error && <span className="mt-1.5 block text-meta font-semibold text-danger">{error}</span>}
     </label>
   )
 }

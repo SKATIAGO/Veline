@@ -352,7 +352,7 @@ export function Input({
       {...props}
       ref={ref}
       aria-invalid={invalid || undefined}
-      className={cx(fieldBase, 'h-11', invalid && 'border-brand', className)}
+      className={cx(fieldBase, 'h-11', invalid && 'border-danger', className)}
     />
   )
 }
@@ -366,7 +366,7 @@ export function Textarea({
     <textarea
       {...props}
       aria-invalid={invalid || undefined}
-      className={cx(fieldBase, 'min-h-24 py-3', invalid && 'border-brand', className)}
+      className={cx(fieldBase, 'min-h-24 py-3', invalid && 'border-danger', className)}
     />
   )
 }
@@ -409,7 +409,7 @@ export function Field({
       </label>
       {children}
       {error ? (
-        <p className="text-meta text-brand-text">{error}</p>
+        <p className="text-meta font-semibold text-danger">{error}</p>
       ) : hint ? (
         <p className="text-meta text-muted">{hint}</p>
       ) : null}
