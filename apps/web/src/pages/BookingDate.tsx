@@ -13,6 +13,7 @@ import {
   type SlotDTO,
 } from '@veline/shared'
 import { api } from '../lib/api'
+import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
@@ -33,6 +34,9 @@ export function BookingDate() {
   const [params] = useSearchParams()
   const serviceId = params.get('servicio') ?? ''
   const localPedido = params.get('local') ?? ''
+  // Elegidos en el paso anterior. Aquí no se tocan: solo se conservan y se
+  // suman al total, para que el precio de esta pantalla sea el de verdad.
+  const extraIds = extrasDeUrl(params)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -132,9 +136,17 @@ export function BookingDate() {
 
   const nextDays = Array.from({ length: 14 }, (_, i) => addDays(today, i))
 
+  /* Solo cuentan los extras que siguen en la carta del negocio. */
+  const elegidos = business.extras.filter((e) => extraIds.includes(e.id))
+  const total = service.priceCents + elegidos.reduce((suma, e) => suma + e.priceCents, 0)
+  const tramoComun = `servicio=${service.id}${local ? `&local=${local.id}` : ''}${tramoExtras(elegidos.map((e) => e.id))}`
+  /* Atrás vuelve a los extras si el negocio tiene carta, que es el paso que
+     de verdad se acaba de dejar; si no la tiene, a la ficha. */
+  const volverA = business.extras.length > 0 ? `/${slug}/reservar/extras?${tramoComun}` : `/${slug}`
+
   return (
     <>
-      <BackBar to={`/${slug}`}>
+      <BackBar to={volverA}>
         {business.name} · {service.name}
       </BackBar>
 
@@ -349,14 +361,36 @@ export function BookingDate() {
                         </div>
                       ))}
 
-                    <div className="mt-6 flex justify-between border-t border-line pt-4 text-body">
-                      <span className="text-muted">
-                        {service.name}
-                        {slot && ` · ${slot.label}`}
-                      </span>
-                      <span className="font-semibold text-ink">
-                        {formatPrice(service.priceCents, idioma)}
-                      </span>
+                    <div className="mt-6 border-t border-line pt-4 text-body">
+                      <div className="flex justify-between gap-4">
+                        <span className="min-w-0 text-muted">
+                          {service.name}
+                          {slot && ` · ${slot.label}`}
+                        </span>
+                        <span className="shrink-0 font-semibold text-ink tabular-nums">
+                          {formatPrice(service.priceCents, idioma)}
+                        </span>
+                      </div>
+
+                      {/* Los extras ya elegidos: sin esto el precio de aquí
+                          contradiría al de la confirmación. */}
+                      {elegidos.map((e) => (
+                        <div key={e.id} className="mt-2.5 flex justify-between gap-4">
+                          <span className="min-w-0 text-muted">+ {e.name}</span>
+                          <span className="shrink-0 font-semibold text-ink tabular-nums">
+                            {formatPrice(e.priceCents, idioma)}
+                          </span>
+                        </div>
+                      ))}
+
+                      {elegidos.length > 0 && (
+                        <div className="mt-2.5 flex justify-between gap-4 border-t border-line pt-2.5">
+                          <span className="text-muted">{t('comun.total')}</span>
+                          <span className="font-semibold text-ink tabular-nums">
+                            {formatPrice(total, idioma)}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <Button
@@ -365,7 +399,7 @@ export function BookingDate() {
                       onClick={() =>
                         slot &&
                         navigate(
-                          `/${slug}/reservar/confirmar?servicio=${service.id}&hora=${encodeURIComponent(slot.startsAt)}${local ? `&local=${local.id}` : ''}`,
+                          `/${slug}/reservar/confirmar?${tramoComun}&hora=${encodeURIComponent(slot.startsAt)}`,
                         )
                       }
                     >

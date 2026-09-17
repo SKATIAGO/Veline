@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { Landing } from './pages/Landing'
 import { Search } from './pages/Search'
 import { Business } from './pages/Business'
+import { BookingExtras } from './pages/BookingExtras'
 import { BookingDate } from './pages/BookingDate'
 import { BookingConfirm } from './pages/BookingConfirm'
 import { BookingDone } from './pages/BookingDone'
@@ -105,6 +106,7 @@ function AppRoutes() {
         <Route path="/reserva/:code" element={<BookingDone />} />
         <Route path="/resena/:token" element={<Resena />} />
         <Route path="/:slug" element={<Business />} />
+        <Route path="/:slug/reservar/extras" element={<BookingExtras />} />
         <Route path="/:slug/reservar/fecha" element={<BookingDate />} />
         <Route path="/:slug/reservar/confirmar" element={<BookingConfirm />} />
         <Route path="*" element={<NoExiste />} />

@@ -138,8 +138,15 @@ export function Business() {
   const today = new Date().getDay()
   const todayHours = business.openingHours.filter((h) => h.weekday === today)
 
-  const goBook = (serviceId: string) =>
-    navigate(`/${business.slug}/reservar/fecha?servicio=${serviceId}`)
+  /* La reserva empieza por los extras cuando el negocio tiene carta. Si no
+     tiene, ese paso no existe y se va directo a la fecha: lo decide quien
+     enlaza, para no pasar por una pantalla que solo rebotaría. */
+  const urlReserva = (serviceId: string) =>
+    business.extras.length > 0
+      ? `/${business.slug}/reservar/extras?servicio=${serviceId}`
+      : `/${business.slug}/reservar/fecha?servicio=${serviceId}`
+
+  const goBook = (serviceId: string) => navigate(urlReserva(serviceId))
 
   return (
     <>
@@ -249,7 +256,7 @@ export function Business() {
               )}
 
               {/* La carta de extras, para que se sepa antes de reservar. Se
-                  eligen en la confirmación, con cualquier servicio. */}
+                  eligen al empezar la reserva, con cualquier servicio. */}
               {business.services.length > 0 && business.extras.length > 0 && (
                 <div className="mt-8">
                   <h2 className="text-ui font-semibold text-ink">{t('ficha.extrasTitulo')}</h2>
@@ -375,10 +382,7 @@ export function Business() {
                 : t('comun.cerrado')}
             </div>
             {business.services[0] ? (
-              <ButtonLink
-                to={`/${business.slug}/reservar/fecha?servicio=${business.services[0].id}`}
-                className="w-full"
-              >
+              <ButtonLink to={urlReserva(business.services[0].id)} className="w-full">
                 {t('ficha.verHuecos')}
               </ButtonLink>
             ) : (

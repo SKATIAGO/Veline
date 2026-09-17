@@ -117,6 +117,13 @@ export const en: Record<keyof typeof es, string> = {
   'fecha.continuar': 'Continue',
   'fecha.eligeHora': 'Pick a time',
 
+  // ── Extras, at the start of the booking ───────────────────
+  'extras.titulo': 'Want to add anything?',
+  'extras.pista': 'Optional. It’s added to your appointment total.',
+  'extras.resumen': 'Summary',
+  'extras.continuar': 'Continue',
+  'extras.continuarSin': 'Continue without extras',
+
   // ── Confirm the booking ───────────────────────────────────
   'confirmar.titulo': 'Confirm your booking',
   'confirmar.nombre': 'Full name',
@@ -136,6 +143,8 @@ export const en: Record<keyof typeof es, string> = {
   'confirmar.servicio': 'Service',
   'confirmar.fecha': 'Date',
   'confirmar.duracion': 'Duration',
+  'confirmar.extrasCambiar': 'Change extras',
+  'confirmar.extrasAnadir': 'Add extras',
   'confirmar.eligeOtraHora': 'Pick another time',
   'confirmar.confirmando': 'Confirming…',
   'confirmar.confirmar': 'Confirm booking',
@@ -1258,10 +1267,8 @@ export const en: Record<keyof typeof es, string> = {
     'Add anything that can go with any appointment: a treatment, a wash, a drink… Your clients will see it when they confirm their booking.',
   'ext.aviso':
     'Booked appointments keep each extra at the price it had: editing, hiding or removing it doesn’t change them.',
-  'confirmar.extrasTitulo': 'Want to add anything?',
-  'confirmar.extrasPista': 'Optional. It’s added to your appointment total.',
   'ficha.extrasTitulo': 'Extras for any service',
-  'ficha.extrasPista': 'You can add them when you confirm your booking.',
+  'ficha.extrasPista': 'You can add them when you book, right after picking your service.',
   'act.extraCreado': 'Extra added',
   'act.extraEditado': 'Extra edited',
   'act.extraEliminado': 'Extra removed',

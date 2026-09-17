@@ -116,6 +116,13 @@ export const es = {
   'fecha.continuar': 'Continuar',
   'fecha.eligeHora': 'Elige una hora',
 
+  // ── Extras, al empezar la reserva ─────────────────────────
+  'extras.titulo': '¿Quieres añadir algo?',
+  'extras.pista': 'Opcional. Se suma al total de tu cita.',
+  'extras.resumen': 'Resumen',
+  'extras.continuar': 'Continuar',
+  'extras.continuarSin': 'Continuar sin extras',
+
   // ── Confirmar la reserva ──────────────────────────────────
   'confirmar.titulo': 'Confirma tu reserva',
   'confirmar.nombre': 'Nombre y apellidos',
@@ -135,6 +142,8 @@ export const es = {
   'confirmar.servicio': 'Servicio',
   'confirmar.fecha': 'Fecha',
   'confirmar.duracion': 'Duración',
+  'confirmar.extrasCambiar': 'Cambiar los extras',
+  'confirmar.extrasAnadir': 'Añadir extras',
   'confirmar.eligeOtraHora': 'Elige otra hora',
   'confirmar.confirmando': 'Confirmando…',
   'confirmar.confirmar': 'Confirmar reserva',
@@ -1259,13 +1268,11 @@ export const es = {
   'ext.siQuitar': 'Sí, quitar',
   'ext.vacio': 'Aún no hay extras',
   'ext.vacioPista':
-    'Añade lo que se puede sumar a cualquier cita: un tratamiento, un lavado, una bebida… Tus clientes lo verán al confirmar la reserva.',
+    'Añade lo que se puede sumar a cualquier cita: un tratamiento, un lavado, una bebida… Tus clientes lo verán al reservar, nada más elegir el servicio.',
   'ext.aviso':
     'Las citas ya reservadas guardan cada extra con el precio que tenía: cambiarlo, ocultarlo o quitarlo no las toca.',
-  'confirmar.extrasTitulo': '¿Quieres añadir algo?',
-  'confirmar.extrasPista': 'Opcional. Se suma al total de tu cita.',
   'ficha.extrasTitulo': 'Extras para cualquier servicio',
-  'ficha.extrasPista': 'Puedes añadirlos al confirmar tu reserva.',
+  'ficha.extrasPista': 'Puedes añadirlos al reservar, nada más elegir el servicio.',
   'act.extraCreado': 'Extra añadido',
   'act.extraEditado': 'Extra editado',
   'act.extraEliminado': 'Extra quitado',
