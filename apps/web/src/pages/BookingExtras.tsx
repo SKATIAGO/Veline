@@ -4,65 +4,10 @@ import { useQuery } from '@tanstack/react-query'
 import { formatDuration, formatPrice, type ExtraPedido } from '@veline/shared'
 import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
-import { BackBar, Button, Card, Spinner, cx } from '../components/ui'
+import { BackBar, Button, Card, Contador, MAX_POR_EXTRA, Spinner, cx } from '../components/ui'
 import { Photo } from '../components/Photo'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
-
-/** Tope por extra. El mismo que acepta el servidor; aquí evita llegar y rebotar. */
-const MAX_POR_EXTRA = 20
-
-/**
- * Cuántas veces se añade un extra.
- *
- * Es un contador y no una casilla porque hay extras que se venden por unidad
- * —un arreglo de uña, una copa— y con una casilla el cliente que necesita tres
- * no tiene cómo pedirlos: lo pone en las notas, o lo dice al llegar, y ninguna
- * de las dos cosas está en la cuenta ni en la agenda.
- */
-function Contador({
-  cantidad,
-  nombre,
-  onCambiar,
-}: {
-  cantidad: number
-  nombre: string
-  onCambiar: (n: number) => void
-}) {
-  const { t } = useIdioma()
-  const boton =
-    'grid size-10 place-items-center rounded-lg border border-line-strong bg-surface text-subheading ' +
-    'leading-none text-ink transition-colors duration-200 hover:border-brand disabled:text-disabled ' +
-    'disabled:hover:border-line-strong'
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        className={boton}
-        disabled={cantidad === 0}
-        aria-label={t('extras.quitarUno', { nombre })}
-        onClick={() => onCambiar(cantidad - 1)}
-      >
-        −
-      </button>
-      {/* El número es la respuesta a los botones de al lado: un lector de
-          pantalla lo canta al cambiar en vez de dejar a ciegas a quien no lo ve. */}
-      <span aria-live="polite" className="w-8 text-center text-body font-semibold tabular-nums">
-        {cantidad}
-      </span>
-      <button
-        type="button"
-        className={boton}
-        disabled={cantidad >= MAX_POR_EXTRA}
-        aria-label={t('extras.anadirUno', { nombre })}
-        onClick={() => onCambiar(cantidad + 1)}
-      >
-        +
-      </button>
-    </div>
-  )
-}
 
 /**
  * Primer paso de la reserva: la carta de extras, con el servicio ya elegido.

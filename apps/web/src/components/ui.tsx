@@ -379,6 +379,74 @@ export function Select({ className, children, ...props }: ComponentPropsWithoutR
   )
 }
 
+/** Tope por extra. El mismo que acepta el servidor; aquí evita llegar y rebotar. */
+export const MAX_POR_EXTRA = 20
+
+/**
+ * Cuántas veces se añade algo: − 0 +.
+ *
+ * Es un contador y no una casilla porque hay extras que se venden por unidad
+ * —un arreglo de uña, una copa— y con una casilla quien necesita tres no tiene
+ * cómo pedirlos: lo pone en las notas, o lo dice al llegar, y ninguna de las
+ * dos cosas está en la cuenta ni en la agenda.
+ *
+ * Lo usan la pantalla del cliente y el formulario del mostrador, y tienen que
+ * contar igual: si el negocio apunta tres y el cliente pide tres, la cita
+ * tiene que salir por lo mismo.
+ */
+export function Contador({
+  cantidad,
+  nombre,
+  onCambiar,
+  compacto,
+}: {
+  cantidad: number
+  /** Para el lector de pantalla: «Añadir uno de Arreglo de uña». */
+  nombre: string
+  onCambiar: (n: number) => void
+  /** Más pequeño, para formularios apretados como el del mostrador. */
+  compacto?: boolean
+}) {
+  const { t } = useIdioma()
+  const boton = cx(
+    'grid place-items-center rounded-lg border border-line-strong bg-surface leading-none text-ink',
+    'transition-colors duration-200 hover:border-brand disabled:text-disabled',
+    'disabled:hover:border-line-strong',
+    compacto ? 'size-9 text-body' : 'size-10 text-subheading',
+  )
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        className={boton}
+        disabled={cantidad === 0}
+        aria-label={t('extras.quitarUno', { nombre })}
+        onClick={() => onCambiar(cantidad - 1)}
+      >
+        −
+      </button>
+      {/* El número es la respuesta a los botones de al lado: un lector de
+          pantalla lo canta al cambiar en vez de dejar a ciegas a quien no lo ve. */}
+      <span
+        aria-live="polite"
+        className={cx('text-center font-semibold tabular-nums', compacto ? 'w-7' : 'w-8 text-body')}
+      >
+        {cantidad}
+      </span>
+      <button
+        type="button"
+        className={boton}
+        disabled={cantidad >= MAX_POR_EXTRA}
+        aria-label={t('extras.anadirUno', { nombre })}
+        onClick={() => onCambiar(cantidad + 1)}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
 /**
  * Etiqueta + campo + pista o error. Une la etiqueta al control por `htmlFor`,
  * que es lo que permite pulsar el texto para enfocar y lo que lee un lector

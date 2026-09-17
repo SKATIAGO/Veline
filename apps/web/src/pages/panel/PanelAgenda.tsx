@@ -9,11 +9,13 @@ import {
   Button,
   Card,
   ConfirmAction,
+  Contador,
   EmptyState,
   ErrorNote,
   FilterChip,
   Field,
   Input,
+  MAX_POR_EXTRA,
   PageHeader,
   Select,
   Sheet,
@@ -473,7 +475,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   const [telefono, setTelefono] = useState('')
   const [email, setEmail] = useState('')
   const [notas, setNotas] = useState('')
-  const [extraIds, setExtraIds] = useState<string[]>([])
+  const [cantidades, setCantidades] = useState<Record<string, number>>({})
 
   const { data: servicios } = useQuery({
     queryKey: ['panel', slug, 'services'],
@@ -489,10 +491,18 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   const activos = servicios?.filter((s) => s.active) ?? []
   const elegido = serviceId || activos[0]?.id || ''
   const carta = extras?.filter((e) => e.active) ?? []
-  const extrasElegidos = carta.filter((e) => extraIds.includes(e.id))
+  const extrasElegidos = carta
+    .map((extra) => ({ extra, cantidad: cantidades[extra.id] ?? 0 }))
+    .filter((linea) => linea.cantidad > 0)
+  const servicioElegido = activos.find((s) => s.id === elegido)
   const total =
-    (activos.find((s) => s.id === elegido)?.priceCents ?? 0) +
-    extrasElegidos.reduce((suma, e) => suma + e.priceCents, 0)
+    (servicioElegido?.priceCents ?? 0) +
+    extrasElegidos.reduce((suma, l) => suma + l.extra.priceCents * l.cantidad, 0)
+  /* Lo que va a ocupar en la agenda. El mostrador lo necesita a la vista: es
+     lo que decide si la siguiente cita entra a las y media o a menos cuarto. */
+  const duracion =
+    (servicioElegido?.durationMin ?? 0) +
+    extrasElegidos.reduce((suma, l) => suma + l.extra.durationMin * l.cantidad, 0)
 
   const crear = useMutation({
     mutationFn: () =>
@@ -503,10 +513,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         customerPhone: telefono.trim(),
         customerEmail: email.trim() || undefined,
         notes: notas.trim() || undefined,
-        /* Desde el mostrador se marca o no se marca: el contador por unidades
-           está en la pantalla del cliente, que es donde se pidió. Aquí cada
-           extra marcado va una vez. */
-        extras: extrasElegidos.map((e) => ({ extraId: e.id, quantity: 1 })),
+        extras: extrasElegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })),
       }),
     onSuccess: onHecho,
   })
@@ -598,32 +605,44 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
                 {t('comun.extras')}{' '}
                 <span className="font-normal text-subtle">{t('comun.opcional')}</span>
               </legend>
-              <div className="flex flex-wrap gap-2">
+              {/* En filas y no en píldoras: cada extra necesita su contador
+                  al lado, y una píldora con tres controles dentro no se
+                  acierta con el dedo en el mostrador. */}
+              <div className="flex flex-col gap-2">
                 {carta.map((e) => {
-                  const marcado = extraIds.includes(e.id)
+                  const cantidad = cantidades[e.id] ?? 0
                   return (
-                    <button
+                    <div
                       key={e.id}
-                      type="button"
-                      aria-pressed={marcado}
-                      onClick={() =>
-                        setExtraIds((ids) =>
-                          marcado ? ids.filter((x) => x !== e.id) : [...ids, e.id],
-                        )
-                      }
                       className={cx(
-                        'inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-meta font-semibold',
+                        'flex items-center gap-3 rounded-lg border px-3 py-2',
                         'transition-colors duration-200',
-                        marcado
-                          ? 'border-brand bg-brand text-white'
-                          : 'border-line bg-surface text-body-2 hover:border-brand',
+                        cantidad > 0 ? 'border-brand bg-brand/5' : 'border-line bg-surface',
                       )}
                     >
-                      {e.name}
-                      <span className={marcado ? 'text-white/85' : 'text-muted'}>
-                        +{formatPrice(e.priceCents, idioma)}
+                      <span className="min-w-0 flex-1 text-meta font-semibold text-body-2">
+                        {e.name}
                       </span>
-                    </button>
+                      <span className="shrink-0 text-right text-meta text-muted tabular-nums">
+                        +{formatPrice(e.priceCents * Math.max(cantidad, 1), idioma)}
+                        {e.durationMin > 0 && (
+                          <span className="block">
+                            +{formatDuration(e.durationMin * Math.max(cantidad, 1), idioma)}
+                          </span>
+                        )}
+                      </span>
+                      <Contador
+                        compacto
+                        cantidad={cantidad}
+                        nombre={e.name}
+                        onCambiar={(n) =>
+                          setCantidades((previas) => ({
+                            ...previas,
+                            [e.id]: Math.max(0, Math.min(n, MAX_POR_EXTRA)),
+                          }))
+                        }
+                      />
+                    </div>
                   )
                 })}
               </div>
@@ -631,6 +650,10 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
                 <p className="mt-2 text-meta text-muted">
                   {t('comun.total')}:{' '}
                   <strong className="font-semibold text-ink">{formatPrice(total, idioma)}</strong>
+                  {' · '}
+                  <strong className="font-semibold text-ink">
+                    {formatDuration(duracion, idioma)}
+                  </strong>
                 </p>
               )}
             </fieldset>
