@@ -489,6 +489,13 @@ export const en: Record<keyof typeof es, string> = {
   'neg.cp': 'Postcode',
   'neg.direccionWeb':
     'The web address of your page ({slug}) doesn’t change when you change the name: if it did, every link you’ve already shared would break.',
+  'neg.fotos': 'Listing photos',
+  'neg.fotosPista':
+    'What people see when they look at your business on the marketplace, before booking. The first one is the one shown in search.',
+  'neg.subirFoto': 'Upload photo',
+  'neg.quitarFoto': 'Remove photo',
+  'neg.fotosContador': '{n} of {max} photos',
+  'neg.errFoto': 'That photo couldn’t be read. Try another one in JPG or PNG.',
   'neg.vacaciones': 'Holidays and closures',
   'neg.vacacionesPista': 'Closed days vanish from the search: nobody can book on them.',
   'neg.desde': 'From',

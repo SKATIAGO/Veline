@@ -10,6 +10,7 @@ import {
   resolverLocalDelPanel,
 } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
+import { idDeImagen } from '../extras.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
 import { bookingCode } from '../codigo.js'
@@ -451,12 +452,31 @@ export async function negocioRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'configuracion')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
-    const parsed = z.object({ photos: z.array(z.string().url()).max(10) }).safeParse(req.body)
+    // Direcciones de fotos ya subidas a /panel/:slug/imagenes, no URLs
+    // sueltas: exigir z.string().url() nunca dejaba guardar nada, porque esas
+    // fotos viven en /api/imagenes/:id, una ruta relativa a este dominio.
+    const parsed = z.object({ photos: z.array(z.string().max(80)).max(10) }).safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: 'Fotos inválidas' })
+
+    // Sin duplicados: no hay motivo para enseñar la misma foto dos veces en
+    // la ficha, y un duplicado colado inflaría la cuenta de más abajo.
+    const fotos = [...new Set(parsed.data.photos)]
+    const ids = fotos.map(idDeImagen)
+    if (ids.some((id) => id === null)) {
+      return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
+    }
+    // Cada foto tiene que ser nuestra y de este negocio: si no, se podría
+    // enseñar en la ficha una foto subida por otro negocio.
+    const validas = await prisma.imagen.count({
+      where: { id: { in: ids as string[] }, businessId: auth.business.id },
+    })
+    if (validas !== ids.length) {
+      return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
+    }
 
     await prisma.business.update({
       where: { id: auth.business.id },
-      data: { photos: parsed.data.photos },
+      data: { photos: fotos },
     })
 
     audit(req, {
@@ -466,10 +486,10 @@ export async function negocioRoutes(app: FastifyInstance) {
       businessId: auth.business.id,
       entity: 'Business',
       entityId: auth.business.id,
-      metadata: { fotos: parsed.data.photos.length },
+      metadata: { fotos: fotos.length },
     })
 
-    return { ok: true, photos: parsed.data.photos }
+    return { ok: true, photos: fotos }
   })
 
   /* ── Clientes ─────────────────────────────────────────────

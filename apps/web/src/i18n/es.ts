@@ -489,6 +489,13 @@ export const es = {
   'neg.cp': 'Código postal',
   'neg.direccionWeb':
     'La dirección web de tu ficha ({slug}) no cambia aunque cambies el nombre: si cambiara, se romperían todos los enlaces que ya hayas compartido.',
+  'neg.fotos': 'Fotos de la ficha',
+  'neg.fotosPista':
+    'Las que ve quien mira tu negocio en el marketplace, antes de reservar. La primera es la que sale en el buscador.',
+  'neg.subirFoto': 'Subir foto',
+  'neg.quitarFoto': 'Quitar foto',
+  'neg.fotosContador': '{n} de {max} fotos',
+  'neg.errFoto': 'No se ha podido leer esa foto. Prueba con otra en JPG o PNG.',
   'neg.vacaciones': 'Vacaciones y festivos',
   'neg.vacacionesPista':
     'Los días cerrados desaparecen del buscador: nadie podrá reservar en ellos.',

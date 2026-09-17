@@ -1,9 +1,11 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CATEGORIES } from '@veline/shared'
 import { api, ApiError, type PanelProfile } from '../../lib/api'
+import { prepararFoto } from '../../lib/imagen'
 import {
+  BarraGuardar,
   Button,
   Card,
   ConfirmAction,
@@ -13,10 +15,11 @@ import {
   PageHeader,
   Select,
   Skeleton,
+  Spinner,
   SuccessNote,
   Textarea,
-  BarraGuardar,
 } from '../../components/ui'
+import { Photo } from '../../components/Photo'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { useCambiosSinGuardar } from '../../lib/cambios'
 
@@ -28,6 +31,115 @@ import { useCambiosSinGuardar } from '../../lib/cambios'
  * que un local no podía cerrar por vacaciones aunque el motor de huecos ya
  * sabía respetarlos.
  */
+
+/** El mismo tope que acepta el servidor: aquí evita subir una foto de más
+    para que el guardado la rechace después. */
+const MAX_FOTOS = 10
+
+/**
+ * Las fotos de la ficha pública: las que ve quien mira el negocio en el
+ * marketplace, antes de reservar. Hasta ahora esta pantalla no tenía dónde
+ * subirlas —el negocio solo podía enseñar fotos si alguien se las cargaba a
+ * mano en la base de datos—, así que la ficha se quedaba con las que traía de
+ * fábrica o sin ninguna.
+ *
+ * Cada foto se sube y se guarda al momento, igual que en la carta de extras:
+ * no hay un botón de «guardar fotos» aparte que se pueda olvidar pulsar.
+ */
+function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
+  const { t } = useIdioma()
+  const queryClient = useQueryClient()
+  const selector = useRef<HTMLInputElement>(null)
+
+  const invalidar = () => {
+    queryClient.invalidateQueries({ queryKey: ['panel', slug, 'profile'] })
+    queryClient.invalidateQueries({ queryKey: ['business', slug] })
+    queryClient.invalidateQueries({ queryKey: ['businesses'] })
+  }
+
+  const guardar = useMutation({
+    mutationFn: (nuevas: string[]) => api.savePhotos(slug, nuevas),
+    onSuccess: invalidar,
+  })
+
+  const subir = useMutation({
+    mutationFn: async (archivo: File) => {
+      const { url } = await api.subirImagen(slug, await prepararFoto(archivo))
+      return url
+    },
+    onSuccess: (url) => guardar.mutate([...fotos, url]),
+  })
+
+  const quitar = (url: string) => guardar.mutate(fotos.filter((f) => f !== url))
+
+  const enBusca = subir.isPending || guardar.isPending
+
+  return (
+    <div>
+      <h2 className="mb-1 font-display text-subheading font-semibold text-ink">{t('neg.fotos')}</h2>
+      <p className="mb-4 text-body text-muted">{t('neg.fotosPista')}</p>
+
+      <Card padded>
+        <div className="flex flex-wrap gap-3">
+          {fotos.map((url) => (
+            <div key={url} className="group relative size-28 shrink-0">
+              <Photo src={url} alt="" width={224} height={224} className="size-full rounded-xl" />
+              <button
+                type="button"
+                onClick={() => quitar(url)}
+                disabled={enBusca}
+                aria-label={t('neg.quitarFoto')}
+                className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-ink/70 text-body-2 text-white backdrop-blur transition-colors duration-200 hover:bg-ink disabled:pointer-events-none disabled:opacity-50"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+          {fotos.length < MAX_FOTOS && (
+            <button
+              type="button"
+              onClick={() => selector.current?.click()}
+              disabled={enBusca}
+              aria-label={t('neg.subirFoto')}
+              className="relative grid size-28 shrink-0 place-items-center rounded-xl border border-dashed border-line-strong bg-canvas text-meta font-semibold text-muted transition-colors duration-200 hover:border-brand hover:text-brand-text disabled:pointer-events-none disabled:opacity-60"
+            >
+              {subir.isPending ? (
+                <Spinner />
+              ) : (
+                <span className="px-3 text-center">+ {t('neg.subirFoto')}</span>
+              )}
+            </button>
+          )}
+        </div>
+
+        <p className="mt-3 text-meta text-subtle">
+          {t('neg.fotosContador', { n: fotos.length, max: MAX_FOTOS })}
+        </p>
+
+        {(subir.isError || guardar.isError) && (
+          <ErrorNote>
+            {guardar.error instanceof ApiError ? guardar.error.message : t('neg.errFoto')}
+          </ErrorNote>
+        )}
+
+        <input
+          ref={selector}
+          type="file"
+          accept="image/*"
+          tabIndex={-1}
+          className="sr-only"
+          onChange={(e) => {
+            const archivo = e.target.files?.[0]
+            // Se vacía: si no, elegir la misma foto otra vez no hace nada.
+            e.target.value = ''
+            if (archivo) subir.mutate(archivo)
+          }}
+        />
+      </Card>
+    </div>
+  )
+}
 
 const hoy = () => new Date().toISOString().slice(0, 10)
 
@@ -279,6 +391,8 @@ export function PanelNegocio() {
           />
         </p>
       </Card>
+
+      <FotosDelNegocio slug={slug} fotos={form.photos} />
 
       <div>
         <h2 className="mb-1 font-display text-subheading font-semibold text-ink">
