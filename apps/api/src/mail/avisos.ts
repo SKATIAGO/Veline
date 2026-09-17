@@ -37,7 +37,7 @@ const cargarCita = (bookingId: string) =>
       staff: true,
       location: true,
       business: true,
-      extras: { select: { name: true, priceCents: true }, orderBy: { id: 'asc' } },
+      extras: { select: { name: true, priceCents: true, quantity: true }, orderBy: { id: 'asc' } },
     },
   })
 

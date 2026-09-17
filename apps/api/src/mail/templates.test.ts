@@ -122,8 +122,9 @@ describe('extras en los correos de la cita', () => {
     ...base,
     priceCents: 3700,
     extras: [
-      { name: `${MALO}Hidratación`, priceCents: 1200 },
-      { name: 'Bebida', priceCents: 0 },
+      { name: `${MALO}Hidratación`, priceCents: 1200, quantity: 1 },
+      { name: 'Bebida', priceCents: 0, quantity: 1 },
+      { name: 'Uña rota', priceCents: 500, quantity: 3 },
     ],
   }
 
@@ -136,6 +137,13 @@ describe('extras en los correos de la cita', () => {
       expect(m.text).toContain('Bebida (+0,00')
       expect(m.html).toContain('Hidratación (+12,00')
     }
+  })
+
+  /* Lo que se cobra es la línea entera. Enseñar 5,00 € cuando se van a cobrar
+     15,00 € es la clase de sorpresa que se descubre pagando. */
+  it('un extra pedido varias veces dice cuántas y cuánto suma', () => {
+    const m = bookingConfirmedToCustomer(conExtras)
+    expect(m.text).toContain('Uña rota ×3 (+15,00')
   })
 
   it('el nombre del extra lo escribe el negocio: también se escapa', () => {

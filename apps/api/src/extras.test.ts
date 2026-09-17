@@ -52,30 +52,49 @@ describe('elegirExtras', () => {
     { id: 'b', name: 'Bebida', priceCents: 250, durationMin: 0 },
   ]
 
+  const pedir = (extraId: string, quantity = 1) => ({ extraId, quantity })
+
   it('devuelve los pedidos, con su precio de la carta', () => {
-    expect(elegirExtras(['b'], carta)).toEqual([carta[1]])
+    expect(elegirExtras([pedir('b')], carta)).toEqual([{ ...carta[1], quantity: 1 }])
   })
 
   it('sin pedir ninguno, ninguno', () => {
     expect(elegirExtras([], carta)).toEqual([])
   })
 
-  it('pedir el mismo dos veces no lo cobra dos veces', () => {
-    expect(elegirExtras(['a', 'a'], carta)).toEqual([carta[0]])
+  it('guarda cuántas veces se pidió cada uno', () => {
+    expect(elegirExtras([pedir('a', 3)], carta)).toEqual([{ ...carta[0], quantity: 3 }])
+  })
+
+  /* Repetir la misma línea es un fallo del cliente, no una petición de dos
+     cosas distintas: se suma en una sola, que es lo que quiso decir. */
+  it('el mismo extra en dos líneas se suma en una', () => {
+    expect(elegirExtras([pedir('a', 2), pedir('a', 1)], carta)).toEqual([
+      { ...carta[0], quantity: 3 },
+    ])
   })
 
   it('si uno ya no está en la carta, no reserva sin él en silencio', () => {
-    expect(elegirExtras(['a', 'desaparecido'], carta)).toBeNull()
+    expect(elegirExtras([pedir('a'), pedir('desaparecido')], carta)).toBeNull()
   })
 
   it('no acepta un extra de otro negocio', () => {
-    expect(elegirExtras(['de-otro-negocio'], carta)).toBeNull()
+    expect(elegirExtras([pedir('de-otro-negocio')], carta)).toBeNull()
   })
 })
 
 describe('totalConExtras', () => {
   it('suma el servicio y los extras', () => {
-    expect(totalConExtras(3000, [{ priceCents: 1200 }, { priceCents: 250 }])).toBe(4450)
+    expect(
+      totalConExtras(3000, [
+        { priceCents: 1200, quantity: 1 },
+        { priceCents: 250, quantity: 1 },
+      ]),
+    ).toBe(4450)
+  })
+
+  it('cobra cada extra las veces que se pidió', () => {
+    expect(totalConExtras(3000, [{ priceCents: 500, quantity: 3 }])).toBe(4500)
   })
 
   it('sin extras, lo del servicio', () => {
@@ -89,7 +108,18 @@ describe('totalConExtras', () => {
  */
 describe('duracionConExtras', () => {
   it('suma al servicio lo que alarga cada extra', () => {
-    expect(duracionConExtras(30, [{ durationMin: 15 }, { durationMin: 20 }])).toBe(65)
+    expect(
+      duracionConExtras(30, [
+        { durationMin: 15, quantity: 1 },
+        { durationMin: 20, quantity: 1 },
+      ]),
+    ).toBe(65)
+  })
+
+  /* Tres uñas rotas de 10 minutos son media hora más de silla, no diez
+     minutos: es el caso que hace falta que la agenda entienda. */
+  it('multiplica los minutos por las veces que se pidió', () => {
+    expect(duracionConExtras(30, [{ durationMin: 10, quantity: 3 }])).toBe(60)
   })
 
   it('sin extras, lo que dure el servicio', () => {
@@ -97,8 +127,8 @@ describe('duracionConExtras', () => {
   })
 
   /* Lo normal es que un extra no alargue nada: una bebida, un producto. La
-     agenda no puede moverse ni un minuto por añadirlo. */
+     agenda no puede moverse ni un minuto por añadirlo, ni pidiendo cinco. */
   it('los extras que no alargan no mueven la agenda', () => {
-    expect(duracionConExtras(30, [{ durationMin: 0 }, { durationMin: 0 }])).toBe(30)
+    expect(duracionConExtras(30, [{ durationMin: 0, quantity: 5 }])).toBe(30)
   })
 })

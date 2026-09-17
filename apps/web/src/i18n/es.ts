@@ -121,6 +121,8 @@ export const es = {
   'extras.pista': 'Opcional. Se suma al total de tu cita.',
   'extras.masTiempo': '+{tiempo} de cita',
   'extras.duracion': 'Duración',
+  'extras.quitarUno': 'Quitar uno de {nombre}',
+  'extras.anadirUno': 'Añadir uno de {nombre}',
   'extras.resumen': 'Resumen',
   'extras.continuar': 'Continuar',
   'extras.continuarSin': 'Continuar sin extras',

@@ -129,7 +129,13 @@ export function BookingDone() {
                       [
                         'comun.extras',
                         booking.extras
-                          .map((e) => `${e.name} (+${formatPrice(e.priceCents, idioma)})`)
+                          .map(
+                            (e) =>
+                              `${e.name}${e.quantity > 1 ? ` ×${e.quantity}` : ''} (+${formatPrice(
+                                e.priceCents * e.quantity,
+                                idioma,
+                              )})`,
+                          )
                           .join(', '),
                       ] as const,
                     ]

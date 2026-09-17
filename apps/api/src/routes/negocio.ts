@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
-import { CATEGORIES, phoneES } from '@veline/shared'
+import { CATEGORIES, extraPedidoSchema, phoneES } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { requireUser } from '../auth/sessions.js'
 import {
@@ -65,7 +65,7 @@ const manualBookingBody = z.object({
   customerPhone: phoneES,
   customerEmail: z.string().trim().toLowerCase().email().optional().or(z.literal('')),
   notes: z.string().trim().max(400).optional().or(z.literal('')),
-  extraIds: z.array(z.string().min(1)).max(20).default([]),
+  extras: z.array(extraPedidoSchema).max(20).default([]),
 })
 
 const rescheduleBody = z.object({
@@ -589,10 +589,10 @@ export async function negocioRoutes(app: FastifyInstance) {
     })
     if (!service) return reply.code(404).send({ error: 'Servicio no encontrado' })
 
-    const carta = input.extraIds.length
+    const carta = input.extras.length
       ? await prisma.extra.findMany({ where: { businessId: auth.business.id, active: true } })
       : []
-    const extras = elegirExtras(input.extraIds, carta)
+    const extras = elegirExtras(input.extras, carta)
     if (!extras) {
       return reply.code(422).send({ error: 'Alguno de los extras ya no está en la carta' })
     }
@@ -658,6 +658,7 @@ export async function negocioRoutes(app: FastifyInstance) {
                   name: e.name,
                   priceCents: e.priceCents,
                   durationMin: e.durationMin,
+                  quantity: e.quantity,
                 })),
               },
             },

@@ -30,7 +30,10 @@ const bookingInclude = {
   service: { select: { id: true, name: true, durationMin: true } },
   staff: { select: { id: true, name: true } },
   customer: { select: { name: true, phone: true, email: true } },
-  extras: { select: { name: true, priceCents: true, durationMin: true }, orderBy: { id: 'asc' } },
+  extras: {
+    select: { name: true, priceCents: true, durationMin: true, quantity: true },
+    orderBy: { id: 'asc' },
+  },
 } satisfies Prisma.BookingInclude
 
 type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclude }>
@@ -108,10 +111,10 @@ export async function bookingRoutes(app: FastifyInstance) {
 
     /* Los extras se sacan de la carta, no de la petición: el precio lo pone
        el negocio, y quien llama a la API podría mandar el que quisiera. */
-    const carta = input.extraIds.length
+    const carta = input.extras.length
       ? await prisma.extra.findMany({ where: { businessId: business.id, active: true } })
       : []
-    const extras = elegirExtras(input.extraIds, carta)
+    const extras = elegirExtras(input.extras, carta)
     if (!extras) {
       // 422 y no 409: el hueco sigue libre, lo que ha cambiado es la carta.
       return reply.code(422).send({
@@ -223,6 +226,7 @@ export async function bookingRoutes(app: FastifyInstance) {
                   name: e.name,
                   priceCents: e.priceCents,
                   durationMin: e.durationMin,
+                  quantity: e.quantity,
                 })),
               },
             },

@@ -45,23 +45,41 @@ export interface ExtraConPrecio {
   durationMin: number
 }
 
+/** Un extra de la carta con las veces que se ha pedido. */
+export type ExtraElegido<T> = T & { quantity: number }
+
 /**
- * Los extras que se van a guardar en la cita, a partir de los ids que pide
- * el cliente y de la carta que hay de verdad.
+ * Los extras que se van a guardar en la cita, a partir de lo que pide el
+ * cliente y de la carta que hay de verdad.
  *
  * Si falta alguno —se ha ocultado o borrado mientras reservaba— no se reserva
  * sin él en silencio: quien lo eligió cuenta con él y con lo que cuesta. Se
  * devuelve null y la ruta le pide que lo revise.
  */
-export function elegirExtras<T extends ExtraConPrecio>(pedidos: string[], carta: T[]): T[] | null {
-  const unicos = [...new Set(pedidos)]
-  const elegidos = carta.filter((e) => unicos.includes(e.id))
-  return elegidos.length === unicos.length ? elegidos : null
+export function elegirExtras<T extends ExtraConPrecio>(
+  pedidos: { extraId: string; quantity: number }[],
+  carta: T[],
+): ExtraElegido<T>[] | null {
+  /* El mismo extra repetido en la misma petición es un cliente con un fallo.
+     Se suman las cantidades, que es lo que quiso decir: ni cobrarlo dos veces
+     como dos líneas ni tirar la reserva entera por un descuido suyo. */
+  const porId = new Map<string, number>()
+  for (const p of pedidos) porId.set(p.extraId, (porId.get(p.extraId) ?? 0) + p.quantity)
+
+  const elegidos: ExtraElegido<T>[] = []
+  for (const [extraId, quantity] of porId) {
+    const enCarta = carta.find((e) => e.id === extraId)
+    if (!enCarta) return null
+    elegidos.push({ ...enCarta, quantity })
+  }
+  return elegidos
 }
 
-/** Lo que vale la cita: el servicio más lo elegido. */
-export const totalConExtras = (servicioCents: number, extras: { priceCents: number }[]) =>
-  servicioCents + extras.reduce((suma, e) => suma + e.priceCents, 0)
+/** Lo que vale la cita: el servicio más lo elegido, por las veces que se pidió. */
+export const totalConExtras = (
+  servicioCents: number,
+  extras: { priceCents: number; quantity: number }[],
+) => servicioCents + extras.reduce((suma, e) => suma + e.priceCents * e.quantity, 0)
 
 /**
  * Lo que dura la cita: el servicio más lo que alargue cada extra.
@@ -71,5 +89,7 @@ export const totalConExtras = (servicioCents: number, extras: { priceCents: numb
  * agenda; si se olvidara en cualquiera de los tres sitios, dos citas seguidas
  * acabarían pisándose en el mundo real aunque en la pantalla se vieran bien.
  */
-export const duracionConExtras = (servicioMin: number, extras: { durationMin: number }[]) =>
-  servicioMin + extras.reduce((suma, e) => suma + e.durationMin, 0)
+export const duracionConExtras = (
+  servicioMin: number,
+  extras: { durationMin: number; quantity: number }[],
+) => servicioMin + extras.reduce((suma, e) => suma + e.durationMin * e.quantity, 0)

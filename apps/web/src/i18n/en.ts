@@ -122,6 +122,8 @@ export const en: Record<keyof typeof es, string> = {
   'extras.pista': 'Optional. It’s added to your appointment total.',
   'extras.masTiempo': '+{tiempo} of appointment',
   'extras.duracion': 'Length',
+  'extras.quitarUno': 'Remove one {nombre}',
+  'extras.anadirUno': 'Add one {nombre}',
   'extras.resumen': 'Summary',
   'extras.continuar': 'Continue',
   'extras.continuarSin': 'Continue without extras',

@@ -80,7 +80,7 @@ export function BookingConfirm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Elegidos en el primer paso de la reserva y arrastrados por la URL desde
   // allí. Aquí solo se enseñan y se cobran.
-  const extraIds = extrasDeUrl(params)
+  const pedidos = extrasDeUrl(params)
 
   const { data: business } = useQuery({
     queryKey: ['business', slug],
@@ -93,8 +93,12 @@ export function BookingConfirm() {
      que siguen en ella: si el negocio quita uno mientras alguien reserva, al
      recargar deja de sumarse en vez de quedarse cobrado sin verse. */
   const carta = business?.extras ?? []
-  const elegidos = carta.filter((e) => extraIds.includes(e.id))
-  const tramoComun = `servicio=${serviceId}${locationId ? `&local=${locationId}` : ''}${tramoExtras(elegidos.map((e) => e.id))}`
+  const elegidos = pedidos.flatMap((p) => {
+    const extra = carta.find((e) => e.id === p.extraId)
+    return extra ? [{ extra, cantidad: p.quantity }] : []
+  })
+  const aPedir = elegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad }))
+  const tramoComun = `servicio=${serviceId}${locationId ? `&local=${locationId}` : ''}${tramoExtras(aPedir)}`
   const urlFecha = `/${slug}/reservar/fecha?${tramoComun}`
   const urlExtras = `/${slug}/reservar/extras?${tramoComun}`
 
@@ -109,7 +113,7 @@ export function BookingConfirm() {
         // El idioma en el que está mirando esta persona ahora mismo. De aquí
         // saldrán su confirmación, su recordatorio y su petición de reseña.
         idioma,
-        extraIds: elegidos.map((e) => e.id),
+        extras: aPedir,
         ...(locationId ? { locationId } : {}),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
@@ -123,10 +127,12 @@ export function BookingConfirm() {
     )
   }
 
-  const total = service.priceCents + elegidos.reduce((suma, e) => suma + e.priceCents, 0)
+  const total =
+    service.priceCents + elegidos.reduce((suma, l) => suma + l.extra.priceCents * l.cantidad, 0)
   /* Con extras que alargan, la duración del servicio a secas mentiría: es la
      hora que el cliente va a estar allí lo que tiene que ver aquí. */
-  const duracion = service.durationMin + elegidos.reduce((suma, e) => suma + e.durationMin, 0)
+  const duracion =
+    service.durationMin + elegidos.reduce((suma, l) => suma + l.extra.durationMin * l.cantidad, 0)
   const start = new Date(startsAt)
   const validStart = !Number.isNaN(start.getTime())
 
@@ -138,7 +144,7 @@ export function BookingConfirm() {
       notes: notes.trim(),
       source: origenActual(),
       idioma,
-      extraIds: elegidos.map((e) => e.id),
+      extras: aPedir,
       ...(locationId ? { locationId } : {}),
     })
     if (!parsed.success) {
@@ -238,11 +244,14 @@ export function BookingConfirm() {
               </div>
             ))}
 
-            {elegidos.map((e) => (
-              <div key={e.id} className="mb-2.5 flex justify-between gap-4 text-body">
-                <span className="min-w-0 text-muted">+ {e.name}</span>
+            {elegidos.map(({ extra, cantidad }) => (
+              <div key={extra.id} className="mb-2.5 flex justify-between gap-4 text-body">
+                <span className="min-w-0 text-muted">
+                  + {extra.name}
+                  {cantidad > 1 && ` ×${cantidad}`}
+                </span>
                 <span className="shrink-0 font-semibold text-ink tabular-nums">
-                  {formatPrice(e.priceCents, idioma)}
+                  {formatPrice(extra.priceCents * cantidad, idioma)}
                 </span>
               </div>
             ))}

@@ -4,6 +4,7 @@ import type {
   BusinessSummaryDTO,
   CreateBookingInput,
   DayAvailabilityDTO,
+  ExtraPedido,
 } from '@veline/shared'
 
 export class ApiError extends Error {
@@ -325,8 +326,8 @@ export const api = {
       serviceId: string
       startsAt: string
       staffId?: string
-      /** Extras de la carta que se añaden a la cita. */
-      extraIds?: string[]
+      /** Extras de la carta que se añaden a la cita, con su cantidad. */
+      extras?: ExtraPedido[]
       customerName: string
       customerPhone: string
       customerEmail?: string
@@ -486,8 +487,9 @@ export interface PanelBooking {
   service: { id: string; name: string; durationMin: number }
   staff: { id: string; name: string } | null
   customer: { name: string; phone: string; email: string | null }
-  /** Extras elegidos, con su precio al reservar. priceCents ya los incluye. */
-  extras: { name: string; priceCents: number }[]
+  /** Extras elegidos, con el precio de UNA unidad al reservar y cuántas se
+      pidieron. El priceCents de la cita ya los incluye. */
+  extras: { name: string; priceCents: number; quantity: number }[]
 }
 
 /** Lo que se edita de un extra de la carta. */

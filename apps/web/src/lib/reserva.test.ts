@@ -13,7 +13,8 @@ describe('extras que viajan en la URL', () => {
   })
 
   /* Un `extras=` vacío llega cuando alguien recorta la URL a mano. Sin el
-     filtro saldría [''], un id que no existe y que ensucia todas las cuentas. */
+     filtro saldría un extra sin id, que no existe y ensucia todas las
+     cuentas. */
   it('un «extras» vacío tampoco', () => {
     expect(extrasDeUrl(new URLSearchParams('servicio=abc&extras='))).toEqual([])
   })
@@ -23,19 +24,43 @@ describe('extras que viajan en la URL', () => {
   })
 
   it('lo elegido llega igual a la pantalla siguiente', () => {
-    const ids = ['ext_uno', 'ext_dos', 'ext_tres']
-    const url = new URL(`https://veline.es/karo/reservar/fecha?servicio=abc${tramoExtras(ids)}`)
-    expect(extrasDeUrl(url.searchParams)).toEqual(ids)
+    const pedidos = [
+      { extraId: 'ext_uno', quantity: 1 },
+      { extraId: 'ext_dos', quantity: 3 },
+    ]
+    const url = new URL(`https://veline.es/karo/reservar/fecha?servicio=abc${tramoExtras(pedidos)}`)
+    expect(extrasDeUrl(url.searchParams)).toEqual(pedidos)
   })
 
   /* Volver atrás y seguir adelante otra vez es lo más normal del mundo en una
      reserva, y cada vuelta pasa la lista por los dos lados. */
   it('aguanta ir y venir entre pantallas', () => {
-    const ids = ['ext_uno', 'ext_dos']
-    let params = new URLSearchParams(`servicio=abc${tramoExtras(ids)}`)
+    const pedidos = [
+      { extraId: 'ext_uno', quantity: 2 },
+      { extraId: 'ext_dos', quantity: 1 },
+    ]
+    let params = new URLSearchParams(`servicio=abc${tramoExtras(pedidos)}`)
     for (let i = 0; i < 5; i++) {
       params = new URLSearchParams(`servicio=abc${tramoExtras(extrasDeUrl(params))}`)
     }
-    expect(extrasDeUrl(params)).toEqual(ids)
+    expect(extrasDeUrl(params)).toEqual(pedidos)
+  })
+
+  /* Los enlaces que se compartieron antes de que existieran las cantidades no
+     llevan `:n`. Tienen que seguir valiendo, y valer por uno. */
+  it('un enlace viejo, sin cantidades, sigue valiendo', () => {
+    expect(extrasDeUrl(new URLSearchParams('extras=ext_uno,ext_dos'))).toEqual([
+      { extraId: 'ext_uno', quantity: 1 },
+      { extraId: 'ext_dos', quantity: 1 },
+    ])
+  })
+
+  /* Una cantidad manipulada a mano no puede dejar la reserva a medias: se lee
+     como uno y el cliente sigue con su extra. */
+  it('una cantidad imposible se lee como una', () => {
+    expect(extrasDeUrl(new URLSearchParams('extras=ext_uno:0,ext_dos:hola'))).toEqual([
+      { extraId: 'ext_uno', quantity: 1 },
+      { extraId: 'ext_dos', quantity: 1 },
+    ])
   })
 })

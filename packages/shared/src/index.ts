@@ -370,6 +370,55 @@ export const phoneES = z
     'Introduce un teléfono español de 9 dígitos',
   )
 
+/**
+ * Un extra pedido y cuántas veces.
+ *
+ * La cantidad existe porque hay extras que se venden por unidad —un arreglo de
+ * uña, una copa— y en el mostrador «tres» y «uno» no son lo mismo. Va como
+ * número y no repitiendo el id: así el precio y los minutos se multiplican en
+ * un solo sitio y no dependen de que el cliente mande la lista bien.
+ */
+export const extraPedidoSchema = z.object({
+  extraId: z.string().min(1),
+  quantity: z.number().int().min(1).max(20),
+})
+
+export type ExtraPedido = z.infer<typeof extraPedidoSchema>
+
+/**
+ * Los extras viajan por la URL entre las pantallas de la reserva, y de ahí a
+ * la consulta de huecos del servidor: `corte:2,tinte`. Sin `:n` es uno, que es
+ * el caso normal y deja los enlaces cortos.
+ *
+ * Parsear y escribir viven juntos y aquí, en lo compartido, porque el que
+ * escribe (la web) y el que lee (la API) tienen que entender exactamente lo
+ * mismo: si se separaran, el día que cambie el formato una mitad se enteraría
+ * y la otra no.
+ */
+export function parseExtrasParam(valor: string | null | undefined): ExtraPedido[] {
+  const pedidos: ExtraPedido[] = []
+  for (const trozo of (valor ?? '').split(',')) {
+    if (!trozo) continue
+    const [extraId, cantidad] = trozo.split(':')
+    if (!extraId) continue
+    const quantity = cantidad === undefined ? 1 : Number(cantidad)
+    // Una cantidad rara —texto, 0, decimales— se lee como uno: el extra se
+    // eligió, y perderlo por un enlace mal copiado sería peor.
+    pedidos.push({
+      extraId,
+      quantity: Number.isInteger(quantity) && quantity >= 1 ? Math.min(quantity, 20) : 1,
+    })
+  }
+  return pedidos
+}
+
+export function extrasParam(pedidos: ExtraPedido[]): string {
+  return pedidos
+    .filter((p) => p.quantity >= 1)
+    .map((p) => (p.quantity === 1 ? p.extraId : `${p.extraId}:${p.quantity}`))
+    .join(',')
+}
+
 export const createBookingSchema = z.object({
   serviceId: z.string().min(1),
   /** ISO 8601 del inicio de la cita. */
@@ -393,10 +442,11 @@ export const createBookingSchema = z.object({
    */
   idioma: z.enum(['es', 'en']).default('es'),
   /**
-   * Extras de la carta del negocio que quiere añadir. Solo los ids: el nombre
-   * y el precio los pone el servidor, que es quien sabe lo que valen.
+   * Extras de la carta del negocio que quiere añadir, y cuántas veces cada
+   * uno. Solo el id y la cantidad: el nombre, el precio y los minutos los
+   * pone el servidor, que es quien sabe lo que valen.
    */
-  extraIds: z.array(z.string().min(1)).max(20).default([]),
+  extras: z.array(extraPedidoSchema).max(20).default([]),
 })
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>
@@ -429,8 +479,11 @@ export interface ExtraDTO {
 /** Un extra ya elegido en una cita, con el precio y los minutos que tenía al reservar. */
 export interface BookingExtraDTO {
   name: string
+  /** De UNA unidad: lo que se cobra es este precio por la cantidad. */
   priceCents: number
+  /** De UNA unidad, igual que el precio. */
   durationMin: number
+  quantity: number
 }
 
 export interface StaffDTO {

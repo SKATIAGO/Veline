@@ -4,6 +4,7 @@ import {
   aceptaReservas,
   CATEGORIES,
   fromDateKey,
+  parseExtrasParam,
   type BusinessDTO,
   type BusinessSummaryDTO,
 } from '@veline/shared'
@@ -36,7 +37,7 @@ const availabilityQuery = z.object({
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   /** Solo hace falta cuando el negocio tiene más de un local. */
   locationId: z.string().min(1).optional(),
-  /** Los extras ya elegidos, separados por comas: alargan la cita. */
+  /** Los extras ya elegidos («corte:2,tinte»): alargan la cita. */
   extras: z.string().max(500).optional(),
 })
 
@@ -193,7 +194,7 @@ export async function businessRoutes(app: FastifyInstance) {
         from,
         to,
         locationId: parsed.data.locationId,
-        extraIds: (parsed.data.extras ?? '').split(',').filter(Boolean),
+        extras: parseExtrasParam(parsed.data.extras),
       })
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode ?? 500

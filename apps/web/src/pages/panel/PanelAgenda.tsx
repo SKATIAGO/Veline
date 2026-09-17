@@ -179,7 +179,10 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
             {booking.extras.length > 0 && (
               <span className="font-normal text-muted">
                 {' '}
-                + {booking.extras.map((e) => e.name).join(', ')}
+                +{' '}
+                {booking.extras
+                  .map((e) => (e.quantity > 1 ? `${e.name} ×${e.quantity}` : e.name))
+                  .join(', ')}
               </span>
             )}
           </span>
@@ -239,7 +242,10 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           </p>
           {booking.extras.length > 0 && (
             <p className="mt-1 text-meta text-body-2">
-              + {booking.extras.map((e) => e.name).join(', ')}
+              +{' '}
+              {booking.extras
+                .map((e) => (e.quantity > 1 ? `${e.name} ×${e.quantity}` : e.name))
+                .join(', ')}
             </p>
           )}
           {booking.notes && <p className="mt-1 text-meta text-subtle italic">{booking.notes}</p>}
@@ -339,7 +345,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
             <p className="mt-1 text-ui font-semibold text-ink">{booking.service.name}</p>
             {booking.extras.map((e) => (
               <p key={e.name} className="mt-0.5 text-meta text-body-2">
-                + {e.name} <span className="text-muted">{formatPrice(e.priceCents, idioma)}</span>
+                + {e.name}
+                {e.quantity > 1 && ` ×${e.quantity}`}{' '}
+                <span className="text-muted">{formatPrice(e.priceCents * e.quantity, idioma)}</span>
               </p>
             ))}
           </div>
@@ -495,7 +503,10 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         customerPhone: telefono.trim(),
         customerEmail: email.trim() || undefined,
         notes: notas.trim() || undefined,
-        extraIds: extrasElegidos.map((e) => e.id),
+        /* Desde el mostrador se marca o no se marca: el contador por unidades
+           está en la pantalla del cliente, que es donde se pidió. Aquí cada
+           extra marcado va una vez. */
+        extras: extrasElegidos.map((e) => ({ extraId: e.id, quantity: 1 })),
       }),
     onSuccess: onHecho,
   })

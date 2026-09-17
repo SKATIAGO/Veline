@@ -1,4 +1,4 @@
-import { toDateKey, type DayAvailabilityDTO } from '@veline/shared'
+import { toDateKey, type DayAvailabilityDTO, type ExtraPedido } from '@veline/shared'
 import { prisma } from './prisma.js'
 import { duracionConExtras } from './extras.js'
 import {
@@ -46,11 +46,11 @@ export interface AvailabilityRange {
    */
   locationId?: string
   /**
-   * Los extras que ya ha elegido quien reserva. Alargan la cita, así que
-   * cambian qué huecos caben: sin esto se ofrecerían horas en las que el
-   * servicio entra pero el servicio + el tinte no.
+   * Los extras que ya ha elegido quien reserva, con su cantidad. Alargan la
+   * cita, así que cambian qué huecos caben: sin esto se ofrecerían horas en
+   * las que el servicio entra pero el servicio + el tinte no.
    */
-  extraIds?: string[]
+  extras?: ExtraPedido[]
 }
 
 /**
@@ -94,7 +94,7 @@ export async function getAvailability({
   from,
   to,
   locationId,
-  extraIds = [],
+  extras: pedidos = [],
 }: AvailabilityRange): Promise<DayAvailabilityDTO[]> {
   const service = await prisma.service.findFirst({
     where: { id: serviceId, businessId, active: true },
@@ -105,12 +105,16 @@ export async function getAvailability({
      consulta: aquí solo se está mirando el calendario y negarse dejaría la
      pantalla en blanco por un extra que el negocio acaba de ocultar. Quien
      tiene que plantarse es la reserva, y esa sí lo hace. */
-  const extras = extraIds.length
+  const enCarta = pedidos.length
     ? await prisma.extra.findMany({
-        where: { id: { in: extraIds }, businessId, active: true },
-        select: { durationMin: true },
+        where: { id: { in: pedidos.map((p) => p.extraId) }, businessId, active: true },
+        select: { id: true, durationMin: true },
       })
     : []
+  const extras = pedidos.flatMap((p) => {
+    const extra = enCarta.find((e) => e.id === p.extraId)
+    return extra ? [{ durationMin: extra.durationMin, quantity: p.quantity }] : []
+  })
 
   const location = await resolverLocal(businessId, locationId)
 

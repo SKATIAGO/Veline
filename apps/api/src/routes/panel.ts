@@ -167,7 +167,10 @@ export async function panelRoutes(app: FastifyInstance) {
         service: { select: { id: true, name: true, durationMin: true } },
         staff: { select: { id: true, name: true } },
         customer: { select: { name: true, phone: true, email: true } },
-        extras: { select: { name: true, priceCents: true }, orderBy: { id: 'asc' } },
+        extras: {
+          select: { name: true, priceCents: true, quantity: true },
+          orderBy: { id: 'asc' },
+        },
       },
       orderBy: { startsAt: 'asc' },
     })

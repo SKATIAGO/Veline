@@ -194,10 +194,16 @@ model BookingExtra {
   /// Null si el extra se borró después. La copia de arriba se queda.
   extraId     String?
   name        String
+  /// De UNA unidad. Lo que se cobró es este precio por `quantity`.
   priceCents  Int
-  /// Se copia igual que el precio: mover una cita vieja tiene que respetar
-  /// lo que duraba cuando se reservó, no lo que dure el extra hoy.
+  /// De UNA unidad, igual que el precio.
+  ///
+  /// Se copia al reservar: mover una cita vieja tiene que respetar lo que
+  /// duraba cuando se reservó, no lo que dure el extra hoy.
   durationMin Int     @default(0)
+  /// Cuántas veces se añadió. Los extras por unidad —un arreglo de uña— se
+  /// piden de tres en tres tan a menudo como de uno en uno.
+  quantity    Int     @default(1)
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   extra   Extra?  @relation(fields: [extraId], references: [id], onDelete: SetNull)

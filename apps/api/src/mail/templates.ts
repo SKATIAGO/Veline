@@ -55,7 +55,7 @@ export interface BookingMailData {
   customerEmail?: string | null
   notes?: string | null
   /** Extras elegidos, con el precio que tenían al reservar. priceCents ya los incluye. */
-  extras?: { name: string; priceCents: number }[]
+  extras?: { name: string; priceCents: number; quantity: number }[]
 }
 
 /**
@@ -126,15 +126,27 @@ function detalles(rows: [string, string][]) {
   </table>`
 }
 
-/** Los extras en una sola fila: «Hidratación (+12,00 €), Bebida (+2,50 €)».
-    Sin extras no hay fila: la mayoría de citas no llevan, y una fila vacía
-    haría pensar que falta algo. */
+/** Los extras en una sola fila: «Hidratación (+12,00 €), Uña rota ×3 (+15,00 €)».
+    El precio es el de la línea entera, que es lo que se va a cobrar; la
+    cantidad solo se dice cuando es más de una, para no escribir «×1» en la
+    mayoría de las citas.
+
+    Sin extras no hay fila: la mayoría no llevan, y una fila vacía haría
+    pensar que falta algo. */
 const filaExtras = (b: BookingMailData, idioma: Idioma): [string, string][] =>
   b.extras?.length
     ? [
         [
           'Extras',
-          b.extras.map((e) => `${e.name} (+${formatPrice(e.priceCents, idioma)})`).join(', '),
+          b.extras
+            .map(
+              (e) =>
+                `${e.name}${e.quantity > 1 ? ` ×${e.quantity}` : ''} (+${formatPrice(
+                  e.priceCents * e.quantity,
+                  idioma,
+                )})`,
+            )
+            .join(', '),
         ],
       ]
     : []
