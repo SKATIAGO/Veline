@@ -27,6 +27,13 @@ leer_env() {
 SALUD="$(leer_env PUBLIC_WEB_URL || true)"
 SALUD="${SALUD:-https://veline.es}/api/health"
 
+# Marca el último commit que este script desplegó con éxito. No comparamos
+# contra el HEAD local: si alguien commitea y empuja desde esta misma carpeta
+# (en vez de desde su portátil, como es lo normal), el HEAD local ya coincide
+# con origin/main antes de que este script se conecte, y "no hay nada nuevo"
+# sería falso aunque el contenedor siga corriendo el build viejo.
+MARCADOR=".ultimo-desplegado"
+
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
 esperar_salud() {
@@ -40,14 +47,14 @@ esperar_salud() {
   return 1
 }
 
-ANTERIOR=$(git rev-parse HEAD)
-log "commit actual: ${ANTERIOR:0:8}"
+ANTERIOR=$(cat "$MARCADOR" 2>/dev/null || true)
+log "último desplegado con éxito: ${ANTERIOR:+${ANTERIOR:0:8}}${ANTERIOR:-ninguno registrado}"
 
 log "trayendo cambios..."
 git fetch --quiet origin main
 NUEVO=$(git rev-parse origin/main)
 
-if [ "$ANTERIOR" = "$NUEVO" ]; then
+if [ -n "$ANTERIOR" ] && [ "$ANTERIOR" = "$NUEVO" ]; then
   log "no hay nada nuevo que desplegar"
   exit 0
 fi
@@ -55,10 +62,15 @@ fi
 # El Caddyfile va montado como archivo suelto y Docker ata el montaje al
 # inodo: git lo reemplaza con uno nuevo y el contenedor seguiría viendo el
 # viejo. Si cambió, hay que RECREAR caddy, no basta con recargarlo.
-CADDY_CAMBIO=false
-if ! git diff --quiet "$ANTERIOR" "$NUEVO" -- Caddyfile; then
-  CADDY_CAMBIO=true
-  log "el Caddyfile cambió: caddy se recreará"
+# Sin marcador previo (primera vez que corre esta versión del script, o
+# ninguna se registró todavía) no se puede diferenciar: se asume que sí, es
+# el lado seguro.
+CADDY_CAMBIO=true
+if [ -n "$ANTERIOR" ] && git diff --quiet "$ANTERIOR" "$NUEVO" -- Caddyfile; then
+  CADDY_CAMBIO=false
+fi
+if [ "$CADDY_CAMBIO" = true ]; then
+  log "caddy se recreará"
 fi
 
 git merge --ff-only origin/main
@@ -74,10 +86,16 @@ fi
 log "esperando a que el sitio responda..."
 if esperar_salud; then
   log "✅ despliegue correcto: ${NUEVO:0:8}"
+  echo "$NUEVO" > "$MARCADOR"
   $COMPOSE ps --format '{{.Service}}\t{{.Status}}'
   # Limpia imágenes viejas para que el disco no se llene con cada despliegue.
   docker image prune -f >/dev/null 2>&1 || true
   exit 0
+fi
+
+if [ -z "$ANTERIOR" ]; then
+  log "🛑 el sitio NO responde y no hay un despliegue anterior registrado al que volver. Hace falta mirarlo a mano."
+  exit 1
 fi
 
 log "🛑 el sitio NO responde tras el despliegue. Volviendo a ${ANTERIOR:0:8}"
