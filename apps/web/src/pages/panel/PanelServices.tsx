@@ -16,7 +16,7 @@ import {
   Textarea,
   cx,
 } from '../../components/ui'
-import { SelectorDuracion } from '../../components/SelectorDuracion'
+import { CampoDuracion } from '../../components/SelectorDuracion'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { CartaDeExtras } from './CartaDeExtras'
 
@@ -104,21 +104,18 @@ function ServiceForm({
         </Field>
         {/* A rueda y no escribiendo el número: quien monta su carta piensa en
             «hora y media», no en 90, y la cuenta a mano es donde se cuela un 9
-            en lugar de un 90. La pista dice en alto lo que se ha elegido. */}
-        <Field
+            en lugar de un 90. Cerrada por defecto: desplegada empujaría el
+            resto del formulario cada vez que se abre este. */}
+        <CampoDuracion
           label={t('serv.duracion')}
-          hint={formatDuration(Number(draft.durationMin) || 0, idioma)}
           required
-        >
-          <SelectorDuracion
-            minutos={Number(draft.durationMin) || 0}
-            min={MIN_DURACION}
-            max={MAX_DURACION}
-            etiquetaHoras={t('serv.horas')}
-            etiquetaMinutos={t('serv.minutos')}
-            onCambiar={(m) => setDraft({ ...draft, durationMin: String(m) })}
-          />
-        </Field>
+          minutos={Number(draft.durationMin) || 0}
+          min={MIN_DURACION}
+          max={MAX_DURACION}
+          etiquetaHoras={t('serv.horas')}
+          etiquetaMinutos={t('serv.minutos')}
+          onCambiar={(m) => setDraft({ ...draft, durationMin: String(m) })}
+        />
         <Field
           label={t('serv.precio')}
           htmlFor={`${id}-price`}

@@ -1,4 +1,5 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { formatDuration } from '@veline/shared'
 import { cx } from './ui'
 import { useIdioma } from '../i18n/idioma'
 
@@ -21,6 +22,10 @@ const ALTO = 44
 
 /** Cuántas filas se ven a la vez. Impar, para que haya una en el centro. */
 const VISIBLES = 5
+
+/** Ancho de cada columna. Estrecha, el dedo la arrastraba sin apuntar bien:
+    esto le da una zona de agarre cómoda, del tamaño de un botón normal. */
+const ANCHO_COLUMNA = 76
 
 function Columna({
   valores,
@@ -96,13 +101,13 @@ function Columna({
       aria-label={etiqueta}
       onScroll={alMover}
       onKeyDown={alTeclear}
+      style={{ height: VISIBLES * ALTO, width: ANCHO_COLUMNA, scrollPaddingTop: relleno }}
       className={cx(
         'sin-barra snap-y snap-mandatory overflow-y-auto overscroll-contain',
         // Se difumina por arriba y por abajo: deja ver que hay más sin que los
         // números de los bordes compitan con el elegido.
         '[mask-image:linear-gradient(to_bottom,transparent,black_22%,black_78%,transparent)]',
       )}
-      style={{ height: VISIBLES * ALTO, scrollPaddingTop: relleno }}
     >
       <div style={{ paddingTop: relleno, paddingBottom: relleno }}>
         {valores.map((v) => {
@@ -133,6 +138,7 @@ function Columna({
 
 const HASTA = (n: number) => Array.from({ length: n }, (_, i) => i)
 
+/** La rueda sola, sin envoltorio: horas y minutos, siempre visible. */
 export function SelectorDuracion({
   minutos,
   onCambiar,
@@ -156,15 +162,15 @@ export function SelectorDuracion({
   const cabe = (m: number) => m >= min && m <= max
 
   return (
-    <div className="relative flex w-fit items-stretch gap-1 rounded-xl border border-line bg-surface px-3">
+    <div className="relative mx-1 flex w-fit items-stretch">
       {/* La banda del centro marca lo elegido y no se puede pulsar: es el
           fondo de la fila, no un control. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-2 top-1/2 h-11 -translate-y-1/2 rounded-lg bg-canvas"
+        className="pointer-events-none absolute inset-x-1 top-1/2 h-11 -translate-y-1/2 rounded-lg bg-canvas"
       />
 
-      <div className="relative flex items-center gap-1">
+      <div className="relative flex items-center gap-2 pl-1">
         <Columna
           valores={HASTA(Math.floor(max / 60) + 1)}
           valor={horas}
@@ -172,12 +178,16 @@ export function SelectorDuracion({
           permitido={(h) => cabe(h * 60 + sueltos) || cabe(h * 60)}
           onElegir={(h) => onCambiar(Math.min(Math.max(h * 60 + sueltos, min), max))}
         />
-        <span aria-hidden className="text-meta text-muted">
+        <span aria-hidden className="text-body text-muted">
           {t('comun.h')}
         </span>
       </div>
 
-      <div className="relative flex items-center gap-1">
+      {/* Separador entre las dos ruedas: sin él, «0 34» se leía como un solo
+          número y no como hora y minuto de columnas distintas. */}
+      <div aria-hidden className="mx-2 w-px shrink-0 self-stretch bg-line" />
+
+      <div className="relative flex items-center gap-2 pr-1">
         <Columna
           valores={HASTA(60)}
           valor={sueltos}
@@ -185,9 +195,89 @@ export function SelectorDuracion({
           permitido={(m) => cabe(horas * 60 + m)}
           onElegir={(m) => onCambiar(horas * 60 + m)}
         />
-        <span aria-hidden className="text-meta text-muted">
+        <span aria-hidden className="text-body text-muted">
           {t('comun.min')}
         </span>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Un campo de duración, cerrado por defecto.
+ *
+ * La rueda entera —dos columnas, con sus etiquetas— ocupa más de lo que un
+ * formulario normal dedica a un campo, y tenerla siempre desplegada empuja
+ * todo lo de abajo. Aquí se ve como cualquier otro campo, con lo elegido
+ * escrito («1 h 30 min»); tocarlo abre la rueda debajo, y tocarlo otra vez
+ * la cierra, dejando de nuevo solo el texto. Así se puede ajustar antes
+ * horas y luego minutos sin que se cierre a mitad.
+ */
+export function CampoDuracion({
+  label,
+  required,
+  minutos,
+  onCambiar,
+  min,
+  max,
+  etiquetaHoras,
+  etiquetaMinutos,
+}: {
+  label: string
+  required?: boolean
+  minutos: number
+  onCambiar: (m: number) => void
+  min?: number
+  max?: number
+  etiquetaHoras: string
+  etiquetaMinutos: string
+}) {
+  const { idioma } = useIdioma()
+  const [abierto, setAbierto] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-meta font-semibold text-body-2">
+        {label}
+        {required && <span className="text-brand-text"> *</span>}
+      </span>
+
+      <button
+        type="button"
+        aria-expanded={abierto}
+        onClick={() => setAbierto((o) => !o)}
+        className="flex h-11 w-full items-center justify-between rounded-lg border border-line bg-surface px-3.5 text-body text-ink transition-colors duration-200 hover:border-line-strong"
+      >
+        {formatDuration(minutos, idioma)}
+        <span
+          aria-hidden
+          className={cx(
+            'text-meta text-muted transition-transform duration-200',
+            abierto && 'rotate-180',
+          )}
+        >
+          ▾
+        </span>
+      </button>
+
+      {/* Grid de 0fr a 1fr: la misma cortina que las preguntas de precios,
+          para que abrir y cerrar se vea como un gesto y no como un salto. */}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: abierto ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <div className="pt-3">
+            <SelectorDuracion
+              minutos={minutos}
+              onCambiar={onCambiar}
+              min={min}
+              max={max}
+              etiquetaHoras={etiquetaHoras}
+              etiquetaMinutos={etiquetaMinutos}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
