@@ -190,16 +190,36 @@ export function Pricing() {
                   <span className="font-display text-lg font-semibold text-ink">
                     {t(extra.nombre)}
                   </span>
-                  <span className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text">
-                    {t(extra.precio)}
-                  </span>
+                  {/* Sin tarifa fija, el precio se sustituye por un enlace de
+                      correo: no hay número que dar hasta hablarlo. */}
+                  {'contacto' in extra && extra.contacto ? (
+                    <a
+                      href={`mailto:${CONTACT_EMAIL}${
+                        'asunto' in extra && extra.asunto
+                          ? `?subject=${encodeURIComponent(t(extra.asunto))}`
+                          : ''
+                      }`}
+                      className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text hover:text-ink"
+                    >
+                      {t('pre.escribenos')}
+                    </a>
+                  ) : (
+                    'precio' in extra &&
+                    extra.precio && (
+                      <span className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text">
+                        {t(extra.precio)}
+                      </span>
+                    )
+                  )}
                 </div>
                 <ul className="flex flex-col gap-2.5">
                   {extra.items.map((item) => (
                     <Feature key={item}>{t(item)}</Feature>
                   ))}
                 </ul>
-                <p className="mt-4 text-meta text-subtle">{t(extra.nota)}</p>
+                {'nota' in extra && extra.nota && (
+                  <p className="mt-4 text-meta text-subtle">{t(extra.nota)}</p>
+                )}
               </Card>
             </Reveal>
           ))}

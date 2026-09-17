@@ -972,8 +972,9 @@ export const es = {
   'home.calendario': 'Calendario adaptable',
   'home.calendarioTexto':
     'Gestión de calendario que se ajusta a cómo trabaja cada negocio, no al revés.',
-  'home.gestionAdmin': 'Gestión administrativa',
-  'home.gestionAdminTexto': 'Nos ocupamos del papeleo del día a día para quien prefiera delegarlo.',
+  'home.gestionAdmin': 'Gestión de redes',
+  'home.gestionAdminTexto':
+    'Publicamos, respondemos y cuidamos tus redes sociales para quien prefiera delegarlo.',
   'home.soporte': 'Soporte y atención',
   'home.soporteTexto': 'Un equipo disponible para ayudarte cuando lo necesites.',
   'home.webPersonalizada': 'Web personalizada',
@@ -1058,12 +1059,11 @@ export const es = {
   'pre.webI3': 'Administrador propio',
   'pre.webI4': 'Gestión de varios locales',
   'pre.webI5': 'Correo corporativo — a consultar',
-  'pre.gestionNombre': 'Gestión administrativa',
-  'pre.gestionPrecio': '50 € /mes',
-  'pre.gestionNota': 'nos ocupamos nosotros',
-  'pre.gestionI1': 'Cambios de horarios y precios',
-  'pre.gestionI2': 'Información del negocio al día',
-  'pre.gestionI3': 'Altas y bajas de personas y del equipo',
+  'pre.gestionNombre': 'Gestión de redes',
+  'pre.gestionAsunto': 'Gestión de redes',
+  'pre.gestionI1': 'Publicaciones periódicas en tus redes',
+  'pre.gestionI2': 'Respuesta a mensajes y comentarios',
+  'pre.gestionI3': 'Calendario de contenido a tu medida',
   'pre.resenasNombre': 'Reseñas',
   'pre.incluidoSiempre': 'incluido siempre',
   'pre.resenasI1': 'Recogida y publicación de las reseñas de tus clientes',
@@ -1085,7 +1085,7 @@ export const es = {
   'pre.loQuePreguntan': 'Lo que suelen preguntarnos',
   'pre.q1': '¿Necesito saber de informática?',
   'pre.a1':
-    'No. Creas el perfil, pones tus servicios y tus horarios, y ya puedes recibir reservas. Si prefieres no tocar nada, contratas la gestión administrativa y lo hacemos por ti.',
+    'No. Creas el perfil, pones tus servicios y tus horarios, y ya puedes recibir reservas.',
   'pre.q2': '¿Qué pasa cuando acaban los {n} días de prueba?',
   'pre.a2':
     'Nada automático: no se te cobra nada sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',

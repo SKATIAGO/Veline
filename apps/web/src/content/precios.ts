@@ -100,8 +100,10 @@ export const EXTRAS = [
   },
   {
     nombre: 'pre.gestionNombre',
-    precio: 'pre.gestionPrecio',
-    nota: 'pre.gestionNota',
+    /* Sin precio de tarifa: esto se habla por correo, así que en vez del
+       precio la tarjeta enseña un enlace de contacto. */
+    contacto: true,
+    asunto: 'pre.gestionAsunto',
     items: ['pre.gestionI1', 'pre.gestionI2', 'pre.gestionI3'],
   },
   {
@@ -118,8 +120,13 @@ export const EXTRAS = [
   },
 ] as const satisfies readonly {
   nombre: Clave
-  precio: Clave
-  nota: Clave
+  /** Cuando se contrata por correo y no hay tarifa fija que enseñar. */
+  contacto?: boolean
+  /** El asunto del correo, si se contrata así. Traducido: se escribe en el
+      idioma de quien lo manda. */
+  asunto?: Clave
+  precio?: Clave
+  nota?: Clave
   items: readonly Clave[]
 }[]
 
