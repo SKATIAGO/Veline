@@ -76,7 +76,7 @@ function ServiceForm({
   pending: boolean
   error?: string | null
 }) {
-  const { t, idioma } = useIdioma()
+  const { t } = useIdioma()
   const id = useId()
   // Se avisa al intentar guardar, no mientras se escribe: corregir a alguien
   // en mitad de una palabra es molesto y no ayuda.
