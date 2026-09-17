@@ -115,7 +115,6 @@ export function PanelPersonas() {
           >
             <Input
               id={`${id}-nueva`}
-              placeholder={t('pers.nombreEjemplo')}
               autoComplete="off"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}

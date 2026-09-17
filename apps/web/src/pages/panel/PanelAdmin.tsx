@@ -235,11 +235,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
       >
         <label className="flex min-w-[260px] flex-1 flex-col gap-1.5">
           <span className="text-meta font-semibold text-body-2">{t('adm.notaInterna')}</span>
-          <Input
-            value={notas}
-            onChange={(e) => setNotas(e.target.value)}
-            placeholder={t('adm.notaEjemplo')}
-          />
+          <Input value={notas} onChange={(e) => setNotas(e.target.value)} />
         </label>
         <Button type="submit" variant="secondary" loading={cambiar.isPending}>
           {t('adm.guardarNota')}
@@ -527,7 +523,6 @@ export function PanelAdmin() {
               <Field label={t('adm.nombre')} htmlFor={`${id}-bn`} required>
                 <Input
                   id={`${id}-bn`}
-                  placeholder={t('adm.nombreNegocioEjemplo')}
                   value={businessDraft.name}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, name: e.target.value })}
                 />
@@ -554,7 +549,6 @@ export function PanelAdmin() {
                 <Input
                   id={`${id}-be`}
                   type="email"
-                  placeholder={t('adm.emailNegocioEjemplo')}
                   value={businessDraft.email}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, email: e.target.value })}
                 />
@@ -562,7 +556,6 @@ export function PanelAdmin() {
               <Field label={t('adm.telefono')} htmlFor={`${id}-bp`} hint={t('adm.opcional')}>
                 <Input
                   id={`${id}-bp`}
-                  placeholder="600 000 000"
                   value={businessDraft.phone}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, phone: e.target.value })}
                 />
@@ -570,7 +563,6 @@ export function PanelAdmin() {
               <Field label={t('adm.calle')} htmlFor={`${id}-bs`} required>
                 <Input
                   id={`${id}-bs`}
-                  placeholder={t('adm.calleEjemplo')}
                   value={businessDraft.street}
                   onChange={(e) => setBusinessDraft({ ...businessDraft, street: e.target.value })}
                 />
@@ -588,7 +580,6 @@ export function PanelAdmin() {
                     id={`${id}-bcp`}
                     inputMode="numeric"
                     maxLength={5}
-                    placeholder="28013"
                     value={businessDraft.postalCode}
                     onChange={(e) =>
                       setBusinessDraft({ ...businessDraft, postalCode: e.target.value })
@@ -639,7 +630,6 @@ export function PanelAdmin() {
                 <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
                   <Input
                     id={`${id}-un`}
-                    placeholder={t('adm.nombrePersonaEjemplo')}
                     value={userDraft.name}
                     onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
                   />
@@ -718,7 +708,6 @@ export function PanelAdmin() {
       {(businesses?.length ?? 0) > 6 && (
         <Input
           type="search"
-          placeholder={t('adm.buscar')}
           aria-label={t('adm.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}

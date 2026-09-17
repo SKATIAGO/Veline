@@ -111,7 +111,6 @@ export function PanelAdminUsers() {
         </div>
         <Input
           type="search"
-          placeholder={t('ctas.buscar')}
           aria-label={t('ctas.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}

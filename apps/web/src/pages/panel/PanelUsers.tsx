@@ -175,7 +175,6 @@ export function PanelUsers() {
               <Field label={t('eq.nombre')} htmlFor={`${id}-name`} required>
                 <Input
                   id={`${id}-name`}
-                  placeholder={t('eq.nombreEjemplo')}
                   autoComplete="off"
                   value={draft.name}
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
@@ -190,7 +189,6 @@ export function PanelUsers() {
                 <Input
                   id={`${id}-email`}
                   type="email"
-                  placeholder={t('eq.emailEjemplo')}
                   autoComplete="off"
                   value={draft.email}
                   onChange={(e) => setDraft({ ...draft, email: e.target.value })}

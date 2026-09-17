@@ -319,7 +319,6 @@ export function PanelNegocio() {
             <Field label={t('neg.motivo')} htmlFor={`${id}-motivo`} hint={t('neg.motivoPista')}>
               <Input
                 id={`${id}-motivo`}
-                placeholder={t('neg.motivoEjemplo')}
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
               />

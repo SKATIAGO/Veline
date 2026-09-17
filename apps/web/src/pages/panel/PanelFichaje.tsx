@@ -121,12 +121,7 @@ function Corregir({
           />
         </Field>
         <Field label={t('fic.motivo')} htmlFor={`${id}-m`} hint={t('fic.motivoPista')} required>
-          <Input
-            id={`${id}-m`}
-            placeholder={t('fic.motivoEjemplo')}
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-          />
+          <Input id={`${id}-m`} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
         </Field>
       </div>
 

@@ -560,7 +560,6 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
           <Field label={t('agenda.cliente')} htmlFor={`${id}-nombre`} required>
             <Input
               id={`${id}-nombre`}
-              placeholder={t('confirmar.nombreEjemplo')}
               autoComplete="off"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
@@ -570,7 +569,6 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
           <Field label={t('agenda.telefono')} htmlFor={`${id}-tel`} required>
             <Input
               id={`${id}-tel`}
-              placeholder="612 34 56 78"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
             />
@@ -591,12 +589,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
           </Field>
 
           <Field label={t('agenda.notas')} htmlFor={`${id}-notas`} className="sm:col-span-2">
-            <Input
-              id={`${id}-notas`}
-              placeholder={t('agenda.notasEjemplo')}
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-            />
+            <Input id={`${id}-notas`} value={notas} onChange={(e) => setNotas(e.target.value)} />
           </Field>
 
           {carta.length > 0 && (

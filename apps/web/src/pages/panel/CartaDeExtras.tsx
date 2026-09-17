@@ -181,7 +181,6 @@ function FormularioExtra({
           >
             <Input
               id={`${id}-nombre`}
-              placeholder={t('ext.nombreEjemplo')}
               autoComplete="off"
               maxLength={80}
               value={nombre}
@@ -197,7 +196,6 @@ function FormularioExtra({
             <Input
               id={`${id}-precio`}
               inputMode="decimal"
-              placeholder={t('ext.precioEjemplo')}
               value={precio}
               onChange={(e) => setPrecio(e.target.value)}
             />
@@ -219,7 +217,6 @@ function FormularioExtra({
               id={`${id}-desc`}
               rows={2}
               maxLength={200}
-              placeholder={t('ext.descripcionEjemplo')}
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
             />

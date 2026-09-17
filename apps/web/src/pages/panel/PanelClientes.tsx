@@ -86,7 +86,6 @@ export function PanelClientes() {
         </div>
         <Input
           type="search"
-          placeholder={t('clientes.buscar')}
           aria-label={t('clientes.buscarEtiqueta')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}

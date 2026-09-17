@@ -96,7 +96,6 @@ function ServiceForm({
         <Field label={t('serv.nombre')} htmlFor={`${id}-name`} required className="sm:col-span-2">
           <Input
             id={`${id}-name`}
-            placeholder={t('serv.nombreEjemplo')}
             value={draft.name}
             autoComplete="off"
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
@@ -125,7 +124,6 @@ function ServiceForm({
           <Input
             id={`${id}-price`}
             inputMode="decimal"
-            placeholder={t('serv.precioEjemplo')}
             value={draft.price}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
           />
@@ -139,7 +137,6 @@ function ServiceForm({
           <Input
             id={`${id}-buffer`}
             inputMode="numeric"
-            placeholder="0"
             value={draft.bufferMin}
             onChange={(e) => setDraft({ ...draft, bufferMin: e.target.value })}
           />
@@ -154,7 +151,6 @@ function ServiceForm({
             id={`${id}-desc`}
             rows={2}
             maxLength={300}
-            placeholder={t('serv.descripcionEjemplo')}
             value={draft.description}
             onChange={(e) => setDraft({ ...draft, description: e.target.value })}
           />

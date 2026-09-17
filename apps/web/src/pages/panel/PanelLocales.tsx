@@ -70,17 +70,11 @@ function Formulario({
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t('loc.nombre')} htmlFor={`${id}-n`} hint={t('loc.nombrePista')} required>
-            <Input
-              id={`${id}-n`}
-              placeholder={t('loc.nombreEjemplo')}
-              value={form.name}
-              onChange={(e) => set('name', e.target.value)}
-            />
+            <Input id={`${id}-n`} value={form.name} onChange={(e) => set('name', e.target.value)} />
           </Field>
           <Field label={t('loc.calle')} htmlFor={`${id}-c`} required>
             <Input
               id={`${id}-c`}
-              placeholder={t('loc.calleEjemplo')}
               value={form.street}
               onChange={(e) => set('street', e.target.value)}
             />
@@ -88,7 +82,6 @@ function Formulario({
           <Field label={t('loc.ciudad')} htmlFor={`${id}-ci`} required>
             <Input
               id={`${id}-ci`}
-              placeholder={t('loc.ciudadEjemplo')}
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
             />
@@ -98,7 +91,6 @@ function Formulario({
               id={`${id}-cp`}
               inputMode="numeric"
               maxLength={5}
-              placeholder="28019"
               value={form.postalCode}
               onChange={(e) => set('postalCode', e.target.value)}
             />

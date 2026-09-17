@@ -157,12 +157,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         >
           <label className="flex min-w-[240px] flex-1 flex-col gap-1.5">
             <span className="text-meta font-semibold text-body-2">{t('cob.comoSeCobro')}</span>
-            <Input
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
-              placeholder={t('cob.comoSeCobroEjemplo')}
-              autoFocus
-            />
+            <Input value={nota} onChange={(e) => setNota(e.target.value)} autoFocus />
           </label>
           <Button type="submit" loading={marcar.isPending}>
             {t('cob.marcarCobrado')}
