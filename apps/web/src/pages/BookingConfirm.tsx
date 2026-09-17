@@ -124,6 +124,9 @@ export function BookingConfirm() {
   }
 
   const total = service.priceCents + elegidos.reduce((suma, e) => suma + e.priceCents, 0)
+  /* Con extras que alargan, la duración del servicio a secas mentiría: es la
+     hora que el cliente va a estar allí lo que tiene que ver aquí. */
+  const duracion = service.durationMin + elegidos.reduce((suma, e) => suma + e.durationMin, 0)
   const start = new Date(startsAt)
   const validStart = !Number.isNaN(start.getTime())
 
@@ -225,7 +228,7 @@ export function BookingConfirm() {
                     })}`
                   : '—',
               },
-              { clave: 'confirmar.duracion', value: formatDuration(service.durationMin, idioma) },
+              { clave: 'confirmar.duracion', value: formatDuration(duracion, idioma) },
             ].map((row) => (
               <div key={row.clave} className="mb-2.5 flex justify-between gap-4 text-body">
                 <span className="shrink-0 text-muted">{t(row.clave as Clave)}</span>

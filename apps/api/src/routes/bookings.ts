@@ -14,7 +14,7 @@ import { sendMailSafely } from '../mail/enviar.js'
 import { idiomaDeLaReserva } from '../mail/idioma.js'
 import { avisarCancelacion, avisarConfirmacion } from '../mail/avisos.js'
 import { bookingCode } from '../codigo.js'
-import { elegirExtras, totalConExtras } from '../extras.js'
+import { duracionConExtras, elegirExtras, totalConExtras } from '../extras.js'
 import {
   bookingCancelled,
   bookingCreatedToBusiness,
@@ -30,7 +30,7 @@ const bookingInclude = {
   service: { select: { id: true, name: true, durationMin: true } },
   staff: { select: { id: true, name: true } },
   customer: { select: { name: true, phone: true, email: true } },
-  extras: { select: { name: true, priceCents: true }, orderBy: { id: 'asc' } },
+  extras: { select: { name: true, priceCents: true, durationMin: true }, orderBy: { id: 'asc' } },
 } satisfies Prisma.BookingInclude
 
 type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclude }>
@@ -129,9 +129,12 @@ export async function bookingRoutes(app: FastifyInstance) {
       return reply.code(409).send({ error: 'Esa hora ya ha pasado' })
     }
 
-    const end = new Date(start.getTime() + service.durationMin * 60_000)
+    /* Los extras alargan la cita: entran en la hora de fin, en lo que se
+       bloquea y en lo que se comprueba contra el horario. */
+    const duracion = duracionConExtras(service.durationMin, extras)
+    const end = new Date(start.getTime() + duracion * 60_000)
     const blockedTo = new Date(end.getTime() + service.bufferMin * 60_000)
-    const occupancy = service.durationMin + service.bufferMin
+    const occupancy = duracion + service.bufferMin
 
     /* En qué local. Con uno solo se coge ese y el cliente ni se entera; con
        varios hay que decirlo, porque el horario y las personas son de cada
@@ -219,6 +222,7 @@ export async function bookingRoutes(app: FastifyInstance) {
                   extraId: e.id,
                   name: e.name,
                   priceCents: e.priceCents,
+                  durationMin: e.durationMin,
                 })),
               },
             },

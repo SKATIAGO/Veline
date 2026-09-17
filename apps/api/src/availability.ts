@@ -1,5 +1,6 @@
 import { toDateKey, type DayAvailabilityDTO } from '@veline/shared'
 import { prisma } from './prisma.js'
+import { duracionConExtras } from './extras.js'
 import {
   atLocalMinutes,
   calcularDisponibilidad,
@@ -44,6 +45,12 @@ export interface AvailabilityRange {
    * primero ofrecería los huecos del local equivocado.
    */
   locationId?: string
+  /**
+   * Los extras que ya ha elegido quien reserva. Alargan la cita, así que
+   * cambian qué huecos caben: sin esto se ofrecerían horas en las que el
+   * servicio entra pero el servicio + el tinte no.
+   */
+  extraIds?: string[]
 }
 
 /**
@@ -87,11 +94,23 @@ export async function getAvailability({
   from,
   to,
   locationId,
+  extraIds = [],
 }: AvailabilityRange): Promise<DayAvailabilityDTO[]> {
   const service = await prisma.service.findFirst({
     where: { id: serviceId, businessId, active: true },
   })
   if (!service) throw Object.assign(new Error('Servicio no encontrado'), { statusCode: 404 })
+
+  /* Los extras que sigan en la carta. Un id que ya no vale NO tumba la
+     consulta: aquí solo se está mirando el calendario y negarse dejaría la
+     pantalla en blanco por un extra que el negocio acaba de ocultar. Quien
+     tiene que plantarse es la reserva, y esa sí lo hace. */
+  const extras = extraIds.length
+    ? await prisma.extra.findMany({
+        where: { id: { in: extraIds }, businessId, active: true },
+        select: { durationMin: true },
+      })
+    : []
 
   const location = await resolverLocal(businessId, locationId)
 
@@ -133,7 +152,7 @@ export async function getAvailability({
   return calcularDisponibilidad({
     from,
     to,
-    occupancyMin: service.durationMin + service.bufferMin,
+    occupancyMin: duracionConExtras(service.durationMin, extras) + service.bufferMin,
     franjas: location.openingHours.map((w) => ({
       weekday: w.weekday,
       startMin: w.startMin,

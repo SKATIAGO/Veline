@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatPrice } from '@veline/shared'
+import { formatDuration, formatPrice } from '@veline/shared'
 import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, Spinner, cx } from '../components/ui'
@@ -62,6 +62,7 @@ export function BookingExtras() {
      que se vea. */
   const elegidos = carta.filter((e) => extraIds.includes(e.id))
   const total = service.priceCents + elegidos.reduce((suma, e) => suma + e.priceCents, 0)
+  const duracion = service.durationMin + elegidos.reduce((suma, e) => suma + e.durationMin, 0)
 
   const alternar = (id: string) =>
     setExtraIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
@@ -113,6 +114,16 @@ export function BookingExtras() {
                       )}
                       <span className="mt-0.5 block text-meta font-semibold text-body-2">
                         +{formatPrice(e.priceCents, idioma)}
+                        {/* Solo si alarga: decir «+0 min» en los que no
+                            cambian nada sería ruido en toda la carta. */}
+                        {e.durationMin > 0 && (
+                          <span className="font-normal text-muted">
+                            {' · '}
+                            {t('extras.masTiempo', {
+                              tiempo: formatDuration(e.durationMin, idioma),
+                            })}
+                          </span>
+                        )}
                       </span>
                     </span>
                     <span
@@ -152,6 +163,13 @@ export function BookingExtras() {
                 </span>
               </div>
             ))}
+
+            <div className="mb-2.5 flex justify-between gap-4 text-body">
+              <span className="min-w-0 text-muted">{t('extras.duracion')}</span>
+              <span className="shrink-0 font-semibold text-ink tabular-nums">
+                {formatDuration(duracion, idioma)}
+              </span>
+            </div>
 
             <div className="mt-4 mb-5 flex justify-between border-t border-line pt-4">
               <span className="text-sm text-muted">{t('comun.total')}</span>

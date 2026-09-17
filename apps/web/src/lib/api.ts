@@ -58,7 +58,14 @@ export const api = {
 
   getAvailability: (
     slug: string,
-    params: { serviceId: string; from: string; to: string; locationId?: string },
+    params: {
+      serviceId: string
+      from: string
+      to: string
+      locationId?: string
+      /** Ids separados por comas: los extras elegidos alargan la cita. */
+      extras?: string
+    },
   ) => request<DayAvailabilityDTO[]>(`/businesses/${slug}/availability${qs(params)}`),
 
   createBooking: (slug: string, body: CreateBookingInput) =>
@@ -488,6 +495,8 @@ export interface DatosExtra {
   name: string
   description: string | null
   priceCents: number
+  /** Lo que alarga la cita, en minutos. 0 = no la alarga. */
+  durationMin: number
   photo: string | null
 }
 

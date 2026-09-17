@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { elegirExtras, idDeImagen, tipoDeImagen, totalConExtras, urlDeImagen } from './extras.js'
+import {
+  duracionConExtras,
+  elegirExtras,
+  idDeImagen,
+  tipoDeImagen,
+  totalConExtras,
+  urlDeImagen,
+} from './extras.js'
 
 const bytes = (...b: number[]) => new Uint8Array([...b, ...Array<number>(16).fill(0)])
 const texto = (s: string) => new TextEncoder().encode(s)
@@ -41,8 +48,8 @@ describe('idDeImagen · solo fotos nuestras', () => {
 
 describe('elegirExtras', () => {
   const carta = [
-    { id: 'a', name: 'Hidratación', priceCents: 1200 },
-    { id: 'b', name: 'Bebida', priceCents: 250 },
+    { id: 'a', name: 'Hidratación', priceCents: 1200, durationMin: 15 },
+    { id: 'b', name: 'Bebida', priceCents: 250, durationMin: 0 },
   ]
 
   it('devuelve los pedidos, con su precio de la carta', () => {
@@ -73,5 +80,25 @@ describe('totalConExtras', () => {
 
   it('sin extras, lo del servicio', () => {
     expect(totalConExtras(3000, [])).toBe(3000)
+  })
+})
+
+/**
+ * Esta cuenta decide si la cita CABE, no lo que se cobra. Equivocarla no se ve
+ * en pantalla: se ve semanas después, con dos clientes a la misma hora.
+ */
+describe('duracionConExtras', () => {
+  it('suma al servicio lo que alarga cada extra', () => {
+    expect(duracionConExtras(30, [{ durationMin: 15 }, { durationMin: 20 }])).toBe(65)
+  })
+
+  it('sin extras, lo que dure el servicio', () => {
+    expect(duracionConExtras(30, [])).toBe(30)
+  })
+
+  /* Lo normal es que un extra no alargue nada: una bebida, un producto. La
+     agenda no puede moverse ni un minuto por añadirlo. */
+  it('los extras que no alargan no mueven la agenda', () => {
+    expect(duracionConExtras(30, [{ durationMin: 0 }, { durationMin: 0 }])).toBe(30)
   })
 })

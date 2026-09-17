@@ -18,6 +18,8 @@ const extraBody = z.object({
   name: z.string().trim().min(2).max(80),
   description: z.string().trim().max(200).optional().or(z.literal('')),
   priceCents: z.number().int().min(0).max(1_000_000),
+  /** Lo que alarga la cita. 0 = no la alarga. El tope son 8 horas. */
+  durationMin: z.number().int().min(0).max(480).default(0),
   /** Dirección de una foto subida antes a /imagenes. Null para quitarla. */
   photo: z.string().max(80).nullable().optional(),
   active: z.boolean().default(true),

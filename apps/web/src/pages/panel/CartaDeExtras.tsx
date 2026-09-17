@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatPrice } from '@veline/shared'
+import { formatDuration, formatPrice } from '@veline/shared'
 import { api, ApiError, type DatosExtra, type PanelExtra } from '../../lib/api'
 import { prepararFoto } from '../../lib/imagen'
 import {
@@ -25,7 +25,7 @@ import { useIdioma, type Clave } from '../../i18n/idioma'
 const aCentimos = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
 const aTexto = (cents: number) => (cents / 100).toString().replace('.', ',')
 
-const VACIO: DatosExtra = { name: '', description: '', priceCents: 0, photo: null }
+const VACIO: DatosExtra = { name: '', description: '', priceCents: 0, durationMin: 0, photo: null }
 
 /** Miniatura de la carta: la foto si la hay, y si no un hueco discreto. */
 function Miniatura({ foto, className }: { foto: string | null; className?: string }) {
@@ -70,6 +70,9 @@ function FormularioExtra({
   const id = useId()
   const [nombre, setNombre] = useState(inicial.name)
   const [precio, setPrecio] = useState(inicial.name ? aTexto(inicial.priceCents) : '')
+  /* Arranca en 0 y no vacío: casi ningún extra alarga la cita, y un 0 a la
+     vista explica el campo mejor que un hueco con una pista debajo. */
+  const [minutos, setMinutos] = useState(String(inicial.durationMin))
   const [descripcion, setDescripcion] = useState(inicial.description ?? '')
   const [foto, setFoto] = useState<string | null>(inicial.photo)
   // Se avisa al intentar guardar, no mientras se escribe.
@@ -82,12 +85,15 @@ function FormularioExtra({
   })
 
   const cents = aCentimos(precio || '0')
+  const mins = Number(minutos)
   const problema: Clave | null =
     nombre.trim().length < 2
       ? 'ext.errNombre'
       : precio.trim() === '' || !Number.isFinite(cents) || cents < 0
         ? 'ext.errPrecio'
-        : null
+        : !Number.isInteger(mins) || mins < 0 || mins > 480
+          ? 'ext.errDuracion'
+          : null
 
   return (
     <form
@@ -99,6 +105,7 @@ function FormularioExtra({
           name: nombre.trim(),
           description: descripcion.trim(),
           priceCents: cents,
+          durationMin: mins,
           photo: foto,
         })
       }}
@@ -195,7 +202,19 @@ function FormularioExtra({
               onChange={(e) => setPrecio(e.target.value)}
             />
           </Field>
-          <Field label={t('ext.descripcion')} htmlFor={`${id}-desc`} className="sm:col-span-3">
+          <Field label={t('ext.duracion')} htmlFor={`${id}-minutos`} hint={t('ext.duracionPista')}>
+            <Input
+              id={`${id}-minutos`}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={480}
+              step={5}
+              value={minutos}
+              onChange={(e) => setMinutos(e.target.value)}
+            />
+          </Field>
+          <Field label={t('ext.descripcion')} htmlFor={`${id}-desc`} className="sm:col-span-2">
             <Textarea
               id={`${id}-desc`}
               rows={2}
@@ -365,6 +384,11 @@ export function CartaDeExtras({
                       )}
                     >
                       +{formatPrice(e.priceCents, idioma)}
+                      {e.durationMin > 0 && (
+                        <span className="ml-2 text-meta font-normal text-muted">
+                          +{formatDuration(e.durationMin, idioma)}
+                        </span>
+                      )}
                     </div>
                     <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
                       <Button size="sm" variant="quiet" onClick={() => setEditandoId(e.id)}>

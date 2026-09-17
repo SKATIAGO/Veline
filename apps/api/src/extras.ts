@@ -42,6 +42,7 @@ export interface ExtraConPrecio {
   id: string
   name: string
   priceCents: number
+  durationMin: number
 }
 
 /**
@@ -61,3 +62,14 @@ export function elegirExtras<T extends ExtraConPrecio>(pedidos: string[], carta:
 /** Lo que vale la cita: el servicio más lo elegido. */
 export const totalConExtras = (servicioCents: number, extras: { priceCents: number }[]) =>
   servicioCents + extras.reduce((suma, e) => suma + e.priceCents, 0)
+
+/**
+ * Lo que dura la cita: el servicio más lo que alargue cada extra.
+ *
+ * Es la misma cuenta que el precio, pero esta decide si la cita CABE. De aquí
+ * salen el hueco que se ofrece, la hora de fin y lo que se bloquea en la
+ * agenda; si se olvidara en cualquiera de los tres sitios, dos citas seguidas
+ * acabarían pisándose en el mundo real aunque en la pantalla se vieran bien.
+ */
+export const duracionConExtras = (servicioMin: number, extras: { durationMin: number }[]) =>
+  servicioMin + extras.reduce((suma, e) => suma + e.durationMin, 0)

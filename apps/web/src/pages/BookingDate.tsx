@@ -79,13 +79,24 @@ export function BookingDate() {
   } = useQuery({
     // El local va en la clave: sin él, cambiar de local enseñaría los huecos
     // del anterior sacados de la caché.
-    queryKey: ['availability', slug, service?.id, local?.id, toDateKey(from), toDateKey(to)],
+    /* Los extras van en la clave: alargan la cita, así que unos huecos con
+       extras no valen para la misma fecha sin ellos. */
+    queryKey: [
+      'availability',
+      slug,
+      service?.id,
+      local?.id,
+      extraIds.join(','),
+      toDateKey(from),
+      toDateKey(to),
+    ],
     queryFn: () =>
       api.getAvailability(slug, {
         serviceId: service!.id,
         from: toDateKey(from),
         to: toDateKey(to),
         ...(local ? { locationId: local.id } : {}),
+        ...(extraIds.length ? { extras: extraIds.join(',') } : {}),
       }),
     enabled: Boolean(service),
   })

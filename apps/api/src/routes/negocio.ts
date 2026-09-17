@@ -13,7 +13,7 @@ import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
 import { bookingCode } from '../codigo.js'
-import { elegirExtras, totalConExtras } from '../extras.js'
+import { duracionConExtras, elegirExtras, totalConExtras } from '../extras.js'
 import { avisarConfirmacion } from '../mail/avisos.js'
 
 /**
@@ -598,7 +598,9 @@ export async function negocioRoutes(app: FastifyInstance) {
     }
 
     const start = new Date(input.startsAt)
-    const end = new Date(start.getTime() + service.durationMin * 60_000)
+    // Con extras que alargan, la cita del mostrador ocupa lo mismo que la de
+    // la web: si no, el negocio se llenaría la agenda de solapes propios.
+    const end = new Date(start.getTime() + duracionConExtras(service.durationMin, extras) * 60_000)
     const blockedTo = new Date(end.getTime() + service.bufferMin * 60_000)
 
     try {
@@ -655,6 +657,7 @@ export async function negocioRoutes(app: FastifyInstance) {
                   extraId: e.id,
                   name: e.name,
                   priceCents: e.priceCents,
+                  durationMin: e.durationMin,
                 })),
               },
             },
@@ -702,7 +705,7 @@ export async function negocioRoutes(app: FastifyInstance) {
 
     const existing = await prisma.booking.findFirst({
       where: { id, businessId: auth.business.id },
-      include: { service: true, customer: true },
+      include: { service: true, customer: true, extras: true },
     })
     if (!existing) return reply.code(404).send({ error: 'Cita no encontrada' })
     if (existing.status !== 'CONFIRMADA') {
@@ -710,13 +713,17 @@ export async function negocioRoutes(app: FastifyInstance) {
     }
 
     const start = new Date(parsed.data.startsAt)
-    const end = new Date(start.getTime() + existing.service.durationMin * 60_000)
+    /* Los minutos que guardó la cita, no los que tenga hoy el extra: mover una
+       cita no es rehacerla, y su hueco tiene que seguir siendo el que se le
+       prometió al cliente. */
+    const duracion = duracionConExtras(existing.service.durationMin, existing.extras)
+    const end = new Date(start.getTime() + duracion * 60_000)
     const blockedTo = new Date(end.getTime() + existing.service.bufferMin * 60_000)
 
     const dentro = await isWithinOpeningHours(
       auth.business.id,
       start,
-      existing.service.durationMin + existing.service.bufferMin,
+      duracion + existing.service.bufferMin,
     )
     if (!dentro) {
       return reply.code(409).send({ error: 'Esa hora cae fuera del horario o en un día cerrado' })

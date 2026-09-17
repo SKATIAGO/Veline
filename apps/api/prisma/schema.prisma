@@ -153,14 +153,22 @@ model Service {
 /// reservar —una hidratación, un lavado, una bebida—. No cuelga de un servicio
 /// concreto a propósito: es una sola carta, igual para todos.
 ///
-/// No suma minutos a la cita: se reserva el hueco del servicio. Si algún día
-/// un extra necesita tiempo, hará falta una duración aquí y en la agenda.
+/// Cada extra puede alargar la cita (`durationMin`). Mientras todos valgan 0
+/// el hueco es el del servicio, como siempre; en cuanto uno suma minutos, esos
+/// minutos cuentan al buscar hueco y al bloquear la agenda.
 model Extra {
   id          String   @id @default(cuid())
   businessId  String
   name        String
   description String?
   priceCents  Int
+  /// Lo que ALARGA la cita, en minutos. 0 = no cambia la duración.
+  ///
+  /// No es la duración del extra por su cuenta: es lo que hay que sumarle al
+  /// servicio. De aquí sale tanto el hueco que se ofrece al reservar como el
+  /// que se bloquea en la agenda, así que un tinte que añade 20 min deja de
+  /// pisar la cita siguiente.
+  durationMin Int      @default(0)
   /// Dirección de la foto (/api/imagenes/…). Opcional.
   photo       String?
   /// Oculto: no sale al reservar, pero no se pierde.
@@ -176,16 +184,20 @@ model Extra {
 
 /// Un extra elegido en una cita.
 ///
-/// Nombre y precio se COPIAN al reservar, igual que Booking.priceCents copia el
-/// del servicio: si el negocio sube el precio o borra el extra mañana, la cita
-/// de ayer tiene que seguir diciendo lo que se contrató y por cuánto.
+/// Nombre, precio y minutos se COPIAN al reservar, igual que Booking.priceCents
+/// copia el del servicio: si el negocio lo cambia o borra el extra mañana, la
+/// cita de ayer tiene que seguir diciendo lo que se contrató, por cuánto y
+/// cuánto ocupaba.
 model BookingExtra {
-  id         String  @id @default(cuid())
-  bookingId  String
+  id          String  @id @default(cuid())
+  bookingId   String
   /// Null si el extra se borró después. La copia de arriba se queda.
-  extraId    String?
-  name       String
-  priceCents Int
+  extraId     String?
+  name        String
+  priceCents  Int
+  /// Se copia igual que el precio: mover una cita vieja tiene que respetar
+  /// lo que duraba cuando se reservó, no lo que dure el extra hoy.
+  durationMin Int     @default(0)
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   extra   Extra?  @relation(fields: [extraId], references: [id], onDelete: SetNull)

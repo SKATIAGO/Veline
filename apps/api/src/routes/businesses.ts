@@ -36,6 +36,8 @@ const availabilityQuery = z.object({
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   /** Solo hace falta cuando el negocio tiene más de un local. */
   locationId: z.string().min(1).optional(),
+  /** Los extras ya elegidos, separados por comas: alargan la cita. */
+  extras: z.string().max(500).optional(),
 })
 
 export async function businessRoutes(app: FastifyInstance) {
@@ -150,6 +152,7 @@ export async function businessRoutes(app: FastifyInstance) {
         name: e.name,
         description: e.description,
         priceCents: e.priceCents,
+        durationMin: e.durationMin,
         photo: e.photo,
       })),
       staff: b.staff.map((s) => ({ id: s.id, name: s.name })),
@@ -190,6 +193,7 @@ export async function businessRoutes(app: FastifyInstance) {
         from,
         to,
         locationId: parsed.data.locationId,
+        extraIds: (parsed.data.extras ?? '').split(',').filter(Boolean),
       })
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode ?? 500

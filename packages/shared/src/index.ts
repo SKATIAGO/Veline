@@ -421,13 +421,16 @@ export interface ExtraDTO {
   name: string
   description: string | null
   priceCents: number
+  /** Lo que alarga la cita, en minutos. 0 = no la alarga. */
+  durationMin: number
   photo: string | null
 }
 
-/** Un extra ya elegido en una cita, con el precio que tenía al reservar. */
+/** Un extra ya elegido en una cita, con el precio y los minutos que tenía al reservar. */
 export interface BookingExtraDTO {
   name: string
   priceCents: number
+  durationMin: number
 }
 
 export interface StaffDTO {
