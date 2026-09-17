@@ -16,6 +16,7 @@ import {
   Textarea,
   cx,
 } from '../../components/ui'
+import { SelectorDuracion } from '../../components/SelectorDuracion'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { CartaDeExtras } from './CartaDeExtras'
 
@@ -35,6 +36,12 @@ const emptyDraft: Draft = {
   description: '',
 }
 
+/** Lo que dura un servicio, de menos a más. La rueda apaga lo que se sale de
+    aquí, así que los avisos de abajo solo saltan si el dato llega por otro
+    camino —un servicio viejo, un formulario a medio migrar—. */
+export const MIN_DURACION = 5
+export const MAX_DURACION = 480
+
 /** "59,50" o "59.50" → 5950 céntimos */
 const toCents = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
 
@@ -43,8 +50,8 @@ const toCents = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
 function validar(d: Draft): Clave | null {
   if (d.name.trim().length < 2) return 'serv.errNombre'
   const dur = Number(d.durationMin)
-  if (!Number.isFinite(dur) || dur < 5) return 'serv.errDuracionMin'
-  if (dur > 480) return 'serv.errDuracionMax'
+  if (!Number.isFinite(dur) || dur < MIN_DURACION) return 'serv.errDuracionMin'
+  if (dur > MAX_DURACION) return 'serv.errDuracionMax'
   const margen = Number(d.bufferMin || 0)
   if (!Number.isFinite(margen) || margen < 0) return 'serv.errMargen'
   const cents = toCents(d.price || '0')
@@ -69,7 +76,7 @@ function ServiceForm({
   pending: boolean
   error?: string | null
 }) {
-  const { t } = useIdioma()
+  const { t, idioma } = useIdioma()
   const id = useId()
   // Se avisa al intentar guardar, no mientras se escribe: corregir a alguien
   // en mitad de una palabra es molesto y no ayuda.
@@ -95,18 +102,21 @@ function ServiceForm({
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           />
         </Field>
+        {/* A rueda y no escribiendo el número: quien monta su carta piensa en
+            «hora y media», no en 90, y la cuenta a mano es donde se cuela un 9
+            en lugar de un 90. La pista dice en alto lo que se ha elegido. */}
         <Field
           label={t('serv.duracion')}
-          htmlFor={`${id}-dur`}
-          hint={t('serv.duracionPista')}
+          hint={formatDuration(Number(draft.durationMin) || 0, idioma)}
           required
         >
-          <Input
-            id={`${id}-dur`}
-            inputMode="numeric"
-            placeholder="30"
-            value={draft.durationMin}
-            onChange={(e) => setDraft({ ...draft, durationMin: e.target.value })}
+          <SelectorDuracion
+            minutos={Number(draft.durationMin) || 0}
+            min={MIN_DURACION}
+            max={MAX_DURACION}
+            etiquetaHoras={t('serv.horas')}
+            etiquetaMinutos={t('serv.minutos')}
+            onCambiar={(m) => setDraft({ ...draft, durationMin: String(m) })}
           />
         </Field>
         <Field

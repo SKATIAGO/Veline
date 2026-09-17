@@ -438,6 +438,17 @@
     }
   }
 
+  /* La rueda de duración se desplaza con el dedo o con las flechas; la barra
+     de scroll al lado la delataría como una lista y rompería la ilusión de
+     rueda. El contenido sigue siendo alcanzable por teclado. */
+  .sin-barra {
+    scrollbar-width: none;
+  }
+
+  .sin-barra::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Placeholder con borde punteado, igual que en los mockups.
      Se sustituye por fotografía real cuando la haya. */
   .ph {

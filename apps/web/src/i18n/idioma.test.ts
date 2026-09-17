@@ -72,6 +72,8 @@ describe('diccionarios', () => {
       'ctas.superadmins',
       'env.sms',
       'comun.extras',
+      /* Abreviatura de minutos: «min» en los dos idiomas. */
+      'comun.min',
     ]
 
     const sospechosas = claves.filter(
