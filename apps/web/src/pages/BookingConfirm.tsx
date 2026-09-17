@@ -160,14 +160,12 @@ export function BookingConfirm() {
               label={t('confirmar.nombre')}
               value={name}
               onChange={setName}
-              placeholder={t('confirmar.nombreEjemplo')}
               error={errors.name}
             />
             <Field
               label={t('confirmar.telefono')}
               value={phone}
               onChange={setPhone}
-              placeholder="612 34 56 78"
               type="tel"
               error={errors.phone}
             />
@@ -175,7 +173,6 @@ export function BookingConfirm() {
               label={t('confirmar.email')}
               value={email}
               onChange={setEmail}
-              placeholder={t('confirmar.emailEjemplo')}
               type="email"
               optional={t('comun.opcional')}
               error={errors.email}
