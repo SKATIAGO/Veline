@@ -232,6 +232,12 @@ const TRAZOS = {
       <path d="M2.5 10h19" />
     </>
   ),
+  enlaces: (
+    <>
+      <path d="M10 13.5a5 5 0 0 0 7.07 0l2.5-2.5a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
+      <path d="M14 10.5a5 5 0 0 0-7.07 0l-2.5 2.5a5 5 0 0 0 7.07 7.07l1.5-1.5" />
+    </>
+  ),
   mas: (
     <>
       <circle cx="5.5" cy="12" r="1.4" />
@@ -446,6 +452,12 @@ export function PanelLayout() {
                 clave: 'panel.locales',
                 icono: 'locales',
                 grupo: 'panel.grupoConfiguracion',
+              },
+              {
+                to: `/panel/${slug}/enlaces`,
+                clave: 'panel.enlaces',
+                icono: 'enlaces',
+                grupo: 'panel.grupoCuenta',
               },
               {
                 to: `/panel/${slug}/facturacion`,

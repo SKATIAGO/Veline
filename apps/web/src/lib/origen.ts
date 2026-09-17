@@ -72,6 +72,6 @@ export function enlacesDeOrigen(base: string, slug: string) {
       url: `${base}/${slug}?origen=instagram`,
     },
     { label: 'Google', clave: null, param: 'google', url: `${base}/${slug}?origen=google` },
-    { label: null, clave: 'fac.tuWeb' as const, param: 'web', url: `${base}/${slug}?origen=web` },
+    { label: null, clave: 'enl.tuWeb' as const, param: 'web', url: `${base}/${slug}?origen=web` },
   ]
 }

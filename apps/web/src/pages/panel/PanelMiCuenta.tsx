@@ -1,19 +1,12 @@
-import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
 import { api } from '../../lib/api'
-import { enlacesDeOrigen } from '../../lib/origen'
-import { Badge, Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
-import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { Badge, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
-/**
- * Lo que el negocio paga y por qué, más los enlaces que le ahorran comisión.
- *
- * Los enlaces son la pieza que faltaba para poder cumplir lo que promete la
- * página de precios: hasta ahora toda reserva contaba como marketplace, así
- * que se habría cobrado el 15 % de clientes que traía el propio negocio.
- */
+/** Lo que el negocio paga cada mes y por qué. Los enlaces que evitan la
+    comisión tienen pantalla propia: «Enlaces», en el mismo grupo del menú. */
 
 const TONO: Record<string, 'ok' | 'warn' | 'off'> = {
   COBRADO: 'ok',
@@ -69,7 +62,6 @@ export function PanelMiCuenta() {
   const { t, idioma, locale } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
-  const [copiado, setCopiado] = useState<string | null>(null)
 
   const mesLargo = (period: string) =>
     new Date(`${period}-01T00:00:00`).toLocaleDateString(locale, {
@@ -88,8 +80,6 @@ export function PanelMiCuenta() {
   })
 
   const sub = summary?.subscription
-  const base = window.location.origin
-  const enlaces = enlacesDeOrigen(base, slug)
 
   return (
     <div className="flex flex-col gap-6">
@@ -102,11 +92,7 @@ export function PanelMiCuenta() {
           ))}
         </Card>
       ) : (
-        <div className="grid items-start gap-5 lg:grid-cols-2 [&>*]:min-w-0">
-          {/* [&>*]:min-w-0 — sin esto, la tarjeta de los enlaces se niega a
-              encoger: las URLs van con truncate (no cortan línea) y una hija
-              de rejilla no baja de su contenido mínimo, así que estiraba la
-              página entera y en el móvil salía scroll horizontal. */}
+        <div className="max-w-[520px]">
           <Card padded>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-subheading font-semibold text-ink">
@@ -156,50 +142,6 @@ export function PanelMiCuenta() {
             ) : (
               <p className="mt-3 text-body text-muted">{t('fac.nadaQueCobrar')}</p>
             )}
-          </Card>
-
-          <Card padded>
-            <h2 className="font-display text-subheading font-semibold text-ink">
-              {t('fac.tusEnlaces')}
-            </h2>
-            <p className="mt-1 mb-4 text-body text-muted">
-              <Texto
-                clave="fac.enlacesTexto"
-                partes={{
-                  sinComision: (
-                    <strong className="font-semibold text-body-2">{t('fac.sinComision')}</strong>
-                  ),
-                }}
-              />
-            </p>
-
-            <ul className="flex flex-col gap-2.5">
-              {enlaces.map((e) => (
-                <li
-                  key={e.param}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-canvas/40 px-3 py-2.5"
-                >
-                  <span className="w-[76px] shrink-0 text-meta font-semibold text-body-2">
-                    {e.clave ? t(e.clave) : e.label}
-                  </span>
-                  {/* En el móvil se parte en varias líneas en vez de recortarse: lo
-                      que se recortaba era el final —«?origen=instagram»—, que es
-                      justo lo que distingue un enlace de otro. */}
-                  <code className="min-w-0 flex-1 basis-full text-meta break-all text-subtle sm:basis-0 sm:truncate">
-                    {e.url}
-                  </code>
-                  <Button
-                    size="sm"
-                    variant="quiet"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(e.url).then(() => setCopiado(e.param))
-                    }}
-                  >
-                    {copiado === e.param ? t('fac.copiado') : t('fac.copiar')}
-                  </Button>
-                </li>
-              ))}
-            </ul>
           </Card>
         </div>
       )}

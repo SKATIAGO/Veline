@@ -15,6 +15,7 @@ import { PanelIndex, PanelLayout, PanelNoExiste } from './pages/panel/PanelLayou
 import { PanelAdmin } from './pages/panel/PanelAdmin'
 import { PanelAdminUsers } from './pages/panel/PanelAdminUsers'
 import { PanelCobros } from './pages/panel/PanelCobros'
+import { PanelEnlaces } from './pages/panel/PanelEnlaces'
 import { PanelMiCuenta } from './pages/panel/PanelMiCuenta'
 import { PanelUsers } from './pages/panel/PanelUsers'
 import { PanelCuenta } from './pages/panel/PanelCuenta'
@@ -84,6 +85,7 @@ function AppRoutes() {
         <Route path="locales" element={<PanelLocales />} />
         <Route path="equipo" element={<PanelUsers />} />
         <Route path="negocio" element={<PanelNegocio />} />
+        <Route path="enlaces" element={<PanelEnlaces />} />
         <Route path="facturacion" element={<PanelMiCuenta />} />
         <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />

@@ -203,7 +203,8 @@ export const es = {
   'panel.comprobandoSesion': 'Comprobando sesión',
   'panel.cambiarNegocio': 'Cambiar de negocio',
   'panel.tuPerfil': 'Tu perfil',
-  'panel.facturacion': 'Facturación',
+  'panel.facturacion': 'Suscripción',
+  'panel.enlaces': 'Enlaces',
   'panel.salirSinGuardar': 'Tienes cambios sin guardar. ¿Salir y perderlos?',
   'panel.noExiste': 'Esta sección no existe',
   'panel.noExistePista': 'Puede que el enlace esté mal copiado o que la sección ya no esté.',
@@ -634,8 +635,17 @@ export const es = {
   'cta.fuerzaBien': 'Bien',
   'cta.fuerzaMuyBien': 'Muy bien',
 
+  // ── Panel · enlaces sin comisión ──────────────────────────
+  'enl.pista': 'Comparte tu negocio sin que la reserva pase por el marketplace.',
+  'enl.texto':
+    'Comparte estos enlaces en vez del normal. Los clientes que entren por ellos cuentan como tuyos, no del marketplace, y {sinComision}.',
+  'enl.sinComision': 'no generan comisión',
+  'enl.tuWeb': 'Tu web',
+  'enl.copiado': 'Copiado',
+  'enl.copiar': 'Copiar',
+
   // ── Panel · facturación ───────────────────────────────────
-  'fac.pista': 'Lo que pagas, por qué, y cómo pagar menos comisión.',
+  'fac.pista': 'Lo que pagas cada mes y por qué.',
   'fac.esteMes': 'Este mes',
   'fac.esteMesCon': 'Este mes · {mes}',
   'fac.plan': 'Plan {nombre}',
@@ -650,13 +660,6 @@ export const es = {
   'fac.mesCorriendo':
     'El mes todavía está corriendo: esta cifra sube si entran más citas del marketplace o se pasan los mensajes incluidos.',
   'fac.nadaQueCobrar': 'Todavía no hay nada que cobrar este mes.',
-  'fac.tusEnlaces': 'Tus enlaces para no pagar comisión',
-  'fac.sinComision': 'no generan comisión',
-  'fac.enlacesTexto':
-    'Comparte estos enlaces en vez del normal. Los clientes que entren por ellos cuentan como tuyos, no del marketplace, y {sinComision}.',
-  'fac.tuWeb': 'Tu web',
-  'fac.copiado': 'Copiado',
-  'fac.copiar': 'Copiar',
   'fac.mesesAnteriores': 'Meses anteriores',
   'fac.sinMeses': 'Todavía no hay meses cerrados',
   'fac.sinMesesPista': 'Al acabar cada mes aparecerá aquí el resumen de lo que tocaba pagar.',

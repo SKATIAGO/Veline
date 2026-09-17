@@ -203,7 +203,8 @@ export const en: Record<keyof typeof es, string> = {
   'panel.comprobandoSesion': 'Checking your session',
   'panel.cambiarNegocio': 'Switch business',
   'panel.tuPerfil': 'Your profile',
-  'panel.facturacion': 'Billing',
+  'panel.facturacion': 'Subscription',
+  'panel.enlaces': 'Links',
   'panel.salirSinGuardar': 'You have unsaved changes. Leave and lose them?',
   'panel.noExiste': 'This section doesn’t exist',
   'panel.noExistePista': 'The link may be mistyped, or the section may no longer be here.',
@@ -631,8 +632,17 @@ export const en: Record<keyof typeof es, string> = {
   'cta.fuerzaBien': 'Good',
   'cta.fuerzaMuyBien': 'Very good',
 
+  // ── Dashboard · no-commission links ───────────────────────
+  'enl.pista': 'Share your business without the booking going through the marketplace.',
+  'enl.texto':
+    'Share these links instead of the normal one. Customers who arrive through them count as yours, not the marketplace’s, and {sinComision}.',
+  'enl.sinComision': 'earn no commission',
+  'enl.tuWeb': 'Your website',
+  'enl.copiado': 'Copied',
+  'enl.copiar': 'Copy',
+
   // ── Dashboard · billing ───────────────────────────────────
-  'fac.pista': 'What you pay, why, and how to pay less commission.',
+  'fac.pista': 'What you pay every month, and why.',
   'fac.esteMes': 'This month',
   'fac.esteMesCon': 'This month · {mes}',
   'fac.plan': '{nombre} plan',
@@ -647,13 +657,6 @@ export const en: Record<keyof typeof es, string> = {
   'fac.mesCorriendo':
     'The month is still running: this figure goes up if more marketplace appointments come in, or you go over the included messages.',
   'fac.nadaQueCobrar': 'Nothing to charge this month yet.',
-  'fac.tusEnlaces': 'Your no-commission links',
-  'fac.sinComision': 'earn no commission',
-  'fac.enlacesTexto':
-    'Share these links instead of the normal one. Customers who arrive through them count as yours, not the marketplace’s, and {sinComision}.',
-  'fac.tuWeb': 'Your website',
-  'fac.copiado': 'Copied',
-  'fac.copiar': 'Copy',
   'fac.mesesAnteriores': 'Previous months',
   'fac.sinMeses': 'No months closed yet',
   'fac.sinMesesPista': 'When each month ends, the summary of what was due shows up here.',
