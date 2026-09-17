@@ -124,6 +124,16 @@ export function BookingDone() {
               [
                 ['hecha.codigo', booking.code],
                 ['confirmar.servicio', booking.service.name],
+                ...(booking.extras.length
+                  ? [
+                      [
+                        'comun.extras',
+                        booking.extras
+                          .map((e) => `${e.name} (+${formatPrice(e.priceCents, idioma)})`)
+                          .join(', '),
+                      ] as const,
+                    ]
+                  : []),
                 ['confirmar.fecha', `${formatLongDate(start, idioma)}, ${time}`],
                 ...(booking.staff ? [['hecha.teAtiende', booking.staff.name] as const] : []),
                 ...(booking.location

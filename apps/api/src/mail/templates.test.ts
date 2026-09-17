@@ -116,3 +116,35 @@ describe('los correos en castellano no cambian solos', () => {
     })
   }
 })
+
+describe('extras en los correos de la cita', () => {
+  const conExtras: BookingMailData = {
+    ...base,
+    priceCents: 3700,
+    extras: [
+      { name: `${MALO}Hidratación`, priceCents: 1200 },
+      { name: 'Bebida', priceCents: 0 },
+    ],
+  }
+
+  it('el cliente y el negocio ven qué extras se eligieron y cuánto', () => {
+    for (const m of [
+      bookingConfirmedToCustomer(conExtras),
+      bookingCreatedToBusiness(conExtras, 'negocio@ejemplo.es'),
+    ]) {
+      expect(m.text).toContain('Extras:')
+      expect(m.text).toContain('Bebida (+0,00')
+      expect(m.html).toContain('Hidratación (+12,00')
+    }
+  })
+
+  it('el nombre del extra lo escribe el negocio: también se escapa', () => {
+    const m = bookingCreatedToBusiness(conExtras, 'negocio@ejemplo.es')
+    expect(m.html).not.toContain('<img src=x')
+  })
+
+  it('sin extras no aparece la fila', () => {
+    expect(bookingConfirmedToCustomer(base).text).not.toContain('Extras')
+    expect(bookingConfirmedToCustomer({ ...base, extras: [] }).text).not.toContain('Extras')
+  })
+})

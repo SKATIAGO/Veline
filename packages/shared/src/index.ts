@@ -392,6 +392,11 @@ export const createBookingSchema = z.object({
    * avisos; los del negocio van en el idioma del negocio, que es otra cosa.
    */
   idioma: z.enum(['es', 'en']).default('es'),
+  /**
+   * Extras de la carta del negocio que quiere añadir. Solo los ids: el nombre
+   * y el precio los pone el servidor, que es quien sabe lo que valen.
+   */
+  extraIds: z.array(z.string().min(1)).max(20).default([]),
 })
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>
@@ -407,6 +412,21 @@ export interface ServiceDTO {
   name: string
   description: string | null
   durationMin: number
+  priceCents: number
+}
+
+/** Un extra de la carta del negocio, tal y como lo ve quien reserva. */
+export interface ExtraDTO {
+  id: string
+  name: string
+  description: string | null
+  priceCents: number
+  photo: string | null
+}
+
+/** Un extra ya elegido en una cita, con el precio que tenía al reservar. */
+export interface BookingExtraDTO {
+  name: string
   priceCents: number
 }
 
@@ -452,6 +472,8 @@ export interface BusinessDTO extends BusinessSummaryDTO {
   photos: string[]
   locations: LocationDTO[]
   services: ServiceDTO[]
+  /** La carta de extras: la misma para todos los servicios. */
+  extras: ExtraDTO[]
   staff: StaffDTO[]
   openingHours: OpeningHourDTO[]
 }
@@ -485,4 +507,6 @@ export interface BookingDTO {
   service: { id: string; name: string; durationMin: number }
   staff: { id: string; name: string } | null
   customer: { name: string; phone: string; email: string | null }
+  /** priceCents ya los incluye. */
+  extras: BookingExtraDTO[]
 }

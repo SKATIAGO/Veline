@@ -103,6 +103,27 @@ export const api = {
   deleteService: (slug: string, id: string) =>
     request<void>(`/panel/${slug}/services/${id}`, { method: 'DELETE' }),
 
+  panelExtras: (slug: string) => request<PanelExtra[]>(`/panel/${slug}/extras`),
+
+  createExtra: (slug: string, body: DatosExtra) =>
+    request<PanelExtra>(`/panel/${slug}/extras`, { method: 'POST', body: JSON.stringify(body) }),
+
+  updateExtra: (slug: string, id: string, body: Partial<DatosExtra> & { active?: boolean }) =>
+    request<PanelExtra>(`/panel/${slug}/extras/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  deleteExtra: (slug: string, id: string) =>
+    request<void>(`/panel/${slug}/extras/${id}`, { method: 'DELETE' }),
+
+  /** Sube una foto ya reducida (base64) y devuelve su dirección. */
+  subirImagen: (slug: string, datos: string) =>
+    request<{ url: string }>(`/panel/${slug}/imagenes`, {
+      method: 'POST',
+      body: JSON.stringify({ datos }),
+    }),
+
   panelHours: (slug: string, local?: string) =>
     request<PanelHour[]>(`/panel/${slug}/hours${qs({ local })}`),
 
@@ -297,6 +318,8 @@ export const api = {
       serviceId: string
       startsAt: string
       staffId?: string
+      /** Extras de la carta que se añaden a la cita. */
+      extraIds?: string[]
       customerName: string
       customerPhone: string
       customerEmail?: string
@@ -456,6 +479,22 @@ export interface PanelBooking {
   service: { id: string; name: string; durationMin: number }
   staff: { id: string; name: string } | null
   customer: { name: string; phone: string; email: string | null }
+  /** Extras elegidos, con su precio al reservar. priceCents ya los incluye. */
+  extras: { name: string; priceCents: number }[]
+}
+
+/** Lo que se edita de un extra de la carta. */
+export interface DatosExtra {
+  name: string
+  description: string | null
+  priceCents: number
+  photo: string | null
+}
+
+export interface PanelExtra extends DatosExtra {
+  id: string
+  active: boolean
+  position: number
 }
 
 export interface PanelService {

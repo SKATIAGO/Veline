@@ -54,6 +54,8 @@ export interface BookingMailData {
   customerPhone: string
   customerEmail?: string | null
   notes?: string | null
+  /** Extras elegidos, con el precio que tenían al reservar. priceCents ya los incluye. */
+  extras?: { name: string; priceCents: number }[]
 }
 
 /**
@@ -124,6 +126,19 @@ function detalles(rows: [string, string][]) {
   </table>`
 }
 
+/** Los extras en una sola fila: «Hidratación (+12,00 €), Bebida (+2,50 €)».
+    Sin extras no hay fila: la mayoría de citas no llevan, y una fila vacía
+    haría pensar que falta algo. */
+const filaExtras = (b: BookingMailData, idioma: Idioma): [string, string][] =>
+  b.extras?.length
+    ? [
+        [
+          'Extras',
+          b.extras.map((e) => `${e.name} (+${formatPrice(e.priceCents, idioma)})`).join(', '),
+        ],
+      ]
+    : []
+
 const textoDetalles = (rows: [string, string][]) => rows.map(([l, v]) => `  ${l}: ${v}`).join('\n')
 
 /* ── 1. Confirmación al cliente ───────────────────────────────── */
@@ -133,6 +148,7 @@ export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
   const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
+    ...filaExtras(b, idioma),
     ['Cuándo', cuando],
     ...((b.staffName ? [['Te atiende', b.staffName]] : []) as [string, string][]),
     ...((b.address ? [['Dónde', b.address]] : []) as [string, string][]),
@@ -175,6 +191,7 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
   const cuando = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
   const rows: [string, string][] = [
     ['Servicio', b.serviceName],
+    ...filaExtras(b, idioma),
     ['Cuándo', cuando],
     ...((b.staffName ? [['Asignada a', b.staffName]] : []) as [string, string][]),
     ['Cliente', b.customerName],

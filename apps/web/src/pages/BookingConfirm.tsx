@@ -3,8 +3,9 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
+import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 import { origenActual } from '../lib/origen'
+import { Photo } from '../components/Photo'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -76,6 +77,7 @@ export function BookingConfirm() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
+  const [extraIds, setExtraIds] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { data: business } = useQuery({
@@ -84,6 +86,14 @@ export function BookingConfirm() {
   })
 
   const service = business?.services.find((s) => s.id === serviceId)
+
+  /* La carta de extras es la misma para cualquier servicio. Solo cuentan los
+     que siguen en ella: si el negocio quita uno mientras alguien reserva, al
+     recargar deja de sumarse en vez de quedarse cobrado sin verse. */
+  const carta = business?.extras ?? []
+  const elegidos = carta.filter((e) => extraIds.includes(e.id))
+  const alternarExtra = (id: string) =>
+    setExtraIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -96,6 +106,7 @@ export function BookingConfirm() {
         // El idioma en el que está mirando esta persona ahora mismo. De aquí
         // saldrán su confirmación, su recordatorio y su petición de reseña.
         idioma,
+        extraIds: elegidos.map((e) => e.id),
         ...(locationId ? { locationId } : {}),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
@@ -109,6 +120,7 @@ export function BookingConfirm() {
     )
   }
 
+  const total = service.priceCents + elegidos.reduce((suma, e) => suma + e.priceCents, 0)
   const start = new Date(startsAt)
   const validStart = !Number.isNaN(start.getTime())
 
@@ -120,6 +132,7 @@ export function BookingConfirm() {
       notes: notes.trim(),
       source: origenActual(),
       idioma,
+      extraIds: elegidos.map((e) => e.id),
       ...(locationId ? { locationId } : {}),
     })
     if (!parsed.success) {
@@ -154,6 +167,69 @@ export function BookingConfirm() {
       <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-10 lg:flex-row lg:px-16">
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-7 text-[24px] font-semibold text-ink">{t('confirmar.titulo')}</h1>
+
+          {/* Antes que los datos: elegir qué se hace va antes que decir quién
+              eres, y el total de la derecha cambia a la vista. */}
+          {carta.length > 0 && (
+            <section aria-labelledby="extras-titulo" className="mb-9 max-w-[600px]">
+              <h2 id="extras-titulo" className="text-ui font-semibold text-ink">
+                {t('confirmar.extrasTitulo')}
+              </h2>
+              <p className="mt-1 text-meta text-muted">{t('confirmar.extrasPista')}</p>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {carta.map((e) => {
+                  const elegido = extraIds.includes(e.id)
+                  return (
+                    <li key={e.id}>
+                      <button
+                        type="button"
+                        aria-pressed={elegido}
+                        onClick={() => alternarExtra(e.id)}
+                        className={cx(
+                          'flex min-h-[72px] w-full items-center gap-3 rounded-xl border p-2.5 pr-3.5 text-left',
+                          'transition-[background-color,border-color,transform] duration-200 active:scale-[.99]',
+                          elegido
+                            ? 'border-brand bg-brand/5'
+                            : 'border-line bg-surface hover:border-line-strong',
+                        )}
+                      >
+                        {e.photo && (
+                          <Photo
+                            src={e.photo}
+                            alt=""
+                            width={112}
+                            height={112}
+                            className="size-14 shrink-0 rounded-lg"
+                            fallback=""
+                          />
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-body font-semibold text-ink">{e.name}</span>
+                          {e.description && (
+                            <span className="mt-0.5 line-clamp-2 block text-meta text-muted">
+                              {e.description}
+                            </span>
+                          )}
+                          <span className="mt-0.5 block text-meta font-semibold text-body-2">
+                            +{formatPrice(e.priceCents, idioma)}
+                          </span>
+                        </span>
+                        <span
+                          aria-hidden
+                          className={cx(
+                            'grid size-6 shrink-0 place-items-center rounded-full border text-caption font-bold',
+                            elegido ? 'border-brand bg-brand text-white' : 'border-line-strong',
+                          )}
+                        >
+                          {elegido ? '✓' : ''}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
 
           <div className="flex max-w-[440px] flex-col gap-5">
             <Field
@@ -219,11 +295,18 @@ export function BookingConfirm() {
               </div>
             ))}
 
+            {elegidos.map((e) => (
+              <div key={e.id} className="mb-2.5 flex justify-between gap-4 text-body">
+                <span className="min-w-0 text-muted">+ {e.name}</span>
+                <span className="shrink-0 font-semibold text-ink tabular-nums">
+                  {formatPrice(e.priceCents, idioma)}
+                </span>
+              </div>
+            ))}
+
             <div className="mt-4 mb-5 flex justify-between border-t border-line pt-4">
               <span className="text-sm text-muted">{t('comun.total')}</span>
-              <span className="text-base font-semibold text-ink">
-                {formatPrice(service.priceCents, idioma)}
-              </span>
+              <span className="text-base font-semibold text-ink">{formatPrice(total, idioma)}</span>
             </div>
 
             {mutation.isError && (

@@ -14,6 +14,7 @@ import { sendMailSafely } from '../mail/enviar.js'
 import { idiomaDeLaReserva } from '../mail/idioma.js'
 import { avisarCancelacion, avisarConfirmacion } from '../mail/avisos.js'
 import { bookingCode } from '../codigo.js'
+import { elegirExtras, totalConExtras } from '../extras.js'
 import {
   bookingCancelled,
   bookingCreatedToBusiness,
@@ -29,6 +30,7 @@ const bookingInclude = {
   service: { select: { id: true, name: true, durationMin: true } },
   staff: { select: { id: true, name: true } },
   customer: { select: { name: true, phone: true, email: true } },
+  extras: { select: { name: true, priceCents: true }, orderBy: { id: 'asc' } },
 } satisfies Prisma.BookingInclude
 
 type BookingRow = Prisma.BookingGetPayload<{ include: typeof bookingInclude }>
@@ -48,6 +50,7 @@ const toMailData = (b: BookingRow): BookingMailData => ({
   customerPhone: b.customer.phone,
   customerEmail: b.customer.email,
   notes: b.notes,
+  extras: b.extras,
 })
 
 const toDTO = (b: BookingRow): BookingDTO => ({
@@ -64,6 +67,7 @@ const toDTO = (b: BookingRow): BookingDTO => ({
   service: b.service,
   staff: b.staff,
   customer: b.customer,
+  extras: b.extras,
 })
 
 export async function bookingRoutes(app: FastifyInstance) {
@@ -101,6 +105,21 @@ export async function bookingRoutes(app: FastifyInstance) {
       where: { id: input.serviceId, businessId: business.id, active: true },
     })
     if (!service) return reply.code(404).send({ error: 'Servicio no encontrado' })
+
+    /* Los extras se sacan de la carta, no de la petición: el precio lo pone
+       el negocio, y quien llama a la API podría mandar el que quisiera. */
+    const carta = input.extraIds.length
+      ? await prisma.extra.findMany({ where: { businessId: business.id, active: true } })
+      : []
+    const extras = elegirExtras(input.extraIds, carta)
+    if (!extras) {
+      // 422 y no 409: el hueco sigue libre, lo que ha cambiado es la carta.
+      return reply.code(422).send({
+        error:
+          'Alguno de los extras que elegiste ya no está disponible. Revísalos y vuelve a confirmar.',
+      })
+    }
+    const totalCents = totalConExtras(service.priceCents, extras)
 
     const start = new Date(input.startsAt)
     if (Number.isNaN(start.getTime())) {
@@ -172,7 +191,7 @@ export async function bookingRoutes(app: FastifyInstance) {
           })
           const isFirstFromMarketplace = input.source === 'MARKETPLACE' && previous === 0
           const commissionCents = isFirstFromMarketplace
-            ? Math.round(service.priceCents * COMMISSION_RATE)
+            ? Math.round(totalCents * COMMISSION_RATE)
             : 0
 
           return tx.booking.create({
@@ -186,7 +205,8 @@ export async function bookingRoutes(app: FastifyInstance) {
               startsAt: start,
               endsAt: end,
               blockedTo,
-              priceCents: service.priceCents,
+              // El servicio más los extras: es lo que cuesta la cita.
+              priceCents: totalCents,
               notes: input.notes || null,
               source: input.source,
               // En qué idioma estaba mirando la web quien reservó. De aquí
@@ -194,6 +214,13 @@ export async function bookingRoutes(app: FastifyInstance) {
               idioma: input.idioma === 'en' ? 'EN' : 'ES',
               isFirstFromMarketplace,
               commissionCents,
+              extras: {
+                create: extras.map((e) => ({
+                  extraId: e.id,
+                  name: e.name,
+                  priceCents: e.priceCents,
+                })),
+              },
             },
             include: bookingInclude,
           })
@@ -222,6 +249,9 @@ export async function bookingRoutes(app: FastifyInstance) {
           cuando: booking.startsAt,
           origen: booking.source,
           precioCents: booking.priceCents,
+          ...(booking.extras.length
+            ? { extras: booking.extras.map((e) => e.name).join(', ') }
+            : {}),
         },
       })
 

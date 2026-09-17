@@ -247,6 +247,45 @@ export function Business() {
               {business.services.length === 0 && (
                 <p className="py-8 text-sm text-muted">{t('ficha.sinServicios')}</p>
               )}
+
+              {/* La carta de extras, para que se sepa antes de reservar. Se
+                  eligen en la confirmación, con cualquier servicio. */}
+              {business.services.length > 0 && business.extras.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-ui font-semibold text-ink">{t('ficha.extrasTitulo')}</h2>
+                  <p className="mt-1 text-meta text-muted">{t('ficha.extrasPista')}</p>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {business.extras.map((e) => (
+                      <li
+                        key={e.id}
+                        className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3.5"
+                      >
+                        {e.photo && (
+                          <Photo
+                            src={e.photo}
+                            alt=""
+                            width={112}
+                            height={112}
+                            className="size-14 shrink-0 rounded-lg"
+                            fallback=""
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-body font-semibold text-ink">{e.name}</div>
+                          {e.description && (
+                            <div className="mt-0.5 line-clamp-2 text-meta text-muted">
+                              {e.description}
+                            </div>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-body font-semibold text-ink tabular-nums">
+                          +{formatPrice(e.priceCents, idioma)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 

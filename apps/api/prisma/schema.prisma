@@ -61,8 +61,8 @@ enum BookingSource {
 }
 
 model Business {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String  @id @default(cuid())
+  slug        String  @unique
   name        String
   /// slug de CATEGORIES en @veline/shared
   category    String
@@ -70,9 +70,9 @@ model Business {
   phone       String?
   /// Dónde se avisa al negocio de las citas nuevas y las cancelaciones.
   email       String?
-  rating      Float    @default(0)
-  reviewCount Int      @default(0)
-  plan        Plan     @default(GRATIS)
+  rating      Float   @default(0)
+  reviewCount Int     @default(0)
+  plan        Plan    @default(GRATIS)
 
   // ── Suscripción ──
   /// El plan por sí solo no dice nada: hace falta saber si está pagando, en
@@ -84,15 +84,15 @@ model Business {
   /// y todavía nadie lo ha mirado: no sale en el marketplace ni tiene página
   /// pública. Los que damos de alta nosotros nacen ya aprobados — darlos de
   /// alta ES la revisión.
-  approvedAt  DateTime?
+  approvedAt DateTime?
   /// Cuándo se le cortó o se dio de baja, para poder contarlo después.
-  endedAt     DateTime?
+  endedAt    DateTime?
   /// Nota interna de la ficha: por qué se suspendió, con quién se habló.
-  adminNotes  String?
+  adminNotes String?
   /// URLs base de las fotos (sin parámetros de tamaño). La primera es la
   /// portada; el resto rellena la galería del perfil.
-  photos      String[]
-  createdAt   DateTime @default(now())
+  photos     String[]
+  createdAt  DateTime  @default(now())
 
   locations Location[]
   services  Service[]
@@ -104,6 +104,8 @@ model Business {
   charges   Charge[]
   reviews   Review[]
   fichajes  Fichaje[]
+  extras    Extra[]
+  imagenes  Imagen[]
 
   @@index([category])
 }
@@ -143,6 +145,69 @@ model Service {
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   bookings Booking[]
+
+  @@index([businessId])
+}
+
+/// Carta de extras del negocio: lo que se puede añadir a CUALQUIER servicio al
+/// reservar —una hidratación, un lavado, una bebida—. No cuelga de un servicio
+/// concreto a propósito: es una sola carta, igual para todos.
+///
+/// No suma minutos a la cita: se reserva el hueco del servicio. Si algún día
+/// un extra necesita tiempo, hará falta una duración aquí y en la agenda.
+model Extra {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  description String?
+  priceCents  Int
+  /// Dirección de la foto (/api/imagenes/…). Opcional.
+  photo       String?
+  /// Oculto: no sale al reservar, pero no se pierde.
+  active      Boolean  @default(true)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  business Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reservas BookingExtra[]
+
+  @@index([businessId])
+}
+
+/// Un extra elegido en una cita.
+///
+/// Nombre y precio se COPIAN al reservar, igual que Booking.priceCents copia el
+/// del servicio: si el negocio sube el precio o borra el extra mañana, la cita
+/// de ayer tiene que seguir diciendo lo que se contrató y por cuánto.
+model BookingExtra {
+  id         String  @id @default(cuid())
+  bookingId  String
+  /// Null si el extra se borró después. La copia de arriba se queda.
+  extraId    String?
+  name       String
+  priceCents Int
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  extra   Extra?  @relation(fields: [extraId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+}
+
+/// Foto subida desde el panel.
+///
+/// En la base y no en disco: el contenedor de la API no tiene volumen propio,
+/// así que un archivo en disco se perdería en el siguiente despliegue, y la
+/// base ya tiene su copia de seguridad. Llegan ya reducidas desde el navegador
+/// (unos 100 KB), así que ocupan poco. Si algún día hay cientos por negocio,
+/// toca moverlas a un almacenamiento de objetos.
+model Imagen {
+  id         String   @id @default(cuid())
+  businessId String
+  mime       String
+  datos      Bytes
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
 }
@@ -229,7 +294,7 @@ model Booking {
   /// en el idioma del negocio, que es otra cosa.
   ///
   /// Las reservas de antes se quedan en ES, que es como se hicieron.
-  idioma     Idioma        @default(ES)
+  idioma Idioma @default(ES)
 
   // ── Atribución: de esto depende la comisión del 15% ──
   source                 BookingSource @default(MARKETPLACE)
@@ -237,13 +302,15 @@ model Booking {
   isFirstFromMarketplace Boolean       @default(false)
   commissionCents        Int           @default(0)
 
-  createdAt   DateTime  @default(now())
-  cancelledAt DateTime?
+  createdAt      DateTime  @default(now())
+  cancelledAt    DateTime?
   /// Sella el recordatorio para no mandarlo dos veces si el proceso repite.
   reminderSentAt DateTime?
 
   messages MessageLog[]
   review   Review?
+  /// Los extras que eligió, copiados como estaban al reservar.
+  extras   BookingExtra[]
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
@@ -361,20 +428,20 @@ model PasswordReset {
 /// un testigo que se consume. Sin eso, cualquiera podría inflar la nota de un
 /// negocio desde fuera.
 model Review {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   businessId String
   /// Una cita, una reseña.
-  bookingId  String   @unique
+  bookingId  String    @unique
   customerId String
   /// De 1 a 5.
   rating     Int
   comment    String?
   /// Testigo del enlace que se le manda al cliente. Se guarda el hash, no el
   /// testigo: igual que las sesiones y los restablecimientos de contraseña.
-  tokenHash  String   @unique
+  tokenHash  String    @unique
   /// Null mientras no la haya escrito: la fila nace al pedirla.
   answeredAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -408,17 +475,17 @@ model Charge {
   status     ChargeStatus @default(PENDIENTE)
 
   // ── Desglose, congelado al generar ──
-  plan            Plan
+  plan              Plan
   /// Personas activas en el momento de cerrar el mes.
-  seats           Int
+  seats             Int
   /// Cuota del plan más las personas de más.
   subscriptionCents Int
   /// 15 % de los primeros clientes que llegaron por el marketplace.
-  commissionCents Int
+  commissionCents   Int
   /// Mensajes fuera del cupo, a 0,06 €.
-  messagesCents   Int
-  extraMessages   Int
-  totalCents      Int
+  messagesCents     Int
+  extraMessages     Int
+  totalCents        Int
 
   /// Cuándo y quién lo marcó cobrado, y por qué vía.
   paidAt   DateTime?
@@ -462,7 +529,7 @@ enum MessageStatus {
 /// lo que se le cobra a partir del 201— y poder responder "¿le llegó el
 /// recordatorio a este cliente?" tres semanas después.
 model MessageLog {
-  id         String        @id @default(cuid())
+  id         String         @id @default(cuid())
   businessId String?
   bookingId  String?
   channel    MessageChannel
@@ -473,8 +540,8 @@ model MessageLog {
   /// Por qué falló o por qué se omitió.
   reason     String?
   /// Lo que cuesta al negocio. 0 mientras entre en el cupo del plan.
-  costCents  Int           @default(0)
-  createdAt  DateTime      @default(now())
+  costCents  Int            @default(0)
+  createdAt  DateTime       @default(now())
 
   business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
   booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
@@ -506,6 +573,9 @@ enum AuditAction {
   SERVICIO_CREADO
   SERVICIO_EDITADO
   SERVICIO_ELIMINADO
+  EXTRA_CREADO
+  EXTRA_EDITADO
+  EXTRA_ELIMINADO
   HORARIO_EDITADO
   RESERVA_CREADA
   RESERVA_CANCELADA

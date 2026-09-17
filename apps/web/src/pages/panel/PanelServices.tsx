@@ -17,6 +17,7 @@ import {
   cx,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { CartaDeExtras } from './CartaDeExtras'
 
 interface Draft {
   name: string
@@ -179,6 +180,7 @@ export function PanelServices() {
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<Draft>(emptyDraft)
+  const [creandoExtra, setCreandoExtra] = useState(false)
 
   const { data: services, isLoading } = useQuery({
     queryKey: ['panel', slug, 'services'],
@@ -256,11 +258,20 @@ export function PanelServices() {
             : undefined
         }
         actions={
-          !creating && (
-            <Button onClick={() => setCreating(true)}>
-              <span aria-hidden>+</span> {t('serv.anadir')}
-            </Button>
-          )
+          <>
+            {/* Junto a «Añadir servicio»: es donde se piensa en qué se ofrece,
+                y la carta de extras queda más abajo, fuera de la vista. */}
+            {!creandoExtra && (
+              <Button variant="secondary" onClick={() => setCreandoExtra(true)}>
+                <span aria-hidden>+</span> {t('ext.anadir')}
+              </Button>
+            )}
+            {!creating && (
+              <Button onClick={() => setCreating(true)}>
+                <span aria-hidden>+</span> {t('serv.anadir')}
+              </Button>
+            )}
+          </>
         }
       />
 
@@ -374,6 +385,8 @@ export function PanelServices() {
           }}
         />
       </p>
+
+      <CartaDeExtras slug={slug} creando={creandoExtra} setCreando={setCreandoExtra} />
     </div>
   )
 }

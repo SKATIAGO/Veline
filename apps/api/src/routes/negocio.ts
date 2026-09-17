@@ -13,6 +13,7 @@ import { audit } from '../audit/log.js'
 import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
 import { bookingCode } from '../codigo.js'
+import { elegirExtras, totalConExtras } from '../extras.js'
 import { avisarConfirmacion } from '../mail/avisos.js'
 
 /**
@@ -64,6 +65,7 @@ const manualBookingBody = z.object({
   customerPhone: phoneES,
   customerEmail: z.string().trim().toLowerCase().email().optional().or(z.literal('')),
   notes: z.string().trim().max(400).optional().or(z.literal('')),
+  extraIds: z.array(z.string().min(1)).max(20).default([]),
 })
 
 const rescheduleBody = z.object({
@@ -587,6 +589,14 @@ export async function negocioRoutes(app: FastifyInstance) {
     })
     if (!service) return reply.code(404).send({ error: 'Servicio no encontrado' })
 
+    const carta = input.extraIds.length
+      ? await prisma.extra.findMany({ where: { businessId: auth.business.id, active: true } })
+      : []
+    const extras = elegirExtras(input.extraIds, carta)
+    if (!extras) {
+      return reply.code(422).send({ error: 'Alguno de los extras ya no está en la carta' })
+    }
+
     const start = new Date(input.startsAt)
     const end = new Date(start.getTime() + service.durationMin * 60_000)
     const blockedTo = new Date(end.getTime() + service.bufferMin * 60_000)
@@ -628,7 +638,7 @@ export async function negocioRoutes(app: FastifyInstance) {
               startsAt: start,
               endsAt: end,
               blockedTo,
-              priceCents: service.priceCents,
+              priceCents: totalConExtras(service.priceCents, extras),
               notes: input.notes || null,
               // Una cita apuntada a mano nunca es del marketplace: la trajo el
               // negocio. Por eso no genera comisión.
@@ -640,6 +650,13 @@ export async function negocioRoutes(app: FastifyInstance) {
                  entonces, inventarlo sería peor que dejarlo en castellano. */
               isFirstFromMarketplace: false,
               commissionCents: 0,
+              extras: {
+                create: extras.map((e) => ({
+                  extraId: e.id,
+                  name: e.name,
+                  priceCents: e.priceCents,
+                })),
+              },
             },
             include: { customer: true, service: true, staff: true },
           })

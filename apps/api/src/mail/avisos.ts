@@ -31,7 +31,14 @@ const webSinProtocolo = () =>
 const cargarCita = (bookingId: string) =>
   prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { customer: true, service: true, staff: true, location: true, business: true },
+    include: {
+      customer: true,
+      service: true,
+      staff: true,
+      location: true,
+      business: true,
+      extras: { select: { name: true, priceCents: true }, orderBy: { id: 'asc' } },
+    },
   })
 
 type Cita = NonNullable<Awaited<ReturnType<typeof cargarCita>>>
@@ -50,6 +57,7 @@ const datosCorreo = (cita: Cita): BookingMailData => ({
   customerPhone: cita.customer.phone,
   customerEmail: cita.customer.email,
   notes: cita.notes,
+  extras: cita.extras,
 })
 
 /** Correo (si lo hay) y SMS al cliente, y los dos apuntados en el contador. */

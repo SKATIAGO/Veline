@@ -176,6 +176,12 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body font-semibold text-ink">
             {booking.service.name}
+            {booking.extras.length > 0 && (
+              <span className="font-normal text-muted">
+                {' '}
+                + {booking.extras.map((e) => e.name).join(', ')}
+              </span>
+            )}
           </span>
           <span className="block truncate text-meta text-muted">
             {booking.customer.name} · {formatPrice(booking.priceCents, idioma)}
@@ -231,6 +237,11 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
               {booking.customer.phone}
             </a>
           </p>
+          {booking.extras.length > 0 && (
+            <p className="mt-1 text-meta text-body-2">
+              + {booking.extras.map((e) => e.name).join(', ')}
+            </p>
+          )}
           {booking.notes && <p className="mt-1 text-meta text-subtle italic">{booking.notes}</p>}
         </div>
 
@@ -326,6 +337,11 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
               </span>
             </p>
             <p className="mt-1 text-ui font-semibold text-ink">{booking.service.name}</p>
+            {booking.extras.map((e) => (
+              <p key={e.name} className="mt-0.5 text-meta text-body-2">
+                + {e.name} <span className="text-muted">{formatPrice(e.priceCents, idioma)}</span>
+              </p>
+            ))}
           </div>
           <p className="shrink-0 text-ui font-bold text-ink tabular-nums">
             {formatPrice(booking.priceCents, idioma)}
@@ -449,14 +465,26 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   const [telefono, setTelefono] = useState('')
   const [email, setEmail] = useState('')
   const [notas, setNotas] = useState('')
+  const [extraIds, setExtraIds] = useState<string[]>([])
 
   const { data: servicios } = useQuery({
     queryKey: ['panel', slug, 'services'],
     queryFn: () => api.panelServices(slug),
   })
 
+  // La misma carta que ve el cliente al reservar por la web.
+  const { data: extras } = useQuery({
+    queryKey: ['panel', slug, 'extras'],
+    queryFn: () => api.panelExtras(slug),
+  })
+
   const activos = servicios?.filter((s) => s.active) ?? []
   const elegido = serviceId || activos[0]?.id || ''
+  const carta = extras?.filter((e) => e.active) ?? []
+  const extrasElegidos = carta.filter((e) => extraIds.includes(e.id))
+  const total =
+    (activos.find((s) => s.id === elegido)?.priceCents ?? 0) +
+    extrasElegidos.reduce((suma, e) => suma + e.priceCents, 0)
 
   const crear = useMutation({
     mutationFn: () =>
@@ -467,6 +495,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         customerPhone: telefono.trim(),
         customerEmail: email.trim() || undefined,
         notes: notas.trim() || undefined,
+        extraIds: extrasElegidos.map((e) => e.id),
       }),
     onSuccess: onHecho,
   })
@@ -551,6 +580,50 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
               onChange={(e) => setNotas(e.target.value)}
             />
           </Field>
+
+          {carta.length > 0 && (
+            <fieldset className="sm:col-span-2">
+              <legend className="mb-2 text-meta font-semibold text-body-2">
+                {t('comun.extras')}{' '}
+                <span className="font-normal text-subtle">{t('comun.opcional')}</span>
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {carta.map((e) => {
+                  const marcado = extraIds.includes(e.id)
+                  return (
+                    <button
+                      key={e.id}
+                      type="button"
+                      aria-pressed={marcado}
+                      onClick={() =>
+                        setExtraIds((ids) =>
+                          marcado ? ids.filter((x) => x !== e.id) : [...ids, e.id],
+                        )
+                      }
+                      className={cx(
+                        'inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-meta font-semibold',
+                        'transition-colors duration-200',
+                        marcado
+                          ? 'border-brand bg-brand text-white'
+                          : 'border-line bg-surface text-body-2 hover:border-brand',
+                      )}
+                    >
+                      {e.name}
+                      <span className={marcado ? 'text-white/85' : 'text-muted'}>
+                        +{formatPrice(e.priceCents, idioma)}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              {extrasElegidos.length > 0 && (
+                <p className="mt-2 text-meta text-muted">
+                  {t('comun.total')}:{' '}
+                  <strong className="font-semibold text-ink">{formatPrice(total, idioma)}</strong>
+                </p>
+              )}
+            </fieldset>
+          )}
         </div>
 
         {crear.isError && <ErrorNote>{(crear.error as Error).message}</ErrorNote>}

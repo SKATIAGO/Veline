@@ -94,6 +94,7 @@ export async function businessRoutes(app: FastifyInstance) {
           include: { openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] } },
         },
         services: { where: { active: true }, orderBy: { position: 'asc' } },
+        extras: { where: { active: true }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] },
         staff: { where: { active: true }, orderBy: { name: 'asc' } },
       },
     })
@@ -143,6 +144,13 @@ export async function businessRoutes(app: FastifyInstance) {
         description: s.description,
         durationMin: s.durationMin,
         priceCents: s.priceCents,
+      })),
+      extras: b.extras.map((e) => ({
+        id: e.id,
+        name: e.name,
+        description: e.description,
+        priceCents: e.priceCents,
+        photo: e.photo,
       })),
       staff: b.staff.map((s) => ({ id: s.id, name: s.name })),
       openingHours: (main?.openingHours ?? []).map((w) => ({
