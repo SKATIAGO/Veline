@@ -931,6 +931,10 @@ export const es = {
   'adm.siSuspender': 'Sí, suspender',
   'adm.aceptaNormal': 'Acepta reservas con normalidad',
   'adm.noAceptaAhora': 'No acepta reservas nuevas ahora mismo',
+  'adm.darDeBaja': 'Dar de baja',
+  'adm.darDeBajaPregunta':
+    '¿Dar de baja este negocio? Deja de aceptar reservas y desaparece del buscador. Se conserva su historial y se puede reactivar.',
+  'adm.siDarDeBaja': 'Sí, dar de baja',
   'adm.notaInterna': 'Nota interna',
   'adm.guardarNota': 'Guardar nota',
   'adm.noSePudoCambiar': 'No se ha podido cambiar',

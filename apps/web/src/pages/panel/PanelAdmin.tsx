@@ -217,6 +217,16 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                   loading={cambiar.isPending && cambiar.variables?.status === 'SUSPENDIDA'}
                   onConfirm={() => cambiar.mutate({ status: 'SUSPENDIDA' })}
                 />
+                {/* No es un borrado: conserva sus reservas y cobros, y se
+                    puede reactivar. Un borrado de verdad se llevaría por
+                    delante ese historial, y aquí no hace falta. */}
+                <ConfirmAction
+                  label={t('adm.darDeBaja')}
+                  question={t('adm.darDeBajaPregunta')}
+                  confirmLabel={t('adm.siDarDeBaja')}
+                  loading={cambiar.isPending && cambiar.variables?.status === 'CANCELADA'}
+                  onConfirm={() => cambiar.mutate({ status: 'CANCELADA' })}
+                />
               </>
             )}
           </div>

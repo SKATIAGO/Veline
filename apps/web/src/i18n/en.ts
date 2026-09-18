@@ -929,6 +929,10 @@ export const en: Record<keyof typeof es, string> = {
   'adm.siSuspender': 'Yes, suspend',
   'adm.aceptaNormal': 'Taking bookings normally',
   'adm.noAceptaAhora': 'Not taking new bookings right now',
+  'adm.darDeBaja': 'Deregister',
+  'adm.darDeBajaPregunta':
+    'Deregister this business? It stops taking bookings and disappears from search. Its history is kept and it can be switched back on.',
+  'adm.siDarDeBaja': 'Yes, deregister',
   'adm.notaInterna': 'Internal note',
   'adm.guardarNota': 'Save note',
   'adm.noSePudoCambiar': 'Couldn’t change that',
