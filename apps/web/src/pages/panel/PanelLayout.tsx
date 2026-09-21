@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Button,
+  ButtonLink,
+  EmptyState,
+  Input,
   Logo,
   LogoMark,
   Select,
   Sheet,
   Skeleton,
   cx,
-  ButtonLink,
-  EmptyState,
 } from '../../components/ui'
 import { SelectorIdioma } from '../../components/SelectorIdioma'
 import { useIdioma, type Clave } from '../../i18n/idioma'
@@ -320,6 +321,66 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
   )
 }
 
+/**
+ * El selector de negocio, para el superadmin: entrar en cualquiera sin salir
+ * del panel. Con pocos negocios de verdad no hacía falta más que un
+ * desplegable, pero entre los reales y los de prueba ya son demasiados para
+ * encontrar uno a golpe de vista o tecleando la inicial en el desplegable
+ * nativo.
+ *
+ * El buscador filtra la lista, no sustituye al desplegable: sigue siendo un
+ * <select>, así que en el móvil abre el picker nativo de siempre y en el
+ * escritorio se navega con el teclado igual que antes. El negocio activo se
+ * queda siempre a la vista aunque no coincida con lo escrito — si no, cambiar
+ * el texto de búsqueda podría dejar el selector sin decir dónde se está.
+ */
+function SelectorNegocio({
+  businesses,
+  slug,
+  onCambiar,
+}: {
+  businesses: { id: string; slug: string; name: string }[]
+  slug: string
+  onCambiar: (slug: string) => void
+}) {
+  const { t, idioma } = useIdioma()
+  const [busqueda, setBusqueda] = useState('')
+
+  const ordenados = useMemo(
+    () => [...businesses].sort((a, b) => a.name.localeCompare(b.name, idioma)),
+    [businesses, idioma],
+  )
+
+  const q = busqueda.trim().toLowerCase()
+  const visibles = q
+    ? ordenados.filter((b) => b.slug === slug || b.name.toLowerCase().includes(q))
+    : ordenados
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Input
+        type="search"
+        aria-label={t('panel.buscarNegocio')}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        className="h-9 text-meta"
+      />
+      <Select
+        value={slug}
+        onChange={(e) => onCambiar(e.target.value)}
+        aria-label={t('panel.cambiarNegocio')}
+        className="text-meta"
+      >
+        {visibles.map((b) => (
+          <option key={b.id} value={b.slug}>
+            {b.name}
+          </option>
+        ))}
+      </Select>
+    </div>
+  )
+}
+
 export function PanelLayout() {
   const { t } = useIdioma()
   const { slug = '' } = useParams()
@@ -521,19 +582,13 @@ export function PanelLayout() {
     void logout()
   }
 
-  const selectorNegocio = esSuperadmin && !esPlataforma && businesses && businesses.length > 1 && (
-    <Select
-      value={slug}
-      onChange={(e) => irA(`/panel/${e.target.value}`)}
-      aria-label={t('panel.cambiarNegocio')}
-      className="text-meta"
-    >
-      {businesses.map((b) => (
-        <option key={b.id} value={b.slug}>
-          {b.name}
-        </option>
-      ))}
-    </Select>
+  const mostrarSelector = esSuperadmin && !esPlataforma && businesses && businesses.length > 1
+  const selectorNegocio = mostrarSelector && (
+    <SelectorNegocio
+      businesses={businesses}
+      slug={slug}
+      onCambiar={(nuevoSlug) => irA(`/panel/${nuevoSlug}`)}
+    />
   )
 
   return (
@@ -766,10 +821,10 @@ export function PanelLayout() {
         </p>
 
         {selectorNegocio && (
-          <label className="mb-4 flex flex-col gap-1.5">
+          <div className="mb-4 flex flex-col gap-1.5">
             <span className="text-meta font-semibold text-body-2">{t('panel.cambiarNegocio')}</span>
             {selectorNegocio}
-          </label>
+          </div>
         )}
 
         {gruposMas.map((grupo) => (

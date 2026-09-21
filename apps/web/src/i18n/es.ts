@@ -202,6 +202,7 @@ export const es = {
   'panel.navegacion': 'Navegación del panel',
   'panel.comprobandoSesion': 'Comprobando sesión',
   'panel.cambiarNegocio': 'Cambiar de negocio',
+  'panel.buscarNegocio': 'Buscar negocio',
   'panel.tuPerfil': 'Tu perfil',
   'panel.facturacion': 'Suscripción',
   'panel.enlaces': 'Enlaces',

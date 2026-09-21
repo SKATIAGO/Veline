@@ -202,6 +202,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.navegacion': 'Dashboard navigation',
   'panel.comprobandoSesion': 'Checking your session',
   'panel.cambiarNegocio': 'Switch business',
+  'panel.buscarNegocio': 'Search business',
   'panel.tuPerfil': 'Your profile',
   'panel.facturacion': 'Subscription',
   'panel.enlaces': 'Links',
