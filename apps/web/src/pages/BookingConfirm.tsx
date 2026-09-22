@@ -6,6 +6,7 @@ import { api, ApiError } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
 import { origenActual } from '../lib/origen'
+import { Glow } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -176,7 +177,13 @@ export function BookingConfirm() {
         {business.name} · {service.name}
       </BackBar>
 
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-10 lg:flex-row lg:px-16">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-10 lg:flex-row lg:px-16">
+        {/* Mismo halo que ya usan Precios y Alta: 620 px es lo que hace falta
+            para que se note contra un fondo claro; algo más pequeño se disuelve
+            en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
+            padre) evita el scroll horizontal sin tocar la posición fija de la
+            tarjeta de 360. */}
+        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-7 text-[24px] font-semibold text-ink">{t('confirmar.titulo')}</h1>
 
@@ -217,8 +224,13 @@ export function BookingConfirm() {
           </p>
         </Reveal>
 
-        <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[360px]">
-          <Card className="p-6 lg:sticky lg:top-24">
+        <Reveal
+          variant="right"
+          delay={100}
+          as="aside"
+          className="relative w-full shrink-0 lg:w-[360px]"
+        >
+          <Card className="p-6 shadow-pop lg:sticky lg:top-24">
             <div className="mb-4 font-display text-base font-semibold text-ink">
               {t('confirmar.resumen')}
             </div>
@@ -289,6 +301,7 @@ export function BookingConfirm() {
             )}
 
             <Button
+              size="lg"
               className="w-full"
               onClick={submit}
               disabled={mutation.isPending || !validStart}

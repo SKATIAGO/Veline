@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
+import { Glow } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -74,9 +75,14 @@ export function BookingDone() {
   const time = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="mx-auto flex max-w-[1440px] justify-center px-6 py-16 lg:px-16 lg:py-20">
+    <div className="relative mx-auto flex max-w-[1440px] justify-center px-6 py-16 lg:px-16 lg:py-20">
+      {/* Solo cuando hay algo que celebrar: una cancelación no lleva el
+          mismo brillo que una cita confirmada. */}
+      {!cancelled && (
+        <Glow className="top-8 left-1/2 -translate-x-1/2" color="rgba(217,164,65,.2)" size={360} />
+      )}
       <Reveal variant="zoom" className="w-full max-w-[460px]">
-        <Card className="flex flex-col items-center p-9 text-center">
+        <Card className="relative flex flex-col items-center p-9 text-center shadow-pop">
           <div
             className={
               'mb-6 flex size-[72px] items-center justify-center rounded-full ' +

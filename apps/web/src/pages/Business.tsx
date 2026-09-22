@@ -12,6 +12,7 @@ import { api } from '../lib/api'
 import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
+import { Glow } from '../components/Ornaments'
 import { Lightbox } from '../components/Lightbox'
 import { recordarOrigen } from '../lib/origen'
 import { useIdioma, type Clave } from '../i18n/idioma'
@@ -152,7 +153,13 @@ export function Business() {
     <>
       <BackBar to="/buscar">{business.name}</BackBar>
 
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
+        {/* Mismo halo que ya usan Precios y Alta: 620 px es lo que hace falta
+            para que se note contra un fondo claro; algo más pequeño se disuelve
+            en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
+            padre) evita el scroll horizontal sin tocar la posición fija de la
+            tarjeta de 340. */}
+        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
         {/* Columna principal */}
         <div className="min-w-0 flex-[1.6]">
           <Reveal variant="up" className="relative mb-7">
@@ -360,8 +367,12 @@ export function Business() {
         </div>
 
         {/* Widget de reserva — fijo a la derecha en desktop */}
-        <aside className="w-full shrink-0 lg:w-[340px]">
-          <Card className="p-6 lg:sticky lg:top-24">
+        <aside className="relative w-full shrink-0 lg:w-[340px]">
+          {/* Ambiente cálido pegado a la tarjeta: el mismo lenguaje del hero,
+              en dosis pequeña, para que la decisión de reservar se sienta tan
+              cuidada como la portada. Anclado a la tarjeta y no a la columna
+              entera, que cambia de alto en cada negocio. */}
+          <Card className="p-6 shadow-pop lg:sticky lg:top-24">
             <div className="mb-4 font-display text-[17px] font-semibold text-ink">
               {t('ficha.reservarCita')}
             </div>
@@ -382,11 +393,11 @@ export function Business() {
                 : t('comun.cerrado')}
             </div>
             {business.services[0] ? (
-              <ButtonLink to={urlReserva(business.services[0].id)} className="w-full">
+              <ButtonLink to={urlReserva(business.services[0].id)} size="lg" className="w-full">
                 {t('ficha.verHuecos')}
               </ButtonLink>
             ) : (
-              <Button disabled className="w-full">
+              <Button disabled size="lg" className="w-full">
                 {t('ficha.sinServiciosBoton')}
               </Button>
             )}

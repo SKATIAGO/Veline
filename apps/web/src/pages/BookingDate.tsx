@@ -16,6 +16,7 @@ import {
 import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
+import { Glow } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
 
@@ -168,7 +169,13 @@ export function BookingDate() {
         {business.name} · {service.name}
       </BackBar>
 
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
+        {/* Mismo halo que ya usan Precios y Alta: 620 px es lo que hace falta
+            para que se note contra un fondo claro; algo más pequeño se disuelve
+            en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
+            padre) evita el scroll horizontal sin tocar la posición fija de la
+            tarjeta de 340. */}
+        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">{t('fecha.titulo')}</h1>
 
@@ -328,8 +335,13 @@ export function BookingDate() {
 
         {/* Panel de horas: entra un pelín después, desde la derecha — el ojo
             sigue primero el calendario y luego aterriza aquí. */}
-        <Reveal variant="right" delay={100} as="aside" className="w-full shrink-0 lg:w-[340px]">
-          <Card className="p-6 lg:sticky lg:top-24">
+        <Reveal
+          variant="right"
+          delay={100}
+          as="aside"
+          className="relative w-full shrink-0 lg:w-[340px]"
+        >
+          <Card className="p-6 shadow-pop lg:sticky lg:top-24">
             {isLoading && <Spinner label={t('fecha.buscandoHuecos')} />}
             {isError && <ErrorNote>{(error as Error).message}</ErrorNote>}
 
@@ -415,6 +427,7 @@ export function BookingDate() {
                     </div>
 
                     <Button
+                      size="lg"
                       className="mt-4 w-full"
                       disabled={!slot}
                       onClick={() =>
