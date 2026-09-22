@@ -104,10 +104,19 @@ export function Landing() {
           >
             {/* Muted + playsInline: sin esto los navegadores (sobre todo en
                 móvil) bloquean el autoplay. En bucle porque es la vista
-                previa del panel, no un anuncio con final. */}
+                previa del panel, no un anuncio con final.
+
+                poster + preload="auto": sin el poster, mientras el vídeo
+                carga se ve el rectángulo bg-ink-2 a secas; con preload
+                explícito, el navegador empieza a descargarlo nada más
+                pintar la página en vez de esperar a decidirlo por su
+                cuenta (algunos, sobre todo en móvil con ahorro de datos,
+                no lo harían hasta que el vídeo entra en viewport). */}
             <video
               className="size-full object-cover"
               src="/video/promo.mp4"
+              poster="/video/promo-poster.jpg"
+              preload="auto"
               autoPlay
               muted
               loop
