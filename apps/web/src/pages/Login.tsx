@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { CONTACT_EMAIL } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/auth'
-import { Button, ErrorNote, Logo, Spinner } from '../components/ui'
+import { Button, ErrorNote, Logo, PasswordInput, Spinner } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { SelectorIdioma } from '../components/SelectorIdioma'
 import { Texto, useIdioma } from '../i18n/idioma'
@@ -96,13 +96,11 @@ export function Login() {
             <span className="mb-1.5 block text-meta font-semibold text-body">
               {t('acc.contrasena')}
             </span>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
-              className="w-full rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-brand"
               placeholder="••••••••••"
             />
           </label>

@@ -8,8 +8,8 @@ import {
   Card,
   ErrorNote,
   Field,
-  Input,
   PageHeader,
+  PasswordInput,
   Spinner,
   SuccessNote,
   cx,
@@ -140,9 +140,8 @@ export function PanelCuenta() {
           </h2>
           <form onSubmit={submit} className="flex flex-col gap-4">
             <Field label={t('cta.actual')} htmlFor={`${id}-cur`} required>
-              <Input
+              <PasswordInput
                 id={`${id}-cur`}
-                type="password"
                 value={current}
                 onChange={(e) => setCurrent(e.target.value)}
                 autoComplete="current-password"
@@ -151,9 +150,8 @@ export function PanelCuenta() {
             </Field>
 
             <Field label={t('cta.nueva')} htmlFor={`${id}-new`} hint={t('cta.nuevaPista')} required>
-              <Input
+              <PasswordInput
                 id={`${id}-new`}
-                type="password"
                 value={next}
                 onChange={(e) => setNext(e.target.value)}
                 autoComplete="new-password"
@@ -184,9 +182,8 @@ export function PanelCuenta() {
               error={noCoinciden ? t('cta.noCoinciden') : undefined}
               required
             >
-              <Input
+              <PasswordInput
                 id={`${id}-rep`}
-                type="password"
                 value={repeat}
                 onChange={(e) => setRepeat(e.target.value)}
                 autoComplete="new-password"

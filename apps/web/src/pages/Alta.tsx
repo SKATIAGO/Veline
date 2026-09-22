@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { CATEGORIES, CONTACT_EMAIL } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { Button, ErrorNote, Field, Input, Logo, Select } from '../components/ui'
+import { Button, ErrorNote, Field, Input, Logo, PasswordInput, Select } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { PRUEBA_DIAS } from '../content/precios'
 import { SelectorIdioma } from '../components/SelectorIdioma'
@@ -219,9 +219,8 @@ export function Alta() {
               required
               className="sm:col-span-2"
             >
-              <Input
+              <PasswordInput
                 id={`${id}-p`}
-                type="password"
                 autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => set('password', e.target.value)}

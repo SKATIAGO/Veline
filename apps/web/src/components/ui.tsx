@@ -357,6 +357,67 @@ export function Input({
   )
 }
 
+/**
+ * Un campo de contraseña con un botón para verla mientras se escribe.
+ *
+ * Al cambiarla, o al escribirla dos veces para confirmarla, no hay forma de
+ * saber si se ha tecleado bien hasta que el formulario la rechaza —o peor,
+ * hasta que no se puede entrar la próxima vez—. El ojo no sustituye la
+ * validación, pero evita la mitad de esos casos: el que se equivocó pudo
+ * haberlo visto antes de enviar.
+ */
+export function PasswordInput({
+  className,
+  invalid,
+  ...props
+}: ComponentPropsWithoutRef<'input'> & { invalid?: boolean }) {
+  const { t } = useIdioma()
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        type={visible ? 'text' : 'password'}
+        aria-invalid={invalid || undefined}
+        className={cx(fieldBase, 'h-11 pr-11', invalid && 'border-danger', className)}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? t('comun.ocultarContrasena') : t('comun.verContrasena')}
+        aria-pressed={visible}
+        // tabIndex normal: es un control más del formulario, no un adorno.
+        className="absolute inset-y-0 right-0 grid w-11 place-items-center text-subtle transition-colors duration-200 hover:text-ink"
+      >
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-[19px]"
+        >
+          {visible ? (
+            <>
+              <path d="M3 3l18 18" />
+              <path d="M10.6 10.6a3 3 0 0 0 4.24 4.24" />
+              <path d="M9.9 4.24A11 11 0 0 1 12 4c6.5 0 10 7 10 7a13.2 13.2 0 0 1-2.16 3.19M6.6 6.6C4.3 8.1 2 12 2 12s3.5 7 10 7c1.06 0 2.06-.19 3-.51" />
+            </>
+          ) : (
+            <>
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </>
+          )}
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 export function Textarea({
   className,
   invalid,

@@ -29,6 +29,8 @@ export const es = {
   'comun.inicio': 'Veline — inicio',
   'comun.idioma': 'Idioma',
   'comun.cerrar': 'Cerrar',
+  'comun.verContrasena': 'Ver contraseña',
+  'comun.ocultarContrasena': 'Ocultar contraseña',
 
   // ── Cabecera y pie ────────────────────────────────────────
   'nav.comoFunciona': 'Cómo funciona',

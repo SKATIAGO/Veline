@@ -30,6 +30,8 @@ export const en: Record<keyof typeof es, string> = {
   'comun.inicio': 'Veline — home',
   'comun.idioma': 'Language',
   'comun.cerrar': 'Close',
+  'comun.verContrasena': 'Show password',
+  'comun.ocultarContrasena': 'Hide password',
 
   // ── Header and footer ─────────────────────────────────────
   'nav.comoFunciona': 'How it works',

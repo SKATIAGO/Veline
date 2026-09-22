@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
-import { Button, ErrorNote, Logo } from '../components/ui'
+import { Button, ErrorNote, Logo, PasswordInput } from '../components/ui'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { SelectorIdioma } from '../components/SelectorIdioma'
 import { useIdioma } from '../i18n/idioma'
@@ -157,14 +157,12 @@ export function ResetPassword() {
           <span className="mb-1.5 block text-meta font-semibold text-body">
             {t('acc.nuevaContrasena')}
           </span>
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
             required
             minLength={10}
-            className={inputClass}
             placeholder="••••••••••"
           />
         </label>
@@ -172,14 +170,12 @@ export function ResetPassword() {
           <span className="mb-1.5 block text-meta font-semibold text-body">
             {t('acc.repitela')}
           </span>
-          <input
-            type="password"
+          <PasswordInput
             value={repeat}
             onChange={(e) => setRepeat(e.target.value)}
             autoComplete="new-password"
             required
             minLength={10}
-            className={inputClass}
             placeholder="••••••••••"
           />
         </label>
