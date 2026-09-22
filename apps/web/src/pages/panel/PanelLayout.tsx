@@ -339,22 +339,31 @@ function SelectorNegocio({
   slug,
   onCambiar,
 }: {
-  businesses: { id: string; slug: string; name: string }[]
+  businesses: { id: string; slug: string; name: string; subStatus: string }[]
   slug: string
   onCambiar: (slug: string) => void
 }) {
   const { t, idioma } = useIdioma()
   const [busqueda, setBusqueda] = useState('')
+  // Los dados de baja no molestan mientras se trabaja: son sitio en la lista
+  // que ya no hace falta atender. Se recuperan con la casilla, no
+  // desaparecen del todo — se puede seguir entrando a mirar el histórico.
+  const [verBaja, setVerBaja] = useState(false)
 
+  // El negocio activo no desaparece por su estado: si se está mirando su
+  // panel es porque hace falta, dado de baja o no.
+  const base = businesses.filter((b) => verBaja || b.slug === slug || b.subStatus !== 'CANCELADA')
   const ordenados = useMemo(
-    () => [...businesses].sort((a, b) => a.name.localeCompare(b.name, idioma)),
-    [businesses, idioma],
+    () => [...base].sort((a, b) => a.name.localeCompare(b.name, idioma)),
+    [base, idioma],
   )
 
   const q = busqueda.trim().toLowerCase()
   const visibles = q
     ? ordenados.filter((b) => b.slug === slug || b.name.toLowerCase().includes(q))
     : ordenados
+
+  const hayBaja = businesses.some((b) => b.subStatus === 'CANCELADA')
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -377,6 +386,17 @@ function SelectorNegocio({
           </option>
         ))}
       </Select>
+      {hayBaja && (
+        <label className="flex items-center gap-1.5 text-caption text-subtle">
+          <input
+            type="checkbox"
+            checked={verBaja}
+            onChange={(e) => setVerBaja(e.target.checked)}
+            className="size-3.5 accent-brand"
+          />
+          {t('panel.verDadosDeBaja')}
+        </label>
+      )}
     </div>
   )
 }

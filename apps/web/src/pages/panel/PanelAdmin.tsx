@@ -383,6 +383,10 @@ export function PanelAdmin() {
   const [credencial, setCredencial] = useState<{ email: string; password: string } | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [abierto, setAbierto] = useState<string | null>(null)
+  // Los dados de baja son sitio en la lista que ya no hace falta atender a
+  // diario: se quitan de en medio sin dejar de existir, y se recuperan con
+  // la casilla si alguna vez hace falta mirar uno.
+  const [verBaja, setVerBaja] = useState(false)
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['admin', 'businesses'],
@@ -420,20 +424,28 @@ export function PanelAdmin() {
     },
   })
 
+  const visibles = useMemo(
+    () =>
+      verBaja ? (businesses ?? []) : (businesses ?? []).filter((b) => b.subStatus !== 'CANCELADA'),
+    [businesses, verBaja],
+  )
+
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
-    if (!q) return businesses ?? []
-    return (businesses ?? []).filter(
+    if (!q) return visibles
+    return visibles.filter(
       (b) =>
         b.name.toLowerCase().includes(q) ||
         b.slug.includes(q) ||
         (b.email ?? '').toLowerCase().includes(q) ||
         categoryLabel(b.category).toLowerCase().includes(q),
     )
-  }, [businesses, busqueda])
+  }, [visibles, busqueda])
+
+  const hayBaja = (businesses ?? []).some((b) => b.subStatus === 'CANCELADA')
 
   const totales = useMemo(() => {
-    const list = businesses ?? []
+    const list = visibles
     return {
       negocios: list.length,
       citas: list.reduce((n, b) => n + b.counts.bookings, 0),
@@ -445,7 +457,7 @@ export function PanelAdmin() {
       // tanto no salen en el marketplace, así que cuanto antes se vean mejor.
       pendientes: list.filter((b) => !b.approvedAt).length,
     }
-  }, [businesses])
+  }, [visibles])
 
   if (loading) return <Spinner />
   const vistaCuenta = useALaVista<HTMLDivElement>(userDraft?.businessId)
@@ -725,6 +737,18 @@ export function PanelAdmin() {
         />
       )}
 
+      {hayBaja && (
+        <label className="flex items-center gap-1.5 text-meta text-subtle">
+          <input
+            type="checkbox"
+            checked={verBaja}
+            onChange={(e) => setVerBaja(e.target.checked)}
+            className="size-3.5 accent-brand"
+          />
+          {t('panel.verDadosDeBaja')}
+        </label>
+      )}
+
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
           {[0, 1, 2].map((i) => (
@@ -739,6 +763,8 @@ export function PanelAdmin() {
             <Button onClick={() => setBusinessDraft(emptyBusiness)}>{t('adm.darDeAltaUno')}</Button>
           }
         />
+      ) : !filtrados.length && !busqueda.trim() ? (
+        <EmptyState title={t('adm.todosDeBaja')} />
       ) : !filtrados.length ? (
         <EmptyState title={t('adm.ningunoCoincide', { q: busqueda })} />
       ) : (

@@ -83,7 +83,7 @@ export async function panelRoutes(app: FastifyInstance) {
     return prisma.business.findMany({
       where,
       orderBy: { name: 'asc' },
-      select: { id: true, slug: true, name: true, plan: true, category: true },
+      select: { id: true, slug: true, name: true, plan: true, category: true, subStatus: true },
     })
   })
 

@@ -85,9 +85,16 @@ export const api = {
 
   // ── Panel ──────────────────────────────────────────────────
   panelBusinesses: () =>
-    request<{ id: string; slug: string; name: string; plan: string; category: string }[]>(
-      '/panel/businesses',
-    ),
+    request<
+      {
+        id: string
+        slug: string
+        name: string
+        plan: string
+        category: string
+        subStatus: 'PRUEBA' | 'ACTIVA' | 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA'
+      }[]
+    >('/panel/businesses'),
 
   panelSummary: (slug: string) => request<PanelSummary>(`/panel/${slug}/summary`),
 
