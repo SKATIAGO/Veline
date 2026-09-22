@@ -104,7 +104,14 @@ export const EXTRAS = [
        precio la tarjeta enseña un enlace de contacto. */
     contacto: true,
     asunto: 'pre.gestionAsunto',
-    items: ['pre.gestionI1'],
+    items: [
+      'pre.gestionI1',
+      'pre.gestionI2',
+      'pre.gestionI3',
+      'pre.gestionI4',
+      'pre.gestionI5',
+      'pre.gestionI6',
+    ],
   },
   {
     nombre: 'pre.resenasNombre',
