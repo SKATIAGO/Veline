@@ -12,7 +12,7 @@ import { api } from '../lib/api'
 import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
-import { Glow } from '../components/Ornaments'
+import { MarbleWash } from '../components/Ornaments'
 import { Lightbox } from '../components/Lightbox'
 import { recordarOrigen } from '../lib/origen'
 import { useIdioma, type Clave } from '../i18n/idioma'
@@ -159,7 +159,10 @@ export function Business() {
             en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
             padre) evita el scroll horizontal sin tocar la posición fija de la
             tarjeta de 340. */}
-        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
+        <MarbleWash
+          className="-top-40 -right-20 hidden h-[640px] w-[640px] opacity-[.55] lg:block"
+          seed={4}
+        />
         {/* Columna principal */}
         <div className="min-w-0 flex-[1.6]">
           <Reveal variant="up" className="relative mb-7">

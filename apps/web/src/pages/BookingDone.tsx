@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
-import { Glow } from '../components/Ornaments'
+import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -79,7 +79,10 @@ export function BookingDone() {
       {/* Solo cuando hay algo que celebrar: una cancelación no lleva el
           mismo brillo que una cita confirmada. */}
       {!cancelled && (
-        <Glow className="top-8 left-1/2 -translate-x-1/2" color="rgba(217,164,65,.2)" size={360} />
+        <MarbleWash
+          className="-top-16 left-1/2 h-[520px] w-[520px] -translate-x-1/2 opacity-[.6]"
+          seed={9}
+        />
       )}
       <Reveal variant="zoom" className="w-full max-w-[460px]">
         <Card className="relative flex flex-col items-center p-9 text-center shadow-pop">

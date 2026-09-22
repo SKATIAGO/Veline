@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { cx } from './ui'
 
 /**
@@ -106,6 +107,80 @@ export function Glow({
         background: `radial-gradient(circle, ${color}, transparent 70%)`,
       }}
     />
+  )
+}
+
+/**
+ * Mezcla orgánica de marrones y crema, tipo mármol o veta de madera, para
+ * fondos que piden más presencia que un halo circular pero sin competir con
+ * el contenido de encima.
+ *
+ * No es una imagen: es ruido de baja frecuencia (feTurbulence) usado como
+ * máscara de opacidad sobre un degradado de marca. Con baja frecuencia el
+ * ruido forma manchas grandes y suaves en vez de estática — es la misma
+ * técnica que el grano de la portada (feTurbulence + feColorMatrix), solo que
+ * ahí la frecuencia es alta a propósito, para que se vea como grano de papel
+ * y no como esto.
+ */
+export function MarbleWash({
+  className,
+  seed = 7,
+}: {
+  className?: string
+  /** Cada semilla da una mancha distinta; útil para no repetir el mismo
+      dibujo en dos secciones de la misma pantalla. */
+  seed?: number
+}) {
+  const crudo = useId().replace(/[^a-zA-Z0-9]/g, '')
+  const filtro = `marble-${crudo}`
+  const degradado = `wash-${crudo}`
+
+  return (
+    <div
+      aria-hidden="true"
+      className={cx('pointer-events-none absolute overflow-hidden', className)}
+      style={{
+        // Sin esto el rectángulo del propio SVG se nota como un corte recto:
+        // la mancha se desvanece por dentro, pero la caja que la contiene no.
+        maskImage: 'radial-gradient(circle at 62% 38%, black 35%, transparent 72%)',
+        WebkitMaskImage: 'radial-gradient(circle at 62% 38%, black 35%, transparent 72%)',
+      }}
+    >
+      <svg className="size-full" preserveAspectRatio="none">
+        <defs>
+          <filter id={filtro} x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.007 0.012"
+              numOctaves={4}
+              seed={seed}
+              result="ruido"
+            />
+            {/* R,G,B a cero; el alfa pasa a ser el promedio de los tres
+                canales del ruido: lo que queda es una máscara de opacidad,
+                no una imagen con su propio color. */}
+            <feColorMatrix
+              in="ruido"
+              type="matrix"
+              values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.33 0.33 0.33 0 0"
+              result="mascaraCruda"
+            />
+            {/* Curva de contraste: sin esto la mancha es una niebla uniforme;
+                con ella se separan zonas claras y oscuras, como una veta. */}
+            <feComponentTransfer in="mascaraCruda" result="mascara">
+              <feFuncA type="gamma" amplitude={1.5} exponent={2.6} offset={0} />
+            </feComponentTransfer>
+            <feComposite in="SourceGraphic" in2="mascara" operator="in" />
+          </filter>
+          <linearGradient id={degradado} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#F2E7D6" />
+            <stop offset="45%" stopColor="#CDAE74" />
+            <stop offset="100%" stopColor="#8C5833" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${degradado})`} filter={`url(#${filtro})`} />
+      </svg>
+    </div>
   )
 }
 

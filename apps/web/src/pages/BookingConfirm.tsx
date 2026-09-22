@@ -6,7 +6,7 @@ import { api, ApiError } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
 import { origenActual } from '../lib/origen'
-import { Glow } from '../components/Ornaments'
+import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -183,7 +183,10 @@ export function BookingConfirm() {
             en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
             padre) evita el scroll horizontal sin tocar la posición fija de la
             tarjeta de 360. */}
-        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
+        <MarbleWash
+          className="-top-40 -right-20 hidden h-[640px] w-[640px] opacity-[.55] lg:block"
+          seed={8}
+        />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-7 text-[24px] font-semibold text-ink">{t('confirmar.titulo')}</h1>
 

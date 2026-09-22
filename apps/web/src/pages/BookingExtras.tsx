@@ -6,7 +6,7 @@ import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, Contador, MAX_POR_EXTRA, Spinner, cx } from '../components/ui'
 import { Photo } from '../components/Photo'
-import { Glow } from '../components/Ornaments'
+import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
 
@@ -90,7 +90,10 @@ export function BookingExtras() {
             en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
             padre) evita el scroll horizontal sin tocar la posición fija de la
             tarjeta de 360. */}
-        <Glow className="-top-32 right-0 hidden lg:block" color="rgba(217,164,65,.32)" size={620} />
+        <MarbleWash
+          className="-top-40 -right-20 hidden h-[640px] w-[640px] opacity-[.55] lg:block"
+          seed={5}
+        />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="text-[24px] font-semibold text-ink">{t('extras.titulo')}</h1>
           <p className="mt-1.5 max-w-[600px] text-meta text-muted">{t('extras.pista')}</p>
