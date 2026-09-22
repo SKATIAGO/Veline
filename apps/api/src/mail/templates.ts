@@ -1,4 +1,4 @@
-import { formatLongDate, formatPrice, TIMEZONE, type Idioma } from '@veline/shared'
+import { categoryLabel, formatLongDate, formatPrice, TIMEZONE, type Idioma } from '@veline/shared'
 import type { MailMessage } from './tipos.js'
 import { idiomaParaCliente, idiomaParaNegocio } from './idioma.js'
 
@@ -501,6 +501,60 @@ export function signupVerifyMail(
       ctx.url,
       '',
       'El enlace vale 48 horas. Después revisaremos tu ficha antes de publicarla.',
+    ].join('\n'),
+  }
+}
+
+/* ── 8. Aviso interno de alta nueva ────────────────────────────
+ * A quien lleva la plataforma, no al negocio: hasta ahora un alta por su
+ * cuenta no avisaba a nadie de Veline, así que se descubría mirando el panel
+ * por costumbre o cuando el propio negocio escribía preguntando por qué no
+ * salía en el buscador. La promesa de «lo revisamos y te escribimos» del
+ * correo de arriba no se podía cumplir sin esto.
+ */
+export function signupNotifyTeamMail(
+  to: { email: string },
+  ctx: {
+    businessName: string
+    category: string
+    street: string
+    city: string
+    postalCode: string
+    responsable: string
+    email: string
+    phone?: string
+    slug: string
+  },
+): MailMessage {
+  const idioma = idiomaParaNegocio()
+  const rows: [string, string][] = [
+    ['Categoría', categoryLabel(ctx.category, idioma)],
+    ['Dirección', `${ctx.street}, ${ctx.postalCode} ${ctx.city}`],
+    ['Responsable', ctx.responsable],
+    ['Email', ctx.email],
+    ...((ctx.phone ? [['Teléfono', ctx.phone]] : []) as [string, string][]),
+  ]
+
+  return {
+    to: to.email,
+    subject: `Alta nueva por revisar: ${ctx.businessName}`,
+    tag: 'alta-aviso-interno',
+    html: layout({
+      idioma,
+      preheader: `${ctx.businessName} se ha dado de alta y espera revisión`,
+      heading: 'Alta nueva por revisar',
+      intro: `<strong style="color:${INK};">${esc(ctx.businessName)}</strong> se acaba de dar de alta por su cuenta. No sale en el marketplace hasta que se revise y se apruebe.`,
+      body: detalles(rows),
+      cta: { label: 'Revisar en la plataforma', url: `${webUrl()}/panel/admin` },
+    }),
+    text: [
+      'Alta nueva por revisar',
+      '',
+      `${ctx.businessName} se ha dado de alta por su cuenta. No sale en el marketplace hasta que se revise y se apruebe.`,
+      '',
+      textoDetalles(rows),
+      '',
+      `Revisar en la plataforma: ${webUrl()}/panel/admin`,
     ].join('\n'),
   }
 }

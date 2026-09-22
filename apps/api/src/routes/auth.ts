@@ -13,9 +13,9 @@ import {
 } from '../auth/sessions.js'
 import { audit } from '../audit/log.js'
 import { mailMode, sendMail } from '../mail/enviar.js'
-import { passwordResetMail, signupVerifyMail } from '../mail/templates.js'
+import { passwordResetMail, signupNotifyTeamMail, signupVerifyMail } from '../mail/templates.js'
 import { consumirVerificacion, crearAlta } from '../auth/alta.js'
-import { CATEGORIES, phoneES } from '@veline/shared'
+import { CATEGORIES, CONTACT_EMAIL, phoneES } from '@veline/shared'
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -322,6 +322,27 @@ export async function authRoutes(app: FastifyInstance) {
         entityId: alta.businessId,
         metadata: { slug: alta.slug, categoria: parsed.data.categoria, ciudad: parsed.data.ciudad },
       })
+
+      // Aparte del correo al negocio: sin esto, nadie en Veline se enteraba
+      // de que hay un alta esperando revisión hasta que alguien mirara el
+      // panel por costumbre. No bloquea la respuesta ni la condiciona: el
+      // alta ya está hecha, se avise o no.
+      void sendMail(
+        signupNotifyTeamMail(
+          { email: CONTACT_EMAIL },
+          {
+            businessName: parsed.data.negocio,
+            category: parsed.data.categoria,
+            street: parsed.data.calle,
+            city: parsed.data.ciudad,
+            postalCode: parsed.data.codigoPostal,
+            responsable: parsed.data.responsable,
+            email: parsed.data.email,
+            phone: parsed.data.telefono,
+            slug: alta.slug,
+          },
+        ),
+      ).catch((err) => req.log.error({ err }, 'no se pudo avisar del alta nueva'))
 
       /* Si el correo no sale, el alta ya está hecha: no se puede deshacer sin
          perder lo que la persona acaba de escribir. Se avisa para que la
