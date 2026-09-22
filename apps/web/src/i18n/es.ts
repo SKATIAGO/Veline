@@ -109,6 +109,8 @@ export const es = {
   // ── Elegir fecha y hora ───────────────────────────────────
   'fecha.titulo': 'Elige fecha y hora',
   'fecha.servicio': 'Servicio',
+  'fecha.conQuien': 'Con quién',
+  'fecha.sinPreferencia': 'Sin preferencia',
   'fecha.local': 'Local',
   'fecha.mesAnterior': 'Mes anterior',
   'fecha.mesSiguiente': 'Mes siguiente',
@@ -145,6 +147,7 @@ export const es = {
   'confirmar.errEmail': 'Revisa el email.',
   'confirmar.resumen': 'Resumen',
   'confirmar.negocio': 'Negocio',
+  'confirmar.conQuien': 'Con quién',
   'confirmar.servicio': 'Servicio',
   'confirmar.fecha': 'Fecha',
   'confirmar.duracion': 'Duración',
@@ -297,6 +300,8 @@ export const es = {
 
   // Apuntar una cita
   'agenda.servicio': 'Servicio',
+  'agenda.conQuien': 'Con quién',
+  'agenda.sinPreferencia': 'Sin preferencia',
   'agenda.cuando': 'Cuándo',
   'agenda.email': 'Email',
   'agenda.emailPista': 'Si lo pones, también recibe la confirmación por correo',

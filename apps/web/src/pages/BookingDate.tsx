@@ -36,6 +36,7 @@ export function BookingDate() {
   const [params] = useSearchParams()
   const serviceId = params.get('servicio') ?? ''
   const localPedido = params.get('local') ?? ''
+  const personaPedida = params.get('persona') ?? ''
   // Elegidos en el paso anterior. Aquí no se tocan: solo se conservan y se
   // suman al total, para que el precio de esta pantalla sea el de verdad.
   const pedidos = extrasDeUrl(params)
@@ -64,6 +65,15 @@ export function BookingDate() {
   const local = locales.find((l) => l.id === localPedido) ?? locales[0]
   const varios = locales.length > 1
 
+  /* Quien atiende en el local elegido: las suyas y las de quien no tiene uno
+     asignado, igual que calcula el servidor. Con una sola persona no hay
+     nada que preguntar. */
+  const personal = (business?.staff ?? []).filter(
+    (p) => !local || !p.locationId || p.locationId === local.id,
+  )
+  const staff = personal.find((p) => p.id === personaPedida)
+  const variosPersonal = personal.length > 1
+
   // Ventana consultada: desde hoy (o el 1 del mes si es futuro) hasta fin de mes,
   // ampliada a 14 días para que el carrusel móvil no se quede corto a fin de mes.
   const from = month > today ? month : today
@@ -88,6 +98,7 @@ export function BookingDate() {
       slug,
       service?.id,
       local?.id,
+      staff?.id,
       extrasParam(pedidos),
       toDateKey(from),
       toDateKey(to),
@@ -98,6 +109,7 @@ export function BookingDate() {
         from: toDateKey(from),
         to: toDateKey(to),
         ...(local ? { locationId: local.id } : {}),
+        ...(staff ? { staffId: staff.id } : {}),
         ...(pedidos.length ? { extras: extrasParam(pedidos) } : {}),
       }),
     enabled: Boolean(service),
@@ -156,9 +168,9 @@ export function BookingDate() {
   })
   const total =
     service.priceCents + elegidos.reduce((suma, l) => suma + l.extra.priceCents * l.cantidad, 0)
-  const tramoComun = `servicio=${service.id}${local ? `&local=${local.id}` : ''}${tramoExtras(
-    elegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })),
-  )}`
+  const tramoComun = `servicio=${service.id}${local ? `&local=${local.id}` : ''}${
+    staff ? `&persona=${staff.id}` : ''
+  }${tramoExtras(elegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })))}`
   /* Atrás vuelve a los extras si el negocio tiene carta, que es el paso que
      de verdad se acaba de dejar; si no la tiene, a la ficha. */
   const volverA = business.extras.length > 0 ? `/${slug}/reservar/extras?${tramoComun}` : `/${slug}`
@@ -203,6 +215,38 @@ export function BookingDate() {
                 {locales.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.name} · {l.street}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {/* Selector de persona: solo si hay más de una en este local. Cambia
+              quién tiene que estar libre para que un hueco cuente, así que
+              limpia la hora ya elegida y vuelve a pedir la disponibilidad. */}
+          {variosPersonal && (
+            <label className="mb-6 block">
+              <span className="mb-1.5 block text-meta font-semibold text-body">
+                {t('fecha.conQuien')}
+              </span>
+              <select
+                value={staff?.id ?? ''}
+                onChange={(e) => {
+                  setSlot(null)
+                  setSelectedKey(null)
+                  navigate(
+                    `/${slug}/reservar/fecha?servicio=${service.id}${
+                      local ? `&local=${local.id}` : ''
+                    }${e.target.value ? `&persona=${e.target.value}` : ''}`,
+                    { replace: true },
+                  )
+                }}
+                className="w-full max-w-[420px] rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink"
+              >
+                <option value="">{t('fecha.sinPreferencia')}</option>
+                {personal.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
                   </option>
                 ))}
               </select>
@@ -395,6 +439,12 @@ export function BookingDate() {
                       ))}
 
                     <div className="mt-6 border-t border-line pt-4 text-body">
+                      {staff && (
+                        <div className="mb-2.5 flex justify-between gap-4">
+                          <span className="min-w-0 text-muted">{t('fecha.conQuien')}</span>
+                          <span className="shrink-0 font-semibold text-ink">{staff.name}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between gap-4">
                         <span className="min-w-0 text-muted">
                           {service.name}

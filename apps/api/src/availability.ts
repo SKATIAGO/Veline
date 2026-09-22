@@ -51,6 +51,11 @@ export interface AvailabilityRange {
    * las que el servicio entra pero el servicio + el tinte no.
    */
   extras?: ExtraPedido[]
+  /**
+   * Con quién, si el cliente ya ha elegido una persona concreta. Sin esto se
+   * calcula igual que siempre: libre si CUALQUIERA está libre.
+   */
+  staffId?: string
 }
 
 /**
@@ -95,6 +100,7 @@ export async function getAvailability({
   to,
   locationId,
   extras: pedidos = [],
+  staffId,
 }: AvailabilityRange): Promise<DayAvailabilityDTO[]> {
   const service = await prisma.service.findFirst({
     where: { id: serviceId, businessId, active: true },
@@ -130,6 +136,9 @@ export async function getAvailability({
         businessId,
         active: true,
         OR: [{ locationId: location.id }, { locationId: null }],
+        // Con una persona concreta, solo ella cuenta: un hueco en el que
+        // atendería otra no vale para quien ya ha elegido con quién.
+        ...(staffId ? { id: staffId } : {}),
       },
       orderBy: { name: 'asc' },
     }),
@@ -146,6 +155,13 @@ export async function getAvailability({
       select: { staffId: true, startsAt: true, blockedTo: true },
     }),
   ])
+
+  /* Se pidió una persona concreta y no está entre las de este local: id
+     inventado, o alguien de otro sitio. Igual que un local o un servicio que
+     no existen — no se enseñan huecos de quien no es. */
+  if (staffId && staff.length === 0) {
+    throw Object.assign(new Error('Persona no encontrada'), { statusCode: 404 })
+  }
 
   const cierres: Cierre[] = closures.map((c) => ({
     dateKey: claveDeFechaUtc(c.date),

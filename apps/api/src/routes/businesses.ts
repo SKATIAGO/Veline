@@ -39,6 +39,8 @@ const availabilityQuery = z.object({
   locationId: z.string().min(1).optional(),
   /** Los extras ya elegidos («corte:2,tinte»): alargan la cita. */
   extras: z.string().max(500).optional(),
+  /** Con quién, si el cliente ya ha elegido una persona concreta. */
+  staffId: z.string().min(1).optional(),
 })
 
 export async function businessRoutes(app: FastifyInstance) {
@@ -156,7 +158,7 @@ export async function businessRoutes(app: FastifyInstance) {
         durationMin: e.durationMin,
         photo: e.photo,
       })),
-      staff: b.staff.map((s) => ({ id: s.id, name: s.name })),
+      staff: b.staff.map((s) => ({ id: s.id, name: s.name, locationId: s.locationId })),
       openingHours: (main?.openingHours ?? []).map((w) => ({
         weekday: w.weekday,
         startMin: w.startMin,
@@ -195,6 +197,7 @@ export async function businessRoutes(app: FastifyInstance) {
         to,
         locationId: parsed.data.locationId,
         extras: parseExtrasParam(parsed.data.extras),
+        staffId: parsed.data.staffId,
       })
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode ?? 500

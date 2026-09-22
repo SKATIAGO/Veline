@@ -489,6 +489,8 @@ export interface BookingExtraDTO {
 export interface StaffDTO {
   id: string
   name: string
+  /** Null = atiende en cualquier local. */
+  locationId: string | null
 }
 
 export interface LocationDTO {

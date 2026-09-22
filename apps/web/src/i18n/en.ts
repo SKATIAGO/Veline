@@ -110,6 +110,8 @@ export const en: Record<keyof typeof es, string> = {
   // ── Pick a date and time ──────────────────────────────────
   'fecha.titulo': 'Pick a date and time',
   'fecha.servicio': 'Service',
+  'fecha.conQuien': 'Staff member',
+  'fecha.sinPreferencia': 'No preference',
   'fecha.local': 'Location',
   'fecha.mesAnterior': 'Previous month',
   'fecha.mesSiguiente': 'Next month',
@@ -146,6 +148,7 @@ export const en: Record<keyof typeof es, string> = {
   'confirmar.errEmail': 'Check the email address.',
   'confirmar.resumen': 'Summary',
   'confirmar.negocio': 'Business',
+  'confirmar.conQuien': 'Staff member',
   'confirmar.servicio': 'Service',
   'confirmar.fecha': 'Date',
   'confirmar.duracion': 'Duration',
@@ -297,6 +300,8 @@ export const en: Record<keyof typeof es, string> = {
 
   // Adding an appointment
   'agenda.servicio': 'Service',
+  'agenda.conQuien': 'Staff member',
+  'agenda.sinPreferencia': 'No preference',
   'agenda.cuando': 'When',
   'agenda.email': 'Email',
   'agenda.emailPista': 'If you add it, they also get the confirmation by email',

@@ -73,6 +73,7 @@ export function BookingConfirm() {
   // Viene de la pantalla anterior. Con un solo local va vacío y el servidor
   // coge el único que hay.
   const locationId = params.get('local') ?? ''
+  const staffId = params.get('persona') ?? ''
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -99,7 +100,11 @@ export function BookingConfirm() {
     return extra ? [{ extra, cantidad: p.quantity }] : []
   })
   const aPedir = elegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad }))
-  const tramoComun = `servicio=${serviceId}${locationId ? `&local=${locationId}` : ''}${tramoExtras(aPedir)}`
+  // Quien atiende, elegido en el paso anterior. Solo se enseña: aquí no se puede cambiar.
+  const staff = business?.staff.find((p) => p.id === staffId)
+  const tramoComun = `servicio=${serviceId}${locationId ? `&local=${locationId}` : ''}${
+    staffId ? `&persona=${staffId}` : ''
+  }${tramoExtras(aPedir)}`
   const urlFecha = `/${slug}/reservar/fecha?${tramoComun}`
   const urlExtras = `/${slug}/reservar/extras?${tramoComun}`
 
@@ -116,6 +121,7 @@ export function BookingConfirm() {
         idioma,
         extras: aPedir,
         ...(locationId ? { locationId } : {}),
+        ...(staffId ? { staffId } : {}),
       }),
     onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
   })
@@ -147,6 +153,7 @@ export function BookingConfirm() {
       idioma,
       extras: aPedir,
       ...(locationId ? { locationId } : {}),
+      ...(staffId ? { staffId } : {}),
     })
     if (!parsed.success) {
       const next: Record<string, string> = {}
@@ -239,6 +246,9 @@ export function BookingConfirm() {
             </div>
             {[
               { clave: 'confirmar.negocio', value: business.name },
+              // Solo si de verdad se eligió: sin preferencia, el negocio
+              // asigna a quien esté libre y aquí no hay nada que decir.
+              ...(staff ? [{ clave: 'confirmar.conQuien', value: staff.name } as const] : []),
               { clave: 'confirmar.servicio', value: service.name },
               {
                 clave: 'confirmar.fecha',

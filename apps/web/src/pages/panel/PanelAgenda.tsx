@@ -489,6 +489,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   const [email, setEmail] = useState('')
   const [notas, setNotas] = useState('')
   const [cantidades, setCantidades] = useState<Record<string, number>>({})
+  const [staffId, setStaffId] = useState('')
 
   const { data: servicios } = useQuery({
     queryKey: ['panel', slug, 'services'],
@@ -500,6 +501,12 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
     queryKey: ['panel', slug, 'extras'],
     queryFn: () => api.panelExtras(slug),
   })
+
+  const { data: personas } = useQuery({
+    queryKey: ['panel', slug, 'staff'],
+    queryFn: () => api.panelStaff(slug),
+  })
+  const personalActivo = personas?.filter((p) => p.active) ?? []
 
   const activos = servicios?.filter((s) => s.active) ?? []
   const elegido = serviceId || activos[0]?.id || ''
@@ -527,6 +534,7 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         customerEmail: email.trim() || undefined,
         notes: notas.trim() || undefined,
         extras: extrasElegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })),
+        staffId: staffId || undefined,
       }),
     onSuccess: onHecho,
   })
@@ -560,6 +568,26 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
               ))}
             </Select>
           </Field>
+
+          {/* Con más de una persona, quién la va a atender: por teléfono o en
+              el mostrador es tan normal preguntarlo como la hora. Con una
+              sola no hay nada que elegir. */}
+          {personalActivo.length > 1 && (
+            <Field label={t('agenda.conQuien')} htmlFor={`${id}-staff`}>
+              <Select
+                id={`${id}-staff`}
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+              >
+                <option value="">{t('agenda.sinPreferencia')}</option>
+                {personalActivo.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
 
           <Field label={t('agenda.cuando')} htmlFor={`${id}-cuando`} required>
             <Input

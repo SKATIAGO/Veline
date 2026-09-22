@@ -66,6 +66,8 @@ export const api = {
       locationId?: string
       /** Ids separados por comas: los extras elegidos alargan la cita. */
       extras?: string
+      /** Con quién, si el cliente ya ha elegido una persona concreta. */
+      staffId?: string
     },
   ) => request<DayAvailabilityDTO[]>(`/businesses/${slug}/availability${qs(params)}`),
 
