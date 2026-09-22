@@ -72,6 +72,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   const [ficha, setFicha] = useState(false)
   const [moviendo, setMoviendo] = useState(false)
   const [nuevaHora, setNuevaHora] = useState(() => paraInput(booking.startsAt))
+  // Casi siempre hace falta avisar; se puede destildar para el caso raro de
+  // una corrección interna que el cliente ya conoce de otra forma.
+  const [avisar, setAvisar] = useState(true)
 
   const refrescar = () => {
     queryClient.invalidateQueries({ queryKey: ['panel', slug] })
@@ -85,7 +88,8 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   })
 
   const mover = useMutation({
-    mutationFn: () => api.rescheduleBooking(slug, booking.id, new Date(nuevaHora).toISOString()),
+    mutationFn: () =>
+      api.rescheduleBooking(slug, booking.id, new Date(nuevaHora).toISOString(), avisar),
     onSuccess: () => {
       setMoviendo(false)
       refrescar()
@@ -140,6 +144,15 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           value={nuevaHora}
           onChange={(e) => setNuevaHora(e.target.value)}
         />
+      </label>
+      <label className="flex items-center gap-1.5 text-meta text-body-2">
+        <input
+          type="checkbox"
+          checked={avisar}
+          onChange={(e) => setAvisar(e.target.checked)}
+          className="size-3.5 accent-brand"
+        />
+        {t('agenda.avisarCambio')}
       </label>
       <div className="flex gap-2">
         <Button type="submit" loading={mover.isPending} block>

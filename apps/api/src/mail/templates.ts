@@ -315,6 +315,46 @@ export function bookingCancelled(
   }
 }
 
+/* ── 3b. Cambio de hora ───────────────────────────────────────── */
+
+export function bookingRescheduled(b: BookingMailData, antes: Date): MailMessage {
+  const idioma = idiomaParaCliente(b)
+  const cuandoAntes = `${capitalizar(formatLongDate(antes, idioma))} a las ${hora(antes, idioma)}`
+  const cuandoDespues = `${capitalizar(formatLongDate(b.startsAt, idioma))} a las ${hora(b.startsAt, idioma)}`
+  const rows: [string, string][] = [
+    ['Servicio', b.serviceName],
+    ['Antes', cuandoAntes],
+    ['Ahora', cuandoDespues],
+    ...((b.staffName ? [['Te atiende', b.staffName]] : []) as [string, string][]),
+    ...((b.address ? [['Dónde', b.address]] : []) as [string, string][]),
+    ['Código', b.code],
+  ]
+
+  return {
+    to: b.customerEmail!,
+    toName: b.customerName,
+    subject: `Tu cita en ${b.businessName} ha cambiado de hora`,
+    tag: 'reserva-movida',
+    html: layout({
+      idioma,
+      preheader: `Ahora es el ${cuandoDespues}`,
+      heading: 'Hemos cambiado tu cita',
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong> ha cambiado de hora.`,
+      body: detalles(rows),
+      cta: { label: 'Ver o cancelar mi reserva', url: `${webUrl()}/reserva/${b.code}` },
+    }),
+    text: [
+      `Hemos cambiado tu cita`,
+      ``,
+      `Tu cita en ${b.businessName} ha cambiado de hora.`,
+      ``,
+      textoDetalles(rows),
+      ``,
+      `Ver o cancelar tu reserva: ${webUrl()}/reserva/${b.code}`,
+    ].join('\n'),
+  }
+}
+
 /* ── 4. Recordatorio de la cita ───────────────────────────────── */
 
 export function bookingReminderMail(b: BookingMailData): MailMessage {

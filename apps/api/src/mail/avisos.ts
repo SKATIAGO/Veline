@@ -3,9 +3,14 @@ import { prisma } from '../prisma.js'
 import { sendMail } from './enviar.js'
 import { sendSms } from './acumbamail.js'
 import { registrarEnvio } from './contador.js'
-import { bookingCancelled, bookingConfirmedToCustomer, type BookingMailData } from './templates.js'
+import {
+  bookingCancelled,
+  bookingConfirmedToCustomer,
+  bookingRescheduled,
+  type BookingMailData,
+} from './templates.js'
 import { idiomaDeLaReserva, idiomaParaCliente } from './idioma.js'
-import { smsCancelacion, smsConfirmacion } from './sms.js'
+import { smsCambioHora, smsCancelacion, smsConfirmacion } from './sms.js'
 
 /**
  * Los avisos que recibe el CLIENTE sobre su cita: la confirmación al reservar
@@ -63,7 +68,7 @@ const datosCorreo = (cita: Cita): BookingMailData => ({
 /** Correo (si lo hay) y SMS al cliente, y los dos apuntados en el contador. */
 async function avisarCliente(
   cita: Cita,
-  kind: 'RESERVA_CONFIRMADA' | 'RESERVA_CANCELADA',
+  kind: 'RESERVA_CONFIRMADA' | 'RESERVA_CANCELADA' | 'RESERVA_MOVIDA',
   mensajes: { correo: Parameters<typeof sendMail>[0] | null; sms: string },
 ) {
   const base = { businessId: cita.businessId, bookingId: cita.id, kind }
@@ -134,6 +139,52 @@ export async function avisarConfirmacion(bookingId: string): Promise<void> {
     })
   } catch (err) {
     console.error('[avisos] no se pudo confirmar la reserva', bookingId, err)
+  }
+}
+
+/**
+ * Al mover una cita a otra hora, desde el panel.
+ *
+ * `antes` es la hora que tenía la cita justo antes de moverla: para cuando
+ * esta función corre, la fila ya guarda la nueva, así que la vieja hay que
+ * pasarla desde donde todavía se conoce.
+ */
+export async function avisarCambioHora(bookingId: string, antes: Date): Promise<void> {
+  try {
+    const cita = await cargarCita(bookingId)
+    if (!cita) return
+
+    // La hora nueva ya pasó: no hay a quién avisar de una cita que ya fue.
+    if (cita.startsAt.getTime() <= Date.now()) return
+
+    // Igual que al confirmar: un negocio suspendido no manda avisos en su
+    // nombre.
+    if (!aceptaReservas(cita.business.subStatus, cita.business.trialEndsAt)) {
+      await registrarEnvio({
+        businessId: cita.businessId,
+        bookingId: cita.id,
+        kind: 'RESERVA_MOVIDA',
+        channel: 'SMS',
+        to: cita.customer.phone,
+        status: 'OMITIDO',
+        reason: 'negocio no activo',
+      })
+      return
+    }
+
+    const idiomaCliente = idiomaDeLaReserva(cita.idioma)
+    await avisarCliente(cita, 'RESERVA_MOVIDA', {
+      correo: cita.customer.email ? bookingRescheduled(datosCorreo(cita), antes) : null,
+      sms: smsCambioHora({
+        idioma: idiomaParaCliente({ idiomaCliente }),
+        startsAt: cita.startsAt,
+        businessName: cita.business.name,
+        code: cita.code,
+        web: webSinProtocolo(),
+      }),
+    })
+  } catch (err) {
+    console.error('[avisos] no se pudo avisar del cambio de hora', bookingId, err)
   }
 }
 

@@ -284,6 +284,7 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.moverDeHora': 'Move to another time',
   'agenda.moverLaCita': 'Move the appointment',
   'agenda.nuevaFechaHora': 'New date and time',
+  'agenda.avisarCambio': 'Notify the customer of the change (email and SMS)',
   'agenda.dejarlo': 'Leave it',
   'agenda.cancelar': 'Cancel',
   'agenda.cancelarLaCita': 'Cancel the appointment',

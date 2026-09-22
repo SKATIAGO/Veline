@@ -15,7 +15,7 @@ import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
 import { pedirResena } from './resenas.js'
 import { bookingCode } from '../codigo.js'
 import { duracionConExtras, elegirExtras, totalConExtras } from '../extras.js'
-import { avisarConfirmacion } from '../mail/avisos.js'
+import { avisarCambioHora, avisarConfirmacion } from '../mail/avisos.js'
 
 /**
  * Lo que un negocio necesita para gestionarse solo: las personas que atienden,
@@ -72,6 +72,8 @@ const manualBookingBody = z.object({
 const rescheduleBody = z.object({
   startsAt: z.string().datetime({ offset: true }),
   staffId: z.string().min(1).optional(),
+  /** Si se avisa al cliente del cambio, por correo y SMS. */
+  notify: z.boolean().default(true),
 })
 
 const outcomeBody = z.object({ status: z.enum(['COMPLETADA', 'NO_ASISTIO', 'CONFIRMADA']) })
@@ -794,8 +796,14 @@ export async function negocioRoutes(app: FastifyInstance) {
         businessId: auth.business.id,
         entity: 'Booking',
         entityId: id,
-        metadata: { antes: existing.startsAt, despues: moved.startsAt },
+        metadata: {
+          antes: existing.startsAt,
+          despues: moved.startsAt,
+          avisado: parsed.data.notify,
+        },
       })
+
+      if (parsed.data.notify) void avisarCambioHora(id, existing.startsAt)
 
       return { ok: true, startsAt: moved.startsAt }
     } catch (err) {

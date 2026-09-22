@@ -9,7 +9,7 @@ import { prisma } from '../prisma.js'
 import { sendMail } from './enviar.js'
 import { sendSms } from './acumbamail.js'
 import { registrarEnvio } from './contador.js'
-import { avisarCancelacion, avisarConfirmacion } from './avisos.js'
+import { avisarCambioHora, avisarCancelacion, avisarConfirmacion } from './avisos.js'
 
 /**
  * Los avisos que recibe el cliente sobre su cita: al reservar y al cancelar.
@@ -260,6 +260,78 @@ describe('avisarCancelacion', () => {
     vi.mocked(prisma.booking.findUnique).mockRejectedValue(new Error('base caída'))
 
     await expect(avisarCancelacion('b1')).resolves.toBeUndefined()
+
+    expect(sendSms).not.toHaveBeenCalled()
+  })
+})
+
+describe('avisarCambioHora', () => {
+  it('con correo: manda correo y SMS de cambio de hora, y apunta los dos', async () => {
+    conCita(cita())
+
+    await avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))
+
+    expect(sendMail).toHaveBeenCalledTimes(1)
+    expect(sendSms).toHaveBeenCalledTimes(1)
+    expect(registros('EMAIL')).toMatchObject([
+      { kind: 'RESERVA_MOVIDA', status: 'ENVIADO', to: 'marina@ejemplo.es' },
+    ])
+    expect(registros('SMS')).toMatchObject([
+      { kind: 'RESERVA_MOVIDA', status: 'ENVIADO', to: '633492344', bookingId: 'b1' },
+    ])
+  })
+
+  it('el correo lleva la hora de antes y la de ahora', async () => {
+    conCita(cita())
+
+    await avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))
+
+    const html = vi.mocked(sendMail).mock.calls[0]![0].html
+    expect(html).toContain('septiembre')
+  })
+
+  it('sin correo: el SMS sale igualmente', async () => {
+    conCita(cita({ customer: { name: 'Marina', phone: '633492344', email: null } }))
+
+    await avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))
+
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(sendSms).toHaveBeenCalledTimes(1)
+  })
+
+  it('si la hora nueva ya pasó, no avisa a nadie', async () => {
+    conCita(cita({ startsAt: new Date(Date.now() - 3_600_000) }))
+
+    await avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))
+
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(sendSms).not.toHaveBeenCalled()
+    expect(registrarEnvio).not.toHaveBeenCalled()
+  })
+
+  it('un negocio suspendido no avisa del cambio, igual que no confirma', async () => {
+    conCita(cita(suspendido))
+
+    await avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))
+
+    expect(sendMail).not.toHaveBeenCalled()
+    expect(sendSms).not.toHaveBeenCalled()
+    expect(registros('SMS')).toMatchObject([{ status: 'OMITIDO', reason: 'negocio no activo' }])
+  })
+
+  it('si la reserva no existe, no hace nada', async () => {
+    conCita(null)
+
+    await avisarCambioHora('no-existe', new Date('2026-09-01T09:00:00Z'))
+
+    expect(sendSms).not.toHaveBeenCalled()
+    expect(registrarEnvio).not.toHaveBeenCalled()
+  })
+
+  it('si la base falla, no lanza', async () => {
+    vi.mocked(prisma.booking.findUnique).mockRejectedValue(new Error('base caída'))
+
+    await expect(avisarCambioHora('b1', new Date('2026-09-01T09:00:00Z'))).resolves.toBeUndefined()
 
     expect(sendSms).not.toHaveBeenCalled()
   })

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { aGsm7, smsCancelacion, smsConfirmacion, smsRecordatorio, tramosSms } from './sms.js'
+import {
+  aGsm7,
+  smsCambioHora,
+  smsCancelacion,
+  smsConfirmacion,
+  smsRecordatorio,
+  tramosSms,
+} from './sms.js'
 
 /**
  * El SMS es el mensaje más caro y el que más se lee: llega al bolsillo, no a
@@ -46,6 +53,24 @@ describe('el SMS de confirmación', () => {
 
   it('con el negocio y el día más largos, sigue en un tramo', () => {
     const texto = smsConfirmacion({
+      ...confirmacion,
+      startsAt: miercoles,
+      businessName: largo.businessName,
+    })
+    expect(tramosSms(texto)).toBe(1)
+  })
+})
+
+describe('el SMS de cambio de hora', () => {
+  it('dice la hora nueva y enlaza para ver o cancelar', () => {
+    expect(smsCambioHora(confirmacion)).toBe(
+      'Tu cita en Taller Mecanico Rivas ha cambiado: ahora es el martes 15 de septiembre a las 09:00. ' +
+        `Ver o cancelar: veline.es/reserva/${CODIGO}`,
+    )
+  })
+
+  it('con el negocio y el día más largos, sigue en un tramo', () => {
+    const texto = smsCambioHora({
       ...confirmacion,
       startsAt: miercoles,
       businessName: largo.businessName,

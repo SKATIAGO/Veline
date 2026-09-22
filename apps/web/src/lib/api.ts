@@ -346,10 +346,10 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
-  rescheduleBooking: (slug: string, id: string, startsAt: string) =>
+  rescheduleBooking: (slug: string, id: string, startsAt: string, notify: boolean) =>
     request<{ ok: true; startsAt: string }>(`/panel/${slug}/bookings/${id}/reschedule`, {
       method: 'PATCH',
-      body: JSON.stringify({ startsAt }),
+      body: JSON.stringify({ startsAt, notify }),
     }),
 
   setBookingOutcome: (

@@ -4,6 +4,7 @@ import {
   bookingConfirmedToCustomer,
   bookingCreatedToBusiness,
   bookingReminderMail,
+  bookingRescheduled,
   passwordResetMail,
   reviewRequestMail,
   type BookingMailData,
@@ -44,6 +45,7 @@ const plantillas: [string, { html: string }][] = [
   ['aviso al negocio', bookingCreatedToBusiness(base, 'negocio@ejemplo.es')],
   ['cancelación (cliente)', bookingCancelled(base, persona, 'cliente')],
   ['cancelación (negocio)', bookingCancelled(base, persona, 'negocio')],
+  ['cambio de hora', bookingRescheduled(base, new Date('2026-09-10T10:00:00Z'))],
   ['recordatorio', bookingReminderMail(base)],
   [
     'petición de reseña',
@@ -81,6 +83,18 @@ describe('las plantillas de correo escapan lo que escribe el cliente', () => {
     ).html
     expect(html).not.toContain('mailto:')
     expect(html).toContain('tel:612345678')
+  })
+})
+
+/** El aviso de cambio de hora es el único que necesita dos fechas a la vez:
+    la que tenía la cita y la que tiene ahora. Si se confundieran, el cliente
+    llegaría al día que ya no toca. */
+describe('el aviso de cambio de hora', () => {
+  it('dice la hora de antes y la de ahora, no solo la nueva', () => {
+    const antes = new Date('2026-09-10T09:00:00Z')
+    const m = bookingRescheduled(base, antes)
+    expect(m.text).toContain('10 de septiembre')
+    expect(m.text).toContain('15 de septiembre')
   })
 })
 

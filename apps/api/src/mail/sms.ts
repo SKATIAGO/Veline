@@ -153,6 +153,29 @@ export function smsConfirmacion(c: SmsConfirmacion): string {
   )
 }
 
+export interface SmsCambioHora {
+  idioma: Idioma
+  startsAt: Date
+  businessName: string
+  code: string
+  /** La web sin «https://». */
+  web: string
+}
+
+/**
+ * «Tu cita en X ha cambiado: ahora es el martes 15 de septiembre a las 09:00.
+ * Ver o cancelar: veline.es/reserva/VL-…».
+ *
+ * No dice la hora vieja: en un SMS de un tramo no cabían las dos horas más el
+ * enlace, y la que hace falta para no presentarse el día que ya no toca es
+ * la nueva. Quien quiera comparar tiene el enlace.
+ */
+export function smsCambioHora(c: SmsCambioHora): string {
+  return aGsm7(
+    `Tu cita en ${c.businessName} ha cambiado: ahora es el ${cuando(c.startsAt, c.idioma)}. Ver o cancelar: ${c.web}/reserva/${c.code}`,
+  )
+}
+
 export interface SmsCancelacion {
   idioma: Idioma
   startsAt: Date

@@ -284,6 +284,7 @@ export const es = {
   'agenda.moverDeHora': 'Mover de hora',
   'agenda.moverLaCita': 'Mover la cita',
   'agenda.nuevaFechaHora': 'Nueva fecha y hora',
+  'agenda.avisarCambio': 'Avisar al cliente del cambio (correo y SMS)',
   'agenda.dejarlo': 'Dejarlo',
   'agenda.cancelar': 'Cancelar',
   'agenda.cancelarLaCita': 'Cancelar la cita',
