@@ -364,14 +364,12 @@ function SelectorNegocio({
     : ordenados
 
   const hayBaja = businesses.some((b) => b.subStatus === 'CANCELADA')
-  const actual = businesses.find((b) => b.slug === slug)
 
   return (
     <div className="flex flex-col gap-1.5">
       <Input
         type="search"
         aria-label={t('panel.buscarNegocio')}
-        placeholder={actual?.name}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
         className="h-9 text-meta"
