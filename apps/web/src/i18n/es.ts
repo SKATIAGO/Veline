@@ -268,6 +268,12 @@ export const es = {
   'agenda.sinCitasPeriodo': 'No hay citas en este periodo',
   'agenda.apareceránSolas': 'Cuando alguien reserve aparecerá aquí automáticamente.',
   'agenda.ampliaPeriodo': 'Prueba a ampliar el periodo con los filtros de arriba.',
+  'agenda.vistaLista': 'Lista',
+  'agenda.vistaMes': 'Mes',
+  'agenda.unaCitaDia': '{n} cita',
+  'agenda.variasCitasDia': '{n} citas',
+  'agenda.tocaUnDia': 'Toca un día del calendario para ver sus citas',
+  'agenda.sinCitasEseDia': 'No hay citas ese día',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',

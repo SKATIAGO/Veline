@@ -1,7 +1,15 @@
 import { useId, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatDuration, formatLongDate, formatPrice, toDateKey } from '@veline/shared'
+import {
+  formatDuration,
+  formatLongDate,
+  formatPrice,
+  fromDateKey,
+  monthLong,
+  toDateKey,
+  weekdayShort,
+} from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
 import {
@@ -14,6 +22,7 @@ import {
   FilterChip,
   Field,
   Input,
+  LogoMark,
   MAX_POR_EXTRA,
   PageHeader,
   Select,
@@ -761,12 +770,185 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
   )
 }
 
+const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
+const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
+const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1)
+/** Lunes primero, como en el resto del producto. */
+const mondayIndex = (d: Date) => (d.getDay() + 6) % 7
+
+/**
+ * La vista de mes: una imagen general de cuándo hay citas, no un sustituto
+ * de la lista. Un día se elige para ver sus citas debajo, con las mismas
+ * filas de siempre — no hace falta una segunda forma de enseñar una cita.
+ */
+function CalendarioMensual({ slug }: { slug: string }) {
+  const { t, idioma } = useIdioma()
+  const plural = usePlural()
+  const hoy = useMemo(() => new Date(), [])
+  const [mes, setMes] = useState(() => startOfMonth(hoy))
+  const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
+
+  const irAMes = (n: number) => {
+    setMes((m) => addMonths(m, n))
+    setDiaSeleccionado(null)
+  }
+
+  const { data: bookings, isLoading } = useQuery({
+    queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes)],
+    queryFn: () =>
+      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)) }),
+  })
+
+  const porDia = useMemo(() => {
+    const map = new Map<string, PanelBooking[]>()
+    for (const b of bookings ?? []) {
+      const key = toDateKey(new Date(b.startsAt))
+      map.set(key, [...(map.get(key) ?? []), b])
+    }
+    return map
+  }, [bookings])
+
+  const daysInMonth = endOfMonth(mes).getDate()
+  const leading = mondayIndex(mes)
+  const cells: (Date | null)[] = [
+    ...Array<null>(leading).fill(null),
+    ...Array.from(
+      { length: daysInMonth },
+      (_, i) => new Date(mes.getFullYear(), mes.getMonth(), i + 1),
+    ),
+  ]
+
+  const hoyKey = toDateKey(hoy)
+  const citasDelDia = diaSeleccionado ? (porDia.get(diaSeleccionado) ?? []) : []
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center justify-between gap-3 bg-brand px-4 py-3.5 text-white sm:px-5">
+          <div className="flex items-center gap-2.5">
+            <LogoMark size={18} variant="dark" />
+            <h3 className="font-display text-ui font-semibold capitalize sm:text-subheading">
+              {monthLong(mes.getMonth(), idioma)} {mes.getFullYear()}
+            </h3>
+          </div>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              aria-label={t('fecha.mesAnterior')}
+              onClick={() => irAMes(-1)}
+              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-white/90 transition-colors hover:bg-white/15 sm:size-9"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label={t('fecha.mesSiguiente')}
+              onClick={() => irAMes(1)}
+              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-white/90 transition-colors hover:bg-white/15 sm:size-9"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-cream p-3 sm:p-4">
+          <div className="mb-2 grid grid-cols-7 gap-1.5 sm:gap-2">
+            {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
+              <div
+                key={wd}
+                className="text-center text-caption font-semibold text-brand-text uppercase"
+              >
+                {weekdayShort(wd, idioma)}
+              </div>
+            ))}
+          </div>
+
+          {isLoading ? (
+            <Skeleton className="h-64" />
+          ) : (
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              {cells.map((d, i) => {
+                if (!d) return <div key={`vacio-${i}`} />
+                const key = toDateKey(d)
+                const citas = porDia.get(key) ?? []
+                const activo = key === diaSeleccionado
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setDiaSeleccionado(activo ? null : key)}
+                    aria-label={
+                      citas.length
+                        ? `${formatLongDate(d, idioma)}: ${plural(citas.length, 'agenda.unaCitaDia', 'agenda.variasCitasDia')}`
+                        : formatLongDate(d, idioma)
+                    }
+                    className={cx(
+                      'flex h-12 flex-col items-center justify-center gap-0.5 rounded-lg border transition-colors sm:h-16',
+                      activo
+                        ? 'border-brand bg-brand text-white'
+                        : 'border-line bg-surface hover:border-brand',
+                      key === hoyKey && !activo && 'ring-1 ring-inset ring-brand/50',
+                    )}
+                  >
+                    <span
+                      className={cx(
+                        'text-ui font-semibold',
+                        activo ? 'text-white' : 'text-brand-text',
+                      )}
+                    >
+                      {d.getDate()}
+                    </span>
+                    {citas.length > 0 && (
+                      <span
+                        aria-hidden
+                        className={cx(
+                          'text-caption font-medium',
+                          activo ? 'text-white/85' : 'text-subtle',
+                        )}
+                      >
+                        {citas.length}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {!isLoading &&
+        (diaSeleccionado ? (
+          citasDelDia.length === 0 ? (
+            <EmptyState title={t('agenda.sinCitasEseDia')} />
+          ) : (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-meta font-semibold tracking-[0.04em] text-muted uppercase">
+                {formatLongDate(fromDateKey(diaSeleccionado), idioma)}
+              </h3>
+              <Card className="overflow-hidden">
+                <ul>
+                  {citasDelDia.map((b) => (
+                    <BookingRow key={b.id} booking={b} slug={slug} />
+                  ))}
+                </ul>
+              </Card>
+            </div>
+          )
+        ) : (
+          <p className="text-meta text-subtle">{t('agenda.tocaUnDia')}</p>
+        ))}
+    </div>
+  )
+}
+
 export function PanelAgenda() {
   const { t, idioma } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
   const [params, setParams] = useSearchParams()
   const [rango, setRango] = useState<RangoKey>('hoy')
+  const [vista, setVista] = useState<'lista' | 'mes'>('lista')
 
   /* El botón central de la barra de móvil abre el formulario desde otra
      pantalla, así que el estado vive en la URL y no en este componente. De
@@ -880,20 +1062,29 @@ export function PanelAgenda() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-subheading font-semibold text-ink">
           {t('agenda.proximasCitas')}
-          {!isLoading && total > 0 && (
+          {vista === 'lista' && !isLoading && total > 0 && (
             <span className="ml-2 text-body font-normal text-muted">({total})</span>
           )}
         </h2>
         <div className="flex flex-wrap gap-2">
-          {RANGOS.map((r) => (
-            <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
-              {t(r.clave)}
-            </FilterChip>
-          ))}
+          <FilterChip active={vista === 'lista'} onClick={() => setVista('lista')}>
+            {t('agenda.vistaLista')}
+          </FilterChip>
+          <FilterChip active={vista === 'mes'} onClick={() => setVista('mes')}>
+            {t('agenda.vistaMes')}
+          </FilterChip>
+          {vista === 'lista' &&
+            RANGOS.map((r) => (
+              <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
+                {t(r.clave)}
+              </FilterChip>
+            ))}
         </div>
       </div>
 
-      {isLoading ? (
+      {vista === 'mes' ? (
+        <CalendarioMensual slug={slug} />
+      ) : isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16" />

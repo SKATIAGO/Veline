@@ -268,6 +268,12 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.sinCitasPeriodo': 'Nothing booked in this period',
   'agenda.apareceránSolas': 'As soon as someone books, it shows up here on its own.',
   'agenda.ampliaPeriodo': 'Try widening the period with the filters above.',
+  'agenda.vistaLista': 'List',
+  'agenda.vistaMes': 'Month',
+  'agenda.unaCitaDia': '{n} booking',
+  'agenda.variasCitasDia': '{n} bookings',
+  'agenda.tocaUnDia': 'Tap a day on the calendar to see its bookings',
+  'agenda.sinCitasEseDia': 'No bookings that day',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',
