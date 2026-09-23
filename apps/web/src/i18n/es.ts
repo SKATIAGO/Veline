@@ -222,7 +222,7 @@ export const es = {
   'panel.apuntarCita': 'Apuntar una cita',
   'panel.rolSuperadmin': 'Superadmin',
   'panel.rolAdmin': 'Administrador',
-  'panel.rolEmpleado': 'Equipo',
+  'panel.rolEmpleado': 'Empleado',
 
   // Grupos del menú
   'panel.grupoDiaADia': 'Día a día',
@@ -236,8 +236,8 @@ export const es = {
   'panel.fichaje': 'Fichaje',
   'panel.servicios': 'Servicios',
   'panel.horario': 'Horario',
-  'panel.personas': 'Personas',
-  'panel.equipo': 'Equipo',
+  'panel.personas': 'Empleados',
+  'panel.equipo': 'Administrador',
   'panel.elNegocio': 'El negocio',
   'panel.locales': 'Locales',
   'panel.actividad': 'Actividad',
@@ -248,8 +248,8 @@ export const es = {
   // ── Panel · agenda ────────────────────────────────────────
   'agenda.unServicio': '{n} servicio',
   'agenda.variosServicios': '{n} servicios',
-  'agenda.unaPersona': '{n} persona',
-  'agenda.variasPersonas': '{n} personas',
+  'agenda.unaPersona': '{n} empleado',
+  'agenda.variasPersonas': '{n} empleados',
   'agenda.apuntarUna': '+ Apuntar una cita',
   'agenda.apuntarTitulo': 'Apuntar una cita',
   'agenda.apuntarBoton': 'Apuntar la cita',
@@ -417,7 +417,7 @@ export const es = {
   'pers.unaAtiende': '{n} atiende citas',
   'pers.variasAtienden': '{n} atienden citas',
   'pers.deBajaCuenta': '{n} de baja',
-  'pers.anadirUna': 'Añadir una persona',
+  'pers.anadirUna': 'Añadir un empleado',
   'pers.anadirPista': 'El nombre que verá el cliente al reservar',
   'pers.dondeAtiende': 'Dónde atiende',
   'pers.enTodos': 'En todos',
@@ -427,7 +427,7 @@ export const es = {
   'pers.noSePudoCambiar': 'No se ha podido cambiar',
   'pers.todaviaNadie': 'Todavía no hay nadie que atienda',
   'pers.todaviaNadiePista':
-    'Sin al menos una persona no se pueden repartir las citas: el buscador no ofrecerá ningún hueco.',
+    'Sin al menos un empleado no se pueden repartir las citas: el buscador no ofrecerá ningún hueco.',
   'pers.nuevoNombre': 'Nuevo nombre para {nombre}',
   'pers.guardar': 'Guardar',
   'pers.cancelar': 'Cancelar',
@@ -439,9 +439,9 @@ export const es = {
   'pers.darDeBaja': 'Dar de baja',
   'pers.siDeBaja': 'Sí, de baja',
   'pers.volverAActivar': 'Volver a activar',
-  'pers.avisoNegrita': 'cuantas más personas, más citas a la vez',
+  'pers.avisoNegrita': 'cuantos más empleados, más citas a la vez',
   'pers.aviso':
-    'Cada cita se asigna a una persona libre a esa hora, así que {negrita}. Dar de baja a alguien con citas por delante no se permite: primero hay que moverlas o cancelarlas. Esto no son las cuentas para entrar al panel — eso está en Equipo.',
+    'Cada cita se asigna a un empleado libre a esa hora, así que {negrita}. Dar de baja a alguien con citas por delante no se permite: primero hay que moverlas o cancelarlas. Esto no son las cuentas para entrar al panel — eso está en Administrador.',
 
   // ── Panel · locales ───────────────────────────────────────
   'loc.unLocal': '{n} local',
@@ -464,18 +464,18 @@ export const es = {
   'loc.noAceptaReservas': 'No acepta reservas',
   'loc.leFalta': 'Le falta {que}.',
   'loc.faltaHorario': 'horario',
-  'loc.faltaPersonas': 'personas que atiendan',
+  'loc.faltaPersonas': 'empleados que atiendan',
   'loc.y': ' y ',
-  'loc.personas': 'Personas',
+  'loc.personas': 'Empleados',
   'loc.citas': 'Citas',
   'loc.editar': 'Editar',
   'loc.cerrar': 'Cerrar',
   'loc.cerrarPregunta': '¿Cerrar «{nombre}»?',
   'loc.siCerrar': 'Sí, cerrar',
   'loc.avisoHorario': 'horario',
-  'loc.avisoPersonas': 'personas',
+  'loc.avisoPersonas': 'empleados',
   'loc.aviso':
-    'Cada local tiene su propio {horario} y sus propias {personas}, así que un local recién abierto no ofrece huecos hasta que le pongas las dos cosas. Una persona sin local asignado atiende en todos. Un local con citas no se puede cerrar: primero hay que moverlas o cancelarlas.',
+    'Cada local tiene su propio {horario} y sus propios {personas}, así que un local recién abierto no ofrece huecos hasta que le pongas las dos cosas. Un empleado sin local asignado atiende en todos. Un local con citas no se puede cerrar: primero hay que moverlas o cancelarlas.',
 
   // ── Panel · el negocio ────────────────────────────────────
   'neg.pista': 'Lo que ve un cliente en tu ficha del marketplace.',
@@ -608,7 +608,7 @@ export const es = {
   'eq.errNombre': 'Escribe el nombre completo.',
   'eq.errEmail': 'El email no tiene un formato válido.',
   'eq.errContrasena': 'La contraseña debe tener al menos 10 caracteres.',
-  'eq.todaviaNadie': 'Todavía no hay nadie en el equipo',
+  'eq.todaviaNadie': 'Todavía no hay nadie con acceso',
   'eq.todaviaNadiePista':
     'Añade a la primera persona para que pueda entrar al panel y llevar la agenda.',
   'eq.anadirPrimera': 'Añadir a la primera persona',
@@ -618,16 +618,16 @@ export const es = {
   'eq.quitarAcceso': 'Quitar acceso',
   'eq.siQuitar': 'Sí, quitar',
   'eq.devolverAcceso': 'Devolver acceso',
-  'eq.ayudaAdmin': 'Agenda, servicios, horario y equipo',
+  'eq.ayudaAdmin': 'Agenda, servicios, horario y accesos',
   'eq.ayudaEmpleado': 'Solo la agenda',
   'eq.ayudaSuperadmin': 'Toda la plataforma',
   'eq.aviso':
-    '{equipo} ve y gestiona la agenda. {admin} además configura servicios, horario y este equipo. Quitar el acceso cierra sus sesiones abiertas al momento.',
+    '{equipo} ve y gestiona la agenda. {admin} además configura servicios, horario y quién tiene acceso. Quitar el acceso cierra sus sesiones abiertas al momento.',
 
   // ── Panel · tu cuenta ─────────────────────────────────────
   'cta.alcance': 'Alcance',
   'cta.alcanceSuperadmin': 'Toda la plataforma: negocios, cuentas y actividad.',
-  'cta.alcanceAdmin': 'Tu negocio entero: agenda, servicios, horario y equipo.',
+  'cta.alcanceAdmin': 'Tu negocio entero: agenda, servicios, horario y accesos.',
   'cta.alcanceEmpleado': 'La agenda de tu negocio.',
   'cta.permisos': 'Permisos',
   'cta.negocio': 'Negocio',
@@ -661,8 +661,8 @@ export const es = {
   'fac.esteMes': 'Este mes',
   'fac.esteMesCon': 'Este mes · {mes}',
   'fac.plan': 'Plan {nombre}',
-  'fac.unaPersona': '{n} persona',
-  'fac.variasPersonas': '{n} personas',
+  'fac.unaPersona': '{n} empleado',
+  'fac.variasPersonas': '{n} empleados',
   'fac.incluidas': '{n} incluidas',
   'fac.comision': 'Comisión del marketplace',
   'fac.comisionPista': '15 % del primer cliente que te descubre en Veline',
@@ -683,7 +683,7 @@ export const es = {
     'El cobro es por transferencia o recibo: no te pedimos tarjeta ni se te cobra nada automáticamente. Si algo no cuadra, escríbenos antes de pagar.',
 
   // ── Panel · fichaje ───────────────────────────────────────
-  'fic.pistaTodos': 'El registro de jornada de todo el equipo.',
+  'fic.pistaTodos': 'El registro de jornada de todos los empleados.',
   'fic.pistaMio': 'Tu registro de jornada. Solo lo ves tú y quien administra.',
   'fic.estasDentro': 'Estás dentro',
   'fic.estasFuera': 'Estás fuera',
@@ -826,8 +826,8 @@ export const es = {
   'cob.nadaConFiltro': 'Nada con este filtro',
   'cob.todaviaNoHay': 'Todavía no hay cobros',
   'cob.todaviaNoHayPista': 'Los cobros se generan al cerrar un mes con el botón de arriba.',
-  'cob.unaPersona': '{n} persona',
-  'cob.variasPersonas': '{n} personas',
+  'cob.unaPersona': '{n} empleado',
+  'cob.variasPersonas': '{n} empleados',
   'cob.cuota': 'Cuota',
   'cob.comision': 'Comisión',
   'cob.mensajes': 'Mensajes',
@@ -856,7 +856,7 @@ export const es = {
   'ctas.todos': 'Todos',
   'ctas.superadmins': 'Superadmins',
   'ctas.administradores': 'Administradores',
-  'ctas.equipo': 'Equipo',
+  'ctas.equipo': 'Empleados',
   'ctas.sinAcceso': 'Sin acceso',
   'ctas.pruebaOtroFiltro': 'Prueba con otro filtro.',
   'ctas.tu': 'Tú',
@@ -915,7 +915,7 @@ export const es = {
   'adm.alMes': '{importe}/mes',
   'adm.citas': 'Citas',
   'adm.servicios': 'Servicios',
-  'adm.equipo': 'Equipo',
+  'adm.equipo': 'Accesos',
   'adm.aprobar': 'Aprobar',
   'adm.cerrar': 'Cerrar',
   'adm.suscripcion': 'Suscripción',
@@ -929,8 +929,8 @@ export const es = {
 
   // El mando de la suscripción
   'adm.plan': 'Plan',
-  'adm.conUnaPersona': 'Con {n} persona:',
-  'adm.conVariasPersonas': 'Con {n} personas:',
+  'adm.conUnaPersona': 'Con {n} empleado:',
+  'adm.conVariasPersonas': 'Con {n} empleados:',
   'adm.alMesFuerte': '{importe} al mes',
   'adm.prueba': 'Prueba',
   'adm.masDias': '+{n} días',
@@ -1051,7 +1051,7 @@ export const es = {
   'pre.alMes': '/mes',
   'pre.contratar': 'Contratar',
   'pre.negocioF1':
-    'Incluye al administrador —que también puede atender citas— y 1 persona más en el calendario',
+    'Incluye al administrador —que también puede atender citas— y 1 empleado más en el calendario',
   'pre.negocioF2': 'Reservas ilimitadas desde tu web, Instagram o Google',
   'pre.negocioF3':
     'Recordatorios por SMS y email — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
@@ -1061,11 +1061,11 @@ export const es = {
 
   'pre.equipoNombre': 'Equipo',
   'pre.equipoTagline': 'Cuando sois más de dos',
-  'pre.equipoPeriodo': '/mes por persona de más',
+  'pre.equipoPeriodo': '/mes por empleado de más',
   'pre.hablarVentas': 'Hablar con ventas',
   'pre.equipoAsunto': 'Consulta sobre el plan Equipo',
   'pre.equipoF1': 'Todo lo de Negocio',
-  'pre.equipoF2': 'Personas y locales ilimitados',
+  'pre.equipoF2': 'Empleados y locales ilimitados',
   'pre.equipoF3': 'Panel multi-sucursal',
   'pre.equipoF4': 'Soporte dedicado',
 
@@ -1122,9 +1122,9 @@ export const es = {
     'Nada automático: no se te cobra nada sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
   'pre.q3': '¿Hay permanencia?',
   'pre.a3': 'No. Es mes a mes y puedes darte de baja cuando quieras desde el panel.',
-  'pre.q4': '¿Cuántas personas entran en el precio?',
+  'pre.q4': '¿Cuántos empleados entran en el precio?',
   'pre.a4':
-    'El plan Negocio incluye 2 personas en el calendario: el administrador —que también puede atender citas— y 1 persona más. A partir de ahí, cada persona de más son 10,95 € al mes.',
+    'El plan Negocio incluye 2 empleados en el calendario: el administrador —que también puede atender citas— y 1 empleado más. A partir de ahí, cada empleado de más son 10,95 € al mes.',
   'pre.q5': '¿Cómo funciona la comisión del 15 %?',
   'pre.a5':
     'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',

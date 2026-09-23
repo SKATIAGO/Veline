@@ -222,7 +222,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.apuntarCita': 'Add an appointment',
   'panel.rolSuperadmin': 'Superadmin',
   'panel.rolAdmin': 'Administrator',
-  'panel.rolEmpleado': 'Team',
+  'panel.rolEmpleado': 'Employee',
 
   // Menu groups
   'panel.grupoDiaADia': 'Day to day',
@@ -237,7 +237,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.servicios': 'Services',
   'panel.horario': 'Opening hours',
   'panel.personas': 'Staff',
-  'panel.equipo': 'Team',
+  'panel.equipo': 'Administrator',
   'panel.elNegocio': 'The business',
   'panel.locales': 'Locations',
   'panel.actividad': 'Activity',
@@ -248,8 +248,8 @@ export const en: Record<keyof typeof es, string> = {
   // ── Dashboard · diary ─────────────────────────────────────
   'agenda.unServicio': '{n} service',
   'agenda.variosServicios': '{n} services',
-  'agenda.unaPersona': '{n} person',
-  'agenda.variasPersonas': '{n} people',
+  'agenda.unaPersona': '{n} employee',
+  'agenda.variasPersonas': '{n} employees',
   'agenda.apuntarUna': '+ Add an appointment',
   'agenda.apuntarTitulo': 'Add an appointment',
   'agenda.apuntarBoton': 'Add the appointment',
@@ -442,7 +442,7 @@ export const en: Record<keyof typeof es, string> = {
   'pers.volverAActivar': 'Set active again',
   'pers.avisoNegrita': 'the more people, the more appointments at once',
   'pers.aviso':
-    'Each appointment goes to someone free at that time, so {negrita}. Setting someone inactive while they still have appointments ahead isn’t allowed: move or cancel those first. These aren’t the accounts for logging in — those live under Team.',
+    'Each appointment goes to someone free at that time, so {negrita}. Setting someone inactive while they still have appointments ahead isn’t allowed: move or cancel those first. These aren’t the accounts for logging in — those live under Administrator.',
 
   // ── Dashboard · locations ─────────────────────────────────
   'loc.unLocal': '{n} location',
@@ -607,7 +607,7 @@ export const en: Record<keyof typeof es, string> = {
   'eq.errNombre': 'Write their full name.',
   'eq.errEmail': 'That email isn’t a valid address.',
   'eq.errContrasena': 'The password needs at least 10 characters.',
-  'eq.todaviaNadie': 'Nobody on the team yet',
+  'eq.todaviaNadie': 'Nobody has access yet',
   'eq.todaviaNadiePista': 'Add the first person so they can log in and run the diary.',
   'eq.anadirPrimera': 'Add the first person',
   'eq.tu': 'You',
@@ -616,16 +616,16 @@ export const en: Record<keyof typeof es, string> = {
   'eq.quitarAcceso': 'Remove access',
   'eq.siQuitar': 'Yes, remove it',
   'eq.devolverAcceso': 'Give access back',
-  'eq.ayudaAdmin': 'Diary, services, hours and team',
+  'eq.ayudaAdmin': 'Diary, services, hours and access',
   'eq.ayudaEmpleado': 'The diary only',
   'eq.ayudaSuperadmin': 'The whole platform',
   'eq.aviso':
-    '{equipo} sees and runs the diary. {admin} also sets up services, hours and this team. Removing access closes their open sessions straight away.',
+    '{equipo} sees and runs the diary. {admin} also sets up services, hours and who has access. Removing access closes their open sessions straight away.',
 
   // ── Dashboard · your account ──────────────────────────────
   'cta.alcance': 'Covers',
   'cta.alcanceSuperadmin': 'The whole platform: businesses, accounts and activity.',
-  'cta.alcanceAdmin': 'Your whole business: diary, services, hours and team.',
+  'cta.alcanceAdmin': 'Your whole business: diary, services, hours and access.',
   'cta.alcanceEmpleado': 'Your business’s diary.',
   'cta.permisos': 'Permissions',
   'cta.negocio': 'Business',
@@ -659,8 +659,8 @@ export const en: Record<keyof typeof es, string> = {
   'fac.esteMes': 'This month',
   'fac.esteMesCon': 'This month · {mes}',
   'fac.plan': '{nombre} plan',
-  'fac.unaPersona': '{n} person',
-  'fac.variasPersonas': '{n} people',
+  'fac.unaPersona': '{n} employee',
+  'fac.variasPersonas': '{n} employees',
   'fac.incluidas': '{n} included',
   'fac.comision': 'Marketplace commission',
   'fac.comisionPista': '15% of the first customer who finds you on Veline',
@@ -681,7 +681,7 @@ export const en: Record<keyof typeof es, string> = {
     'We charge by transfer or direct debit: we never ask for a card and nothing is taken automatically. If something doesn’t add up, write to us before paying.',
 
   // ── Dashboard · time clock ────────────────────────────────
-  'fic.pistaTodos': 'The whole team’s working-time record.',
+  'fic.pistaTodos': 'Every employee’s working-time record.',
   'fic.pistaMio': 'Your working-time record. Only you and whoever administers can see it.',
   'fic.estasDentro': 'You’re clocked in',
   'fic.estasFuera': 'You’re clocked out',
@@ -825,8 +825,8 @@ export const en: Record<keyof typeof es, string> = {
   'cob.nadaConFiltro': 'Nothing with this filter',
   'cob.todaviaNoHay': 'No charges yet',
   'cob.todaviaNoHayPista': 'Charges are generated by closing a month with the button above.',
-  'cob.unaPersona': '{n} person',
-  'cob.variasPersonas': '{n} people',
+  'cob.unaPersona': '{n} employee',
+  'cob.variasPersonas': '{n} employees',
   'cob.cuota': 'Subscription',
   'cob.comision': 'Commission',
   'cob.mensajes': 'Messages',
@@ -855,7 +855,7 @@ export const en: Record<keyof typeof es, string> = {
   'ctas.todos': 'All',
   'ctas.superadmins': 'Superadmins',
   'ctas.administradores': 'Administrators',
-  'ctas.equipo': 'Team',
+  'ctas.equipo': 'Employees',
   'ctas.sinAcceso': 'No access',
   'ctas.pruebaOtroFiltro': 'Try another filter.',
   'ctas.tu': 'You',
@@ -914,7 +914,7 @@ export const en: Record<keyof typeof es, string> = {
   'adm.alMes': '{importe}/month',
   'adm.citas': 'Appointments',
   'adm.servicios': 'Services',
-  'adm.equipo': 'Team',
+  'adm.equipo': 'Access',
   'adm.aprobar': 'Approve',
   'adm.cerrar': 'Close',
   'adm.suscripcion': 'Subscription',
@@ -928,8 +928,8 @@ export const en: Record<keyof typeof es, string> = {
 
   // Subscription controls
   'adm.plan': 'Plan',
-  'adm.conUnaPersona': 'With {n} person:',
-  'adm.conVariasPersonas': 'With {n} people:',
+  'adm.conUnaPersona': 'With {n} employee:',
+  'adm.conVariasPersonas': 'With {n} employees:',
   'adm.alMesFuerte': '{importe} a month',
   'adm.prueba': 'Trial',
   'adm.masDias': '+{n} days',
@@ -1049,7 +1049,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.alMes': '/month',
   'pre.contratar': 'Sign up',
   'pre.negocioF1':
-    'Includes the admin —who can take appointments too— and 1 more person in the diary',
+    'Includes the admin —who can take appointments too— and 1 more employee in the diary',
   'pre.negocioF2': 'Unlimited bookings from your website, Instagram or Google',
   'pre.negocioF3':
     'SMS and email reminders — 200 messages a month included, then €0.06 per message',
@@ -1059,11 +1059,11 @@ export const en: Record<keyof typeof es, string> = {
 
   'pre.equipoNombre': 'Team',
   'pre.equipoTagline': 'When there are more than two of you',
-  'pre.equipoPeriodo': '/month per extra person',
+  'pre.equipoPeriodo': '/month per extra employee',
   'pre.hablarVentas': 'Talk to sales',
   'pre.equipoAsunto': 'Question about the Team plan',
   'pre.equipoF1': 'Everything in Business',
-  'pre.equipoF2': 'Unlimited people and locations',
+  'pre.equipoF2': 'Unlimited employees and locations',
   'pre.equipoF3': 'Multi-branch dashboard',
   'pre.equipoF4': 'Dedicated support',
 
@@ -1119,9 +1119,9 @@ export const en: Record<keyof typeof es, string> = {
     'Nothing automatic: you are never charged without deciding to be. If you carry on, you move to the Business plan; if not, your page stops taking new bookings and your data stays there in case you come back.',
   'pre.q3': 'Is there a tie-in?',
   'pre.a3': 'No. It is month by month and you can cancel whenever you like from the dashboard.',
-  'pre.q4': 'How many people does the price cover?',
+  'pre.q4': 'How many employees does the price cover?',
   'pre.a4':
-    'The Business plan includes 2 people in the diary: the admin —who can take appointments too— and 1 more person. Beyond that, each extra person is €10.95 a month.',
+    'The Business plan includes 2 employees in the diary: the admin —who can take appointments too— and 1 more employee. Beyond that, each extra employee is €10.95 a month.',
   'pre.q5': 'How does the 15% commission work?',
   'pre.a5':
     'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',
