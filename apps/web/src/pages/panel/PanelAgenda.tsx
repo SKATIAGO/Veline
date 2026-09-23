@@ -781,9 +781,14 @@ const mondayIndex = (d: Date) => (d.getDay() + 6) % 7
  * de la lista. Un día se elige para ver sus citas debajo, con las mismas
  * filas de siempre — no hace falta una segunda forma de enseñar una cita.
  */
+/** Cuántas citas caben dentro de un huequito antes de resumir el resto. */
+const CITAS_POR_HUECO = 3
+
 function CalendarioMensual({ slug }: { slug: string }) {
-  const { t, idioma } = useIdioma()
+  const { t, idioma, locale } = useIdioma()
   const plural = usePlural()
+  const hora = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   const hoy = useMemo(() => new Date(), [])
   const [mes, setMes] = useState(() => startOfMonth(hoy))
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
@@ -824,10 +829,10 @@ function CalendarioMensual({ slug }: { slug: string }) {
   return (
     <div className="flex flex-col gap-4">
       <Card className="overflow-hidden p-0">
-        <div className="flex items-center justify-between gap-3 bg-brand px-4 py-3.5 text-white sm:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-cream px-4 py-3.5 sm:px-5">
           <div className="flex items-center gap-2.5">
-            <LogoMark size={18} variant="dark" />
-            <h3 className="font-display text-ui font-semibold capitalize sm:text-subheading">
+            <LogoMark size={18} />
+            <h3 className="font-display text-ui font-semibold text-ink capitalize sm:text-subheading">
               {monthLong(mes.getMonth(), idioma)} {mes.getFullYear()}
             </h3>
           </div>
@@ -836,7 +841,7 @@ function CalendarioMensual({ slug }: { slug: string }) {
               type="button"
               aria-label={t('fecha.mesAnterior')}
               onClick={() => irAMes(-1)}
-              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-white/90 transition-colors hover:bg-white/15 sm:size-9"
+              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-9"
             >
               ‹
             </button>
@@ -844,7 +849,7 @@ function CalendarioMensual({ slug }: { slug: string }) {
               type="button"
               aria-label={t('fecha.mesSiguiente')}
               onClick={() => irAMes(1)}
-              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-white/90 transition-colors hover:bg-white/15 sm:size-9"
+              className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-9"
             >
               ›
             </button>
@@ -883,7 +888,7 @@ function CalendarioMensual({ slug }: { slug: string }) {
                         : formatLongDate(d, idioma)
                     }
                     className={cx(
-                      'flex h-12 flex-col items-center justify-center gap-0.5 rounded-lg border transition-colors sm:h-16',
+                      'flex min-h-[60px] flex-col items-start gap-1 rounded-lg border p-1 text-left transition-colors sm:min-h-[92px] sm:p-1.5',
                       activo
                         ? 'border-brand bg-brand text-white'
                         : 'border-line bg-surface hover:border-brand',
@@ -892,22 +897,36 @@ function CalendarioMensual({ slug }: { slug: string }) {
                   >
                     <span
                       className={cx(
-                        'text-ui font-semibold',
+                        'text-caption font-semibold',
                         activo ? 'text-white' : 'text-brand-text',
                       )}
                     >
                       {d.getDate()}
                     </span>
                     {citas.length > 0 && (
-                      <span
-                        aria-hidden
-                        className={cx(
-                          'text-caption font-medium',
-                          activo ? 'text-white/85' : 'text-subtle',
+                      <div aria-hidden className="flex w-full flex-col gap-0.5 overflow-hidden">
+                        {citas.slice(0, CITAS_POR_HUECO).map((b) => (
+                          <span
+                            key={b.id}
+                            className={cx(
+                              'truncate rounded px-1 py-0.5 text-caption leading-tight font-medium',
+                              activo ? 'bg-white/15 text-white' : 'bg-cream text-brand-text',
+                            )}
+                          >
+                            {hora(b.startsAt)}
+                          </span>
+                        ))}
+                        {citas.length > CITAS_POR_HUECO && (
+                          <span
+                            className={cx(
+                              'px-1 text-caption',
+                              activo ? 'text-white/80' : 'text-subtle',
+                            )}
+                          >
+                            +{citas.length - CITAS_POR_HUECO}
+                          </span>
                         )}
-                      >
-                        {citas.length}
-                      </span>
+                      </div>
                     )}
                   </button>
                 )
