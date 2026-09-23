@@ -1048,7 +1048,8 @@ export const en: Record<keyof typeof es, string> = {
   'pre.negocioTagline': 'For the day-to-day of your place',
   'pre.alMes': '/month',
   'pre.contratar': 'Sign up',
-  'pre.negocioF1': 'Includes 2 people in the diary',
+  'pre.negocioF1':
+    'Includes the admin —who can take appointments too— and 1 more person in the diary',
   'pre.negocioF2': 'Unlimited bookings from your website, Instagram or Google',
   'pre.negocioF3':
     'SMS and email reminders — 200 messages a month included, then €0.06 per message',
@@ -1120,7 +1121,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.a3': 'No. It is month by month and you can cancel whenever you like from the dashboard.',
   'pre.q4': 'How many people does the price cover?',
   'pre.a4':
-    'The Business plan includes 2 people in the diary. Beyond that, each extra person is €10.95 a month.',
+    'The Business plan includes 2 people in the diary: the admin —who can take appointments too— and 1 more person. Beyond that, each extra person is €10.95 a month.',
   'pre.q5': 'How does the 15% commission work?',
   'pre.a5':
     'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',

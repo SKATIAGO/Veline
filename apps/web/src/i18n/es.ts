@@ -1050,7 +1050,8 @@ export const es = {
   'pre.negocioTagline': 'Para el día a día de tu local',
   'pre.alMes': '/mes',
   'pre.contratar': 'Contratar',
-  'pre.negocioF1': 'Incluye 2 personas en el calendario',
+  'pre.negocioF1':
+    'Incluye al administrador —que también puede atender citas— y 1 persona más en el calendario',
   'pre.negocioF2': 'Reservas ilimitadas desde tu web, Instagram o Google',
   'pre.negocioF3':
     'Recordatorios por SMS y email — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
@@ -1123,7 +1124,7 @@ export const es = {
   'pre.a3': 'No. Es mes a mes y puedes darte de baja cuando quieras desde el panel.',
   'pre.q4': '¿Cuántas personas entran en el precio?',
   'pre.a4':
-    'El plan Negocio incluye 2 personas en el calendario. A partir de ahí, cada persona de más son 10,95 € al mes.',
+    'El plan Negocio incluye 2 personas en el calendario: el administrador —que también puede atender citas— y 1 persona más. A partir de ahí, cada persona de más son 10,95 € al mes.',
   'pre.q5': '¿Cómo funciona la comisión del 15 %?',
   'pre.a5':
     'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
