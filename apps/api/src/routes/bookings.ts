@@ -326,7 +326,11 @@ export async function bookingRoutes(app: FastifyInstance) {
     // Al cliente, correo y SMS, la haya cancelado quien la haya cancelado: si
     // fue el negocio, se entera antes de presentarse; si fue él, le queda el
     // comprobante. Misma función que avisa desde el panel.
-    void avisarCancelacion(booking.id)
+    //
+    // El motivo solo viaja al aviso cuando quien cancela es el negocio
+    // (actor con sesión): es la explicación que el negocio decidió dar, no
+    // la etiqueta interna que manda el propio cliente al cancelar su cita.
+    void avisarCancelacion(booking.id, actor ? parsed.data.reason : undefined)
 
     const mailData = toMailData(booking)
     if (booking.business.email) {

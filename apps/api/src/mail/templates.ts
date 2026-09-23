@@ -263,6 +263,8 @@ export function bookingCancelled(
   b: BookingMailData,
   to: { email: string; name: string },
   audience: 'cliente' | 'negocio',
+  /** La explicación que el negocio escribió al cancelar, si la escribió. */
+  motivo?: string | null,
 ): MailMessage {
   /* La única plantilla que sirve a los dos, y por eso la que más fácil se
      equivoca: el idioma sale de a quién se le escribe, no de la reserva. */
@@ -278,6 +280,7 @@ export function bookingCancelled(
           ['Teléfono', b.customerPhone],
         ]
       : []) as [string, string][]),
+    ...((motivo?.trim() ? [['Motivo', motivo.trim()]] : []) as [string, string][]),
   ]
 
   return {

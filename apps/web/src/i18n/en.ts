@@ -293,6 +293,9 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.cancelarLaCita': 'Cancel the appointment',
   'agenda.cancelarLaDe': 'Cancel {nombre}’s appointment?',
   'agenda.siCancelar': 'Yes, cancel',
+  'agenda.motivoCancelar': 'Reason',
+  'agenda.motivoCancelarPista':
+    'If you write one, the customer will see it in the cancellation notice.',
   'agenda.cancelada': 'Cancelled',
   'agenda.atendida': 'Seen',
   'agenda.noVinoEstado': 'No-show',

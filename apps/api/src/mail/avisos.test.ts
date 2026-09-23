@@ -213,6 +213,26 @@ describe('avisarCancelacion', () => {
     expect(vi.mocked(sendMail).mock.calls[0]![0]).toMatchObject({ to: 'marina@ejemplo.es' })
   })
 
+  it('con motivo: el correo lo dice; el SMS no, que ya va justo de sitio', async () => {
+    conCita(cita())
+
+    await avisarCancelacion('b1', 'Avería en el local')
+
+    const html = vi.mocked(sendMail).mock.calls[0]![0].html
+    expect(html).toContain('Avería en el local')
+    const { body } = vi.mocked(sendSms).mock.calls[0]![0]
+    expect(body).not.toContain('Avería en el local')
+  })
+
+  it('sin motivo, el correo no menciona ninguno', async () => {
+    conCita(cita())
+
+    await avisarCancelacion('b1')
+
+    const html = vi.mocked(sendMail).mock.calls[0]![0].html
+    expect(html).not.toContain('Motivo')
+  })
+
   it('sin correo: el SMS sale igualmente', async () => {
     conCita(cita({ customer: { name: 'Marina', phone: '633492344', email: null } }))
 

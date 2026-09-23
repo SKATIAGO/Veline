@@ -8,7 +8,6 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   Contador,
   EmptyState,
   ErrorNote,
@@ -20,6 +19,7 @@ import {
   Select,
   Sheet,
   Skeleton,
+  Textarea,
   cx,
   useALaVista,
 } from '../../components/ui'
@@ -75,6 +75,10 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   // Casi siempre hace falta avisar; se puede destildar para el caso raro de
   // una corrección interna que el cliente ya conoce de otra forma.
   const [avisar, setAvisar] = useState(true)
+  const [cancelando, setCancelando] = useState(false)
+  // El cliente lo lee en su aviso de cancelación: contar el motivo, cuando lo
+  // hay, es lo que evita que se quede sin saber por qué.
+  const [motivoCancelar, setMotivoCancelar] = useState('')
 
   const refrescar = () => {
     queryClient.invalidateQueries({ queryKey: ['panel', slug] })
@@ -83,8 +87,14 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   }
 
   const cancel = useMutation({
-    mutationFn: () => api.cancelBooking(booking.code, 'Cancelada desde el panel'),
-    onSuccess: refrescar,
+    // Sin motivo escrito, no se manda nada: «Cancelada desde el panel» no es
+    // una explicación, es una etiqueta interna, y no tiene sentido que el
+    // cliente la lea como si lo fuera.
+    mutationFn: () => api.cancelBooking(booking.code, motivoCancelar.trim() || undefined),
+    onSuccess: () => {
+      setCancelando(false)
+      refrescar()
+    },
   })
 
   const mover = useMutation({
@@ -124,6 +134,7 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
   const cerrarFicha = () => {
     setFicha(false)
     setMoviendo(false)
+    setCancelando(false)
   }
   /* Tras actuar, la ficha se cierra sola: dejarla abierta obliga a un toque
      de más y esconde la lista, que es donde se ve el resultado. */
@@ -159,6 +170,38 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
           {t('agenda.moverLaCita')}
         </Button>
         <Button type="button" variant="quiet" onClick={() => setMoviendo(false)}>
+          {t('agenda.dejarlo')}
+        </Button>
+      </div>
+    </form>
+  )
+
+  const formularioCancelar = (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        cancel.mutate(undefined, alTerminar)
+      }}
+      className="flex flex-col gap-3"
+    >
+      <p className="text-meta text-body-2">{t('agenda.cancelarLaDe', { nombre: nombrePila })}</p>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-meta font-semibold text-body-2">
+          {t('agenda.motivoCancelar')}{' '}
+          <span className="font-normal text-subtle">{t('comun.opcional')}</span>
+        </span>
+        <Textarea
+          rows={2}
+          value={motivoCancelar}
+          onChange={(e) => setMotivoCancelar(e.target.value)}
+        />
+        <span className="text-meta text-subtle">{t('agenda.motivoCancelarPista')}</span>
+      </label>
+      <div className="flex gap-2">
+        <Button type="submit" variant="danger" loading={cancel.isPending} block>
+          {t('agenda.siCancelar')}
+        </Button>
+        <Button type="button" variant="quiet" onClick={() => setCancelando(false)}>
           {t('agenda.dejarlo')}
         </Button>
       </div>
@@ -315,13 +358,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                 {t('agenda.mover')}
               </Button>
               <span className="ml-1 border-l border-line pl-2">
-                <ConfirmAction
-                  label={t('agenda.cancelar')}
-                  question={t('agenda.cancelarLaDe', { nombre: nombrePila })}
-                  confirmLabel={t('agenda.siCancelar')}
-                  loading={cancel.isPending}
-                  onConfirm={() => cancel.mutate()}
-                />
+                <Button size="sm" variant="danger" onClick={() => setCancelando((c) => !c)}>
+                  {t('agenda.cancelar')}
+                </Button>
               </span>
             </>
           )}
@@ -331,6 +370,12 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
       {moviendo && !ficha && (
         <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
           {formularioMover}
+        </div>
+      )}
+
+      {cancelando && !ficha && (
+        <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
+          {formularioCancelar}
         </div>
       )}
 
@@ -433,6 +478,8 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
             <>
               {moviendo ? (
                 formularioMover
+              ) : cancelando ? (
+                formularioCancelar
               ) : (
                 <>
                   {yaPaso && (
@@ -456,14 +503,9 @@ function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) 
                     {t('agenda.moverDeHora')}
                   </Button>
                   <div className="mt-2 flex justify-center border-t border-line pt-4">
-                    <ConfirmAction
-                      size="md"
-                      label={t('agenda.cancelarLaCita')}
-                      question={t('agenda.cancelarLaDe', { nombre: nombrePila })}
-                      confirmLabel={t('agenda.siCancelar')}
-                      loading={cancel.isPending}
-                      onConfirm={() => cancel.mutate(undefined, alTerminar)}
-                    />
+                    <Button size="md" variant="danger" onClick={() => setCancelando(true)}>
+                      {t('agenda.cancelarLaCita')}
+                    </Button>
                   </div>
                 </>
               )}

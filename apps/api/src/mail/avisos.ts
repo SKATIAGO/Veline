@@ -188,8 +188,15 @@ export async function avisarCambioHora(bookingId: string, antes: Date): Promise<
   }
 }
 
-/** Al cancelar, la cancele el cliente con su código o el negocio desde el panel. */
-export async function avisarCancelacion(bookingId: string): Promise<void> {
+/**
+ * Al cancelar, la cancele el cliente con su código o el negocio desde el
+ * panel. `motivo` es la explicación que el negocio escribió al cancelar,
+ * cuando la hay: se enseña en el correo. En el SMS no —ya va justo de
+ * caracteres con la hora y el enlace para reservar otra— así que quien
+ * quiera leerla tiene el correo, no los dos sitios diciendo lo mismo a
+ * medias.
+ */
+export async function avisarCancelacion(bookingId: string, motivo?: string | null): Promise<void> {
   try {
     const cita = await cargarCita(bookingId)
     if (!cita) return
@@ -208,6 +215,7 @@ export async function avisarCancelacion(bookingId: string): Promise<void> {
             datosCorreo(cita),
             { email: cita.customer.email, name: cita.customer.name },
             'cliente',
+            motivo,
           )
         : null,
       sms: smsCancelacion({

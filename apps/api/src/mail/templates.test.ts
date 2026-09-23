@@ -45,6 +45,7 @@ const plantillas: [string, { html: string }][] = [
   ['aviso al negocio', bookingCreatedToBusiness(base, 'negocio@ejemplo.es')],
   ['cancelación (cliente)', bookingCancelled(base, persona, 'cliente')],
   ['cancelación (negocio)', bookingCancelled(base, persona, 'negocio')],
+  ['cancelación con motivo', bookingCancelled(base, persona, 'cliente', `${MALO}Avería`)],
   ['cambio de hora', bookingRescheduled(base, new Date('2026-09-10T10:00:00Z'))],
   ['recordatorio', bookingReminderMail(base)],
   [
@@ -95,6 +96,23 @@ describe('el aviso de cambio de hora', () => {
     const m = bookingRescheduled(base, antes)
     expect(m.text).toContain('10 de septiembre')
     expect(m.text).toContain('15 de septiembre')
+  })
+})
+
+describe('el motivo de la cancelación', () => {
+  it('se ve cuando el negocio lo escribió', () => {
+    const m = bookingCancelled(base, persona, 'cliente', 'Avería en el local')
+    expect(m.text).toContain('Avería en el local')
+  })
+
+  it('sin motivo no aparece la fila, ni vacía', () => {
+    const m = bookingCancelled(base, persona, 'cliente')
+    expect(m.text).not.toContain('Motivo')
+  })
+
+  it('un motivo en blanco cuenta como no escrito', () => {
+    const m = bookingCancelled(base, persona, 'cliente', '   ')
+    expect(m.text).not.toContain('Motivo')
   })
 })
 

@@ -293,6 +293,8 @@ export const es = {
   'agenda.cancelarLaCita': 'Cancelar la cita',
   'agenda.cancelarLaDe': '¿Cancelar la de {nombre}?',
   'agenda.siCancelar': 'Sí, cancelar',
+  'agenda.motivoCancelar': 'Motivo',
+  'agenda.motivoCancelarPista': 'Si lo escribes, el cliente lo verá en el aviso de cancelación.',
   'agenda.cancelada': 'Cancelada',
   'agenda.atendida': 'Atendida',
   'agenda.noVinoEstado': 'No vino',
