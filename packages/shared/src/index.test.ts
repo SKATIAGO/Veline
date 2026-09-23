@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   createBookingSchema,
+  cuotaMensualCents,
   formatDistance,
   formatDuration,
   formatMinutes,
   formatPrice,
   fromDateKey,
   phoneES,
+  plazasDelNegocio,
   toDateKey,
 } from './index.js'
 
@@ -26,6 +28,29 @@ describe('formatPrice', () => {
 
   it('no pierde céntimos con importes grandes', () => {
     expect(normalizar(formatPrice(123456))).toBe('1234,56 €')
+  })
+})
+
+/**
+ * El administrador no tiene fila en Empleados a menos que se añada él mismo,
+ * pero ocupa una plaza igual: un negocio con el administrador y 2 empleados
+ * (3 personas reales) tiene que pagar por la de más, no por ninguna.
+ */
+describe('plazasDelNegocio', () => {
+  it('suma al administrador, que no aparece en la lista de empleados', () => {
+    expect(plazasDelNegocio(0)).toBe(1)
+    expect(plazasDelNegocio(2)).toBe(3)
+  })
+})
+
+describe('cuotaMensualCents', () => {
+  it('el administrador solo, o con 1 empleado, no paga de más', () => {
+    expect(cuotaMensualCents('NEGOCIO', plazasDelNegocio(0))).toBe(1895)
+    expect(cuotaMensualCents('NEGOCIO', plazasDelNegocio(1))).toBe(1895)
+  })
+
+  it('el tercero (administrador + 2 empleados) sí cuesta más', () => {
+    expect(cuotaMensualCents('NEGOCIO', plazasDelNegocio(2))).toBe(1895 + 1095)
   })
 })
 

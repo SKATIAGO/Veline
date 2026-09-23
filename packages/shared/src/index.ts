@@ -114,6 +114,18 @@ export function cuotaMensualCents(plan: PlanKey, personas: number) {
   return info.priceCents + extra * info.extraSeatCents
 }
 
+/**
+ * Cuántas personas hay en el calendario, contando al administrador.
+ *
+ * El administrador no tiene fila en Empleados a menos que se añada él mismo,
+ * pero ocupa una plaza igual: seatsIncluded empieza en 2 (el administrador y
+ * 1 más) precisamente por eso. Sin este +1, un negocio con el administrador y
+ * 2 empleados (3 personas reales) se cobraba como si tuviera 2.
+ */
+export function plazasDelNegocio(empleadosCount: number) {
+  return empleadosCount + 1
+}
+
 /** Un negocio suspendido o dado de baja deja de aceptar reservas nuevas. */
 export function aceptaReservas(status: SubStatusKey, trialEndsAt: Date | string | null) {
   if (status === 'SUSPENDIDA' || status === 'CANCELADA') return false

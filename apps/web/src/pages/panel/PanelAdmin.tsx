@@ -1,7 +1,14 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CATEGORIES, categoryLabel, formatPrice, planLabel, subStatusLabel } from '@veline/shared'
+import {
+  CATEGORIES,
+  categoryLabel,
+  formatPrice,
+  planLabel,
+  plazasDelNegocio,
+  subStatusLabel,
+} from '@veline/shared'
 import { api, ApiError, type AdminBusiness } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
@@ -158,7 +165,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
             ))}
           </div>
           <p className="mt-2 text-meta text-muted">
-            {plural(b.counts.staff, 'adm.conUnaPersona', 'adm.conVariasPersonas')}{' '}
+            {plural(plazasDelNegocio(b.counts.staff), 'adm.conUnaPersona', 'adm.conVariasPersonas')}{' '}
             <strong className="font-semibold text-body-2">
               {t('adm.alMesFuerte', { importe: formatPrice(b.monthlyCents, idioma) })}
             </strong>

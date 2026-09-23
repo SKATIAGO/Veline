@@ -1,7 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
-import { aceptaReservas, CATEGORIES, cuotaMensualCents, PRUEBA_DIAS_DEFECTO } from '@veline/shared'
+import {
+  aceptaReservas,
+  CATEGORIES,
+  cuotaMensualCents,
+  plazasDelNegocio,
+  PRUEBA_DIAS_DEFECTO,
+} from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
@@ -77,7 +83,7 @@ export async function adminRoutes(app: FastifyInstance) {
       approvedAt: b.approvedAt?.toISOString() ?? null,
       adminNotes: b.adminNotes,
       /** Lo que costaría este mes con las personas que tiene ahora. */
-      monthlyCents: cuotaMensualCents(b.plan, b._count.staff),
+      monthlyCents: cuotaMensualCents(b.plan, plazasDelNegocio(b._count.staff)),
       accepting: aceptaReservas(b.subStatus, b.trialEndsAt),
     }))
   })

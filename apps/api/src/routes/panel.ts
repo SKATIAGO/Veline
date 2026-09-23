@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../prisma.js'
-import { aceptaReservas, cuotaMensualCents } from '@veline/shared'
+import { aceptaReservas, cuotaMensualCents, plazasDelNegocio } from '@veline/shared'
 import { resumenMensajes } from '../mail/contador.js'
 import { hashPassword } from '../auth/passwords.js'
 import { requireUser } from '../auth/sessions.js'
@@ -135,7 +135,7 @@ export async function panelRoutes(app: FastifyInstance) {
             status: negocio.subStatus,
             trialEndsAt: negocio.trialEndsAt?.toISOString() ?? null,
             accepting: aceptaReservas(negocio.subStatus, negocio.trialEndsAt),
-            monthlyCents: cuotaMensualCents(negocio.plan, staffCount),
+            monthlyCents: cuotaMensualCents(negocio.plan, plazasDelNegocio(staffCount)),
             messages: await resumenMensajes(auth.business.id, negocio.plan),
           }
         : null,

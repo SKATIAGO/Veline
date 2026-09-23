@@ -1,4 +1,10 @@
-import { MENSAJE_EXTRA_CENTS, PLAN_INFO, cuotaMensualCents, type PlanKey } from '@veline/shared'
+import {
+  MENSAJE_EXTRA_CENTS,
+  PLAN_INFO,
+  cuotaMensualCents,
+  plazasDelNegocio,
+  type PlanKey,
+} from '@veline/shared'
 import { prisma } from './prisma.js'
 
 /**
@@ -47,7 +53,7 @@ export async function calcularMes(businessId: string, period: Date): Promise<Des
   const desde = period
   const hasta = new Date(Date.UTC(period.getUTCFullYear(), period.getUTCMonth() + 1, 1))
 
-  const [seats, comision, mensajes] = await Promise.all([
+  const [empleados, comision, mensajes] = await Promise.all([
     prisma.staff.count({ where: { businessId, active: true } }),
     prisma.booking.aggregate({
       where: {
@@ -70,6 +76,7 @@ export async function calcularMes(businessId: string, period: Date): Promise<Des
   ])
 
   const plan = negocio.plan as PlanKey
+  const seats = plazasDelNegocio(empleados)
   const subscriptionCents = cuotaMensualCents(plan, seats)
   const commissionCents = comision._sum.commissionCents ?? 0
   const messagesCents = mensajes * MENSAJE_EXTRA_CENTS
