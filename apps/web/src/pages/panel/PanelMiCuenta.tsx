@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
+import { CONTACT_EMAIL, formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
 import { api } from '../../lib/api'
-import { Badge, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import { Badge, ButtonLink, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /** Lo que el negocio paga cada mes y por qué. Los enlaces que evitan la
@@ -185,6 +185,21 @@ export function PanelMiCuenta() {
           </Card>
         )}
       </div>
+
+      <Card padded className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-subheading font-semibold text-ink">
+            {t('fac.personalizarAgenda')}
+          </h2>
+          <p className="mt-1 text-meta text-subtle">{t('fac.personalizarAgendaPista')}</p>
+        </div>
+        <ButtonLink
+          href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t('fac.personalizarAsunto'))}`}
+          variant="secondary"
+        >
+          {t('pre.escribenos')}
+        </ButtonLink>
+      </Card>
 
       <p className="text-meta text-subtle">{t('fac.avisoCobro')}</p>
     </div>

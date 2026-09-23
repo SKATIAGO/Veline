@@ -235,6 +235,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.agenda': 'Diary',
   'panel.clientes': 'Customers',
   'panel.fichaje': 'Time clock',
+  'panel.calendario': 'Calendar',
   'panel.servicios': 'Services',
   'panel.horario': 'Opening hours',
   'panel.personas': 'Staff',
@@ -268,12 +269,13 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.sinCitasPeriodo': 'Nothing booked in this period',
   'agenda.apareceránSolas': 'As soon as someone books, it shows up here on its own.',
   'agenda.ampliaPeriodo': 'Try widening the period with the filters above.',
-  'agenda.vistaLista': 'List',
-  'agenda.vistaMes': 'Month',
   'agenda.unaCitaDia': '{n} booking',
   'agenda.variasCitasDia': '{n} bookings',
   'agenda.tocaUnDia': 'Tap a day on the calendar to see its bookings',
   'agenda.sinCitasEseDia': 'No bookings that day',
+  'agenda.elegirMes': 'Choose month',
+  'agenda.anioAnterior': 'Previous year',
+  'agenda.anioSiguiente': 'Next year',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',
@@ -692,6 +694,10 @@ export const en: Record<keyof typeof es, string> = {
   'fac.mensajesDeMasCuenta': '{n} messages over',
   'fac.avisoCobro':
     'We charge by transfer or direct debit: we never ask for a card and nothing is taken automatically. If something doesn’t add up, write to us before paying.',
+  'fac.personalizarAgenda': 'Customise your own diary',
+  'fac.personalizarAgendaPista':
+    'If you want a diary built around your business, write to us and let’s talk.',
+  'fac.personalizarAsunto': 'I want to customise my diary',
 
   // ── Dashboard · time clock ────────────────────────────────
   'fic.pistaTodos': 'Every employee’s working-time record.',

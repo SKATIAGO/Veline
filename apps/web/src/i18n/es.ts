@@ -235,6 +235,7 @@ export const es = {
   'panel.agenda': 'Agenda',
   'panel.clientes': 'Clientes',
   'panel.fichaje': 'Fichaje',
+  'panel.calendario': 'Calendario',
   'panel.servicios': 'Servicios',
   'panel.horario': 'Horario',
   'panel.personas': 'Empleados',
@@ -268,12 +269,13 @@ export const es = {
   'agenda.sinCitasPeriodo': 'No hay citas en este periodo',
   'agenda.apareceránSolas': 'Cuando alguien reserve aparecerá aquí automáticamente.',
   'agenda.ampliaPeriodo': 'Prueba a ampliar el periodo con los filtros de arriba.',
-  'agenda.vistaLista': 'Lista',
-  'agenda.vistaMes': 'Mes',
   'agenda.unaCitaDia': '{n} cita',
   'agenda.variasCitasDia': '{n} citas',
   'agenda.tocaUnDia': 'Toca un día del calendario para ver sus citas',
   'agenda.sinCitasEseDia': 'No hay citas ese día',
+  'agenda.elegirMes': 'Elegir mes',
+  'agenda.anioAnterior': 'Año anterior',
+  'agenda.anioSiguiente': 'Año siguiente',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',
@@ -694,6 +696,10 @@ export const es = {
   'fac.mensajesDeMasCuenta': '{n} mensajes de más',
   'fac.avisoCobro':
     'El cobro es por transferencia o recibo: no te pedimos tarjeta ni se te cobra nada automáticamente. Si algo no cuadra, escríbenos antes de pagar.',
+  'fac.personalizarAgenda': 'Personaliza tu propia agenda',
+  'fac.personalizarAgendaPista':
+    'Si quieres una agenda hecha a medida de tu negocio, escríbenos y lo hablamos.',
+  'fac.personalizarAsunto': 'Quiero personalizar mi agenda',
 
   // ── Panel · fichaje ───────────────────────────────────────
   'fic.pistaTodos': 'El registro de jornada de todos los empleados.',

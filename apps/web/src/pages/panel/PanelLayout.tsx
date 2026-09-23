@@ -560,6 +560,15 @@ export function PanelLayout() {
           icono: 'fichaje',
           grupo: 'panel.grupoDiaADia',
         },
+        /* Va agrupado con Configuración por sitio en el menú, pero sin la
+           condición de puedeConfigurar: es un calendario para mirar, no un
+           ajuste del negocio, así que lo ve igual quien lleva la agenda. */
+        {
+          to: `/panel/${slug}/calendario`,
+          clave: 'panel.calendario',
+          icono: 'agenda',
+          grupo: 'panel.grupoConfiguracion',
+        },
         ...(puedeConfigurar
           ? ([
               {
