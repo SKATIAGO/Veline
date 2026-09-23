@@ -436,6 +436,12 @@ export const es = {
   'pers.variasCitasPorDelante': '{n} citas por delante',
   'pers.sinCitasPendientes': 'Sin citas pendientes',
   'pers.renombrar': 'Renombrar',
+  'pers.horario': 'Horario',
+  'pers.horarioPropio': 'Horario propio',
+  'pers.horarioDe': 'Horario de {nombre}',
+  'pers.horarioAviso':
+    'Sin ninguna franja, esta persona sigue el horario general del negocio. Con al menos una, solo está libre dentro de las suyas.',
+  'pers.horarioNoGuardado': 'No se ha podido guardar el horario',
   'pers.darDeBaja': 'Dar de baja',
   'pers.siDeBaja': 'Sí, de baja',
   'pers.volverAActivar': 'Volver a activar',

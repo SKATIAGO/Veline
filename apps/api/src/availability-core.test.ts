@@ -167,6 +167,52 @@ describe('ocupación por citas existentes', () => {
   })
 })
 
+describe('horario propio de un empleado', () => {
+  it('sin horario propio, sigue el del local igual que siempre', () => {
+    const e = entrada({ staffIds: ['persona-1'], staffFranjas: {} })
+    expect(todos(e)).toContain('09:00')
+    expect(libres(e)).toContain('09:00')
+  })
+
+  it('con horario propio, no está libre fuera de sus franjas aunque el local esté abierto', () => {
+    // El local abre 9-14 y 16-19, pero esta persona solo entra por la tarde
+    const e = entrada({
+      staffIds: ['persona-1'],
+      staffFranjas: { 'persona-1': [{ weekday: 1, startMin: h(16), endMin: h(19) }] },
+    })
+    expect(libres(e)).not.toContain('09:00')
+    expect(libres(e)).toContain('16:00')
+  })
+
+  it('el hueco tiene que caber entero dentro de su franja, no solo empezar en ella', () => {
+    const e = entrada({
+      occupancyMin: 60,
+      staffIds: ['persona-1'],
+      staffFranjas: { 'persona-1': [{ weekday: 1, startMin: h(16), endMin: h(17) }] },
+    })
+    expect(libres(e)).toContain('16:00')
+    expect(libres(e)).not.toContain('16:30')
+  })
+
+  it('con dos personas, una con horario reducido, el hueco lo cubre la otra', () => {
+    const e = entrada({
+      staffIds: ['persona-1', 'persona-2'],
+      staffFranjas: { 'persona-1': [{ weekday: 1, startMin: h(16), endMin: h(19) }] },
+    })
+    const hueco = calcularDisponibilidad(e)[0]!.slots.find((s) => s.label === '09:00')!
+    expect(hueco.available).toBe(true)
+    expect(hueco.staffId).toBe('persona-2')
+  })
+
+  it('un horario propio de otro día de la semana no libera nada hoy', () => {
+    const e = entrada({
+      staffIds: ['persona-1'],
+      staffFranjas: { 'persona-1': [{ weekday: 2, startMin: h(9), endMin: h(14) }] },
+    })
+    expect(libres(e)).toHaveLength(0)
+  })
+})
+
 describe('cierres', () => {
   it('un cierre de día completo cierra el día entero', () => {
     const e = entrada({ cierres: [{ dateKey: '2026-08-03', startMin: null, endMin: null }] })

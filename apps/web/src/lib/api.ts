@@ -298,6 +298,19 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  staffHours: (slug: string, staffId: string) =>
+    request<PanelStaffHour[]>(`/panel/${slug}/staff/${staffId}/hours`),
+
+  saveStaffHours: (
+    slug: string,
+    staffId: string,
+    hours: Omit<PanelStaffHour, 'id' | 'staffId'>[],
+  ) =>
+    request<PanelStaffHour[]>(`/panel/${slug}/staff/${staffId}/hours`, {
+      method: 'PUT',
+      body: JSON.stringify({ hours }),
+    }),
+
   // ── Cierres (vacaciones y festivos) ────────────────────────
   panelClosures: (slug: string) => request<PanelClosure[]>(`/panel/${slug}/closures`),
 
@@ -536,6 +549,14 @@ export interface PanelHour {
   endMin: number
 }
 
+export interface PanelStaffHour {
+  id: string
+  staffId: string
+  weekday: number
+  startMin: number
+  endMin: number
+}
+
 export interface AuthUser {
   id: string
   email: string
@@ -636,6 +657,8 @@ export interface PanelStaff {
   upcomingBookings?: number
   /** Null = atiende en cualquier local. */
   locationId: string | null
+  /** Si tiene horario propio, o sigue el del negocio entero. */
+  hasHours?: boolean
 }
 
 export interface PanelClosure {

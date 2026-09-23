@@ -437,6 +437,12 @@ export const en: Record<keyof typeof es, string> = {
   'pers.variasCitasPorDelante': '{n} appointments ahead',
   'pers.sinCitasPendientes': 'Nothing booked in',
   'pers.renombrar': 'Rename',
+  'pers.horario': 'Hours',
+  'pers.horarioPropio': 'Own hours',
+  'pers.horarioDe': '{nombre}’s hours',
+  'pers.horarioAviso':
+    'With no slots at all, this person follows the business’s general hours. With at least one, they’re only free inside their own.',
+  'pers.horarioNoGuardado': 'Couldn’t save the hours',
   'pers.darDeBaja': 'Set inactive',
   'pers.siDeBaja': 'Yes, set inactive',
   'pers.volverAActivar': 'Set active again',

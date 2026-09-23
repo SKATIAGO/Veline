@@ -4,10 +4,12 @@ import { duracionConExtras } from './extras.js'
 import {
   atLocalMinutes,
   calcularDisponibilidad,
+  dentroDeSuHorario,
   MAX_RANGE_DAYS,
   MIN_LEAD_MIN,
   SLOT_STEP_MIN,
   type Cierre,
+  type Franja,
 } from './availability-core.js'
 
 export { MAX_RANGE_DAYS, MIN_LEAD_MIN, SLOT_STEP_MIN }
@@ -141,6 +143,7 @@ export async function getAvailability({
         ...(staffId ? { id: staffId } : {}),
       },
       orderBy: { name: 'asc' },
+      include: { hours: true },
     }),
     prisma.closure.findMany({
       where: { locationId: location.id, date: { gte: utcMidnight(from), lte: utcMidnight(to) } },
@@ -169,6 +172,17 @@ export async function getAvailability({
     endMin: c.endMin,
   }))
 
+  const staffFranjas: Record<string, Franja[]> = {}
+  for (const s of staff) {
+    if (s.hours.length > 0) {
+      staffFranjas[s.id] = s.hours.map((h) => ({
+        weekday: h.weekday,
+        startMin: h.startMin,
+        endMin: h.endMin,
+      }))
+    }
+  }
+
   return calcularDisponibilidad({
     from,
     to,
@@ -181,6 +195,7 @@ export async function getAvailability({
     cierres,
     citas: bookings,
     staffIds: staff.map((s) => s.id),
+    staffFranjas,
     ahora: new Date(),
   })
 }
@@ -213,6 +228,7 @@ export async function pickStaffForSlot(
       ...(opts.preferredStaffId ? { id: opts.preferredStaffId } : {}),
     },
     orderBy: { name: 'asc' },
+    include: { hours: true },
   })
   if (staff.length === 0) return null
 
@@ -226,7 +242,22 @@ export async function pickStaffForSlot(
     select: { staffId: true },
   })
   const busy = new Set(clashing.map((b) => b.staffId))
-  return staff.find((s) => !busy.has(s.id)) ?? null
+
+  const weekday = opts.start.getDay()
+  const inicioMin = opts.start.getHours() * 60 + opts.start.getMinutes()
+  const finMin = inicioMin + (opts.end.getTime() - opts.start.getTime()) / 60_000
+
+  return (
+    staff.find((s) => {
+      if (busy.has(s.id)) return false
+      const franjas: Franja[] = s.hours.map((h) => ({
+        weekday: h.weekday,
+        startMin: h.startMin,
+        endMin: h.endMin,
+      }))
+      return dentroDeSuHorario(s.id, weekday, inicioMin, finMin, { [s.id]: franjas })
+    }) ?? null
+  )
 }
 
 /** Comprueba que el inicio cae dentro del horario de atención y no en un cierre. */

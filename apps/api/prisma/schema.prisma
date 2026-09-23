@@ -239,9 +239,10 @@ model Staff {
   name       String
   active     Boolean @default(true)
 
-  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  business Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location Location?   @relation(fields: [locationId], references: [id], onDelete: SetNull)
   bookings Booking[]
+  hours    StaffHour[]
 
   @@index([businessId])
 }
@@ -260,6 +261,23 @@ model OpeningHour {
   location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@index([locationId, weekday])
+}
+
+/// El horario propio de un empleado, si tiene: sin ninguna fila aquí sigue el
+/// horario del negocio entero, igual que hasta ahora. Con al menos una,
+/// deja de estar libre fuera de sus franjas aunque el local esté abierto.
+model StaffHour {
+  id       String @id @default(cuid())
+  staffId  String
+  /// 0 = domingo … 6 = sábado (igual que Date#getDay)
+  weekday  Int
+  /// Minutos desde medianoche, hora local
+  startMin Int
+  endMin   Int
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId, weekday])
 }
 
 /// Excepción puntual: festivo, vacaciones o cierre parcial de un día.
@@ -605,6 +623,7 @@ enum AuditAction {
   PERSONA_EDITADA
   PERSONA_DESACTIVADA
   PERSONA_ACTIVADA
+  PERSONA_HORARIO_EDITADO
   CIERRE_CREADO
   CIERRE_ELIMINADO
   NEGOCIO_EDITADO

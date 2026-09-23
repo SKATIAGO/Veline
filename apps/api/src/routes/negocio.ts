@@ -34,6 +34,22 @@ const staffBody = z.object({
   locationId: z.string().min(1).nullable().optional(),
 })
 
+const staffHoursBody = z.object({
+  hours: z
+    .array(
+      z.object({
+        weekday: z.number().int().min(0).max(6),
+        startMin: z.number().int().min(0).max(1440),
+        endMin: z.number().int().min(0).max(1440),
+      }),
+    )
+    .max(30)
+    .refine(
+      (rows) => rows.every((r) => r.endMin > r.startMin),
+      'Cada franja debe terminar después de empezar',
+    ),
+})
+
 const closureBody = z
   .object({
     from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
@@ -98,7 +114,7 @@ export async function negocioRoutes(app: FastifyInstance) {
       where: { businessId: auth.business.id },
       orderBy: [{ active: 'desc' }, { name: 'asc' }],
       include: {
-        _count: { select: { bookings: { where: { status: 'CONFIRMADA' } } } },
+        _count: { select: { bookings: { where: { status: 'CONFIRMADA' } }, hours: true } },
       },
     })
 
@@ -109,6 +125,8 @@ export async function negocioRoutes(app: FastifyInstance) {
       upcomingBookings: s._count.bookings,
       /** Null = atiende en cualquier local. */
       locationId: s.locationId,
+      /** Si tiene horario propio, o sigue el del negocio entero. */
+      hasHours: s._count.hours > 0,
     }))
   })
 
@@ -210,6 +228,75 @@ export async function negocioRoutes(app: FastifyInstance) {
     })
 
     return { id: updated.id, name: updated.name, active: updated.active }
+  })
+
+  /**
+   * El horario propio de una persona. Sin ninguna franja aquí sigue el
+   * horario del negocio entero, así que una lista vacía es un estado válido
+   * y no «vuelve a poner por defecto» nada.
+   */
+  app.get('/api/panel/:slug/staff/:id/hours', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'configuracion')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const existing = await prisma.staff.findFirst({
+      where: { id, businessId: auth.business.id },
+    })
+    if (!existing) return reply.code(404).send({ error: 'Persona no encontrada' })
+
+    return prisma.staffHour.findMany({
+      where: { staffId: id },
+      orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }],
+    })
+  })
+
+  app.put('/api/panel/:slug/staff/:id/hours', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'configuracion')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const existing = await prisma.staff.findFirst({
+      where: { id, businessId: auth.business.id },
+    })
+    if (!existing) return reply.code(404).send({ error: 'Persona no encontrada' })
+
+    const parsed = staffHoursBody.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Horario inválido', details: parsed.error.flatten() })
+    }
+
+    const anterior = await prisma.staffHour.findMany({
+      where: { staffId: id },
+      select: { weekday: true, startMin: true, endMin: true },
+      orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }],
+    })
+
+    await prisma.$transaction([
+      prisma.staffHour.deleteMany({ where: { staffId: id } }),
+      prisma.staffHour.createMany({
+        data: parsed.data.hours.map((r) => ({ ...r, staffId: id })),
+      }),
+    ])
+
+    audit(req, {
+      action: 'PERSONA_HORARIO_EDITADO',
+      summary: `Ha cambiado el horario de ${existing.name}`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Staff',
+      entityId: id,
+      metadata: { antes: anterior, despues: parsed.data.hours },
+    })
+
+    return prisma.staffHour.findMany({
+      where: { staffId: id },
+      orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }],
+    })
   })
 
   /* ── Cierres: vacaciones y festivos ─────────────────────────

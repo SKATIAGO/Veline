@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
@@ -13,10 +13,108 @@ import {
   Input,
   PageHeader,
   Select,
+  Sheet,
   Skeleton,
   cx,
 } from '../../components/ui'
+import { FranjasSemanales, ORDEN_SEMANA, type Franja } from '../../components/FranjasSemanales'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+
+/**
+ * El editor del horario propio de una persona, dentro de la ficha.
+ *
+ * La ficha (Sheet) solo lleva el nombre en el aria-label, no a la vista:
+ * aquí sí hace falta repetirlo, porque el resto del contenido —siete días
+ * iguales— no dice de quién es.
+ */
+function EditorHorarioPersona({
+  slug,
+  staffId,
+  nombre,
+  onClose,
+}: {
+  slug: string
+  staffId: string
+  nombre: string
+  onClose: () => void
+}) {
+  const { t } = useIdioma()
+  const queryClient = useQueryClient()
+  const [week, setWeek] = useState<Record<number, Franja[]>>({})
+
+  const { data: hours, isLoading } = useQuery({
+    queryKey: ['panel', slug, 'staff', staffId, 'hours'],
+    queryFn: () => api.staffHours(slug, staffId),
+  })
+
+  useEffect(() => {
+    if (!hours) return
+    const next: Record<number, Franja[]> = {}
+    for (const wd of ORDEN_SEMANA) next[wd] = []
+    for (const hr of hours)
+      next[hr.weekday] = [...(next[hr.weekday] ?? []), { startMin: hr.startMin, endMin: hr.endMin }]
+    setWeek(next)
+  }, [hours])
+
+  const save = useMutation({
+    mutationFn: () =>
+      api.saveStaffHours(
+        slug,
+        staffId,
+        ORDEN_SEMANA.flatMap((wd) => (week[wd] ?? []).map((r) => ({ weekday: wd, ...r }))),
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['panel', slug] })
+      queryClient.invalidateQueries({ queryKey: ['availability', slug] })
+      onClose()
+    },
+  })
+
+  const mutate = (wd: number, ranges: Franja[]) => {
+    setWeek((prev) => ({ ...prev, [wd]: ranges }))
+  }
+
+  /** Copia el día a los demás laborables. Rellenar siete días a mano cansa. */
+  const copiarALaborables = (wd: number) => {
+    const origen = week[wd] ?? []
+    setWeek((prev) => {
+      const next = { ...prev }
+      for (const otro of [1, 2, 3, 4, 5]) next[otro] = origen.map((r) => ({ ...r }))
+      return next
+    })
+  }
+
+  const invalid = ORDEN_SEMANA.some((wd) => (week[wd] ?? []).some((r) => r.endMin <= r.startMin))
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3">
+        {ORDEN_SEMANA.map((wd) => (
+          <Skeleton key={wd} className="h-12" />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="font-display text-subheading font-semibold text-ink">
+        {t('pers.horarioDe', { nombre })}
+      </h2>
+      <p className="text-meta text-subtle">{t('pers.horarioAviso')}</p>
+      <FranjasSemanales week={week} onChange={mutate} onCopiarALaborables={copiarALaborables} />
+      {save.isError && <ErrorNote>{t('pers.horarioNoGuardado')}</ErrorNote>}
+      <div className="flex justify-end gap-2">
+        <Button variant="quiet" onClick={onClose}>
+          {t('pers.cancelar')}
+        </Button>
+        <Button onClick={() => save.mutate()} disabled={invalid} loading={save.isPending}>
+          {t('hor.guardar')}
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 /**
  * Las personas que atienden las citas.
@@ -36,6 +134,7 @@ export function PanelPersonas() {
   const [nombre, setNombre] = useState('')
   const [editando, setEditando] = useState<string | null>(null)
   const [nombreEdit, setNombreEdit] = useState('')
+  const [horarioAbierto, setHorarioAbierto] = useState<string | null>(null)
 
   /* Con varios locales hay que poder decir dónde atiende cada persona: de eso
      depende en qué local sale su hueco. Sin elegir = atiende en todos, que es
@@ -232,10 +331,14 @@ export function PanelPersonas() {
                               'pers.variasCitasPorDelante',
                             )
                           : t('pers.sinCitasPendientes')}
+                        {p.hasHours && <> · {t('pers.horarioPropio')}</>}
                       </p>
                     </div>
 
                     <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
+                      <Button size="sm" variant="quiet" onClick={() => setHorarioAbierto(p.id)}>
+                        {t('pers.horario')}
+                      </Button>
                       <Button
                         size="sm"
                         variant="quiet"
@@ -286,6 +389,27 @@ export function PanelPersonas() {
           }}
         />
       </p>
+
+      <Sheet
+        open={!!horarioAbierto}
+        onClose={() => setHorarioAbierto(null)}
+        title={
+          horarioAbierto
+            ? t('pers.horarioDe', {
+                nombre: personas?.find((p) => p.id === horarioAbierto)?.name ?? '',
+              })
+            : ''
+        }
+      >
+        {horarioAbierto && (
+          <EditorHorarioPersona
+            slug={slug}
+            staffId={horarioAbierto}
+            nombre={personas?.find((p) => p.id === horarioAbierto)?.name ?? ''}
+            onClose={() => setHorarioAbierto(null)}
+          />
+        )}
+      </Sheet>
     </div>
   )
 }

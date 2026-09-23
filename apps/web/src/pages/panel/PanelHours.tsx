@@ -1,42 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatMinutes, weekdayLong } from '@veline/shared'
 import { api } from '../../lib/api'
 import {
   Button,
   Card,
   ErrorNote,
-  IconButton,
-  Input,
   PageHeader,
   Select,
   Skeleton,
   SuccessNote,
-  cx,
   BarraGuardar,
 } from '../../components/ui'
+import {
+  FranjasSemanales,
+  ORDEN_SEMANA as ORDER,
+  type Franja as Range,
+} from '../../components/FranjasSemanales'
 import { useIdioma, usePlural } from '../../i18n/idioma'
 import { useCambiosSinGuardar } from '../../lib/cambios'
 
-interface Range {
-  startMin: number
-  endMin: number
-}
-
-/** Lunes primero, domingo al final. */
-const ORDER = [1, 2, 3, 4, 5, 6, 0]
-
-const toMinutes = (value: string) => {
-  const [h, m] = value.split(':').map(Number)
-  return h * 60 + m
-}
-
-const MANANA: Range = { startMin: 9 * 60, endMin: 14 * 60 }
-const TARDE: Range = { startMin: 16 * 60, endMin: 20 * 60 }
-
 export function PanelHours() {
-  const { t, idioma } = useIdioma()
+  const { t } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
@@ -175,102 +160,7 @@ export function PanelHours() {
         </label>
       )}
 
-      <Card className="overflow-hidden">
-        <ul>
-          {ORDER.map((wd) => {
-            const ranges = week[wd] ?? []
-            const cerrado = ranges.length === 0
-
-            return (
-              <li
-                key={wd}
-                className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-3 last:border-b-0 sm:px-5"
-              >
-                <div className="flex w-[104px] shrink-0 flex-col">
-                  <span className="text-ui font-semibold text-ink capitalize">
-                    {weekdayLong(wd, idioma)}
-                  </span>
-                  {cerrado && <span className="text-meta text-disabled">{t('comun.cerrado')}</span>}
-                </div>
-
-                <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-2">
-                  {ranges.map((r, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <Input
-                        type="time"
-                        step={900}
-                        aria-label={t('hor.inicioFranja', {
-                          dia: weekdayLong(wd, idioma),
-                          n: i + 1,
-                        })}
-                        value={formatMinutes(r.startMin)}
-                        invalid={r.endMin <= r.startMin}
-                        onChange={(e) =>
-                          mutate(
-                            wd,
-                            ranges.map((x, j) =>
-                              j === i ? { ...x, startMin: toMinutes(e.target.value) } : x,
-                            ),
-                          )
-                        }
-                        className="w-[116px] px-2.5"
-                      />
-                      <span className="text-muted" aria-hidden>
-                        –
-                      </span>
-                      <Input
-                        type="time"
-                        step={900}
-                        aria-label={t('hor.finFranja', { dia: weekdayLong(wd, idioma), n: i + 1 })}
-                        value={formatMinutes(r.endMin)}
-                        invalid={r.endMin <= r.startMin}
-                        onChange={(e) =>
-                          mutate(
-                            wd,
-                            ranges.map((x, j) =>
-                              j === i ? { ...x, endMin: toMinutes(e.target.value) } : x,
-                            ),
-                          )
-                        }
-                        className="w-[116px] px-2.5"
-                      />
-                      <IconButton
-                        label={t('hor.quitarFranja', { n: i + 1, dia: weekdayLong(wd, idioma) })}
-                        onClick={() =>
-                          mutate(
-                            wd,
-                            ranges.filter((_, j) => j !== i),
-                          )
-                        }
-                        className="hover:text-brand"
-                      >
-                        <span aria-hidden className="text-subheading leading-none">
-                          ×
-                        </span>
-                      </IconButton>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={cx('flex gap-1', cerrado && 'ml-auto')}>
-                  <Button
-                    size="sm"
-                    variant="quiet"
-                    onClick={() => mutate(wd, [...ranges, ranges.length ? TARDE : MANANA])}
-                  >
-                    {t('hor.anadirFranja')}
-                  </Button>
-                  {!cerrado && wd >= 1 && wd <= 5 && (
-                    <Button size="sm" variant="quiet" onClick={() => copiarALaborables(wd)}>
-                      {t('hor.copiarLV')}
-                    </Button>
-                  )}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      </Card>
+      <FranjasSemanales week={week} onChange={mutate} onCopiarALaborables={copiarALaborables} />
 
       <p className="text-meta text-subtle">{t('hor.aviso')}</p>
     </div>

@@ -54,8 +54,31 @@ export interface EntradaDisponibilidad {
   cierres: Cierre[]
   citas: CitaOcupada[]
   staffIds: string[]
+  /**
+   * El horario propio de cada empleado, por id. Sin entrada aquí (o una
+   * lista vacía) esa persona sigue el horario del local entero, igual que
+   * antes de que existiera esto: añadirlo es opt-in, no rompe a nadie.
+   */
+  staffFranjas?: Record<string, Franja[]>
   /** Momento actual. Parámetro explícito para poder fijarlo en los tests. */
   ahora: Date
+}
+
+/**
+ * Si el empleado tiene horario propio, el hueco tiene que caber entero
+ * dentro de alguna de sus franjas de ese día. Si no lo tiene, no hay
+ * restricción de más: manda el horario del local.
+ */
+export function dentroDeSuHorario(
+  staffId: string,
+  weekday: number,
+  inicioMin: number,
+  finMin: number,
+  staffFranjas: Record<string, Franja[]> | undefined,
+): boolean {
+  const propias = staffFranjas?.[staffId]
+  if (!propias || propias.length === 0) return true
+  return propias.some((f) => f.weekday === weekday && f.startMin <= inicioMin && finMin <= f.endMin)
 }
 
 /** Fecha local a N minutos de su medianoche. */
@@ -111,6 +134,7 @@ export function calcularDisponibilidad(e: EntradaDisponibilidad): DayAvailabilit
 
         const personaLibre = e.staffIds.find(
           (id) =>
+            dentroDeSuHorario(id, dia.getDay(), m, m + e.occupancyMin, e.staffFranjas) &&
             !e.citas.some(
               (cita) =>
                 cita.staffId === id && seSolapan(inicio, fin, cita.startsAt, cita.blockedTo),
