@@ -209,6 +209,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.cambiarNegocio': 'Switch business',
   'panel.buscarNegocio': 'Search business',
   'panel.verDadosDeBaja': 'Also show deregistered ones',
+  'panel.ningunNegocioCoincide': 'No business matches',
   'panel.tuPerfil': 'Your profile',
   'panel.facturacion': 'Subscription',
   'panel.enlaces': 'Links',

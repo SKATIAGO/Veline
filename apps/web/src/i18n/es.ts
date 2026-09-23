@@ -209,6 +209,7 @@ export const es = {
   'panel.cambiarNegocio': 'Cambiar de negocio',
   'panel.buscarNegocio': 'Buscar negocio',
   'panel.verDadosDeBaja': 'Ver también los dados de baja',
+  'panel.ningunNegocioCoincide': 'Ningún negocio coincide',
   'panel.tuPerfil': 'Tu perfil',
   'panel.facturacion': 'Suscripción',
   'panel.enlaces': 'Enlaces',
