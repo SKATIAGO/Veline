@@ -123,7 +123,7 @@ export const EXTRAS = [
     nombre: 'pre.recordatoriosNombre',
     precio: 'pre.recordatoriosPrecio',
     nota: 'pre.recordatoriosNota',
-    items: ['pre.recordatoriosI1'],
+    items: ['pre.recordatoriosI1', 'pre.recordatoriosI2'],
   },
 ] as const satisfies readonly {
   nombre: Clave

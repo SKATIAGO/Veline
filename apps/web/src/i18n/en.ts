@@ -1059,7 +1059,7 @@ export const en: Record<keyof typeof es, string> = {
     'Includes the admin —who can take appointments too— and 1 more employee in the diary',
   'pre.negocioF2': 'Unlimited bookings from your website, Instagram or Google',
   'pre.negocioF3':
-    'SMS and email reminders — 200 messages a month included, then €0.06 per message',
+    'SMS and email reminders — 200 messages a month included and rolled over, then €0.06 per message',
   'pre.negocioF4': 'Business figures',
   'pre.negocioF5': 'Customer reviews',
   'pre.negocioF6': 'Priority support',
@@ -1107,6 +1107,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.recordatoriosPrecio': '200 msgs/month free',
   'pre.recordatoriosNota': 'then €0.06 per message',
   'pre.recordatoriosI1': 'SMS and email share the same monthly allowance',
+  'pre.recordatoriosI2': 'Whatever you don’t use rolls over to next month',
 
   // Reviews (space held)
   'pre.loQueDicen': 'What the businesses already using it say',
@@ -1134,7 +1135,7 @@ export const en: Record<keyof typeof es, string> = {
     'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',
   'pre.q6': 'Do SMS reminders cost extra?',
   'pre.a6':
-    'The first 200 messages each month are included in the plan, whether SMS or email. After that, each extra message costs €0.06.',
+    'The first 200 messages each month are included in the plan, whether SMS or email, and whatever you don’t use rolls over to next month. After that, each extra message costs €0.06.',
   'pre.q7': 'Can I use Veline without appearing on the marketplace?',
   'pre.a7':
     'Yes. You can use it purely as a booking engine on your website and your social media. In that case there is no commission, because the customers do not come through us.',

@@ -12,9 +12,15 @@ import { prisma } from '../prisma.js'
  * Solo cuentan para el cupo los mensajes del negocio (confirmaciones,
  * cancelaciones, recordatorios). Los nuestros —restablecer una contraseña—
  * no se le cobran a nadie.
+ *
+ * En los planes de pago el cupo que no se gasta se acumula: el cupo efectivo
+ * de un mes es el del plan más lo que sobró del anterior
+ * (`Business.bankedMessages`, que solo se actualiza al cerrar el mes en
+ * cobros.ts — mientras el mes está en curso el cupo no se mueve). En Gratis
+ * no se acumula nunca.
  */
 
-const CUENTAN_PARA_EL_CUPO: MessageKind[] = [
+export const CUENTAN_PARA_EL_CUPO: MessageKind[] = [
   'RESERVA_CONFIRMADA',
   'RESERVA_CANCELADA',
   'RECORDATORIO',
@@ -38,6 +44,11 @@ export async function mensajesDelMes(businessId: string, desde = inicioDeMes()) 
   })
 }
 
+/** El cupo del plan más lo que se acumuló del mes pasado, si lo hay. */
+function cupoEfectivo(plan: PlanKey, bankedMessages: number) {
+  return (PLAN_INFO[plan]?.messagesIncluded ?? 0) + bankedMessages
+}
+
 export interface ResumenMensajes {
   enviados: number
   incluidos: number
@@ -50,8 +61,11 @@ export async function resumenMensajes(
   plan: PlanKey,
   desde = inicioDeMes(),
 ): Promise<ResumenMensajes> {
-  const enviados = await mensajesDelMes(businessId, desde)
-  const incluidos = PLAN_INFO[plan]?.messagesIncluded ?? 0
+  const [enviados, negocio] = await Promise.all([
+    mensajesDelMes(businessId, desde),
+    prisma.business.findUnique({ where: { id: businessId }, select: { bankedMessages: true } }),
+  ])
+  const incluidos = cupoEfectivo(plan, negocio?.bankedMessages ?? 0)
   const extra = Math.max(0, enviados - incluidos)
   return { enviados, incluidos, extra, costeExtraCents: extra * MENSAJE_EXTRA_CENTS }
 }
@@ -87,9 +101,9 @@ export async function registrarEnvio(envio: RegistroEnvio): Promise<void> {
     ) {
       const negocio = await prisma.business.findUnique({
         where: { id: envio.businessId },
-        select: { plan: true },
+        select: { plan: true, bankedMessages: true },
       })
-      const incluidos = negocio ? (PLAN_INFO[negocio.plan]?.messagesIncluded ?? 0) : 0
+      const incluidos = negocio ? cupoEfectivo(negocio.plan, negocio.bankedMessages) : 0
       const yaEnviados = await mensajesDelMes(envio.businessId)
       // yaEnviados aún no incluye este: si ya se han gastado los incluidos,
       // este es de pago.

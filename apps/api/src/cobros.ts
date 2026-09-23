@@ -6,6 +6,7 @@ import {
   type PlanKey,
 } from '@veline/shared'
 import { prisma } from './prisma.js'
+import { CUENTAN_PARA_EL_CUPO } from './mail/contador.js'
 
 /**
  * Lo que le toca pagar a cada negocio cada mes.
@@ -93,6 +94,48 @@ export async function calcularMes(businessId: string, period: Date): Promise<Des
 }
 
 /**
+ * Lo que sobra del cupo de mensajes de este mes, para el que viene.
+ *
+ * Solo en los planes de pago: en Gratis el cupo no se acumula nunca, así que
+ * si un negocio llega aquí en Gratis —recién bajado de un plan de pago, por
+ * ejemplo— se le vacía lo que tuviera acumulado en vez de dejarlo ahí sin
+ * poder gastarlo.
+ *
+ * Se llama una sola vez por mes, desde `cerrarMes`: el cupo de un mes en
+ * curso no cambia a media cita, así que esto tiene que esperar a que el mes
+ * ya haya terminado para saber cuánto sobró de verdad.
+ */
+async function actualizarCupoAcumulado(businessId: string, period: Date, plan: PlanKey) {
+  const negocio = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { bankedMessages: true },
+  })
+  if (!negocio) return
+
+  if (plan === 'GRATIS') {
+    if (negocio.bankedMessages !== 0) {
+      await prisma.business.update({ where: { id: businessId }, data: { bankedMessages: 0 } })
+    }
+    return
+  }
+
+  const desde = period
+  const hasta = new Date(Date.UTC(period.getUTCFullYear(), period.getUTCMonth() + 1, 1))
+  const enviados = await prisma.messageLog.count({
+    where: {
+      businessId,
+      status: 'ENVIADO',
+      kind: { in: CUENTAN_PARA_EL_CUPO },
+      createdAt: { gte: desde, lt: hasta },
+    },
+  })
+
+  const cupo = (PLAN_INFO[plan]?.messagesIncluded ?? 0) + negocio.bankedMessages
+  const sobra = Math.max(0, cupo - enviados)
+  await prisma.business.update({ where: { id: businessId }, data: { bankedMessages: sobra } })
+}
+
+/**
  * Cierra un mes para un negocio y deja el cobro pendiente.
  *
  * Idempotente a propósito: si ya existe el cobro de ese mes NO se recalcula.
@@ -107,6 +150,10 @@ export async function cerrarMes(businessId: string, period: Date) {
 
   const d = await calcularMes(businessId, period)
   if (!d) return null
+
+  // El cupo acumulado se actualiza siempre que se cierra el mes, aunque no
+  // llegue a generar cobro (un mes a cero en Gratis también cierra su cupo).
+  await actualizarCupoAcumulado(businessId, period, d.plan)
 
   // Un mes a cero no genera cobro: un negocio en plan Gratis sin comisiones ni
   // mensajes de más no debe nada, y una lista llena de cobros de 0 € estorba.

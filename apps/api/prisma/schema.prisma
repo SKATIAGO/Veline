@@ -89,6 +89,11 @@ model Business {
   endedAt    DateTime?
   /// Nota interna de la ficha: por qué se suspendió, con quién se habló.
   adminNotes String?
+  /// Mensajes del cupo que sobraron el mes pasado, para sumarlos al cupo de
+  /// este. Solo se acumula en los planes de pago — en Gratis siempre es 0.
+  /// Se actualiza una sola vez, al cerrar el mes: mientras el mes está en
+  /// curso se queda quieto, así que el cupo efectivo no cambia a media cita.
+  bankedMessages Int @default(0)
   /// URLs base de las fotos (sin parámetros de tamaño). La primera es la
   /// portada; el resto rellena la galería del perfil.
   photos     String[]

@@ -45,8 +45,8 @@ export const PLAN_INFO = {
     seatsIncluded: 1,
     /** Cada persona de más, al mes. */
     extraSeatCents: 0,
-    /** Mensajes incluidos al mes (email + SMS juntos). */
-    messagesIncluded: 0,
+    /** Mensajes incluidos al mes (email + SMS juntos). No se acumulan. */
+    messagesIncluded: 100,
   },
   NEGOCIO: {
     label: 'Negocio',
@@ -54,6 +54,7 @@ export const PLAN_INFO = {
     priceCents: 1895,
     seatsIncluded: 2,
     extraSeatCents: 1095,
+    /** Los que sobren cada mes se acumulan para el siguiente. */
     messagesIncluded: 200,
   },
   EQUIPOS: {
@@ -62,6 +63,7 @@ export const PLAN_INFO = {
     priceCents: 1895,
     seatsIncluded: 2,
     extraSeatCents: 1095,
+    /** Los que sobren cada mes se acumulan para el siguiente. */
     messagesIncluded: 200,
   },
 } as const

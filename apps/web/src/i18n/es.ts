@@ -1061,7 +1061,7 @@ export const es = {
     'Incluye al administrador —que también puede atender citas— y 1 empleado más en el calendario',
   'pre.negocioF2': 'Reservas ilimitadas desde tu web, Instagram o Google',
   'pre.negocioF3':
-    'Recordatorios por SMS y email — 200 mensajes al mes incluidos, luego 0,06 €/mensaje',
+    'Recordatorios por SMS y email — 200 mensajes al mes incluidos y acumulables, luego 0,06 €/mensaje',
   'pre.negocioF4': 'Estadísticas del negocio',
   'pre.negocioF5': 'Reseñas de clientes',
   'pre.negocioF6': 'Soporte prioritario',
@@ -1109,6 +1109,7 @@ export const es = {
   'pre.recordatoriosPrecio': '200 msj/mes gratis',
   'pre.recordatoriosNota': 'luego 0,06 € por mensaje',
   'pre.recordatoriosI1': 'Los SMS y el email comparten el mismo cupo mensual',
+  'pre.recordatoriosI2': 'Los que no gastes se acumulan para el mes siguiente',
 
   // Reseñas (hueco reservado)
   'pre.loQueDicen': 'Lo que dicen los negocios que ya lo usan',
@@ -1137,7 +1138,7 @@ export const es = {
     'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
   'pre.q6': '¿Los recordatorios por SMS tienen coste extra?',
   'pre.a6':
-    'Los primeros 200 mensajes de cada mes están incluidos en el plan, sean SMS o email. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
+    'Los primeros 200 mensajes de cada mes están incluidos en el plan, sean SMS o email, y los que no gastes se acumulan para el mes siguiente. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
   'pre.q7': '¿Puedo usar Veline sin salir en el marketplace?',
   'pre.a7':
     'Sí. Puedes usarlo solo como motor de reservas en tu web y tus redes. En ese caso no hay comisión, porque los clientes no llegan por nosotros.',
