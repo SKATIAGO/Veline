@@ -98,6 +98,9 @@ export function PanelCalendario() {
                   const key = toDateKey(d)
                   const citas = porDia.get(key) ?? []
                   const activo = key === diaSeleccionado
+                  // Hoy se marca igual que un día elegido: un tono más no se
+                  // distingue de nada, y esto no hay forma de perderlo de vista.
+                  const marcado = activo || key === hoyKey
                   return (
                     <button
                       key={key}
@@ -110,17 +113,15 @@ export function PanelCalendario() {
                       }
                       className={cx(
                         'flex min-h-[60px] flex-col items-start gap-1 rounded-lg border p-1 text-left transition-colors sm:min-h-[92px] sm:p-1.5',
-                        activo
+                        marcado
                           ? 'border-brand bg-brand text-white'
-                          : key === hoyKey
-                            ? 'border-2 border-brand bg-brand/10 hover:bg-brand/15'
-                            : 'border-line bg-surface hover:border-brand',
+                          : 'border-line bg-surface hover:border-brand',
                       )}
                     >
                       <span
                         className={cx(
                           'text-caption font-semibold',
-                          activo ? 'text-white' : 'text-brand-text',
+                          marcado ? 'text-white' : 'text-brand-text',
                         )}
                       >
                         {d.getDate()}
@@ -132,7 +133,7 @@ export function PanelCalendario() {
                               key={b.id}
                               className={cx(
                                 'truncate rounded px-1 py-0.5 text-caption leading-tight font-medium',
-                                activo ? 'bg-white/15 text-white' : 'bg-cream text-brand-text',
+                                marcado ? 'bg-white/15 text-white' : 'bg-cream text-brand-text',
                               )}
                             >
                               {hora(b.startsAt)}
@@ -142,7 +143,7 @@ export function PanelCalendario() {
                             <span
                               className={cx(
                                 'px-1 text-caption',
-                                activo ? 'text-white/80' : 'text-subtle',
+                                marcado ? 'text-white/80' : 'text-subtle',
                               )}
                             >
                               +{citas.length - CITAS_POR_HUECO}

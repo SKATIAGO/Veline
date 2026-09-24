@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/shared'
-import { api } from '../../lib/api'
+import { api, type PanelBooking } from '../../lib/api'
 import { CabeceraMes } from '../../components/CabeceraMes'
-import { Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
-import { useIdioma } from '../../i18n/idioma'
+import { Button, Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
+import { useIdioma, type Clave } from '../../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
@@ -16,6 +16,18 @@ interface ResumenDia {
   citas: number
   canceladoCents: number
   canceladas: number
+}
+
+const ESTADO_CLAVE: Record<PanelBooking['status'], Clave> = {
+  CONFIRMADA: 'cont.confirmada',
+  CANCELADA: 'agenda.cancelada',
+  COMPLETADA: 'agenda.atendida',
+  NO_ASISTIO: 'agenda.noVinoEstado',
+}
+
+/** Una celda de CSV: entre comillas si trae coma, comilla o salto de línea. */
+function celdaCsv(valor: string) {
+  return /[",\n]/.test(valor) ? `"${valor.replace(/"/g, '""')}"` : valor
 }
 
 /**
@@ -65,9 +77,65 @@ export function PanelContabilidad() {
 
   const totalMesCents = dias.reduce((n, d) => n + d.facturadoCents, 0)
 
+  /**
+   * El desglose de verdad, cita a cita, no solo el resumen por día que ya se
+   * ve en pantalla: fecha, hora, cliente, servicio, estado e importe de cada
+   * una, canceladas incluidas —para que se vea por qué no suman— y el total
+   * del mes al final, ese sí sin las canceladas.
+   */
+  const descargar = () => {
+    const filas = [...(bookings ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    const cabecera = [
+      t('cont.csvFecha'),
+      t('cont.csvHora'),
+      t('cont.csvCliente'),
+      t('cont.csvServicio'),
+      t('cont.csvEstado'),
+      t('cont.csvImporte'),
+    ]
+    const lineas = filas.map((b) => {
+      const inicio = new Date(b.startsAt)
+      return [
+        toDateKey(inicio),
+        inicio.toLocaleTimeString(idioma === 'en' ? 'en-GB' : 'es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        b.customer.name,
+        b.service.name,
+        t(ESTADO_CLAVE[b.status]),
+        (b.priceCents / 100).toFixed(2),
+      ]
+        .map(celdaCsv)
+        .join(',')
+    })
+    lineas.push(['', '', '', '', t('cont.csvTotalMes'), (totalMesCents / 100).toFixed(2)].join(','))
+
+    // El BOM al principio es lo que hace que Excel abra los acentos bien.
+    const csv = '﻿' + [cabecera.join(','), ...lineas].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `contabilidad-${toDateKey(mes).slice(0, 7)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('panel.contabilidad')} hint={t('cont.pista')} />
+      <PageHeader
+        title={t('panel.contabilidad')}
+        hint={t('cont.pista')}
+        actions={
+          bookings &&
+          bookings.length > 0 && (
+            <Button variant="secondary" onClick={descargar}>
+              {t('cont.descargar')}
+            </Button>
+          )
+        }
+      />
 
       <div className="flex flex-col gap-4">
         <CabeceraMes mes={mes} onCambiarMes={setMes} />

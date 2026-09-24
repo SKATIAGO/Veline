@@ -288,6 +288,15 @@ export const es = {
   'cont.variasCitas': '{n} citas',
   'cont.unaCancelada': '{n} cancelada (-{importe})',
   'cont.variasCanceladas': '{n} canceladas (-{importe})',
+  'cont.descargar': 'Descargar',
+  'cont.confirmada': 'Confirmada',
+  'cont.csvFecha': 'Fecha',
+  'cont.csvHora': 'Hora',
+  'cont.csvCliente': 'Cliente',
+  'cont.csvServicio': 'Servicio',
+  'cont.csvEstado': 'Estado',
+  'cont.csvImporte': 'Importe (€)',
+  'cont.csvTotalMes': 'Total del mes (sin canceladas)',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',

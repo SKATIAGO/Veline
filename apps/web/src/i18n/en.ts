@@ -288,6 +288,15 @@ export const en: Record<keyof typeof es, string> = {
   'cont.variasCitas': '{n} bookings',
   'cont.unaCancelada': '{n} cancelled (-{importe})',
   'cont.variasCanceladas': '{n} cancelled (-{importe})',
+  'cont.descargar': 'Download',
+  'cont.confirmada': 'Confirmed',
+  'cont.csvFecha': 'Date',
+  'cont.csvHora': 'Time',
+  'cont.csvCliente': 'Customer',
+  'cont.csvServicio': 'Service',
+  'cont.csvEstado': 'Status',
+  'cont.csvImporte': 'Amount (€)',
+  'cont.csvTotalMes': 'Total for the month (excluding cancelled)',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',
