@@ -237,6 +237,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.clientes': 'Customers',
   'panel.fichaje': 'Time clock',
   'panel.calendario': 'Calendar',
+  'panel.contabilidad': 'Accounting',
   'panel.servicios': 'Services',
   'panel.horario': 'Opening hours',
   'panel.personas': 'Staff',
@@ -277,6 +278,16 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.elegirMes': 'Choose month',
   'agenda.anioAnterior': 'Previous year',
   'agenda.anioSiguiente': 'Next year',
+
+  // ── Accounting ─────────────────────────────────────────────
+  'cont.pista': 'What gets billed each day, based on bookings — cancelled ones don’t count.',
+  'cont.totalMes': 'Total for the month',
+  'cont.sinCitasMes': 'No bookings this month',
+  'cont.sinCitasMesPista': 'Once there are confirmed bookings, they’ll show up here day by day.',
+  'cont.unaCita': '{n} booking',
+  'cont.variasCitas': '{n} bookings',
+  'cont.unaCancelada': '{n} cancelled (-{importe})',
+  'cont.variasCanceladas': '{n} cancelled (-{importe})',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',

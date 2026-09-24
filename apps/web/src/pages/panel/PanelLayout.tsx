@@ -571,6 +571,16 @@ export function PanelLayout() {
         },
         ...(puedeConfigurar
           ? ([
+              /* Va agrupado con Día a día por sitio en el menú —es lo que
+                 se ha facturado cada día—, pero sí lleva la condición de
+                 puedeConfigurar: son los ingresos de todo el negocio, no
+                 algo que enseñarle a quien solo lleva la agenda. */
+              {
+                to: `/panel/${slug}/contabilidad`,
+                clave: 'panel.contabilidad',
+                icono: 'cobros',
+                grupo: 'panel.grupoDiaADia',
+              },
               {
                 to: `/panel/${slug}/servicios`,
                 clave: 'panel.servicios',

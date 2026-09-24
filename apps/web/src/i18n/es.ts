@@ -237,6 +237,7 @@ export const es = {
   'panel.clientes': 'Clientes',
   'panel.fichaje': 'Fichaje',
   'panel.calendario': 'Calendario',
+  'panel.contabilidad': 'Contabilidad',
   'panel.servicios': 'Servicios',
   'panel.horario': 'Horario',
   'panel.personas': 'Empleados',
@@ -277,6 +278,16 @@ export const es = {
   'agenda.elegirMes': 'Elegir mes',
   'agenda.anioAnterior': 'Año anterior',
   'agenda.anioSiguiente': 'Año siguiente',
+
+  // ── Contabilidad ───────────────────────────────────────────
+  'cont.pista': 'Lo que se factura cada día, según las citas — lo cancelado no cuenta.',
+  'cont.totalMes': 'Total del mes',
+  'cont.sinCitasMes': 'Sin citas este mes',
+  'cont.sinCitasMesPista': 'Cuando haya citas confirmadas, aparecerán aquí día a día.',
+  'cont.unaCita': '{n} cita',
+  'cont.variasCitas': '{n} citas',
+  'cont.unaCancelada': '{n} cancelada (-{importe})',
+  'cont.variasCanceladas': '{n} canceladas (-{importe})',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',

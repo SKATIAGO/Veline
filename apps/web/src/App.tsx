@@ -21,6 +21,7 @@ import { PanelUsers } from './pages/panel/PanelUsers'
 import { PanelCuenta } from './pages/panel/PanelCuenta'
 import { PanelAgenda } from './pages/panel/PanelAgenda'
 import { PanelCalendario } from './pages/panel/PanelCalendario'
+import { PanelContabilidad } from './pages/panel/PanelContabilidad'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
 import { PanelPersonas } from './pages/panel/PanelPersonas'
@@ -79,6 +80,7 @@ function AppRoutes() {
       <Route path="/panel/:slug" element={<PanelLayout />}>
         <Route index element={<PanelAgenda />} />
         <Route path="calendario" element={<PanelCalendario />} />
+        <Route path="contabilidad" element={<PanelContabilidad />} />
         <Route path="servicios" element={<PanelServices />} />
         <Route path="horario" element={<PanelHours />} />
         <Route path="personas" element={<PanelPersonas />} />
