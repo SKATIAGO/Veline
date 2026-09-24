@@ -637,9 +637,9 @@ export const en: Record<keyof typeof es, string> = {
   'eq.anadirPersona': '+ Add someone',
   'eq.nuevaPersona': 'New person',
   'eq.cuentaCreada': 'Account created',
-  'eq.pasaleDatos': 'Pass these details on to {email}:',
+  'eq.pasaleDatos': 'We’ve emailed these details to {email}:',
   'eq.guardalaAhora':
-    'Save it now: for security it can’t be looked up again. Once they’re in, they can change it from their own account.',
+    'In case the email doesn’t arrive, here’s the password: for security it can’t be looked up again. Once they’re in, they can change it from their own account.',
   'eq.copiada': 'Copied',
   'eq.copiar': 'Copy',
   'eq.cerrarAviso': 'Dismiss this notice',

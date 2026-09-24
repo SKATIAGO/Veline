@@ -4,6 +4,8 @@ import { prisma } from '../prisma.js'
 import { aceptaReservas, cuotaMensualCents, plazasDelNegocio } from '@veline/shared'
 import { resumenMensajes } from '../mail/contador.js'
 import { hashPassword } from '../auth/passwords.js'
+import { sendMailSafely } from '../mail/enviar.js'
+import { panelUserCreatedMail } from '../mail/templates.js'
 import { requireUser } from '../auth/sessions.js'
 import {
   authorizeBusiness as authorize,
@@ -424,6 +426,19 @@ export async function panelRoutes(app: FastifyInstance) {
       entityId: created.id,
       metadata: { rol: created.role },
     })
+
+    // Que le llegue a quien se ha dado de alta, no solo quede en pantalla
+    // para que el administrador se lo reenvíe a mano.
+    void sendMailSafely(
+      panelUserCreatedMail(
+        { email: created.email, name: created.name },
+        {
+          businessName: auth.business.name,
+          password: parsed.data.password,
+          role: parsed.data.role,
+        },
+      ),
+    )
 
     return reply.code(201).send(created)
   })

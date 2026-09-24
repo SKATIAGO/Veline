@@ -463,6 +463,59 @@ export function passwordResetMail(to: { email: string; name: string }, url: stri
   }
 }
 
+/* ── 6b. Alta de una cuenta del panel (empleado o admin) ──────────
+ * El administrador no tiene que copiar la contraseña y pasársela él mismo
+ * por WhatsApp o de palabra: se le manda directo a quien se ha dado de
+ * alta, a su propio correo, en cuanto se crea la cuenta.
+ */
+export function panelUserCreatedMail(
+  to: { email: string; name: string },
+  ctx: { businessName: string; password: string; role: 'ADMIN' | 'EMPLEADO' },
+): MailMessage {
+  const idioma = idiomaParaNegocio()
+  const rows: [string, string][] = [
+    ['Correo', to.email],
+    ['Contraseña', ctx.password],
+  ]
+  const paraQueHtml =
+    ctx.role === 'EMPLEADO'
+      ? `podrás entrar a tu agenda de <strong style="color:${INK};">${esc(ctx.businessName)}</strong>`
+      : `podrás administrar <strong style="color:${INK};">${esc(ctx.businessName)}</strong>`
+  const paraQueTexto =
+    ctx.role === 'EMPLEADO'
+      ? `podrás entrar a tu agenda de ${ctx.businessName}`
+      : `podrás administrar ${ctx.businessName}`
+
+  return {
+    to: to.email,
+    toName: to.name,
+    subject: `Ya tienes acceso al panel de ${ctx.businessName}`,
+    tag: 'alta-usuario-panel',
+    html: layout({
+      idioma,
+      preheader: 'Tus datos para entrar al panel de Veline',
+      heading: 'Ya tienes acceso',
+      intro: `Hola ${esc(to.name.split(' ')[0])}, te han dado de alta en Veline: ${paraQueHtml}.`,
+      body: `${detalles(rows)}
+      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:#5C4A34;">
+        Una vez dentro puedes cambiar la contraseña desde tu cuenta.
+      </p>`,
+      cta: { label: 'Entrar en Veline', url: `${webUrl()}/login` },
+    }),
+    text: [
+      'Ya tienes acceso',
+      '',
+      `Te han dado de alta en Veline: ${paraQueTexto}.`,
+      '',
+      textoDetalles(rows),
+      '',
+      `Entrar en Veline: ${webUrl()}/login`,
+      '',
+      'Una vez dentro puedes cambiar la contraseña desde tu cuenta.',
+    ].join('\n'),
+  }
+}
+
 /* ── 7. Confirmar el correo al darse de alta ──────────────────── */
 
 export function signupVerifyMail(

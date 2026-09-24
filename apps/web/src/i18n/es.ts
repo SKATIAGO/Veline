@@ -638,9 +638,9 @@ export const es = {
   'eq.anadirPersona': '+ Añadir persona',
   'eq.nuevaPersona': 'Nueva persona',
   'eq.cuentaCreada': 'Cuenta creada',
-  'eq.pasaleDatos': 'Pásale estos datos a {email}:',
+  'eq.pasaleDatos': 'Le hemos enviado estos datos por correo a {email}:',
   'eq.guardalaAhora':
-    'Guárdala ahora: por seguridad no se puede volver a consultar. Quien entre podrá cambiarla desde su cuenta.',
+    'Por si el correo no le llega, aquí tienes la contraseña: por seguridad no se puede volver a consultar. Quien entre podrá cambiarla desde su cuenta.',
   'eq.copiada': 'Copiada',
   'eq.copiar': 'Copiar',
   'eq.cerrarAviso': 'Cerrar el aviso',
