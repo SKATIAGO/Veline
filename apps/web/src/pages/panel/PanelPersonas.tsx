@@ -332,6 +332,11 @@ export function PanelPersonas() {
     onSuccess: invalidate,
   })
 
+  const eliminar = useMutation({
+    mutationFn: (personaId: string) => api.deleteStaff(slug, personaId),
+    onSuccess: invalidate,
+  })
+
   const activas = personas?.filter((p) => p.active).length ?? 0
 
   return (
@@ -405,6 +410,12 @@ export function PanelPersonas() {
           {cambiarEstado.error instanceof ApiError
             ? cambiarEstado.error.message
             : t('pers.noSePudoCambiar')}
+        </ErrorNote>
+      )}
+
+      {eliminar.isError && (
+        <ErrorNote>
+          {eliminar.error instanceof ApiError ? eliminar.error.message : t('pers.noSePudoEliminar')}
         </ErrorNote>
       )}
 
@@ -514,16 +525,24 @@ export function PanelPersonas() {
                           onConfirm={() => cambiarEstado.mutate({ personaId: p.id, active: false })}
                         />
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="quiet"
-                          loading={
-                            cambiarEstado.isPending && cambiarEstado.variables?.personaId === p.id
-                          }
-                          onClick={() => cambiarEstado.mutate({ personaId: p.id, active: true })}
-                        >
-                          {t('pers.volverAActivar')}
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="quiet"
+                            loading={
+                              cambiarEstado.isPending && cambiarEstado.variables?.personaId === p.id
+                            }
+                            onClick={() => cambiarEstado.mutate({ personaId: p.id, active: true })}
+                          >
+                            {t('pers.volverAActivar')}
+                          </Button>
+                          <ConfirmAction
+                            label={t('pers.eliminar')}
+                            confirmLabel={t('pers.siEliminar')}
+                            loading={eliminar.isPending && eliminar.variables === p.id}
+                            onConfirm={() => eliminar.mutate(p.id)}
+                          />
+                        </>
                       )}
                     </div>
                   </>

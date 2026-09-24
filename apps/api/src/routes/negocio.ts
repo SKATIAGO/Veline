@@ -231,6 +231,43 @@ export async function negocioRoutes(app: FastifyInstance) {
   })
 
   /**
+   * Borrar de verdad, no dar de baja. Solo se puede si ya está de baja: en
+   * activo nunca hay citas por delante huérfanas (no se le puede asignar
+   * ninguna nueva estando inactivo), así que exigir el paso por «dar de baja»
+   * primero es la misma comprobación de citas pendientes, hecha una vez y no
+   * en cada sitio que borre.
+   */
+  app.delete('/api/panel/:slug/staff/:id', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'configuracion')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const existing = await prisma.staff.findFirst({
+      where: { id, businessId: auth.business.id },
+    })
+    if (!existing) return reply.code(404).send({ error: 'Persona no encontrada' })
+
+    if (existing.active) {
+      return reply.code(409).send({ error: `Dale de baja a ${existing.name} antes de eliminarla.` })
+    }
+
+    await prisma.staff.delete({ where: { id } })
+
+    audit(req, {
+      action: 'PERSONA_ELIMINADA',
+      summary: `Ha eliminado a ${existing.name}`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Staff',
+      entityId: id,
+    })
+
+    return reply.code(204).send()
+  })
+
+  /**
    * El horario propio de una persona. Sin ninguna franja aquí sigue el
    * horario del negocio entero, así que una lista vacía es un estado válido
    * y no «vuelve a poner por defecto» nada.

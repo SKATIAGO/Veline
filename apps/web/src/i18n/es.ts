@@ -458,6 +458,9 @@ export const es = {
     'Esto crea una cuenta aparte para entrar al panel, con acceso solo a la agenda. No cambia esta ficha ni lo que el cliente ve al reservar.',
   'pers.darDeBaja': 'Dar de baja',
   'pers.siDeBaja': 'Sí, de baja',
+  'pers.eliminar': 'Eliminar',
+  'pers.siEliminar': 'Sí, eliminar',
+  'pers.noSePudoEliminar': 'No se ha podido eliminar',
   'pers.volverAActivar': 'Volver a activar',
   'pers.avisoNegrita': 'cuantos más empleados, más citas a la vez',
   'pers.aviso':

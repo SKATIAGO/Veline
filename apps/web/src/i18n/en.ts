@@ -459,6 +459,9 @@ export const en: Record<keyof typeof es, string> = {
     'This creates a separate account to log into the panel, with access to the diary only. It doesn’t change this profile or what the customer sees when booking.',
   'pers.darDeBaja': 'Set inactive',
   'pers.siDeBaja': 'Yes, set inactive',
+  'pers.eliminar': 'Delete',
+  'pers.siEliminar': 'Yes, delete',
+  'pers.noSePudoEliminar': 'Couldn’t delete',
   'pers.volverAActivar': 'Set active again',
   'pers.avisoNegrita': 'the more people, the more appointments at once',
   'pers.aviso':

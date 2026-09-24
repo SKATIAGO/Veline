@@ -298,6 +298,9 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  deleteStaff: (slug: string, id: string) =>
+    request<void>(`/panel/${slug}/staff/${id}`, { method: 'DELETE' }),
+
   staffHours: (slug: string, staffId: string) =>
     request<PanelStaffHour[]>(`/panel/${slug}/staff/${staffId}/hours`),
 
