@@ -79,7 +79,10 @@ export function PanelCalendario() {
               {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
                 <div
                   key={wd}
-                  className="text-center text-caption font-semibold text-brand-text uppercase"
+                  className={cx(
+                    'rounded-md py-1 text-center text-caption font-semibold uppercase',
+                    wd === hoy.getDay() ? 'bg-brand text-white' : 'text-brand-text',
+                  )}
                 >
                   {weekdayShort(wd, idioma)}
                 </div>
@@ -109,8 +112,9 @@ export function PanelCalendario() {
                         'flex min-h-[60px] flex-col items-start gap-1 rounded-lg border p-1 text-left transition-colors sm:min-h-[92px] sm:p-1.5',
                         activo
                           ? 'border-brand bg-brand text-white'
-                          : 'border-line bg-surface hover:border-brand',
-                        key === hoyKey && !activo && 'ring-1 ring-inset ring-brand/50',
+                          : key === hoyKey
+                            ? 'border-2 border-brand bg-brand/10 hover:bg-brand/15'
+                            : 'border-line bg-surface hover:border-brand',
                       )}
                     >
                       <span
