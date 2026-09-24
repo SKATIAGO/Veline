@@ -29,6 +29,7 @@ export const es = {
   'comun.inicio': 'Veline — inicio',
   'comun.idioma': 'Idioma',
   'comun.cerrar': 'Cerrar',
+  'comun.listo': 'Listo',
   'comun.verContrasena': 'Ver contraseña',
   'comun.ocultarContrasena': 'Ocultar contraseña',
 
@@ -451,6 +452,10 @@ export const es = {
   'pers.horarioAviso':
     'Sin ninguna franja, esta persona sigue el horario general del negocio. Con al menos una, solo está libre dentro de las suyas.',
   'pers.horarioNoGuardado': 'No se ha podido guardar el horario',
+  'pers.darDeAlta': 'Dar de alta',
+  'pers.altaTitulo': 'Acceso al panel para {nombre}',
+  'pers.altaAviso':
+    'Esto crea una cuenta aparte para entrar al panel, con acceso solo a la agenda. No cambia esta ficha ni lo que el cliente ve al reservar.',
   'pers.darDeBaja': 'Dar de baja',
   'pers.siDeBaja': 'Sí, de baja',
   'pers.volverAActivar': 'Volver a activar',

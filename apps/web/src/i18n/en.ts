@@ -30,6 +30,7 @@ export const en: Record<keyof typeof es, string> = {
   'comun.inicio': 'Veline — home',
   'comun.idioma': 'Language',
   'comun.cerrar': 'Close',
+  'comun.listo': 'Done',
   'comun.verContrasena': 'Show password',
   'comun.ocultarContrasena': 'Hide password',
 
@@ -452,6 +453,10 @@ export const en: Record<keyof typeof es, string> = {
   'pers.horarioAviso':
     'With no slots at all, this person follows the business’s general hours. With at least one, they’re only free inside their own.',
   'pers.horarioNoGuardado': 'Couldn’t save the hours',
+  'pers.darDeAlta': 'Give panel access',
+  'pers.altaTitulo': 'Panel access for {nombre}',
+  'pers.altaAviso':
+    'This creates a separate account to log into the panel, with access to the diary only. It doesn’t change this profile or what the customer sees when booking.',
   'pers.darDeBaja': 'Set inactive',
   'pers.siDeBaja': 'Yes, set inactive',
   'pers.volverAActivar': 'Set active again',

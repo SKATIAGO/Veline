@@ -47,8 +47,11 @@ interface Draft {
 
 const emptyDraft: Draft = { name: '', email: '', password: '', role: 'EMPLEADO' }
 
-/** Contraseña legible por teléfono: sin caracteres confundibles. */
-function generarPassword() {
+/**
+ * Contraseña legible por teléfono: sin caracteres confundibles.
+ * Se exporta: la usa también PanelPersonas al dar de alta a un empleado.
+ */
+export function generarPassword() {
   const abc = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
   return Array.from(crypto.getRandomValues(new Uint32Array(14)))
     .map((n) => abc[n % abc.length])

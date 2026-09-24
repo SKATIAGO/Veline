@@ -18,6 +18,7 @@ import {
   cx,
 } from '../../components/ui'
 import { FranjasSemanales, ORDEN_SEMANA, type Franja } from '../../components/FranjasSemanales'
+import { generarPassword } from './PanelUsers'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 
 /**
@@ -117,6 +118,156 @@ function EditorHorarioPersona({
 }
 
 /**
+ * Dar de alta a una persona que atiende: crearle una cuenta para entrar al
+ * panel. Son dos fichas independientes a propósito (ver el aviso de abajo
+ * del todo), así que esto no enlaza nada — solo rellena el nombre para no
+ * escribirlo dos veces y deja el rol fijo en Empleado, porque quien atiende
+ * clientes no necesita permisos de administrador por defecto.
+ */
+function CrearAccesoPersona({
+  slug,
+  nombreInicial,
+  onClose,
+}: {
+  slug: string
+  nombreInicial: string
+  onClose: () => void
+}) {
+  const { t } = useIdioma()
+  const id = useId()
+  const queryClient = useQueryClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState(() => generarPassword())
+  const [creada, setCreada] = useState<{ email: string; password: string } | null>(null)
+  const [copiado, setCopiado] = useState(false)
+
+  const crear = useMutation({
+    mutationFn: () =>
+      api.createPanelUser(slug, {
+        name: nombreInicial,
+        email: email.trim(),
+        password,
+        role: 'EMPLEADO',
+      }),
+    onSuccess: () => {
+      setCreada({ email: email.trim(), password })
+      setCopiado(false)
+      queryClient.invalidateQueries({ queryKey: ['panel', slug, 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['audit'] })
+    },
+  })
+
+  const problema = !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
+    ? t('eq.errEmail')
+    : password.length < 10
+      ? t('eq.errContrasena')
+      : null
+
+  if (creada) {
+    return (
+      <div className="flex flex-col gap-4">
+        <h2 className="font-display text-subheading font-semibold text-ink">
+          {t('pers.altaTitulo', { nombre: nombreInicial })}
+        </h2>
+        <Card className="border-brand/40 bg-brand/5 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-ui font-semibold text-ink">{t('eq.cuentaCreada')}</p>
+              <p className="mt-1 text-body text-body">
+                <Texto clave="eq.pasaleDatos" partes={{ email: <strong>{creada.email}</strong> }} />
+              </p>
+              <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
+                {creada.password}
+              </code>
+              <p className="mt-2 text-meta text-muted">{t('eq.guardalaAhora')}</p>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  void navigator.clipboard.writeText(creada.password).then(() => setCopiado(true))
+                }}
+              >
+                {copiado ? t('eq.copiada') : t('eq.copiar')}
+              </Button>
+            </div>
+          </div>
+        </Card>
+        <div className="flex justify-end">
+          <Button onClick={onClose}>{t('comun.listo')}</Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="font-display text-subheading font-semibold text-ink">
+        {t('pers.altaTitulo', { nombre: nombreInicial })}
+      </h2>
+      <p className="text-meta text-subtle">{t('pers.altaAviso')}</p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!problema) crear.mutate()
+        }}
+        className="flex flex-col gap-4"
+      >
+        <Field label={t('eq.email')} htmlFor={`${id}-email`} hint={t('eq.emailPista')} required>
+          <Input
+            id={`${id}-email`}
+            type="email"
+            autoComplete="off"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Field>
+        <Field
+          label={t('eq.contrasenaInicial')}
+          htmlFor={`${id}-pass`}
+          hint={t('eq.contrasenaPista')}
+          required
+        >
+          <div className="flex gap-2">
+            <Input
+              id={`${id}-pass`}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setPassword(generarPassword())}
+            >
+              {t('eq.otra')}
+            </Button>
+          </div>
+        </Field>
+
+        {crear.isError && (
+          <ErrorNote>
+            {crear.error instanceof ApiError ? crear.error.message : t('eq.noSePudoCrear')}
+          </ErrorNote>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="submit" loading={crear.isPending} disabled={!!problema}>
+            {t('eq.crearCuenta')}
+          </Button>
+          <Button type="button" variant="quiet" onClick={onClose}>
+            {t('pers.cancelar')}
+          </Button>
+          {problema && <span className="text-meta text-muted">{problema}</span>}
+        </div>
+      </form>
+    </div>
+  )
+}
+
+/**
  * Las personas que atienden las citas.
  *
  * No confundir con «Equipo», que son las cuentas para entrar al panel: alguien
@@ -135,6 +286,7 @@ export function PanelPersonas() {
   const [editando, setEditando] = useState<string | null>(null)
   const [nombreEdit, setNombreEdit] = useState('')
   const [horarioAbierto, setHorarioAbierto] = useState<string | null>(null)
+  const [altaAbierto, setAltaAbierto] = useState<string | null>(null)
 
   /* Con varios locales hay que poder decir dónde atiende cada persona: de eso
      depende en qué local sale su hueco. Sin elegir = atiende en todos, que es
@@ -336,6 +488,9 @@ export function PanelPersonas() {
                     </div>
 
                     <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
+                      <Button size="sm" variant="quiet" onClick={() => setAltaAbierto(p.id)}>
+                        {t('pers.darDeAlta')}
+                      </Button>
                       <Button size="sm" variant="quiet" onClick={() => setHorarioAbierto(p.id)}>
                         {t('pers.horario')}
                       </Button>
@@ -407,6 +562,22 @@ export function PanelPersonas() {
             staffId={horarioAbierto}
             nombre={personas?.find((p) => p.id === horarioAbierto)?.name ?? ''}
             onClose={() => setHorarioAbierto(null)}
+          />
+        )}
+      </Sheet>
+
+      <Sheet
+        open={!!altaAbierto}
+        onClose={() => setAltaAbierto(null)}
+        title={t('pers.altaTitulo', {
+          nombre: personas?.find((p) => p.id === altaAbierto)?.name ?? '',
+        })}
+      >
+        {altaAbierto && (
+          <CrearAccesoPersona
+            slug={slug}
+            nombreInicial={personas?.find((p) => p.id === altaAbierto)?.name ?? ''}
+            onClose={() => setAltaAbierto(null)}
           />
         )}
       </Sheet>
