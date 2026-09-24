@@ -50,6 +50,11 @@ const staffHoursBody = z.object({
     ),
 })
 
+const noteBody = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
+  text: z.string().trim().min(1, 'Escribe algo').max(280),
+})
+
 const closureBody = z
   .object({
     from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
@@ -472,6 +477,88 @@ export async function negocioRoutes(app: FastifyInstance) {
       businessId: auth.business.id,
       entity: 'Closure',
       metadata: { dias: count },
+    })
+
+    return reply.code(204).send()
+  })
+
+  /**
+   * Notas libres del calendario: no son citas ni cierran nada, es un aviso
+   * apuntado en un día ("vacaciones", "revisar el pedido"). Mismo alcance
+   * que la propia Agenda —cualquiera con acceso al panel—, no solo quien
+   * configura: es para quien lleva el día a día, no un ajuste del negocio.
+   */
+  app.get('/api/panel/:slug/notes', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const { from, to } = req.query as { from?: string; to?: string }
+    if (!from || !to) return reply.code(400).send({ error: 'Faltan las fechas' })
+
+    const notas = await prisma.calendarNote.findMany({
+      where: { businessId: auth.business.id, date: { gte: new Date(from), lte: new Date(to) } },
+      orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
+    })
+
+    // dayKey y no el ISO tal cual: la columna @db.Date llega a medianoche
+    // UTC, y en local se desplazaría al día de al lado.
+    return notas.map((n) => ({ id: n.id, date: dayKey(n.date), text: n.text }))
+  })
+
+  app.post('/api/panel/:slug/notes', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const parsed = noteBody.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+
+    const created = await prisma.calendarNote.create({
+      data: {
+        businessId: auth.business.id,
+        date: new Date(parsed.data.date),
+        text: parsed.data.text,
+      },
+    })
+
+    audit(req, {
+      action: 'NOTA_CREADA',
+      summary: `Ha apuntado una nota el ${parsed.data.date}`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'CalendarNote',
+      entityId: created.id,
+    })
+
+    return reply.code(201).send({ id: created.id, date: dayKey(created.date), text: created.text })
+  })
+
+  app.delete('/api/panel/:slug/notes/:id', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const existing = await prisma.calendarNote.findFirst({
+      where: { id, businessId: auth.business.id },
+    })
+    if (!existing) return reply.code(404).send({ error: 'Nota no encontrada' })
+
+    await prisma.calendarNote.delete({ where: { id } })
+
+    audit(req, {
+      action: 'NOTA_ELIMINADA',
+      summary: 'Ha quitado una nota del calendario',
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'CalendarNote',
+      entityId: id,
     })
 
     return reply.code(204).send()

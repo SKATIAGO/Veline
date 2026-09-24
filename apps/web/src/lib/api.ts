@@ -329,6 +329,16 @@ export const api = {
       body: JSON.stringify({ ids }),
     }),
 
+  // ── Notas libres del calendario ────────────────────────────
+  panelNotes: (slug: string, params: { from: string; to: string }) =>
+    request<PanelNote[]>(`/panel/${slug}/notes${qs(params)}`),
+
+  createNote: (slug: string, body: { date: string; text: string }) =>
+    request<PanelNote>(`/panel/${slug}/notes`, { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteNote: (slug: string, id: string) =>
+    request<void>(`/panel/${slug}/notes/${id}`, { method: 'DELETE' }),
+
   // ── Ficha del negocio ──────────────────────────────────────
   panelProfile: (slug: string) => request<PanelProfile>(`/panel/${slug}/profile`),
 
@@ -662,6 +672,12 @@ export interface PanelStaff {
   locationId: string | null
   /** Si tiene horario propio, o sigue el del negocio entero. */
   hasHours?: boolean
+}
+
+export interface PanelNote {
+  id: string
+  date: string
+  text: string
 }
 
 export interface PanelClosure {

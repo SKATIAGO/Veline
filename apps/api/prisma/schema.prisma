@@ -111,6 +111,7 @@ model Business {
   fichajes  Fichaje[]
   extras    Extra[]
   imagenes  Imagen[]
+  notes     CalendarNote[]
 
   @@index([category])
 }
@@ -298,6 +299,21 @@ model Closure {
   location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@index([locationId, date])
+}
+
+/// Una nota libre en el Calendario: no es una cita ni bloquea nada, es un
+/// aviso interno del negocio ("vacaciones", "revisar el pedido") apuntado
+/// en un día. Por eso no lleva hora, solo día — como Closure.
+model CalendarNote {
+  id         String   @id @default(cuid())
+  businessId String
+  date       DateTime @db.Date
+  text       String
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, date])
 }
 
 /// Cliente que reserva. Sin cuenta: se identifica por teléfono.
@@ -630,6 +646,8 @@ enum AuditAction {
   PERSONA_ACTIVADA
   PERSONA_HORARIO_EDITADO
   PERSONA_ELIMINADA
+  NOTA_CREADA
+  NOTA_ELIMINADA
   CIERRE_CREADO
   CIERRE_ELIMINADO
   NEGOCIO_EDITADO
