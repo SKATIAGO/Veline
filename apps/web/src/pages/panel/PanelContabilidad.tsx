@@ -25,9 +25,9 @@ const ESTADO_CLAVE: Record<PanelBooking['status'], Clave> = {
   NO_ASISTIO: 'agenda.noVinoEstado',
 }
 
-/** Una celda de CSV: entre comillas si trae coma, comilla o salto de línea. */
+/** Una celda de CSV: entre comillas si trae el separador, una comilla o un salto de línea. */
 function celdaCsv(valor: string) {
-  return /[",\n]/.test(valor) ? `"${valor.replace(/"/g, '""')}"` : valor
+  return /[,;"\n]/.test(valor) ? `"${valor.replace(/"/g, '""')}"` : valor
 }
 
 /**
@@ -82,8 +82,19 @@ export function PanelContabilidad() {
    * ve en pantalla: fecha, hora, cliente, servicio, estado e importe de cada
    * una, canceladas incluidas —para que se vea por qué no suman— y el total
    * del mes al final, ese sí sin las canceladas.
+   *
+   * El Excel en español no separa columnas por comas: usa la coma para los
+   * decimales, así que espera el punto y coma como separador. En inglés es
+   * al revés. Sin esto, el CSV se abre entero amontonado en una sola
+   * columna — hay que elegir el signo según el idioma, no da igual cuál.
    */
   const descargar = () => {
+    const separador = idioma === 'en' ? ',' : ';'
+    const importe = (cents: number) => {
+      const valor = (cents / 100).toFixed(2)
+      return idioma === 'en' ? valor : valor.replace('.', ',')
+    }
+
     const filas = [...(bookings ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
     const cabecera = [
       t('cont.csvFecha'),
@@ -104,15 +115,17 @@ export function PanelContabilidad() {
         b.customer.name,
         b.service.name,
         t(ESTADO_CLAVE[b.status]),
-        (b.priceCents / 100).toFixed(2),
+        importe(b.priceCents),
       ]
         .map(celdaCsv)
-        .join(',')
+        .join(separador)
     })
-    lineas.push(['', '', '', '', t('cont.csvTotalMes'), (totalMesCents / 100).toFixed(2)].join(','))
+    lineas.push(
+      ['', '', '', '', t('cont.csvTotalMes'), importe(totalMesCents)].map(celdaCsv).join(separador),
+    )
 
     // El BOM al principio es lo que hace que Excel abra los acentos bien.
-    const csv = '﻿' + [cabecera.join(','), ...lineas].join('\n')
+    const csv = '﻿' + [cabecera.join(separador), ...lineas].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

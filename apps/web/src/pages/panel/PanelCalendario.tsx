@@ -168,8 +168,8 @@ export function PanelCalendario() {
                         <span
                           aria-hidden
                           className={cx(
-                            'absolute top-1.5 right-1.5 size-1.5 rounded-full',
-                            marcado ? 'bg-white' : 'bg-brand',
+                            'absolute top-1 right-1 size-3 rounded-full bg-accent ring-2',
+                            marcado ? 'ring-brand' : 'ring-surface',
                           )}
                         />
                       )}
