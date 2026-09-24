@@ -35,8 +35,8 @@ export function CabeceraMes({
   }, [selectorAbierto])
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between gap-3 border-b border-line bg-cream px-4 py-3.5 sm:px-5">
+    <Card className="p-0">
+      <div className="flex items-center justify-between gap-3 rounded-t-xl border-b border-line bg-cream px-4 py-3.5 sm:px-5">
         <div className="flex items-center gap-2.5">
           <LogoMark size={18} />
           <div className="relative" ref={selectorRef}>
