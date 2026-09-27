@@ -79,6 +79,16 @@ export const api = {
 
   getBooking: (code: string) => request<BookingDTO>(`/bookings/${code}`),
 
+  /** Los huecos para que el propio cliente mueva su cita, con su código. */
+  getRescheduleAvailability: (code: string, params: { from: string; to: string }) =>
+    request<DayAvailabilityDTO[]>(`/bookings/${code}/disponibilidad${qs(params)}`),
+
+  rescheduleMyBooking: (code: string, startsAt: string) =>
+    request<BookingDTO>(`/bookings/${code}/reschedule`, {
+      method: 'POST',
+      body: JSON.stringify({ startsAt }),
+    }),
+
   cancelBooking: (code: string, reason?: string) =>
     request<BookingDTO>(`/bookings/${code}/cancel`, {
       method: 'POST',

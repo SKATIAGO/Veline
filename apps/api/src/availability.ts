@@ -95,6 +95,105 @@ async function resolverLocal(businessId: string, locationId?: string) {
   return locales[0]
 }
 
+/**
+ * El cálculo de verdad, sin conocer servicios ni extras: solo cuánto ocupa
+ * (`occupancyMin`, ya sumado por quien llama) y opcionalmente qué reserva
+ * ignorar. Lo comparten `getAvailability` (calcula la ocupación desde la
+ * carta) y `getAvailabilityForReschedule` (la toma prestada de la cita que
+ * se está moviendo, para no inventarle una duración distinta a la que se le
+ * prometió al cliente).
+ */
+async function disponibilidadDesde(opts: {
+  businessId: string
+  from: Date
+  to: Date
+  locationId?: string
+  staffId?: string
+  occupancyMin: number
+  /** La propia cita que se está moviendo: sin esto, su hueco viejo cuenta
+      como ocupado y se bloquea a sí misma. */
+  excludeBookingId?: string
+}): Promise<DayAvailabilityDTO[]> {
+  const location = await resolverLocal(opts.businessId, opts.locationId)
+
+  const rangeStart = atLocalMinutes(opts.from, 0)
+  const rangeEnd = atLocalMinutes(opts.to, 24 * 60)
+
+  const [staff, closures, bookings] = await Promise.all([
+    /* Las personas de ESTE local. Las que no lo tienen asignado atienden en
+       cualquiera: es lo que había antes de que existieran varios locales, y
+       excluirlas dejaría sin huecos a todo negocio que no las haya repartido. */
+    prisma.staff.findMany({
+      where: {
+        businessId: opts.businessId,
+        active: true,
+        OR: [{ locationId: location.id }, { locationId: null }],
+        // Con una persona concreta, solo ella cuenta: un hueco en el que
+        // atendería otra no vale para quien ya ha elegido con quién.
+        ...(opts.staffId ? { id: opts.staffId } : {}),
+      },
+      orderBy: { name: 'asc' },
+      include: { hours: true },
+    }),
+    prisma.closure.findMany({
+      where: {
+        locationId: location.id,
+        date: { gte: utcMidnight(opts.from), lte: utcMidnight(opts.to) },
+      },
+    }),
+    prisma.booking.findMany({
+      where: {
+        businessId: opts.businessId,
+        status: 'CONFIRMADA',
+        startsAt: { lt: rangeEnd },
+        blockedTo: { gt: rangeStart },
+        ...(opts.excludeBookingId ? { id: { not: opts.excludeBookingId } } : {}),
+      },
+      select: { staffId: true, startsAt: true, blockedTo: true },
+    }),
+  ])
+
+  /* Se pidió una persona concreta y no está entre las de este local: id
+     inventado, o alguien de otro sitio. Igual que un local o un servicio que
+     no existen — no se enseñan huecos de quien no es. */
+  if (opts.staffId && staff.length === 0) {
+    throw Object.assign(new Error('Persona no encontrada'), { statusCode: 404 })
+  }
+
+  const cierres: Cierre[] = closures.map((c) => ({
+    dateKey: claveDeFechaUtc(c.date),
+    startMin: c.startMin,
+    endMin: c.endMin,
+  }))
+
+  const staffFranjas: Record<string, Franja[]> = {}
+  for (const s of staff) {
+    if (s.hours.length > 0) {
+      staffFranjas[s.id] = s.hours.map((h) => ({
+        weekday: h.weekday,
+        startMin: h.startMin,
+        endMin: h.endMin,
+      }))
+    }
+  }
+
+  return calcularDisponibilidad({
+    from: opts.from,
+    to: opts.to,
+    occupancyMin: opts.occupancyMin,
+    franjas: location.openingHours.map((w) => ({
+      weekday: w.weekday,
+      startMin: w.startMin,
+      endMin: w.endMin,
+    })),
+    cierres,
+    citas: bookings,
+    staffIds: staff.map((s) => s.id),
+    staffFranjas,
+    ahora: new Date(),
+  })
+}
+
 export async function getAvailability({
   businessId,
   serviceId,
@@ -124,80 +223,32 @@ export async function getAvailability({
     return extra ? [{ durationMin: extra.durationMin, quantity: p.quantity }] : []
   })
 
-  const location = await resolverLocal(businessId, locationId)
-
-  const rangeStart = atLocalMinutes(from, 0)
-  const rangeEnd = atLocalMinutes(to, 24 * 60)
-
-  const [staff, closures, bookings] = await Promise.all([
-    /* Las personas de ESTE local. Las que no lo tienen asignado atienden en
-       cualquiera: es lo que había antes de que existieran varios locales, y
-       excluirlas dejaría sin huecos a todo negocio que no las haya repartido. */
-    prisma.staff.findMany({
-      where: {
-        businessId,
-        active: true,
-        OR: [{ locationId: location.id }, { locationId: null }],
-        // Con una persona concreta, solo ella cuenta: un hueco en el que
-        // atendería otra no vale para quien ya ha elegido con quién.
-        ...(staffId ? { id: staffId } : {}),
-      },
-      orderBy: { name: 'asc' },
-      include: { hours: true },
-    }),
-    prisma.closure.findMany({
-      where: { locationId: location.id, date: { gte: utcMidnight(from), lte: utcMidnight(to) } },
-    }),
-    prisma.booking.findMany({
-      where: {
-        businessId,
-        status: 'CONFIRMADA',
-        startsAt: { lt: rangeEnd },
-        blockedTo: { gt: rangeStart },
-      },
-      select: { staffId: true, startsAt: true, blockedTo: true },
-    }),
-  ])
-
-  /* Se pidió una persona concreta y no está entre las de este local: id
-     inventado, o alguien de otro sitio. Igual que un local o un servicio que
-     no existen — no se enseñan huecos de quien no es. */
-  if (staffId && staff.length === 0) {
-    throw Object.assign(new Error('Persona no encontrada'), { statusCode: 404 })
-  }
-
-  const cierres: Cierre[] = closures.map((c) => ({
-    dateKey: claveDeFechaUtc(c.date),
-    startMin: c.startMin,
-    endMin: c.endMin,
-  }))
-
-  const staffFranjas: Record<string, Franja[]> = {}
-  for (const s of staff) {
-    if (s.hours.length > 0) {
-      staffFranjas[s.id] = s.hours.map((h) => ({
-        weekday: h.weekday,
-        startMin: h.startMin,
-        endMin: h.endMin,
-      }))
-    }
-  }
-
-  return calcularDisponibilidad({
+  return disponibilidadDesde({
+    businessId,
     from,
     to,
+    locationId,
+    staffId,
     occupancyMin: duracionConExtras(service.durationMin, extras) + service.bufferMin,
-    franjas: location.openingHours.map((w) => ({
-      weekday: w.weekday,
-      startMin: w.startMin,
-      endMin: w.endMin,
-    })),
-    cierres,
-    citas: bookings,
-    staffIds: staff.map((s) => s.id),
-    staffFranjas,
-    ahora: new Date(),
   })
+}
+
+/**
+ * Los huecos para mover una cita ya hecha a otra hora: misma duración que se
+ * le prometió al cliente (servicio + sus extras, ya frescos en la propia
+ * cita), sin contar su hueco actual como ocupado, y con cualquier persona
+ * libre — quien reprograma no vuelve a elegir con quién, igual que el cambio
+ * de hora desde el panel.
+ */
+export async function getAvailabilityForReschedule(opts: {
+  businessId: string
+  locationId?: string
+  occupancyMin: number
+  from: Date
+  to: Date
+  excludeBookingId: string
+}): Promise<DayAvailabilityDTO[]> {
+  return disponibilidadDesde(opts)
 }
 
 /**

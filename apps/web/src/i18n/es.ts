@@ -172,10 +172,19 @@ export const es = {
   'hecha.anadirCalendario': 'Añadir al calendario',
   'hecha.volverInicio': 'Volver al inicio',
   'hecha.reservarOtra': 'Reservar otra hora',
+  'hecha.reprogramar': 'Cambiar de hora',
   'hecha.cancelar': 'Cancelar la reserva',
   'hecha.seguro': '¿Seguro?',
   'hecha.siCancelar': 'Sí, cancelar',
   'hecha.guardaEnlace': 'Guarda este enlace para consultar o cancelar tu cita:',
+
+  // ── Reprogramar cita ──────────────────────────────────────
+  'reprog.titulo': 'Elige la nueva hora',
+  'reprog.ahora': 'Cita actual: {fecha} a las {hora}',
+  'reprog.confirmar': 'Confirmar el cambio',
+  'reprog.noSePudo': 'No se ha podido cambiar la cita, inténtalo de nuevo',
+  'reprog.noSePuede': 'Esta cita ya no se puede cambiar de hora',
+  'reprog.noSePuedePista': 'Puede que ya haya pasado o esté cancelada.',
 
   // ── Reseña ────────────────────────────────────────────────
   'resena.enlaceNoVale': 'Este enlace no vale',

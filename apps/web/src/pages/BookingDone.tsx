@@ -193,7 +193,10 @@ export function BookingDone() {
           )}
 
           {!cancelled && (
-            <div className="mt-5">
+            <div className="mt-5 flex flex-col items-center gap-3">
+              <ButtonLink to={`/reserva/${booking.code}/reprogramar`} variant="secondary" size="md">
+                {t('hecha.reprogramar')}
+              </ButtonLink>
               <ConfirmAction
                 label={t('hecha.cancelar')}
                 question={t('hecha.seguro')}

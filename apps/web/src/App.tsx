@@ -7,6 +7,7 @@ import { BookingExtras } from './pages/BookingExtras'
 import { BookingDate } from './pages/BookingDate'
 import { BookingConfirm } from './pages/BookingConfirm'
 import { BookingDone } from './pages/BookingDone'
+import { BookingReschedule } from './pages/BookingReschedule'
 import { Pricing } from './pages/Pricing'
 import { Resena } from './pages/Resena'
 import { Login } from './pages/Login'
@@ -110,6 +111,7 @@ function AppRoutes() {
         <Route path="/privacidad" element={<Legal />} />
         <Route path="/cookies" element={<Legal />} />
         <Route path="/reserva/:code" element={<BookingDone />} />
+        <Route path="/reserva/:code/reprogramar" element={<BookingReschedule />} />
         <Route path="/resena/:token" element={<Resena />} />
         <Route path="/:slug" element={<Business />} />
         <Route path="/:slug/reservar/extras" element={<BookingExtras />} />

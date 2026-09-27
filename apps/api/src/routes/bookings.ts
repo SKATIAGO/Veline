@@ -1,18 +1,26 @@
 import type { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import {
   aceptaReservas,
   cancelBookingSchema,
   createBookingSchema,
+  fromDateKey,
+  rescheduleBookingSchema,
   type BookingDTO,
 } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { audit } from '../audit/log.js'
 import { getSessionUser } from '../auth/sessions.js'
-import { isWithinOpeningHours, pickStaffForSlot } from '../availability.js'
+import {
+  getAvailabilityForReschedule,
+  isWithinOpeningHours,
+  MAX_RANGE_DAYS,
+  pickStaffForSlot,
+} from '../availability.js'
 import { sendMailSafely } from '../mail/enviar.js'
 import { idiomaDeLaReserva } from '../mail/idioma.js'
-import { avisarCancelacion, avisarConfirmacion } from '../mail/avisos.js'
+import { avisarCambioHora, avisarCancelacion, avisarConfirmacion } from '../mail/avisos.js'
 import { bookingCode } from '../codigo.js'
 import { duracionConExtras, elegirExtras, totalConExtras } from '../extras.js'
 import {
@@ -71,6 +79,11 @@ const toDTO = (b: BookingRow): BookingDTO => ({
   staff: b.staff,
   customer: b.customer,
   extras: b.extras,
+})
+
+const disponibilidadQuery = z.object({
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 
 export async function bookingRoutes(app: FastifyInstance) {
@@ -361,5 +374,167 @@ export async function bookingRoutes(app: FastifyInstance) {
     })
 
     return toDTO(booking)
+  })
+
+  /** Los huecos para que el propio cliente mueva su cita, con su código. */
+  app.get('/api/bookings/:code/disponibilidad', async (req, reply) => {
+    const { code } = req.params as { code: string }
+    const parsed = disponibilidadQuery.safeParse(req.query)
+    if (!parsed.success) {
+      return reply
+        .code(400)
+        .send({ error: 'Parámetros inválidos', details: parsed.error.flatten() })
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { code: code.toUpperCase() },
+      include: { service: true, extras: true },
+    })
+    if (!booking) return reply.code(404).send({ error: 'Reserva no encontrada' })
+    if (booking.status !== 'CONFIRMADA' || booking.startsAt.getTime() < Date.now()) {
+      return reply.code(409).send({ error: 'Esta cita no se puede reprogramar' })
+    }
+
+    const from = fromDateKey(parsed.data.from)
+    const to = fromDateKey(parsed.data.to)
+    if (to < from) return reply.code(400).send({ error: '"to" es anterior a "from"' })
+    const days = Math.round((to.getTime() - from.getTime()) / 86_400_000) + 1
+    if (days > MAX_RANGE_DAYS) {
+      return reply.code(400).send({ error: `El rango máximo es de ${MAX_RANGE_DAYS} días` })
+    }
+
+    try {
+      return await getAvailabilityForReschedule({
+        businessId: booking.businessId,
+        locationId: booking.locationId ?? undefined,
+        occupancyMin:
+          duracionConExtras(booking.service.durationMin, booking.extras) +
+          booking.service.bufferMin,
+        from,
+        to,
+        excludeBookingId: booking.id,
+      })
+    } catch (err) {
+      const status = (err as { statusCode?: number }).statusCode ?? 500
+      return reply.code(status).send({ error: (err as Error).message })
+    }
+  })
+
+  /**
+   * Mover la propia cita a otra hora, con el código. Misma mecánica que el
+   * cambio de hora del panel: se libera el hueco viejo antes de buscar quién
+   * queda libre, para que la cita no se bloquee a sí misma.
+   */
+  app.post('/api/bookings/:code/reschedule', async (req, reply) => {
+    const { code } = req.params as { code: string }
+    const parsed = rescheduleBookingSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: 'Datos inválidos' })
+
+    const actor = await getSessionUser(req)
+
+    const existing = await prisma.booking.findUnique({
+      where: { code: code.toUpperCase() },
+      include: { service: true, extras: true, customer: true },
+    })
+    if (!existing) return reply.code(404).send({ error: 'Reserva no encontrada' })
+    if (existing.status !== 'CONFIRMADA') {
+      return reply.code(409).send({ error: 'Esta cita no se puede reprogramar' })
+    }
+    if (existing.startsAt.getTime() < Date.now()) {
+      return reply.code(409).send({ error: 'Esta cita ya ha pasado' })
+    }
+
+    const start = new Date(parsed.data.startsAt)
+    if (Number.isNaN(start.getTime())) {
+      return reply.code(400).send({ error: 'Fecha de inicio inválida' })
+    }
+    if (start.getTime() < Date.now()) {
+      return reply.code(409).send({ error: 'Esa hora ya ha pasado' })
+    }
+
+    /* Los minutos que guardó la cita, no los que tenga hoy el extra: mover
+       una cita no es rehacerla, y su hueco tiene que seguir siendo el que se
+       le prometió al cliente. Mismo criterio que el cambio de hora del panel. */
+    const duracion = duracionConExtras(existing.service.durationMin, existing.extras)
+    const end = new Date(start.getTime() + duracion * 60_000)
+    const blockedTo = new Date(end.getTime() + existing.service.bufferMin * 60_000)
+    const occupancy = duracion + existing.service.bufferMin
+
+    if (
+      !(await isWithinOpeningHours(
+        existing.businessId,
+        start,
+        occupancy,
+        existing.locationId ?? undefined,
+      ))
+    ) {
+      return reply.code(409).send({ error: 'Ese horario está fuera del horario de atención' })
+    }
+
+    try {
+      const moved = await prisma.$transaction(
+        async (tx) => {
+          // Se libera el hueco viejo antes de buscar quién queda libre, si no
+          // la propia cita que estamos moviendo se cuenta como ocupada.
+          await tx.booking.update({ where: { id: existing.id }, data: { status: 'CANCELADA' } })
+
+          // Sin preferencia de persona: el cliente ya no elige con quién, ve
+          // los huecos libres de cualquiera y punto.
+          const staff = await pickStaffForSlot(tx, {
+            businessId: existing.businessId,
+            start,
+            end: blockedTo,
+            locationId: existing.locationId ?? undefined,
+          })
+          if (!staff) {
+            throw Object.assign(new Error('Ese hueco acaba de ocuparse'), { statusCode: 409 })
+          }
+
+          return tx.booking.update({
+            where: { id: existing.id },
+            data: {
+              status: 'CONFIRMADA',
+              staffId: staff.id,
+              startsAt: start,
+              endsAt: end,
+              blockedTo,
+              // El recordatorio era para la hora vieja: se deja pendiente
+              // otra vez, igual que en el cambio de hora del panel.
+              reminderSentAt: null,
+            },
+            include: bookingInclude,
+          })
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+
+      audit(req, {
+        action: 'RESERVA_MOVIDA',
+        summary: actor
+          ? `Ha movido la cita de ${moved.customer.name} (${moved.code})`
+          : `El cliente ha movido su cita con el código ${moved.code}`,
+        actor,
+        businessId: moved.businessId,
+        entity: 'Booking',
+        entityId: moved.id,
+        metadata: {
+          codigo: moved.code,
+          antes: existing.startsAt,
+          despues: moved.startsAt,
+          movidaPor: actor ? 'panel' : 'cliente',
+        },
+      })
+
+      void avisarCambioHora(moved.id, existing.startsAt)
+
+      return toDTO(moved)
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2034') {
+        return reply.code(409).send({ error: 'Ese hueco acaba de ocuparse' })
+      }
+      const status = (err as { statusCode?: number }).statusCode
+      if (status) return reply.code(status).send({ error: (err as Error).message })
+      throw err
+    }
   })
 }

@@ -173,10 +173,19 @@ export const en: Record<keyof typeof es, string> = {
   'hecha.anadirCalendario': 'Add to calendar',
   'hecha.volverInicio': 'Back to home',
   'hecha.reservarOtra': 'Book another time',
+  'hecha.reprogramar': 'Change the time',
   'hecha.cancelar': 'Cancel this booking',
   'hecha.seguro': 'Are you sure?',
   'hecha.siCancelar': 'Yes, cancel',
   'hecha.guardaEnlace': 'Save this link to check or cancel your appointment:',
+
+  // ── Reschedule booking ────────────────────────────────────
+  'reprog.titulo': 'Pick the new time',
+  'reprog.ahora': 'Current appointment: {fecha} at {hora}',
+  'reprog.confirmar': 'Confirm the change',
+  'reprog.noSePudo': 'Couldn’t change the time, try again',
+  'reprog.noSePuede': 'This booking can no longer be rescheduled',
+  'reprog.noSePuedePista': 'It may already be in the past, or cancelled.',
 
   // ── Review ────────────────────────────────────────────────
   'resena.enlaceNoVale': 'This link doesn’t work',

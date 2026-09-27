@@ -469,6 +469,12 @@ export const cancelBookingSchema = z.object({
   reason: z.string().trim().max(300).optional(),
 })
 
+/** Lo que manda el propio cliente para mover su cita a otra hora. A
+    diferencia del panel, aquí no elige con quién: cualquiera libre vale. */
+export const rescheduleBookingSchema = z.object({
+  startsAt: z.string().datetime({ offset: true }),
+})
+
 /* ── Tipos de respuesta ─────────────────────────────────────── */
 
 export interface ServiceDTO {
