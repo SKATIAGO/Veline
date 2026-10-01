@@ -171,7 +171,7 @@ export function Pricing() {
       </Reveal>
 
       {/* EXTRAS */}
-      <section className="relative mt-24">
+      <section id="extras" className="relative mt-24 scroll-mt-24">
         <Reveal>
           <Eyebrow>{t('pre.serviciosAparte')}</Eyebrow>
           <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">

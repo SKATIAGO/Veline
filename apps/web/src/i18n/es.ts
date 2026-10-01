@@ -1075,6 +1075,12 @@ export const es = {
   'home.analisis': 'Análisis de rendimiento',
   'home.analisisTexto': 'Rendimiento del trabajo y fidelidad de los clientes, en datos claros.',
 
+  // Impulsar el negocio (servicios aparte del plan)
+  'home.impulsarTitulo': '¿Quieres impulsar tu negocio?',
+  'home.impulsarTexto':
+    'Te hacemos la web, te llevamos la ficha al día o te recogemos las reseñas por ti. Servicios aparte del plan, para cuando quieras ir más allá.',
+  'home.impulsarBoton': 'Ver estos servicios',
+
   // El marketplace
   'home.clientesNuevos': 'Y además, clientes nuevos',
   'home.asiTeVen': 'Así te ven tus clientes',

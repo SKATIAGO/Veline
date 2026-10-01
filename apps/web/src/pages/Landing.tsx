@@ -260,6 +260,28 @@ export function Landing() {
         </div>
       </section>
 
+      {/* IMPULSA TU NEGOCIO — tercera puerta, aparte de darse de alta o
+          entrar al panel: quien ya tiene su negocio en marcha y solo busca
+          un empujón más (web propia, que le lleven la ficha, reseñas) tiene
+          que verlo sin salir a buscarlo en Precios. */}
+      <section className="relative mx-auto max-w-[1440px] px-6 pb-20 lg:px-16">
+        <Reveal>
+          <Card className="lift flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+            <div className="min-w-0">
+              <h2 className="font-display text-[22px] font-semibold text-ink sm:text-[26px]">
+                {t('home.impulsarTitulo')}
+              </h2>
+              <p className="mt-2 max-w-[460px] text-ui leading-relaxed text-muted">
+                {t('home.impulsarTexto')}
+              </p>
+            </div>
+            <ButtonLink to="/precios#extras" variant="secondary" size="lg" className="shrink-0">
+              {t('home.impulsarBoton')}
+            </ButtonLink>
+          </Card>
+        </Reveal>
+      </section>
+
       {/* EL MARKETPLACE, COMO ARGUMENTO DE VENTA */}
       <section className="relative overflow-hidden border-y border-line bg-canvas">
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">

@@ -1073,6 +1073,12 @@ export const en: Record<keyof typeof es, string> = {
   'home.analisis': 'Performance insights',
   'home.analisisTexto': 'How the work is going and how loyal your customers are, in plain numbers.',
 
+  // Give your business a boost (services outside the plan)
+  'home.impulsarTitulo': 'Want to give your business a boost?',
+  'home.impulsarTexto':
+    'We can build your website, keep your listing up to date, or collect your reviews for you — services outside the plan, for whenever you want to go further.',
+  'home.impulsarBoton': 'See these services',
+
   // The marketplace
   'home.clientesNuevos': 'And new customers too',
   'home.asiTeVen': 'This is how your customers see you',
