@@ -266,19 +266,22 @@ export function Landing() {
           que verlo sin salir a buscarlo en Precios. */}
       <section className="relative mx-auto max-w-[1440px] px-6 pb-20 lg:px-16">
         <Reveal>
-          <Card className="lift flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+          {/* Un <div> propio y no <Card>: su bg-surface por defecto pesa más
+              en la cascada que un bg-ink añadido por fuera, y se comía el
+              tono oscuro. */}
+          <div className="lift flex flex-col items-start justify-between gap-6 rounded-xl bg-ink p-8 sm:flex-row sm:items-center">
             <div className="min-w-0">
-              <h2 className="font-display text-[22px] font-semibold text-ink sm:text-[26px]">
+              <h2 className="font-display text-[22px] font-semibold text-ondark sm:text-[26px]">
                 {t('home.impulsarTitulo')}
               </h2>
-              <p className="mt-2 max-w-[460px] text-ui leading-relaxed text-muted">
+              <p className="mt-2 max-w-[460px] text-ui leading-relaxed text-ondark-muted-2">
                 {t('home.impulsarTexto')}
               </p>
             </div>
-            <ButtonLink to="/precios#extras" variant="secondary" size="lg" className="shrink-0">
+            <ButtonLink to="/precios#extras" variant="accent" size="lg" className="shrink-0 sheen">
               {t('home.impulsarBoton')}
             </ButtonLink>
-          </Card>
+          </div>
         </Reveal>
       </section>
 
