@@ -1076,7 +1076,7 @@ export const en: Record<keyof typeof es, string> = {
   // Give your business a boost (services outside the plan)
   'home.impulsarTitulo': 'Want to give your business a boost?',
   'home.impulsarTexto':
-    'We’ll design a website people fall for, or run your social media — you just worry about opening the door.',
+    'We’ll design a website people fall for, or run your social media — you just worry about your appointments.',
   'home.impulsarBoton': 'See these services',
 
   // The marketplace
