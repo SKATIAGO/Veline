@@ -1078,7 +1078,7 @@ export const es = {
   // Impulsar el negocio (servicios aparte del plan)
   'home.impulsarTitulo': '¿Quieres impulsar tu negocio?',
   'home.impulsarTexto':
-    'Te hacemos la web, te llevamos la ficha al día o te recogemos las reseñas por ti. Servicios aparte del plan, para cuando quieras ir más allá.',
+    'Te diseñamos una web que enamore o te llevamos las redes — tú solo preocúpate de abrir la puerta.',
   'home.impulsarBoton': 'Ver estos servicios',
 
   // El marketplace
