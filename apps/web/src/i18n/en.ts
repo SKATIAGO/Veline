@@ -1129,6 +1129,7 @@ export const en: Record<keyof typeof es, string> = {
     'SMS and email reminders — 200 messages a month included and rolled over, then €0.06 per message',
   'pre.negocioF4': 'Business figures',
   'pre.negocioF5': 'Customer reviews',
+  'pre.negocioFichaje': 'Employee time clock with working-hours record',
   'pre.negocioF6': 'Priority support',
 
   'pre.equipoNombre': 'Team',

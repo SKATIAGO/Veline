@@ -1131,6 +1131,7 @@ export const es = {
     'Recordatorios por SMS y email — 200 mensajes al mes incluidos y acumulables, luego 0,06 €/mensaje',
   'pre.negocioF4': 'Estadísticas del negocio',
   'pre.negocioF5': 'Reseñas de clientes',
+  'pre.negocioFichaje': 'Fichaje de empleados con registro de jornada',
   'pre.negocioF6': 'Soporte prioritario',
 
   'pre.equipoNombre': 'Equipo',

@@ -73,6 +73,7 @@ export const PLANES: readonly Plan[] = [
       'pre.negocioF3',
       'pre.negocioF4',
       'pre.negocioF5',
+      'pre.negocioFichaje',
       'pre.negocioF6',
     ],
   },
