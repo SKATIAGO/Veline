@@ -99,6 +99,8 @@ const manualBookingBody = z.object({
   /** ISO completo con zona, tal y como lo manda el navegador. */
   startsAt: z.string().datetime({ offset: true }),
   staffId: z.string().min(1).optional(),
+  /** Con varios locales, en cuál. Sin él, el primero, como hasta ahora. */
+  locationId: z.string().min(1).optional(),
   customerName: z.string().trim().min(2).max(120),
   customerPhone: phoneES,
   customerEmail: z.string().trim().toLowerCase().email().optional().or(z.literal('')),
@@ -897,6 +899,11 @@ export async function negocioRoutes(app: FastifyInstance) {
       return reply.code(422).send({ error: 'Alguno de los extras ya no está en la carta' })
     }
 
+    if (input.locationId && !auth.business.locationIds.includes(input.locationId)) {
+      return reply.code(404).send({ error: 'Local no encontrado' })
+    }
+    const locationId = input.locationId ?? auth.business.locationId
+
     const start = new Date(input.startsAt)
     // Con extras que alargan, la cita del mostrador ocupa lo mismo que la de
     // la web: si no, el negocio se llenaría la agenda de solapes propios.
@@ -911,6 +918,7 @@ export async function negocioRoutes(app: FastifyInstance) {
             start,
             end: blockedTo,
             preferredStaffId: input.staffId,
+            locationId: locationId ?? undefined,
           })
           if (!staff) {
             throw Object.assign(new Error('No queda nadie libre a esa hora'), { statusCode: 409 })
@@ -933,7 +941,7 @@ export async function negocioRoutes(app: FastifyInstance) {
             data: {
               code: bookingCode(),
               businessId: auth.business.id,
-              locationId: auth.business.locationId,
+              locationId,
               serviceId: service.id,
               staffId: staff.id,
               customerId: customer.id,

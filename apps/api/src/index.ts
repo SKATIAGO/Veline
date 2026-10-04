@@ -19,6 +19,7 @@ import { bookingRoutes } from './routes/bookings.js'
 import { panelRoutes } from './routes/panel.js'
 import { extrasRoutes } from './routes/extras.js'
 import { equipoRoutes } from './routes/equipo.js'
+import { agendaRoutes } from './routes/agenda.js'
 
 const esProduccion = process.env.NODE_ENV === 'production'
 
@@ -74,6 +75,7 @@ await app.register(bookingRoutes)
 await app.register(panelRoutes)
 await app.register(extrasRoutes)
 await app.register(equipoRoutes)
+await app.register(agendaRoutes)
 await app.register(negocioRoutes)
 await app.register(cobrosRoutes)
 await app.register(resenaRoutes)

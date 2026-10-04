@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Landing } from './pages/Landing'
 import { Search } from './pages/Search'
@@ -20,7 +20,6 @@ import { PanelEnlaces } from './pages/panel/PanelEnlaces'
 import { PanelMiCuenta } from './pages/panel/PanelMiCuenta'
 import { PanelCuenta } from './pages/panel/PanelCuenta'
 import { PanelAgenda } from './pages/panel/PanelAgenda'
-import { PanelCalendario } from './pages/panel/PanelCalendario'
 import { PanelContabilidad } from './pages/panel/PanelContabilidad'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
@@ -58,6 +57,12 @@ export function App() {
   )
 }
 
+/** /panel/:slug/calendario → la pestaña Calendario de Agenda. */
+function AlCalendario() {
+  const { slug = '' } = useParams()
+  return <Navigate to={`/panel/${slug}?vista=calendario`} replace />
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -79,7 +84,9 @@ function AppRoutes() {
       </Route>
       <Route path="/panel/:slug" element={<PanelLayout />}>
         <Route index element={<PanelAgenda />} />
-        <Route path="calendario" element={<PanelCalendario />} />
+        {/* El calendario es ahora una pestaña de Agenda. La dirección vieja
+            sigue llevando a su sitio. */}
+        <Route path="calendario" element={<AlCalendario />} />
         <Route path="contabilidad" element={<PanelContabilidad />} />
         <Route path="servicios" element={<PanelServices />} />
         <Route path="horario" element={<PanelHours />} />

@@ -114,6 +114,8 @@ async function disponibilidadDesde(opts: {
   /** La propia cita que se está moviendo: sin esto, su hueco viejo cuenta
       como ocupado y se bloquea a sí misma. */
   excludeBookingId?: string
+  /** Desde el panel: sin la hora de antelación que se le pide al público. */
+  sinAntelacion?: boolean
 }): Promise<DayAvailabilityDTO[]> {
   const location = await resolverLocal(opts.businessId, opts.locationId)
 
@@ -191,7 +193,10 @@ async function disponibilidadDesde(opts: {
     citas: bookings,
     staffIds: staff.map((s) => s.id),
     staffFranjas,
-    ahora: new Date(),
+    /* El público reserva con una hora de margen como mínimo: el negocio tiene
+       que enterarse a tiempo. Quien apunta la cita desde el mostrador ya está
+       enterado, así que para el panel cuentan los huecos desde ahora mismo. */
+    ahora: new Date(Date.now() - (opts.sinAntelacion ? MIN_LEAD_MIN * 60_000 : 0)),
   })
 }
 
@@ -203,7 +208,8 @@ export async function getAvailability({
   locationId,
   extras: pedidos = [],
   staffId,
-}: AvailabilityRange): Promise<DayAvailabilityDTO[]> {
+  sinAntelacion,
+}: AvailabilityRange & { sinAntelacion?: boolean }): Promise<DayAvailabilityDTO[]> {
   const service = await prisma.service.findFirst({
     where: { id: serviceId, businessId, active: true },
   })
@@ -230,6 +236,7 @@ export async function getAvailability({
     to,
     locationId,
     staffId,
+    sinAntelacion,
     occupancyMin: duracionConExtras(service.durationMin, extras) + service.bufferMin,
   })
 }
@@ -248,6 +255,9 @@ export async function getAvailabilityForReschedule(opts: {
   from: Date
   to: Date
   excludeBookingId: string
+  /** Desde el panel se puede mover a otra persona: entonces, sus huecos. */
+  staffId?: string
+  sinAntelacion?: boolean
 }): Promise<DayAvailabilityDTO[]> {
   return disponibilidadDesde(opts)
 }

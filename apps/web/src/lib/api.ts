@@ -407,6 +407,8 @@ export const api = {
       serviceId: string
       startsAt: string
       staffId?: string
+      /** Con varios locales, en cuál. */
+      locationId?: string
       /** Extras de la carta que se añaden a la cita, con su cantidad. */
       extras?: ExtraPedido[]
       customerName: string
@@ -448,6 +450,31 @@ export const api = {
 
   // ── Clientes ───────────────────────────────────────────────
   panelCustomers: (slug: string) => request<PanelCustomer[]>(`/panel/${slug}/customers`),
+
+  /** El historial de un cliente en este negocio, lo último primero. */
+  customerBookings: (slug: string, id: string) =>
+    request<CitaDeCliente[]>(`/panel/${slug}/customers/${id}/bookings`),
+
+  /** Con qué se apunta una cita: servicios, extras, personas y locales. */
+  agendaCarta: (slug: string) => request<CartaAgenda>(`/panel/${slug}/agenda/carta`),
+
+  /**
+   * Huecos libres desde el panel: de un servicio (para apuntar) o de una cita
+   * (para moverla, sin contar su propio hueco). Sin la hora de antelación
+   * que se le pide al público.
+   */
+  panelDisponibilidad: (
+    slug: string,
+    params: {
+      from: string
+      to: string
+      serviceId?: string
+      extras?: string
+      bookingId?: string
+      staffId?: string
+      locationId?: string
+    },
+  ) => request<DayAvailabilityDTO[]>(`/panel/${slug}/disponibilidad${qs(params)}`),
 
   // ── Reseñas ────────────────────────────────────────────────
   getReview: (token: string) =>
@@ -813,6 +840,25 @@ export interface PanelReview {
   customerName: string
   serviceName: string
   answeredAt: string
+}
+
+export interface CartaAgenda {
+  servicios: { id: string; name: string; durationMin: number; priceCents: number }[]
+  extras: { id: string; name: string; durationMin: number; priceCents: number }[]
+  /** Null = atiende en cualquier local. */
+  personas: { id: string; name: string; locationId: string | null }[]
+  locales: { id: string; name: string }[]
+}
+
+export interface CitaDeCliente {
+  id: string
+  code: string
+  status: 'CONFIRMADA' | 'CANCELADA' | 'COMPLETADA' | 'NO_ASISTIO'
+  startsAt: string
+  priceCents: number
+  servicio: string
+  persona: string | null
+  extras: { name: string; quantity: number }[]
 }
 
 export interface PanelCustomer {
