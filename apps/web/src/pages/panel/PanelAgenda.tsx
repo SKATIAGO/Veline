@@ -26,6 +26,7 @@ import {
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
 
 /* Marketplace, Instagram y Google son nombres propios: no se traducen. El
    único que es una palabra es «Directo». */
@@ -160,52 +161,63 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
   const estado = ESTADO[booking.status]
   const yaPaso = start.getTime() < Date.now()
 
-  // Los fallos al cancelar salen en su confirmación, no aquí.
-  const error = (mover.error as Error | null) ?? (marcar.error as Error | null)
+  // Los fallos al cancelar y al mover salen en su diálogo, no aquí.
+  const error = marcar.error as Error | null
 
   const abrirFicha = () => setFicha(true)
   const cerrarFicha = () => {
     setFicha(false)
     setMoviendo(false)
   }
+  const abrirMover = () => {
+    mover.reset()
+    setNuevaHora(paraInput(booking.startsAt))
+    setMoviendo(true)
+  }
   /* Tras actuar, la ficha se cierra sola: dejarla abierta obliga a un toque
      de más y esconde la lista, que es donde se ve el resultado. */
   const alTerminar = { onSuccess: () => cerrarFicha() }
 
-  const formularioMover = (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        mover.mutate(undefined, alTerminar)
+  /* Mover, en su diálogo: antes se desplegaba bajo la fila en el ordenador y
+     sustituía a los botones dentro de la ficha en el móvil. Sobre la ficha
+     abierta, si se cancela se vuelve a ella tal como estaba. */
+  const dialogoMover = (
+    <FormDialog
+      open={moviendo}
+      onClose={() => {
+        mover.reset()
+        setMoviendo(false)
       }}
-      className="flex flex-col gap-3"
+      title={t('agenda.moverTitulo', { nombre: booking.customer.name })}
+      hint={t('agenda.moverPista', {
+        fecha: formatLongDate(start, idioma),
+        hora: fmt(start),
+        servicio: booking.service.name,
+      })}
+      submitLabel={t('agenda.moverLaCita')}
+      onSubmit={() => mover.mutate(undefined, alTerminar)}
+      loading={mover.isPending}
+      error={mover.isError ? textoDeError(mover.error, t('avisos.error')) : null}
+      dirty={nuevaHora !== paraInput(booking.startsAt)}
     >
-      <label className="flex flex-col gap-1.5">
-        <span className="text-meta font-semibold text-body-2">{t('agenda.nuevaFechaHora')}</span>
+      <Field label={t('agenda.nuevaFechaHora')} htmlFor={`mover-${booking.id}`} required>
         <Input
+          id={`mover-${booking.id}`}
           type="datetime-local"
           value={nuevaHora}
           onChange={(e) => setNuevaHora(e.target.value)}
         />
-      </label>
-      <label className="flex items-center gap-1.5 text-meta text-body-2">
+      </Field>
+      <label className="flex min-h-11 items-center gap-2 text-body text-body-2">
         <input
           type="checkbox"
           checked={avisar}
           onChange={(e) => setAvisar(e.target.checked)}
-          className="size-3.5 accent-brand"
+          className="size-4 accent-brand"
         />
         {t('agenda.avisarCambio')}
       </label>
-      <div className="flex gap-2">
-        <Button type="submit" loading={mover.isPending} block>
-          {t('agenda.moverLaCita')}
-        </Button>
-        <Button type="button" variant="quiet" onClick={() => setMoviendo(false)}>
-          {t('agenda.dejarlo')}
-        </Button>
-      </div>
-    </form>
+    </FormDialog>
   )
 
   /* Cancelar es lo único de la cita que no se deshace y que le llega al
@@ -399,7 +411,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
                   </Button>
                 </>
               )}
-              <Button size="sm" variant="quiet" onClick={() => setMoviendo((m) => !m)}>
+              <Button size="sm" variant="quiet" onClick={abrirMover}>
                 {t('agenda.mover')}
               </Button>
               <span className="ml-1 border-l border-line pl-2">
@@ -411,12 +423,6 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
           )}
         </div>
       </div>
-
-      {moviendo && !ficha && (
-        <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
-          {formularioMover}
-        </div>
-      )}
 
       {error && !ficha && (
         <div className="px-4 pb-4 sm:px-5">
@@ -515,9 +521,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
 
           {!cancelled && !cerrada && (
             <>
-              {moviendo ? (
-                formularioMover
-              ) : (
+              {
                 <>
                   {yaPaso && (
                     <div className="grid grid-cols-2 gap-2">
@@ -536,7 +540,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
                       </Button>
                     </div>
                   )}
-                  <Button variant="secondary" block onClick={() => setMoviendo(true)}>
+                  <Button variant="secondary" block onClick={abrirMover}>
                     {t('agenda.moverDeHora')}
                   </Button>
                   <div className="mt-2 flex justify-center border-t border-line pt-4">
@@ -545,12 +549,13 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
                     </Button>
                   </div>
                 </>
-              )}
+              }
             </>
           )}
         </div>
       </Sheet>
 
+      {dialogoMover}
       {confirmarCancelacion}
     </li>
   )

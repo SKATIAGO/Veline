@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, ApiError } from '../../lib/api'
+import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Badge,
@@ -10,7 +10,6 @@ import {
   EmptyState,
   ErrorNote,
   Field,
-  IconButton,
   Input,
   PageHeader,
   Select,
@@ -20,6 +19,8 @@ import {
 import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { CredencialCreada } from '../../components/Credencial'
 
 /**
  * Equipo del negocio: los usuarios que pueden entrar a este panel.
@@ -69,7 +70,7 @@ export function PanelUsers() {
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [creada, setCreada] = useState<{ email: string; password: string } | null>(null)
-  const [copiado, setCopiado] = useState(false)
+  const [intentado, setIntentado] = useState(false)
   const [aQuitar, setAQuitar] = useState<{ id: string; name: string } | null>(null)
 
   const { data: users, isLoading } = useQuery({
@@ -82,9 +83,7 @@ export function PanelUsers() {
     onSuccess: () => {
       // La contraseña se enseña UNA vez, al crear: no se puede recuperar después.
       setCreada({ email: draft.email, password: draft.password })
-      setCopiado(false)
       setDraft(emptyDraft)
-      setCreating(false)
       queryClient.invalidateQueries({ queryKey: ['panel', slug, 'users'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
     },
@@ -130,6 +129,8 @@ export function PanelUsers() {
           : null
 
   const abrirAlta = () => {
+    create.reset()
+    setIntentado(false)
     setCreada(null)
     setDraft({ ...emptyDraft, password: generarPassword() })
     setCreating(true)
@@ -151,132 +152,8 @@ export function PanelUsers() {
               ].join(' · ')
             : undefined
         }
-        actions={!creating && <Button onClick={abrirAlta}>{t('eq.anadirPersona')}</Button>}
+        actions={<Button onClick={abrirAlta}>{t('eq.anadirPersona')}</Button>}
       />
-
-      {creada && (
-        <Card className="border-brand/40 bg-brand/5 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-ui font-semibold text-ink">{t('eq.cuentaCreada')}</p>
-              <p className="mt-1 text-body text-body">
-                <Texto clave="eq.pasaleDatos" partes={{ email: <strong>{creada.email}</strong> }} />
-              </p>
-              <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
-                {creada.password}
-              </code>
-              <p className="mt-2 text-meta text-muted">{t('eq.guardalaAhora')}</p>
-            </div>
-            <div className="flex shrink-0 gap-1">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  void navigator.clipboard.writeText(creada.password).then(() => setCopiado(true))
-                }}
-              >
-                {copiado ? t('eq.copiada') : t('eq.copiar')}
-              </Button>
-              <IconButton label={t('eq.cerrarAviso')} onClick={() => setCreada(null)}>
-                <span aria-hidden className="text-subheading leading-none">
-                  ×
-                </span>
-              </IconButton>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {creating && (
-        <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">{t('eq.nuevaPersona')}</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!problema) create.mutate()
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('eq.nombre')} htmlFor={`${id}-name`} required>
-                <Input
-                  id={`${id}-name`}
-                  autoComplete="off"
-                  value={draft.name}
-                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                />
-              </Field>
-              <Field
-                label={t('eq.email')}
-                htmlFor={`${id}-email`}
-                hint={t('eq.emailPista')}
-                required
-              >
-                <Input
-                  id={`${id}-email`}
-                  type="email"
-                  autoComplete="off"
-                  value={draft.email}
-                  onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-                />
-              </Field>
-              <Field
-                label={t('eq.contrasenaInicial')}
-                htmlFor={`${id}-pass`}
-                hint={t('eq.contrasenaPista')}
-                required
-              >
-                <div className="flex gap-2">
-                  <Input
-                    id={`${id}-pass`}
-                    autoComplete="new-password"
-                    value={draft.password}
-                    onChange={(e) => setDraft({ ...draft, password: e.target.value })}
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => setDraft({ ...draft, password: generarPassword() })}
-                  >
-                    {t('eq.otra')}
-                  </Button>
-                </div>
-              </Field>
-              <Field
-                label={t('eq.permisos')}
-                htmlFor={`${id}-role`}
-                hint={t(ROL_AYUDA[draft.role]!)}
-                required
-              >
-                <Select
-                  id={`${id}-role`}
-                  value={draft.role}
-                  onChange={(e) => setDraft({ ...draft, role: e.target.value as Draft['role'] })}
-                >
-                  <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
-                  <option value="ADMIN">{t('panel.rolAdmin')}</option>
-                </Select>
-              </Field>
-            </div>
-
-            {create.isError && (
-              <ErrorNote>
-                {create.error instanceof ApiError ? create.error.message : t('eq.noSePudoCrear')}
-              </ErrorNote>
-            )}
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" loading={create.isPending} disabled={!!problema}>
-                {t('eq.crearCuenta')}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setCreating(false)}>
-                {t('eq.cancelar')}
-              </Button>
-              {problema && <span className="text-meta text-muted">{problema}</span>}
-            </div>
-          </form>
-        </Card>
-      )}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -353,6 +230,104 @@ export function PanelUsers() {
           </ul>
         </Card>
       )}
+
+      {/* Crear la cuenta y ver su contraseña, en el mismo diálogo: antes el
+          formulario salía arriba de la página y la contraseña en otra tarjeta
+          aparte. */}
+      <FormDialog
+        open={creating}
+        onClose={() => {
+          setCreating(false)
+          setCreada(null)
+        }}
+        title={creada ? t('eq.cuentaCreada') : t('eq.nuevaPersona')}
+        submitLabel={t('eq.crearCuenta')}
+        onSubmit={() => {
+          setIntentado(true)
+          if (!problema) create.mutate()
+        }}
+        loading={create.isPending}
+        error={create.isError ? textoDeError(create.error, t('eq.noSePudoCrear')) : null}
+        dirty={!creada && (draft.name.trim() !== '' || draft.email.trim() !== '')}
+        sinPie={!!creada}
+      >
+        {creada ? (
+          <CredencialCreada
+            email={creada.email}
+            password={creada.password}
+            onListo={() => {
+              setCreating(false)
+              setCreada(null)
+            }}
+          />
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('eq.nombre')} htmlFor={`${id}-name`} required>
+                <Input
+                  id={`${id}-name`}
+                  autoComplete="off"
+                  value={draft.name}
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                />
+              </Field>
+              <Field
+                label={t('eq.email')}
+                htmlFor={`${id}-email`}
+                hint={t('eq.emailPista')}
+                required
+              >
+                <Input
+                  id={`${id}-email`}
+                  type="email"
+                  autoComplete="off"
+                  value={draft.email}
+                  onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                />
+              </Field>
+              <Field
+                label={t('eq.contrasenaInicial')}
+                htmlFor={`${id}-pass`}
+                hint={t('eq.contrasenaPista')}
+                required
+              >
+                <div className="flex gap-2">
+                  <Input
+                    id={`${id}-pass`}
+                    autoComplete="new-password"
+                    value={draft.password}
+                    onChange={(e) => setDraft({ ...draft, password: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setDraft({ ...draft, password: generarPassword() })}
+                  >
+                    {t('eq.otra')}
+                  </Button>
+                </div>
+              </Field>
+              <Field
+                label={t('eq.permisos')}
+                htmlFor={`${id}-role`}
+                hint={t(ROL_AYUDA[draft.role]!)}
+                required
+              >
+                <Select
+                  id={`${id}-role`}
+                  value={draft.role}
+                  onChange={(e) => setDraft({ ...draft, role: e.target.value as Draft['role'] })}
+                >
+                  <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
+                  <option value="ADMIN">{t('panel.rolAdmin')}</option>
+                </Select>
+              </Field>
+            </div>
+
+            {intentado && problema && <ErrorNote>{problema}</ErrorNote>}
+          </>
+        )}
+      </FormDialog>
 
       <ConfirmDialog
         open={!!aQuitar}

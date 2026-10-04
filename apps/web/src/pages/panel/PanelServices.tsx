@@ -20,6 +20,8 @@ import { CampoDuracion } from '../../components/SelectorDuracion'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { CartaDeExtras } from './CartaDeExtras'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { RowMenu } from '../../components/RowMenu'
 
 interface Draft {
   name: string
@@ -60,52 +62,40 @@ function validar(d: Draft): Clave | null {
   return null
 }
 
-function ServiceForm({
+/**
+ * Los campos de un servicio. Van dentro del diálogo de crear o editar; antes
+ * eran un formulario que sustituía a la fila (editar) o una tarjeta arriba de
+ * la página (crear), y cada uno se comportaba distinto.
+ */
+function CamposServicio({
   draft,
   setDraft,
-  onSubmit,
-  onCancel,
-  submitLabel,
-  pending,
-  error,
+  problema,
 }: {
   draft: Draft
   setDraft: (d: Draft) => void
-  onSubmit: () => void
-  onCancel?: () => void
-  submitLabel: string
-  pending: boolean
-  error?: string | null
+  /** Solo después de intentar guardar: corregir a alguien en mitad de una
+      palabra es molesto y no ayuda. */
+  problema: Clave | null
 }) {
   const { t } = useIdioma()
   const id = useId()
-  // Se avisa al intentar guardar, no mientras se escribe: corregir a alguien
-  // en mitad de una palabra es molesto y no ayuda.
-  const [tocado, setTocado] = useState(false)
-  const problema = validar(draft)
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        setTocado(true)
-        if (!problema) onSubmit()
-      }}
-      className="flex flex-col gap-4"
-    >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label={t('serv.nombre')} htmlFor={`${id}-name`} required className="sm:col-span-2">
-          <Input
-            id={`${id}-name`}
-            value={draft.name}
-            autoComplete="off"
-            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          />
-        </Field>
+    <>
+      <Field label={t('serv.nombre')} htmlFor={`${id}-name`} required>
+        <Input
+          id={`${id}-name`}
+          value={draft.name}
+          autoComplete="off"
+          invalid={problema === 'serv.errNombre'}
+          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+        />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* A rueda y no escribiendo el número: quien monta su carta piensa en
             «hora y media», no en 90, y la cuenta a mano es donde se cuela un 9
-            en lugar de un 90. Cerrada por defecto: desplegada empujaría el
-            resto del formulario cada vez que se abre este. */}
+            en lugar de un 90. */}
         <CampoDuracion
           label={t('serv.duracion')}
           required
@@ -126,65 +116,68 @@ function ServiceForm({
             id={`${id}-price`}
             inputMode="decimal"
             value={draft.price}
+            invalid={problema === 'serv.errPrecio'}
             onChange={(e) => setDraft({ ...draft, price: e.target.value })}
           />
         </Field>
-        <Field
-          label={t('serv.margen')}
-          htmlFor={`${id}-buffer`}
-          hint={t('serv.margenPista')}
-          className="sm:col-span-1"
-        >
-          <Input
-            id={`${id}-buffer`}
-            inputMode="numeric"
-            value={draft.bufferMin}
-            onChange={(e) => setDraft({ ...draft, bufferMin: e.target.value })}
-          />
-        </Field>
-        <Field
-          label={t('serv.descripcion')}
-          htmlFor={`${id}-desc`}
-          hint={t('serv.descripcionPista')}
-          className="sm:col-span-2 lg:col-span-3"
-        >
-          <Textarea
-            id={`${id}-desc`}
-            rows={2}
-            maxLength={300}
-            value={draft.description}
-            onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-          />
-        </Field>
       </div>
-
-      {tocado && problema && <ErrorNote>{t(problema)}</ErrorNote>}
-      {error && <ErrorNote>{error}</ErrorNote>}
-
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={pending}>
-          {submitLabel}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel}>
-            {t('serv.cancelar')}
-          </Button>
-        )}
-      </div>
-    </form>
+      <Field label={t('serv.margen')} htmlFor={`${id}-buffer`} hint={t('serv.margenPista')}>
+        <Input
+          id={`${id}-buffer`}
+          inputMode="numeric"
+          value={draft.bufferMin}
+          invalid={problema === 'serv.errMargen'}
+          onChange={(e) => setDraft({ ...draft, bufferMin: e.target.value })}
+          className="sm:max-w-[160px]"
+        />
+      </Field>
+      <Field label={t('serv.descripcion')} htmlFor={`${id}-desc`} hint={t('serv.descripcionPista')}>
+        <Textarea
+          id={`${id}-desc`}
+          rows={2}
+          maxLength={300}
+          value={draft.description}
+          onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+        />
+      </Field>
+      {problema && <ErrorNote>{t(problema)}</ErrorNote>}
+    </>
   )
 }
+
+/** Lo que hay en el diálogo: crear (desde cero o duplicando) o editar uno. */
+type Dialogo =
+  { modo: 'nuevo'; inicial: Draft } | { modo: 'editar'; servicio: PanelService; inicial: Draft }
+
+const aDraft = (s: PanelService): Draft => ({
+  name: s.name,
+  durationMin: String(s.durationMin),
+  bufferMin: String(s.bufferMin),
+  price: (s.priceCents / 100).toString().replace('.', ','),
+  description: s.description ?? '',
+})
 
 export function PanelServices() {
   const { t, idioma } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
-  const [creating, setCreating] = useState(false)
+  const [dialogo, setDialogo] = useState<Dialogo | null>(null)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editDraft, setEditDraft] = useState<Draft>(emptyDraft)
+  const [intentado, setIntentado] = useState(false)
   const [creandoExtra, setCreandoExtra] = useState(false)
+
+  const abrir = (d: Dialogo) => {
+    create.reset()
+    update.reset()
+    setIntentado(false)
+    setDraft(d.inicial)
+    setDialogo(d)
+  }
+  const nuevo = () => abrir({ modo: 'nuevo', inicial: emptyDraft })
+  const editar = (s: PanelService) => abrir({ modo: 'editar', servicio: s, inicial: aDraft(s) })
+  const duplicar = (s: PanelService) =>
+    abrir({ modo: 'nuevo', inicial: { ...aDraft(s), name: t('serv.copiaDe', { nombre: s.name }) } })
 
   const { data: services, isLoading } = useQuery({
     queryKey: ['panel', slug, 'services'],
@@ -208,8 +201,7 @@ export function PanelServices() {
       }),
     onSuccess: () => {
       aviso.ok(t('serv.creado', { nombre: draft.name.trim() }))
-      setDraft(emptyDraft)
-      setCreating(false)
+      setDialogo(null)
       invalidate()
     },
   })
@@ -217,18 +209,26 @@ export function PanelServices() {
   const update = useMutation({
     mutationFn: (id: string) =>
       api.updateService(slug, id, {
-        name: editDraft.name.trim(),
-        description: editDraft.description.trim(),
-        durationMin: Number(editDraft.durationMin),
-        bufferMin: Number(editDraft.bufferMin || 0),
-        priceCents: toCents(editDraft.price || '0'),
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        durationMin: Number(draft.durationMin),
+        bufferMin: Number(draft.bufferMin || 0),
+        priceCents: toCents(draft.price || '0'),
       }),
     onSuccess: () => {
-      setEditingId(null)
+      setDialogo(null)
       invalidate()
       aviso.ok(t('avisos.guardado'))
     },
   })
+
+  const guardar = () => {
+    setIntentado(true)
+    if (validar(draft) || !dialogo) return
+    if (dialogo.modo === 'editar') update.mutate(dialogo.servicio.id)
+    else create.mutate()
+  }
+  const enCurso = dialogo?.modo === 'editar' ? update : create
 
   // Ocultar o publicar se deshace con el mismo botón: va directo, con aviso.
   const toggle = useMutation({
@@ -247,17 +247,6 @@ export function PanelServices() {
     },
     onError: (err) => aviso.error(textoDeError(err, t('avisos.error'))),
   })
-
-  const startEdit = (s: PanelService) => {
-    setEditingId(s.id)
-    setEditDraft({
-      name: s.name,
-      durationMin: String(s.durationMin),
-      bufferMin: String(s.bufferMin),
-      price: (s.priceCents / 100).toString().replace('.', ','),
-      description: s.description ?? '',
-    })
-  }
 
   const activos = services?.filter((s) => s.active).length ?? 0
 
@@ -284,32 +273,12 @@ export function PanelServices() {
                 <span aria-hidden>+</span> {t('ext.anadir')}
               </Button>
             )}
-            {!creating && (
-              <Button onClick={() => setCreating(true)}>
-                <span aria-hidden>+</span> {t('serv.anadir')}
-              </Button>
-            )}
+            <Button onClick={nuevo}>
+              <span aria-hidden>+</span> {t('serv.anadir')}
+            </Button>
           </>
         }
       />
-
-      {creating && (
-        <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">{t('serv.nuevo')}</h2>
-          <ServiceForm
-            draft={draft}
-            setDraft={setDraft}
-            onSubmit={() => create.mutate()}
-            onCancel={() => {
-              setCreating(false)
-              setDraft(emptyDraft)
-            }}
-            submitLabel={t('serv.guardar')}
-            pending={create.isPending}
-            error={create.isError ? (create.error as Error).message : null}
-          />
-        </Card>
-      )}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -321,69 +290,58 @@ export function PanelServices() {
         <EmptyState
           title={t('serv.todaviaNoHay')}
           hint={t('serv.todaviaNoHayPista')}
-          action={
-            !creating && (
-              <Button onClick={() => setCreating(true)}>{t('serv.anadirPrimero')}</Button>
-            )
-          }
+          action={<Button onClick={nuevo}>{t('serv.anadirPrimero')}</Button>}
         />
       ) : (
         <Card className="overflow-hidden">
           <ul>
             {services.map((s) => (
-              <li key={s.id} className="border-b border-line last:border-b-0">
-                {editingId === s.id ? (
-                  <div className="p-5">
-                    <ServiceForm
-                      draft={editDraft}
-                      setDraft={setEditDraft}
-                      onSubmit={() => update.mutate(s.id)}
-                      onCancel={() => setEditingId(null)}
-                      submitLabel={t('serv.guardarCambios')}
-                      pending={update.isPending}
-                      error={update.isError ? (update.error as Error).message : null}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
-                    <div className={cx('min-w-[200px] flex-1', !s.active && 'opacity-55')}>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-ui font-semibold text-ink">{s.name}</span>
-                        {!s.active && <Badge tone="off">{t('serv.sinPublicar')}</Badge>}
-                      </div>
-                      <p className="mt-0.5 text-meta text-muted">
-                        {formatDuration(s.durationMin, idioma)}
-                        {s.bufferMin > 0 && ` ${t('serv.masMargen', { n: s.bufferMin })}`}
-                      </p>
-                      {s.description && (
-                        <p className="mt-1 line-clamp-1 text-meta text-subtle">{s.description}</p>
-                      )}
-                    </div>
-
-                    <div
-                      className={cx(
-                        'text-ui font-semibold text-ink tabular-nums',
-                        !s.active && 'opacity-55',
-                      )}
-                    >
-                      {formatPrice(s.priceCents, idioma)}
-                    </div>
-
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="quiet" onClick={() => startEdit(s)}>
-                        {t('serv.editar')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="quiet"
-                        loading={toggle.isPending && toggle.variables?.id === s.id}
-                        onClick={() => toggle.mutate({ id: s.id, name: s.name, active: !s.active })}
-                      >
-                        {s.active ? t('serv.ocultar') : t('serv.publicar')}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+              <li key={s.id} className="flex items-center border-b border-line last:border-b-0">
+                {/* La fila entera abre la edición: es lo que se hace con un
+                    servicio el 90 % de las veces. Lo demás, en «···». */}
+                <button
+                  type="button"
+                  onClick={() => editar(s)}
+                  aria-label={t('serv.editarComillas', { nombre: s.name })}
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 py-4 pr-2 pl-5 text-left transition-colors duration-200 hover:bg-canvas/50"
+                >
+                  <span className={cx('min-w-[180px] flex-1', !s.active && 'opacity-55')}>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-ui font-semibold text-ink">{s.name}</span>
+                      {!s.active && <Badge tone="off">{t('serv.sinPublicar')}</Badge>}
+                    </span>
+                    <span className="mt-0.5 block text-meta text-muted">
+                      {formatDuration(s.durationMin, idioma)}
+                      {s.bufferMin > 0 && ` ${t('serv.masMargen', { n: s.bufferMin })}`}
+                    </span>
+                    {s.description && (
+                      <span className="mt-1 line-clamp-1 block text-meta text-subtle">
+                        {s.description}
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cx(
+                      'text-ui font-semibold text-ink tabular-nums',
+                      !s.active && 'opacity-55',
+                    )}
+                  >
+                    {formatPrice(s.priceCents, idioma)}
+                  </span>
+                </button>
+                <div className="pr-3">
+                  <RowMenu
+                    label={s.name}
+                    acciones={[
+                      { label: t('serv.editar'), onClick: () => editar(s) },
+                      {
+                        label: s.active ? t('serv.ocultar') : t('serv.publicar'),
+                        onClick: () => toggle.mutate({ id: s.id, name: s.name, active: !s.active }),
+                      },
+                      { label: t('serv.duplicar'), onClick: () => duplicar(s) },
+                    ]}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -401,6 +359,28 @@ export function PanelServices() {
           }}
         />
       </p>
+
+      <FormDialog
+        open={!!dialogo}
+        onClose={() => setDialogo(null)}
+        title={
+          dialogo?.modo === 'editar'
+            ? t('serv.editarComillas', { nombre: dialogo.servicio.name })
+            : t('serv.nuevo')
+        }
+        hint={dialogo?.modo === 'editar' ? t('serv.editarPista') : undefined}
+        submitLabel={dialogo?.modo === 'editar' ? t('serv.guardarCambios') : t('serv.guardar')}
+        onSubmit={guardar}
+        loading={enCurso.isPending}
+        error={enCurso.isError ? textoDeError(enCurso.error, t('avisos.error')) : null}
+        dirty={!!dialogo && JSON.stringify(draft) !== JSON.stringify(dialogo.inicial)}
+      >
+        <CamposServicio
+          draft={draft}
+          setDraft={setDraft}
+          problema={intentado ? validar(draft) : null}
+        />
+      </FormDialog>
 
       <CartaDeExtras slug={slug} creando={creandoExtra} setCreando={setCreandoExtra} />
     </div>

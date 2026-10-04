@@ -11,11 +11,12 @@ import {
   Input,
   PageHeader,
   Skeleton,
-  useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { RowMenu } from '../../components/RowMenu'
 
 /**
  * Los locales del negocio.
@@ -28,13 +29,15 @@ import { aviso, textoDeError } from '../../components/Avisos'
 
 const vacio = { name: '', street: '', city: '', postalCode: '' }
 
-function Formulario({
+/** Abrir o editar un local, en su diálogo. Se monta al abrirlo (con `key`). */
+function DialogoLocal({
   inicial,
   titulo,
   enviando,
   error,
   onGuardar,
   onCancelar,
+  onCerrarLocal,
 }: {
   inicial: typeof vacio
   titulo: string
@@ -42,10 +45,13 @@ function Formulario({
   error?: string | null
   onGuardar: (d: typeof vacio) => void
   onCancelar: () => void
+  /** Al editar, si hay más de un local: cerrarlo, con su confirmación. */
+  onCerrarLocal?: () => void
 }) {
   const { t } = useIdioma()
   const id = useId()
   const [form, setForm] = useState(inicial)
+  const [intentado, setIntentado] = useState(false)
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }))
 
   const problema =
@@ -60,57 +66,47 @@ function Formulario({
             : null
 
   return (
-    <Card padded>
-      <h2 className="mb-4 text-ui font-semibold text-ink">{titulo}</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!problema) onGuardar(form)
-        }}
-        className="flex flex-col gap-4"
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('loc.nombre')} htmlFor={`${id}-n`} hint={t('loc.nombrePista')} required>
-            <Input id={`${id}-n`} value={form.name} onChange={(e) => set('name', e.target.value)} />
-          </Field>
-          <Field label={t('loc.calle')} htmlFor={`${id}-c`} required>
-            <Input
-              id={`${id}-c`}
-              value={form.street}
-              onChange={(e) => set('street', e.target.value)}
-            />
-          </Field>
-          <Field label={t('loc.ciudad')} htmlFor={`${id}-ci`} required>
-            <Input
-              id={`${id}-ci`}
-              value={form.city}
-              onChange={(e) => set('city', e.target.value)}
-            />
-          </Field>
-          <Field label={t('loc.cp')} htmlFor={`${id}-cp`} required>
-            <Input
-              id={`${id}-cp`}
-              inputMode="numeric"
-              maxLength={5}
-              value={form.postalCode}
-              onChange={(e) => set('postalCode', e.target.value)}
-            />
-          </Field>
-        </div>
+    <FormDialog
+      open
+      onClose={onCancelar}
+      title={titulo}
+      submitLabel={t('loc.guardar')}
+      onSubmit={() => {
+        setIntentado(true)
+        if (!problema) onGuardar(form)
+      }}
+      loading={enviando}
+      error={error}
+      dirty={JSON.stringify(form) !== JSON.stringify(inicial)}
+      borrar={onCerrarLocal && { label: t('loc.cerrarLocal'), onClick: onCerrarLocal }}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t('loc.nombre')} htmlFor={`${id}-n`} hint={t('loc.nombrePista')} required>
+          <Input id={`${id}-n`} value={form.name} onChange={(e) => set('name', e.target.value)} />
+        </Field>
+        <Field label={t('loc.calle')} htmlFor={`${id}-c`} required>
+          <Input
+            id={`${id}-c`}
+            value={form.street}
+            onChange={(e) => set('street', e.target.value)}
+          />
+        </Field>
+        <Field label={t('loc.ciudad')} htmlFor={`${id}-ci`} required>
+          <Input id={`${id}-ci`} value={form.city} onChange={(e) => set('city', e.target.value)} />
+        </Field>
+        <Field label={t('loc.cp')} htmlFor={`${id}-cp`} required>
+          <Input
+            id={`${id}-cp`}
+            inputMode="numeric"
+            maxLength={5}
+            value={form.postalCode}
+            onChange={(e) => set('postalCode', e.target.value)}
+          />
+        </Field>
+      </div>
 
-        {error && <ErrorNote>{error}</ErrorNote>}
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" loading={enviando} disabled={!!problema}>
-            {t('loc.guardar')}
-          </Button>
-          <Button type="button" variant="secondary" onClick={onCancelar}>
-            {t('loc.cancelar')}
-          </Button>
-          {problema && <span className="text-meta text-muted">{problema}</span>}
-        </div>
-      </form>
-    </Card>
+      {intentado && problema && <ErrorNote>{problema}</ErrorNote>}
+    </FormDialog>
   )
 }
 
@@ -121,9 +117,11 @@ export function PanelLocales() {
   const queryClient = useQueryClient()
   const [creando, setCreando] = useState(false)
   const [editando, setEditando] = useState<PanelLocal | null>(null)
+  const abrirEdicion = (l: PanelLocal) => {
+    editar.reset()
+    setEditando(l)
+  }
   const [aCerrar, setACerrar] = useState<PanelLocal | null>(null)
-  const vistaNuevo = useALaVista<HTMLDivElement>(creando)
-  const vistaEditar = useALaVista<HTMLDivElement>(editando?.id)
 
   const { data: locales, isLoading } = useQuery({
     queryKey: ['panel', slug, 'locales'],
@@ -158,6 +156,7 @@ export function PanelLocales() {
     mutationFn: (l: PanelLocal) => api.cerrarLocal(slug, l.id),
     onSuccess: (_r, l) => {
       setACerrar(null)
+      setEditando(null)
       refrescar()
       aviso.ok(t('loc.cerrado', { nombre: l.name }))
     },
@@ -171,41 +170,16 @@ export function PanelLocales() {
         title={t('panel.locales')}
         hint={locales ? plural(locales.length, 'loc.unLocal', 'loc.variosLocales') : undefined}
         actions={
-          !creando &&
-          !editando && <Button onClick={() => setCreando(true)}>{t('loc.abrir')}</Button>
+          <Button
+            onClick={() => {
+              crear.reset()
+              setCreando(true)
+            }}
+          >
+            {t('loc.abrir')}
+          </Button>
         }
       />
-
-      {creando && (
-        <div ref={vistaNuevo} className="scroll-mt-4">
-          <Formulario
-            inicial={vacio}
-            titulo={t('loc.nuevo')}
-            enviando={crear.isPending}
-            error={crear.isError ? mensaje(crear.error) : null}
-            onGuardar={(d) => crear.mutate(d)}
-            onCancelar={() => setCreando(false)}
-          />
-        </div>
-      )}
-
-      {editando && (
-        <div ref={vistaEditar} className="scroll-mt-4">
-          <Formulario
-            inicial={{
-              name: editando.name,
-              street: editando.street,
-              city: editando.city,
-              postalCode: editando.postalCode,
-            }}
-            titulo={t('loc.editarComillas', { nombre: editando.name })}
-            enviando={editar.isPending}
-            error={editar.isError ? mensaje(editar.error) : null}
-            onGuardar={(d) => editar.mutate(d)}
-            onCancelar={() => setEditando(null)}
-          />
-        </div>
-      )}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -225,58 +199,107 @@ export function PanelLocales() {
               ].filter(Boolean)
 
               return (
+                /* La fila entera abre la edición: el nombre es el botón y su zona
+                   pulsable se estira a toda la fila. Envolver la fila en un
+                   botón metería párrafos y una lista dentro, que no vale. */
                 <li
                   key={l.id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-4 last:border-b-0 sm:px-5"
+                  className="relative flex items-center border-b border-line transition-colors duration-200 last:border-b-0 hover:bg-canvas/50"
                 >
-                  <div className="min-w-[200px] flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-ui font-semibold text-ink">{l.name}</span>
-                      {!l.approved && <Badge tone="warn">{t('loc.pendienteAprobar')}</Badge>}
-                      {falta.length > 0 && <Badge tone="warn">{t('loc.noAceptaReservas')}</Badge>}
-                    </div>
-                    <p className="mt-0.5 text-meta text-muted">
-                      {l.street}, {l.postalCode} {l.city}
-                    </p>
-                    {!l.approved && (
-                      <p className="mt-1 text-meta text-brand-text">
-                        {t('loc.pendienteAprobarPista')}
-                      </p>
-                    )}
-                    {falta.length > 0 && (
-                      <p className="mt-1 text-meta text-brand-text">
-                        {t('loc.leFalta', { que: falta.join(t('loc.y')) })}
-                      </p>
-                    )}
-                  </div>
-
-                  <dl className="flex gap-5 text-meta text-muted">
-                    {[
-                      [t('loc.personas'), l.personas],
-                      [t('loc.citas'), l.citas],
-                    ].map(([et, n]) => (
-                      <div key={et as string}>
-                        <dt className="text-caption">{et}</dt>
-                        <dd className="font-semibold text-body-2 tabular-nums">{n}</dd>
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-3 py-4 pr-2 pl-4 sm:pl-5">
+                    <div className="min-w-[200px] flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => abrirEdicion(l)}
+                          aria-label={t('loc.editarComillas', { nombre: l.name })}
+                          className="text-left text-ui font-semibold text-ink after:absolute after:inset-0 after:content-['']"
+                        >
+                          {l.name}
+                        </button>
+                        {!l.approved && <Badge tone="warn">{t('loc.pendienteAprobar')}</Badge>}
+                        {falta.length > 0 && <Badge tone="warn">{t('loc.noAceptaReservas')}</Badge>}
                       </div>
-                    ))}
-                  </dl>
+                      <p className="mt-0.5 text-meta text-muted">
+                        {l.street}, {l.postalCode} {l.city}
+                      </p>
+                      {!l.approved && (
+                        <p className="mt-1 text-meta text-brand-text">
+                          {t('loc.pendienteAprobarPista')}
+                        </p>
+                      )}
+                      {falta.length > 0 && (
+                        <p className="mt-1 text-meta text-brand-text">
+                          {t('loc.leFalta', { que: falta.join(t('loc.y')) })}
+                        </p>
+                      )}
+                    </div>
 
-                  <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
-                    <Button size="sm" variant="quiet" onClick={() => setEditando(l)}>
-                      {t('loc.editar')}
-                    </Button>
-                    {(locales ?? []).length > 1 && (
-                      <Button size="sm" variant="danger" onClick={() => setACerrar(l)}>
-                        {t('loc.cerrar')}
-                      </Button>
-                    )}
+                    <dl className="flex gap-5 text-meta text-muted">
+                      {[
+                        [t('loc.personas'), l.personas],
+                        [t('loc.citas'), l.citas],
+                      ].map(([et, n]) => (
+                        <div key={et as string}>
+                          <dt className="text-caption">{et}</dt>
+                          <dd className="font-semibold text-body-2 tabular-nums">{n}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                  <div className="relative z-10 pr-3">
+                    <RowMenu
+                      label={l.name}
+                      acciones={[
+                        { label: t('loc.editar'), onClick: () => abrirEdicion(l) },
+                        ...((locales ?? []).length > 1
+                          ? [
+                              {
+                                label: t('loc.cerrarLocal'),
+                                onClick: () => setACerrar(l),
+                                peligro: true,
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
                   </div>
                 </li>
               )
             })}
           </ul>
         </Card>
+      )}
+
+      {creando && (
+        <DialogoLocal
+          key="nuevo"
+          inicial={vacio}
+          titulo={t('loc.nuevo')}
+          enviando={crear.isPending}
+          error={crear.isError ? mensaje(crear.error) : null}
+          onGuardar={(d) => crear.mutate(d)}
+          onCancelar={() => setCreando(false)}
+        />
+      )}
+
+      {editando && (
+        <DialogoLocal
+          key={editando.id}
+          inicial={{
+            name: editando.name,
+            street: editando.street,
+            city: editando.city,
+            postalCode: editando.postalCode,
+          }}
+          titulo={t('loc.editarComillas', { nombre: editando.name })}
+          enviando={editar.isPending}
+          error={editar.isError ? mensaje(editar.error) : null}
+          onGuardar={(d) => editar.mutate(d)}
+          onCancelar={() => setEditando(null)}
+          // La confirmación sale encima; si se cancela, se vuelve a la edición.
+          onCerrarLocal={(locales ?? []).length > 1 ? () => setACerrar(editando) : undefined}
+        />
       )}
 
       {/* Con citas no se puede: el servidor lo rechaza porque se perdería su

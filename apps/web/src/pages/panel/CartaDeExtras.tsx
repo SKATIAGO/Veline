@@ -15,12 +15,13 @@ import {
   Spinner,
   Textarea,
   cx,
-  useALaVista,
 } from '../../components/ui'
 import { Photo } from '../../components/Photo'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { RowMenu } from '../../components/RowMenu'
 
 /** "12,50" o "12.50" → 1250 céntimos */
 const aCentimos = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
@@ -50,19 +51,28 @@ function Miniatura({ foto, className }: { foto: string | null; className?: strin
   )
 }
 
-function FormularioExtra({
+/**
+ * Crear o editar un extra, en su diálogo. Se monta al abrirlo (con `key`), así
+ * que cada vez arranca con los datos del extra que se ha tocado.
+ */
+function DialogoExtra({
   slug,
+  titulo,
   inicial,
   onGuardar,
-  onCancelar,
+  onCerrar,
+  onQuitar,
   enviando,
   error,
   textoGuardar,
 }: {
   slug: string
+  titulo: string
   inicial: DatosExtra
   onGuardar: (d: DatosExtra) => void
-  onCancelar: () => void
+  onCerrar: () => void
+  /** Solo al editar: quitarlo de la carta, con su confirmación. */
+  onQuitar?: () => void
   enviando: boolean
   error: string | null
   textoGuardar: string
@@ -96,10 +106,20 @@ function FormularioExtra({
           ? 'ext.errDuracion'
           : null
 
+  const cambiado =
+    nombre !== inicial.name ||
+    precio !== (inicial.name ? aTexto(inicial.priceCents) : '') ||
+    minutos !== String(inicial.durationMin) ||
+    descripcion !== (inicial.description ?? '') ||
+    foto !== inicial.photo
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
+    <FormDialog
+      open
+      onClose={onCerrar}
+      title={titulo}
+      submitLabel={textoGuardar}
+      onSubmit={() => {
         setTocado(true)
         if (problema || subir.isPending) return
         onGuardar({
@@ -110,7 +130,10 @@ function FormularioExtra({
           photo: foto,
         })
       }}
-      className="flex flex-col gap-4"
+      loading={enviando}
+      error={error}
+      dirty={cambiado}
+      borrar={onQuitar && { label: t('ext.quitar'), onClick: onQuitar }}
     >
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex shrink-0 flex-col items-start gap-1.5">
@@ -173,7 +196,7 @@ function FormularioExtra({
           )}
         </div>
 
-        <div className="grid flex-1 content-start gap-4 sm:grid-cols-3">
+        <div className="grid flex-1 content-start gap-4 sm:grid-cols-2">
           <Field
             label={t('ext.nombre')}
             htmlFor={`${id}-nombre`}
@@ -231,17 +254,7 @@ function FormularioExtra({
         </ErrorNote>
       )}
       {tocado && problema && <ErrorNote>{t(problema)}</ErrorNote>}
-      {error && <ErrorNote>{error}</ErrorNote>}
-
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={enviando} disabled={subir.isPending}>
-          {textoGuardar}
-        </Button>
-        <Button type="button" variant="secondary" onClick={onCancelar}>
-          {t('ext.cancelar')}
-        </Button>
-      </div>
-    </form>
+    </FormDialog>
   )
 }
 
@@ -264,9 +277,8 @@ export function CartaDeExtras({
   const { t, idioma } = useIdioma()
   const id = useId()
   const queryClient = useQueryClient()
-  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [editando, setEditando] = useState<PanelExtra | null>(null)
   const [aQuitar, setAQuitar] = useState<PanelExtra | null>(null)
-  const vistaNuevo = useALaVista<HTMLDivElement>(creando)
 
   const { data: extras, isLoading } = useQuery({
     queryKey: ['panel', slug, 'extras'],
@@ -291,7 +303,7 @@ export function CartaDeExtras({
     mutationFn: ({ extra, d }: { extra: PanelExtra; d: DatosExtra }) =>
       api.updateExtra(slug, extra.id, d),
     onSuccess: () => {
-      setEditandoId(null)
+      setEditando(null)
       invalidar()
       aviso.ok(t('avisos.guardado'))
     },
@@ -316,6 +328,7 @@ export function CartaDeExtras({
     mutationFn: (e: PanelExtra) => api.deleteExtra(slug, e.id),
     onSuccess: (_r, e) => {
       setAQuitar(null)
+      setEditando(null)
       invalidar()
       aviso.ok(t('ext.quitado', { nombre: e.name }))
     },
@@ -333,29 +346,16 @@ export function CartaDeExtras({
           </h2>
           <p className="mt-1 max-w-[600px] text-body text-muted">{t('ext.pista')}</p>
         </div>
-        {!creando && (
-          <Button variant="secondary" onClick={() => setCreando(true)}>
-            <span aria-hidden>+</span> {t('ext.anadir')}
-          </Button>
-        )}
+        <Button
+          variant="secondary"
+          onClick={() => {
+            crear.reset()
+            setCreando(true)
+          }}
+        >
+          <span aria-hidden>+</span> {t('ext.anadir')}
+        </Button>
       </div>
-
-      {creando && (
-        <div ref={vistaNuevo} className="scroll-mt-4">
-          <Card padded>
-            <h3 className="mb-4 text-ui font-semibold text-ink">{t('ext.nuevo')}</h3>
-            <FormularioExtra
-              slug={slug}
-              inicial={VACIO}
-              onGuardar={(d) => crear.mutate(d)}
-              onCancelar={() => setCreando(false)}
-              enviando={crear.isPending}
-              error={crear.isError ? mensaje(crear.error) : null}
-              textoGuardar={t('ext.guardar')}
-            />
-          </Card>
-        </div>
-      )}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -364,71 +364,101 @@ export function CartaDeExtras({
           ))}
         </Card>
       ) : !extras?.length ? (
-        !creando && <EmptyState title={t('ext.vacio')} hint={t('ext.vacioPista')} />
+        <EmptyState title={t('ext.vacio')} hint={t('ext.vacioPista')} />
       ) : (
         <Card className="overflow-hidden">
           <ul>
             {extras.map((e) => (
-              <li key={e.id} className="border-b border-line last:border-b-0">
-                {editandoId === e.id ? (
-                  <div className="p-5">
-                    <FormularioExtra
-                      slug={slug}
-                      inicial={e}
-                      onGuardar={(d) => guardar.mutate({ extra: e, d })}
-                      onCancelar={() => setEditandoId(null)}
-                      enviando={guardar.isPending}
-                      error={guardar.isError ? mensaje(guardar.error) : null}
-                      textoGuardar={t('ext.guardarCambios')}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
-                    <Miniatura foto={e.photo} className={cx(!e.active && 'opacity-55')} />
-                    <div className={cx('min-w-[160px] flex-1', !e.active && 'opacity-55')}>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-ui font-semibold text-ink">{e.name}</span>
-                        {!e.active && <Badge tone="off">{t('ext.oculto')}</Badge>}
-                      </div>
-                      {e.description && (
-                        <p className="mt-0.5 line-clamp-2 text-meta text-muted">{e.description}</p>
-                      )}
-                    </div>
-                    <div
-                      className={cx(
-                        'text-ui font-semibold text-ink tabular-nums',
-                        !e.active && 'opacity-55',
-                      )}
-                    >
-                      +{formatPrice(e.priceCents, idioma)}
-                      {e.durationMin > 0 && (
-                        <span className="ml-2 text-meta font-normal text-muted">
-                          +{formatDuration(e.durationMin, idioma)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
-                      <Button size="sm" variant="quiet" onClick={() => setEditandoId(e.id)}>
-                        {t('ext.editar')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="quiet"
-                        loading={alternar.isPending && alternar.variables?.id === e.id}
-                        onClick={() => alternar.mutate(e)}
-                      >
-                        {e.active ? t('ext.ocultar') : t('ext.mostrar')}
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => setAQuitar(e)}>
-                        {t('ext.quitar')}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+              <li key={e.id} className="flex items-center border-b border-line last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    guardar.reset()
+                    setEditando(e)
+                  }}
+                  aria-label={t('ext.editarComillas', { nombre: e.name })}
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 py-4 pr-2 pl-5 text-left transition-colors duration-200 hover:bg-canvas/50"
+                >
+                  <Miniatura foto={e.photo} className={cx(!e.active && 'opacity-55')} />
+                  <span className={cx('min-w-[160px] flex-1', !e.active && 'opacity-55')}>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-ui font-semibold text-ink">{e.name}</span>
+                      {!e.active && <Badge tone="off">{t('ext.oculto')}</Badge>}
+                    </span>
+                    {e.description && (
+                      <span className="mt-0.5 line-clamp-2 block text-meta text-muted">
+                        {e.description}
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cx(
+                      'text-ui font-semibold text-ink tabular-nums',
+                      !e.active && 'opacity-55',
+                    )}
+                  >
+                    +{formatPrice(e.priceCents, idioma)}
+                    {e.durationMin > 0 && (
+                      <span className="ml-2 text-meta font-normal text-muted">
+                        +{formatDuration(e.durationMin, idioma)}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                <div className="pr-3">
+                  <RowMenu
+                    label={e.name}
+                    acciones={[
+                      {
+                        label: t('ext.editar'),
+                        onClick: () => {
+                          guardar.reset()
+                          setEditando(e)
+                        },
+                      },
+                      {
+                        label: e.active ? t('ext.ocultar') : t('ext.mostrar'),
+                        onClick: () => alternar.mutate(e),
+                      },
+                      { label: t('ext.quitar'), onClick: () => setAQuitar(e), peligro: true },
+                    ]}
+                  />
+                </div>
               </li>
             ))}
           </ul>
         </Card>
+      )}
+
+      {creando && (
+        <DialogoExtra
+          key="nuevo"
+          slug={slug}
+          titulo={t('ext.nuevo')}
+          inicial={VACIO}
+          onGuardar={(d) => crear.mutate(d)}
+          onCerrar={() => setCreando(false)}
+          enviando={crear.isPending}
+          error={crear.isError ? mensaje(crear.error) : null}
+          textoGuardar={t('ext.guardar')}
+        />
+      )}
+
+      {editando && (
+        <DialogoExtra
+          key={editando.id}
+          slug={slug}
+          titulo={t('ext.editarComillas', { nombre: editando.name })}
+          inicial={editando}
+          onGuardar={(d) => guardar.mutate({ extra: editando, d })}
+          onCerrar={() => setEditando(null)}
+          // La confirmación se abre encima del diálogo: si se cancela, se vuelve
+          // a la edición tal como estaba.
+          onQuitar={() => setAQuitar(editando)}
+          enviando={guardar.isPending}
+          error={guardar.isError ? mensaje(guardar.error) : null}
+          textoGuardar={t('ext.guardarCambios')}
+        />
       )}
 
       <ConfirmDialog

@@ -13,10 +13,10 @@ import {
   Input,
   PageHeader,
   Skeleton,
-  cx,
 } from '../../components/ui'
 import { Texto, useIdioma } from '../../i18n/idioma'
-import { aviso } from '../../components/Avisos'
+import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
 
 /**
  * Registro de jornada.
@@ -73,8 +73,9 @@ function Corregir({
   onHecho: () => void
   onCancelar: () => void
 }) {
-  const { t } = useFormatos()
+  const { t, hora, dia } = useFormatos()
   const id = useId()
+  const [intentado, setIntentado] = useState(false)
   const [entrada, setEntrada] = useState(paraInput(f.entrada))
   const [salida, setSalida] = useState(f.salida ? paraInput(f.salida) : '')
   const [motivo, setMotivo] = useState('')
@@ -99,15 +100,33 @@ function Corregir({
         ? t('fic.errSalida')
         : null
 
+  /* En su diálogo, con el original a la vista: antes se desplegaba bajo la
+     fila. La corrección guarda las dos horas y quién la hizo; el original no
+     se pierde nunca (ver el modelo Fichaje). */
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
+    <FormDialog
+      open
+      onClose={onCancelar}
+      title={t('fic.corregirTitulo', { quien: f.persona })}
+      hint={t('fic.corregirPista', {
+        dia: dia(f.entrada),
+        desde: hora(f.entrada),
+        hasta: f.salida ? hora(f.salida) : '…',
+      })}
+      submitLabel={t('fic.guardarCorreccion')}
+      onSubmit={() => {
+        setIntentado(true)
         if (!problema) corregir.mutate()
       }}
-      className="border-t border-line bg-canvas/50 px-4 py-4 sm:px-5"
+      loading={corregir.isPending}
+      error={corregir.isError ? textoDeError(corregir.error, t('fic.noSePudoCorregir')) : null}
+      dirty={
+        entrada !== paraInput(f.entrada) ||
+        salida !== (f.salida ? paraInput(f.salida) : '') ||
+        motivo.trim() !== ''
+      }
     >
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('fic.entrada')} htmlFor={`${id}-e`} required>
           <Input
             id={`${id}-e`}
@@ -124,31 +143,19 @@ function Corregir({
             onChange={(e) => setSalida(e.target.value)}
           />
         </Field>
-        <Field label={t('fic.motivo')} htmlFor={`${id}-m`} hint={t('fic.motivoPista')} required>
+        <Field
+          label={t('fic.motivo')}
+          htmlFor={`${id}-m`}
+          hint={t('fic.motivoPista')}
+          required
+          className="sm:col-span-2"
+        >
           <Input id={`${id}-m`} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
         </Field>
       </div>
 
-      {corregir.isError && (
-        <div className="mt-3">
-          <ErrorNote>
-            {corregir.error instanceof ApiError
-              ? corregir.error.message
-              : t('fic.noSePudoCorregir')}
-          </ErrorNote>
-        </div>
-      )}
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Button type="submit" loading={corregir.isPending} disabled={!!problema}>
-          {t('fic.guardarCorreccion')}
-        </Button>
-        <Button type="button" variant="quiet" onClick={onCancelar}>
-          {t('fic.cancelar')}
-        </Button>
-        {problema && <span className="text-meta text-muted">{problema}</span>}
-      </div>
-    </form>
+      {intentado && problema && <ErrorNote>{problema}</ErrorNote>}
+    </FormDialog>
   )
 }
 
@@ -158,7 +165,7 @@ export function PanelFichaje() {
   const queryClient = useQueryClient()
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
-  const [corrigiendo, setCorrigiendo] = useState<string | null>(null)
+  const [corrigiendo, setCorrigiendo] = useState<Fichaje | null>(null)
 
   const { data: abierto } = useQuery({
     queryKey: ['fichaje', slug, 'abierto'],
@@ -312,12 +319,8 @@ export function PanelFichaje() {
                   </div>
 
                   {puedeVerTodos && (
-                    <Button
-                      size="sm"
-                      variant="quiet"
-                      onClick={() => setCorrigiendo(corrigiendo === f.id ? null : f.id)}
-                    >
-                      {corrigiendo === f.id ? t('fic.cerrar') : t('fic.corregir')}
+                    <Button size="sm" variant="quiet" onClick={() => setCorrigiendo(f)}>
+                      {t('fic.corregir')}
                     </Button>
                   )}
                 </div>
@@ -326,12 +329,7 @@ export function PanelFichaje() {
                     quien trabaja tiene derecho a ver que le han tocado sus
                     horas y por qué. */}
                 {f.correccion && (
-                  <p
-                    className={cx(
-                      'px-4 pb-3 text-meta text-subtle sm:px-5',
-                      corrigiendo === f.id && 'pb-4',
-                    )}
-                  >
+                  <p className="px-4 pb-3 text-meta text-subtle sm:px-5">
                     {t('fic.corregidoPor', { quien: f.correccion.por })} ·{' '}
                     {f.correccion.entradaOriginal && (
                       <>
@@ -347,22 +345,23 @@ export function PanelFichaje() {
                     <span className="italic">{f.correccion.motivo}</span>
                   </p>
                 )}
-
-                {corrigiendo === f.id && (
-                  <Corregir
-                    f={f}
-                    slug={slug}
-                    onHecho={() => {
-                      setCorrigiendo(null)
-                      refrescar()
-                    }}
-                    onCancelar={() => setCorrigiendo(null)}
-                  />
-                )}
               </li>
             ))}
           </ul>
         </Card>
+      )}
+
+      {corrigiendo && (
+        <Corregir
+          key={corrigiendo.id}
+          f={corrigiendo}
+          slug={slug}
+          onHecho={() => {
+            setCorrigiendo(null)
+            refrescar()
+          }}
+          onCancelar={() => setCorrigiendo(null)}
+        />
       )}
 
       <p className="text-meta text-subtle">

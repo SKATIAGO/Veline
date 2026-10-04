@@ -136,6 +136,11 @@ export function Button({
 }) {
   return (
     <button
+      /* «button» si no se dice otra cosa. El navegador pone «submit» por
+         defecto, y un botón cualquiera —«+ Franja», el de la rueda— metido en
+         un diálogo, que es un <form>, lo enviaba y lo cerraba. Quien quiera
+         enviar lo dice con type="submit". */
+      type="button"
       {...props}
       ref={ref}
       disabled={props.disabled || loading}
@@ -204,6 +209,7 @@ export function IconButton({
 }: ComponentPropsWithoutRef<'button'> & { label: string }) {
   return (
     <button
+      type="button"
       {...props}
       aria-label={label}
       title={label}

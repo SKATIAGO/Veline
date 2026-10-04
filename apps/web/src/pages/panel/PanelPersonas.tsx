@@ -13,7 +13,6 @@ import {
   Input,
   PageHeader,
   Select,
-  Sheet,
   Skeleton,
   cx,
 } from '../../components/ui'
@@ -22,11 +21,14 @@ import { generarPassword } from './PanelUsers'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { Bloqueo, ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { CredencialCreada } from '../../components/Credencial'
+import { RowMenu } from '../../components/RowMenu'
 
 /**
  * El editor del horario propio de una persona, dentro de la ficha.
  *
- * La ficha (Sheet) solo lleva el nombre en el aria-label, no a la vista:
+ * El título del diálogo lleva el nombre:
  * aquí sí hace falta repetirlo, porque el resto del contenido —siete días
  * iguales— no dice de quién es.
  */
@@ -44,6 +46,8 @@ function EditorHorarioPersona({
   const { t } = useIdioma()
   const queryClient = useQueryClient()
   const [week, setWeek] = useState<Record<number, Franja[]>>({})
+  // Para saber si se ha tocado algo: cerrar con cambios pregunta antes.
+  const [tocado, setTocado] = useState(false)
 
   const { data: hours, isLoading } = useQuery({
     queryKey: ['panel', slug, 'staff', staffId, 'hours'],
@@ -76,6 +80,7 @@ function EditorHorarioPersona({
 
   const mutate = (wd: number, ranges: Franja[]) => {
     setWeek((prev) => ({ ...prev, [wd]: ranges }))
+    setTocado(true)
   }
 
   /** Copia el día a los demás laborables. Rellenar siete días a mano cansa. */
@@ -86,37 +91,36 @@ function EditorHorarioPersona({
       for (const otro of [1, 2, 3, 4, 5]) next[otro] = origen.map((r) => ({ ...r }))
       return next
     })
+    setTocado(true)
   }
 
   const invalid = ORDEN_SEMANA.some((wd) => (week[wd] ?? []).some((r) => r.endMin <= r.startMin))
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-3">
-        {ORDEN_SEMANA.map((wd) => (
-          <Skeleton key={wd} className="h-12" />
-        ))}
-      </div>
-    )
-  }
-
+  /* Antes era una ficha con sus propios botones, y cerrarla —tocando fuera,
+     con la ✕ o con «atrás»— tiraba lo cambiado sin decir nada. */
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="font-display text-subheading font-semibold text-ink">
-        {t('pers.horarioDe', { nombre })}
-      </h2>
-      <p className="text-meta text-subtle">{t('pers.horarioAviso')}</p>
-      <FranjasSemanales week={week} onChange={mutate} onCopiarALaborables={copiarALaborables} />
-      {save.isError && <ErrorNote>{t('pers.horarioNoGuardado')}</ErrorNote>}
-      <div className="flex justify-end gap-2">
-        <Button variant="quiet" onClick={onClose}>
-          {t('pers.cancelar')}
-        </Button>
-        <Button onClick={() => save.mutate()} disabled={invalid} loading={save.isPending}>
-          {t('hor.guardar')}
-        </Button>
-      </div>
-    </div>
+    <FormDialog
+      open
+      onClose={onClose}
+      title={t('pers.horarioDe', { nombre })}
+      hint={t('pers.horarioAviso')}
+      submitLabel={t('hor.guardar')}
+      onSubmit={() => !invalid && save.mutate()}
+      loading={save.isPending}
+      error={save.isError ? t('pers.horarioNoGuardado') : null}
+      dirty={tocado}
+    >
+      {isLoading ? (
+        <div className="flex flex-col gap-3">
+          {ORDEN_SEMANA.map((wd) => (
+            <Skeleton key={wd} className="h-12" />
+          ))}
+        </div>
+      ) : (
+        <FranjasSemanales week={week} onChange={mutate} onCopiarALaborables={copiarALaborables} />
+      )}
+      {invalid && <ErrorNote>{t('hor.franjaInvalida')}</ErrorNote>}
+    </FormDialog>
   )
 }
 
@@ -293,7 +297,6 @@ function CrearAccesoPersona({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState(() => generarPassword())
   const [creada, setCreada] = useState<{ email: string; password: string } | null>(null)
-  const [copiado, setCopiado] = useState(false)
 
   const crear = useMutation({
     mutationFn: () =>
@@ -305,7 +308,6 @@ function CrearAccesoPersona({
       }),
     onSuccess: () => {
       setCreada({ email: email.trim(), password })
-      setCopiado(false)
       queryClient.invalidateQueries({ queryKey: ['panel', slug, 'users'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
     },
@@ -317,107 +319,65 @@ function CrearAccesoPersona({
       ? t('eq.errContrasena')
       : null
 
-  if (creada) {
-    return (
-      <div className="flex flex-col gap-4">
-        <h2 className="font-display text-subheading font-semibold text-ink">
-          {t('pers.altaTitulo', { nombre: nombreInicial })}
-        </h2>
-        <Card className="border-brand/40 bg-brand/5 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-ui font-semibold text-ink">{t('eq.cuentaCreada')}</p>
-              <p className="mt-1 text-body text-body">
-                <Texto clave="eq.pasaleDatos" partes={{ email: <strong>{creada.email}</strong> }} />
-              </p>
-              <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
-                {creada.password}
-              </code>
-              <p className="mt-2 text-meta text-muted">{t('eq.guardalaAhora')}</p>
-            </div>
-            <div className="flex shrink-0 gap-1">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  void navigator.clipboard.writeText(creada.password).then(() => setCopiado(true))
-                }}
-              >
-                {copiado ? t('eq.copiada') : t('eq.copiar')}
-              </Button>
-            </div>
-          </div>
-        </Card>
-        <div className="flex justify-end">
-          <Button onClick={onClose}>{t('comun.listo')}</Button>
-        </div>
-      </div>
-    )
-  }
+  const [intentado, setIntentado] = useState(false)
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="font-display text-subheading font-semibold text-ink">
-        {t('pers.altaTitulo', { nombre: nombreInicial })}
-      </h2>
-      <p className="text-meta text-subtle">{t('pers.altaAviso')}</p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!problema) crear.mutate()
-        }}
-        className="flex flex-col gap-4"
-      >
-        <Field label={t('eq.email')} htmlFor={`${id}-email`} hint={t('eq.emailPista')} required>
-          <Input
-            id={`${id}-email`}
-            type="email"
-            autoComplete="off"
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Field
-          label={t('eq.contrasenaInicial')}
-          htmlFor={`${id}-pass`}
-          hint={t('eq.contrasenaPista')}
-          required
-        >
-          <div className="flex gap-2">
+    <FormDialog
+      open
+      onClose={onClose}
+      title={creada ? t('eq.cuentaCreada') : t('pers.altaTitulo', { nombre: nombreInicial })}
+      hint={creada ? undefined : t('pers.altaAviso')}
+      submitLabel={t('eq.crearCuenta')}
+      onSubmit={() => {
+        setIntentado(true)
+        if (!problema) crear.mutate()
+      }}
+      loading={crear.isPending}
+      error={crear.isError ? textoDeError(crear.error, t('eq.noSePudoCrear')) : null}
+      dirty={!creada && email.trim() !== ''}
+      sinPie={!!creada}
+    >
+      {creada ? (
+        <CredencialCreada email={creada.email} password={creada.password} onListo={onClose} />
+      ) : (
+        <>
+          <Field label={t('eq.email')} htmlFor={`${id}-email`} hint={t('eq.emailPista')} required>
             <Input
-              id={`${id}-pass`}
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id={`${id}-email`}
+              type="email"
+              autoComplete="off"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setPassword(generarPassword())}
-            >
-              {t('eq.otra')}
-            </Button>
-          </div>
-        </Field>
+          </Field>
+          <Field
+            label={t('eq.contrasenaInicial')}
+            htmlFor={`${id}-pass`}
+            hint={t('eq.contrasenaPista')}
+            required
+          >
+            <div className="flex gap-2">
+              <Input
+                id={`${id}-pass`}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPassword(generarPassword())}
+              >
+                {t('eq.otra')}
+              </Button>
+            </div>
+          </Field>
 
-        {crear.isError && (
-          <ErrorNote>
-            {crear.error instanceof ApiError ? crear.error.message : t('eq.noSePudoCrear')}
-          </ErrorNote>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" loading={crear.isPending} disabled={!!problema}>
-            {t('eq.crearCuenta')}
-          </Button>
-          <Button type="button" variant="quiet" onClick={onClose}>
-            {t('pers.cancelar')}
-          </Button>
-          {problema && <span className="text-meta text-muted">{problema}</span>}
-        </div>
-      </form>
-    </div>
+          {intentado && problema && <ErrorNote>{problema}</ErrorNote>}
+        </>
+      )}
+    </FormDialog>
   )
 }
 
@@ -437,8 +397,15 @@ export function PanelPersonas() {
   const id = useId()
 
   const [nombre, setNombre] = useState('')
-  const [editando, setEditando] = useState<string | null>(null)
+  const [editando, setEditando] = useState<PanelStaff | null>(null)
   const [nombreEdit, setNombreEdit] = useState('')
+  const [localEdit, setLocalEdit] = useState('')
+  const abrirEdicion = (p: PanelStaff) => {
+    renombrar.reset()
+    setNombreEdit(p.name)
+    setLocalEdit(p.locationId ?? '')
+    setEditando(p)
+  }
   const [horarioAbierto, setHorarioAbierto] = useState<string | null>(null)
   const [altaAbierto, setAltaAbierto] = useState<string | null>(null)
   const [bajaDe, setBajaDe] = useState<PanelStaff | null>(null)
@@ -476,7 +443,11 @@ export function PanelPersonas() {
 
   const renombrar = useMutation({
     mutationFn: (personaId: string) =>
-      api.updateStaff(slug, personaId, { name: nombreEdit.trim() }),
+      api.updateStaff(slug, personaId, {
+        name: nombreEdit.trim(),
+        // Antes el local solo se elegía al crear y no había forma de cambiarlo.
+        ...(varios ? { locationId: localEdit || null } : {}),
+      }),
     onSuccess: () => {
       setEditando(null)
       invalidate()
@@ -586,7 +557,7 @@ export function PanelPersonas() {
             {personas.map((p) => (
               <li
                 key={p.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-4 last:border-b-0 sm:px-5"
+                className="relative flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-4 transition-colors duration-200 last:border-b-0 hover:bg-canvas/50 sm:px-5"
               >
                 <span
                   aria-hidden
@@ -598,98 +569,66 @@ export function PanelPersonas() {
                   {p.name.trim().charAt(0).toUpperCase()}
                 </span>
 
-                {editando === p.id ? (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      if (nombreEdit.trim().length >= 2) renombrar.mutate(p.id)
-                    }}
-                    className="flex flex-1 flex-wrap items-center gap-2"
-                  >
-                    <Input
-                      value={nombreEdit}
-                      onChange={(e) => setNombreEdit(e.target.value)}
-                      aria-label={t('pers.nuevoNombre', { nombre: p.name })}
-                      className="max-w-xs flex-1"
-                      autoFocus
-                    />
-                    <Button type="submit" size="sm" loading={renombrar.isPending}>
-                      {t('pers.guardar')}
-                    </Button>
-                    <Button
+                <div className={cx('min-w-[160px] flex-1', !p.active && 'opacity-60')}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
                       type="button"
-                      size="sm"
-                      variant="quiet"
-                      onClick={() => setEditando(null)}
+                      onClick={() => abrirEdicion(p)}
+                      aria-label={t('pers.editarComillas', { nombre: p.name })}
+                      className="text-left text-ui font-semibold text-ink after:absolute after:inset-0 after:content-['']"
                     >
-                      {t('pers.cancelar')}
-                    </Button>
-                  </form>
-                ) : (
-                  <>
-                    <div className={cx('min-w-[160px] flex-1', !p.active && 'opacity-60')}>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-ui font-semibold text-ink">{p.name}</span>
-                        {!p.active && <Badge tone="off">{t('pers.deBaja')}</Badge>}
-                      </div>
-                      <p className="mt-0.5 text-meta text-muted">
-                        {varios && (
-                          <>
-                            {locales?.find((l) => l.id === p.locationId)?.name ??
-                              t('pers.enTodosLosLocales')}
-                            {' · '}
-                          </>
-                        )}
-                        {p.upcomingBookings
-                          ? plural(
-                              p.upcomingBookings,
-                              'pers.unaCitaPorDelante',
-                              'pers.variasCitasPorDelante',
-                            )
-                          : t('pers.sinCitasPendientes')}
-                        {p.hasHours && <> · {t('pers.horarioPropio')}</>}
-                      </p>
-                    </div>
+                      {p.name}
+                    </button>
+                    {!p.active && <Badge tone="off">{t('pers.deBaja')}</Badge>}
+                  </div>
+                  <p className="mt-0.5 text-meta text-muted">
+                    {varios && (
+                      <>
+                        {locales?.find((l) => l.id === p.locationId)?.name ??
+                          t('pers.enTodosLosLocales')}
+                        {' · '}
+                      </>
+                    )}
+                    {p.upcomingBookings
+                      ? plural(
+                          p.upcomingBookings,
+                          'pers.unaCitaPorDelante',
+                          'pers.variasCitasPorDelante',
+                        )
+                      : t('pers.sinCitasPendientes')}
+                    {p.hasHours && <> · {t('pers.horarioPropio')}</>}
+                  </p>
+                </div>
 
-                    <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
-                      <Button size="sm" variant="quiet" onClick={() => setAltaAbierto(p.id)}>
-                        {t('pers.darDeAlta')}
-                      </Button>
-                      <Button size="sm" variant="quiet" onClick={() => setHorarioAbierto(p.id)}>
-                        {t('pers.horario')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="quiet"
-                        onClick={() => {
-                          setEditando(p.id)
-                          setNombreEdit(p.name)
-                        }}
-                      >
-                        {t('pers.renombrar')}
-                      </Button>
-                      {p.active ? (
-                        <Button size="sm" variant="danger" onClick={() => setBajaDe(p)}>
-                          {t('pers.darDeBaja')}
-                        </Button>
-                      ) : (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="quiet"
-                            loading={reactivar.isPending && reactivar.variables?.id === p.id}
-                            onClick={() => reactivar.mutate(p)}
-                          >
-                            {t('pers.volverAActivar')}
-                          </Button>
-                          <Button size="sm" variant="danger" onClick={() => setEliminarA(p)}>
-                            {t('pers.eliminar')}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
+                <div className="relative z-10 ml-auto">
+                  <RowMenu
+                    label={p.name}
+                    acciones={[
+                      { label: t('pers.editar'), onClick: () => abrirEdicion(p) },
+                      {
+                        label: t('pers.horarioPropioAccion'),
+                        onClick: () => setHorarioAbierto(p.id),
+                      },
+                      { label: t('pers.crearAcceso'), onClick: () => setAltaAbierto(p.id) },
+                      ...(p.active
+                        ? [
+                            {
+                              label: t('pers.darDeBaja'),
+                              onClick: () => setBajaDe(p),
+                              peligro: true,
+                            },
+                          ]
+                        : [
+                            { label: t('pers.volverAActivar'), onClick: () => reactivar.mutate(p) },
+                            {
+                              label: t('pers.eliminar'),
+                              onClick: () => setEliminarA(p),
+                              peligro: true,
+                            },
+                          ]),
+                    ]}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -706,6 +645,54 @@ export function PanelPersonas() {
           }}
         />
       </p>
+
+      <FormDialog
+        open={!!editando}
+        onClose={() => setEditando(null)}
+        title={t('pers.editarComillas', { nombre: editando?.name ?? '' })}
+        submitLabel={t('pers.guardar')}
+        onSubmit={() => editando && nombreEdit.trim().length >= 2 && renombrar.mutate(editando.id)}
+        loading={renombrar.isPending}
+        error={renombrar.isError ? textoDeError(renombrar.error, t('pers.noSePudoCambiar')) : null}
+        dirty={
+          !!editando && (nombreEdit !== editando.name || localEdit !== (editando.locationId ?? ''))
+        }
+      >
+        <Field
+          label={t('pers.nombre')}
+          htmlFor={`${id}-editar`}
+          hint={t('pers.anadirPista')}
+          required
+        >
+          <Input
+            id={`${id}-editar`}
+            value={nombreEdit}
+            autoComplete="off"
+            invalid={nombreEdit.trim().length < 2}
+            onChange={(e) => setNombreEdit(e.target.value)}
+          />
+        </Field>
+        {varios && (
+          <Field
+            label={t('pers.dondeAtiende')}
+            htmlFor={`${id}-editar-local`}
+            hint={t('pers.dondeAtiendePista')}
+          >
+            <Select
+              id={`${id}-editar-local`}
+              value={localEdit}
+              onChange={(e) => setLocalEdit(e.target.value)}
+            >
+              <option value="">{t('pers.enTodos')}</option>
+              {locales?.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+      </FormDialog>
 
       <BajaPersona
         slug={slug}
@@ -729,42 +716,24 @@ export function PanelPersonas() {
         error={eliminar.isError ? textoDeError(eliminar.error, t('pers.noSePudoEliminar')) : null}
       />
 
-      <Sheet
-        open={!!horarioAbierto}
-        onClose={() => setHorarioAbierto(null)}
-        title={
-          horarioAbierto
-            ? t('pers.horarioDe', {
-                nombre: personas?.find((p) => p.id === horarioAbierto)?.name ?? '',
-              })
-            : ''
-        }
-      >
-        {horarioAbierto && (
-          <EditorHorarioPersona
-            slug={slug}
-            staffId={horarioAbierto}
-            nombre={personas?.find((p) => p.id === horarioAbierto)?.name ?? ''}
-            onClose={() => setHorarioAbierto(null)}
-          />
-        )}
-      </Sheet>
+      {horarioAbierto && (
+        <EditorHorarioPersona
+          key={horarioAbierto}
+          slug={slug}
+          staffId={horarioAbierto}
+          nombre={personas?.find((p) => p.id === horarioAbierto)?.name ?? ''}
+          onClose={() => setHorarioAbierto(null)}
+        />
+      )}
 
-      <Sheet
-        open={!!altaAbierto}
-        onClose={() => setAltaAbierto(null)}
-        title={t('pers.altaTitulo', {
-          nombre: personas?.find((p) => p.id === altaAbierto)?.name ?? '',
-        })}
-      >
-        {altaAbierto && (
-          <CrearAccesoPersona
-            slug={slug}
-            nombreInicial={personas?.find((p) => p.id === altaAbierto)?.name ?? ''}
-            onClose={() => setAltaAbierto(null)}
-          />
-        )}
-      </Sheet>
+      {altaAbierto && (
+        <CrearAccesoPersona
+          key={altaAbierto}
+          slug={slug}
+          nombreInicial={personas?.find((p) => p.id === altaAbierto)?.name ?? ''}
+          onClose={() => setAltaAbierto(null)}
+        />
+      )}
     </div>
   )
 }

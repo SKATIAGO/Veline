@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   FilterChip,
+  Field,
   Input,
   PageHeader,
   Skeleton,
@@ -19,6 +20,7 @@ import {
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
 
 /**
  * Quién debe qué. El cobro es manual por ahora (transferencia o recibo), así
@@ -90,7 +92,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
     },
     // Anular falla dentro de su confirmación; lo demás, en un aviso.
     onError: (err, status) => {
-      if (status !== 'ANULADO') aviso.error(textoDeError(err, t('cob.noSePudoMarcar')))
+      if (status === 'PENDIENTE') aviso.error(textoDeError(err, t('cob.noSePudoMarcar')))
     },
   })
 
@@ -142,12 +144,7 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
           {c.status === 'PENDIENTE' ? (
             <>
-              <Button
-                size="sm"
-                variant="quiet"
-                loading={marcar.isPending && marcar.variables === 'COBRADO'}
-                onClick={() => setAbierto((a) => !a)}
-              >
+              <Button size="sm" variant="quiet" onClick={() => setAbierto(true)}>
                 {t('cob.marcarCobrado')}
               </Button>
               <Button size="sm" variant="danger" onClick={() => setAnulando(true)}>
@@ -167,26 +164,30 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         </div>
       </div>
 
-      {abierto && c.status === 'PENDIENTE' && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            marcar.mutate('COBRADO')
-          }}
-          className="flex flex-wrap items-end gap-2 border-t border-line bg-canvas/50 px-4 py-4 sm:px-5"
+      {/* «Cómo se cobró» en su diálogo: antes se desplegaba bajo la fila. */}
+      <FormDialog
+        open={abierto}
+        onClose={() => setAbierto(false)}
+        title={t('cob.marcarTitulo', deQuien)}
+        hint={t('cob.marcarPista', { importe: formatPrice(c.totalCents, idioma) })}
+        submitLabel={t('cob.marcarCobrado')}
+        onSubmit={() => marcar.mutate('COBRADO')}
+        loading={marcar.isPending && marcar.variables === 'COBRADO'}
+        error={
+          marcar.isError && marcar.variables === 'COBRADO'
+            ? textoDeError(marcar.error, t('cob.noSePudoMarcar'))
+            : null
+        }
+        dirty={nota.trim() !== (c.paidNote ?? '')}
+      >
+        <Field
+          label={t('cob.comoSeCobro')}
+          htmlFor={`nota-${c.id}`}
+          hint={t('cob.comoSeCobroPista')}
         >
-          <label className="flex min-w-[240px] flex-1 flex-col gap-1.5">
-            <span className="text-meta font-semibold text-body-2">{t('cob.comoSeCobro')}</span>
-            <Input value={nota} onChange={(e) => setNota(e.target.value)} autoFocus />
-          </label>
-          <Button type="submit" loading={marcar.isPending}>
-            {t('cob.marcarCobrado')}
-          </Button>
-          <Button type="button" variant="quiet" onClick={() => setAbierto(false)}>
-            {t('cob.cancelar')}
-          </Button>
-        </form>
-      )}
+          <Input id={`nota-${c.id}`} value={nota} onChange={(e) => setNota(e.target.value)} />
+        </Field>
+      </FormDialog>
 
       <ConfirmDialog
         open={anulando}

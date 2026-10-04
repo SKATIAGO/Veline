@@ -9,7 +9,7 @@ import {
   plazasDelNegocio,
   subStatusLabel,
 } from '@veline/shared'
-import { api, ApiError, type AdminBusiness } from '../../lib/api'
+import { api, type AdminBusiness } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Badge,
@@ -18,17 +18,17 @@ import {
   EmptyState,
   ErrorNote,
   Field,
-  IconButton,
   Input,
   PageHeader,
   Select,
   Skeleton,
   Spinner,
-  useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { CredencialCreada } from '../../components/Credencial'
 
 /**
  * Gestión de la plataforma — SOLO superadmin. Dar de alta negocios y crear
@@ -71,53 +71,6 @@ function generarPassword() {
 }
 
 const esEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim())
-
-/** Recuadro de la contraseña recién creada. Solo se puede leer una vez. */
-function Credencial({
-  email,
-  password,
-  onClose,
-}: {
-  email: string
-  password: string
-  onClose: () => void
-}) {
-  const { t } = useIdioma()
-  const [copiado, setCopiado] = useState(false)
-
-  return (
-    <Card className="border-brand/40 bg-brand/5 p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-ui font-semibold text-ink">{t('adm.cuentaCreada')}</p>
-          <p className="mt-1 text-body text-body">
-            <Texto clave="adm.pasaleDatos" partes={{ email: <strong>{email}</strong> }} />
-          </p>
-          <code className="mt-2 inline-block rounded-lg bg-cream px-3 py-2 text-body font-semibold break-all text-ink">
-            {password}
-          </code>
-          <p className="mt-2 text-meta text-muted">{t('adm.noSeConsulta')}</p>
-        </div>
-        <div className="flex shrink-0 gap-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              void navigator.clipboard.writeText(password).then(() => setCopiado(true))
-            }}
-          >
-            {copiado ? t('adm.copiada') : t('adm.copiar')}
-          </Button>
-          <IconButton label={t('adm.cerrarAviso')} onClick={onClose}>
-            <span aria-hidden className="text-subheading leading-none">
-              ×
-            </span>
-          </IconButton>
-        </div>
-      </div>
-    </Card>
-  )
-}
 
 const ESTADO_TONO: Record<string, 'ok' | 'warn' | 'off' | 'neutral'> = {
   ACTIVA: 'ok',
@@ -543,6 +496,8 @@ export function PanelAdmin() {
   const [businessDraft, setBusinessDraft] = useState<BusinessDraft | null>(null)
   const [userDraft, setUserDraft] = useState<UserDraft | null>(null)
   const [credencial, setCredencial] = useState<{ email: string; password: string } | null>(null)
+  const [intentoNegocio, setIntentoNegocio] = useState(false)
+  const [intentoCuenta, setIntentoCuenta] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [abierto, setAbierto] = useState<string | null>(null)
   // Los dados de baja son sitio en la lista que ya no hace falta atender a
@@ -647,7 +602,6 @@ export function PanelAdmin() {
 
   // Antes de cualquier return: un hook detrás de uno cambia de orden entre
   // renders y React deja de saber cuál es cuál.
-  const vistaCuenta = useALaVista<HTMLDivElement>(userDraft?.businessId)
   if (loading) return <Spinner />
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN') return <Navigate to="/panel" replace />
@@ -677,6 +631,8 @@ export function PanelAdmin() {
           : null
 
   const abrirCuenta = (b: AdminBusiness) => {
+    createUser.reset()
+    setIntentoCuenta(false)
     setCredencial(null)
     setBusinessDraft(null)
     setUserDraft({
@@ -694,16 +650,15 @@ export function PanelAdmin() {
         title={t('panel.negocios')}
         hint={t('adm.pista')}
         actions={
-          !businessDraft && (
-            <Button
-              onClick={() => {
-                setUserDraft(null)
-                setBusinessDraft(emptyBusiness)
-              }}
-            >
-              {t('adm.darDeAlta')}
-            </Button>
-          )
+          <Button
+            onClick={() => {
+              createBusiness.reset()
+              setIntentoNegocio(false)
+              setBusinessDraft(emptyBusiness)
+            }}
+          >
+            {t('adm.darDeAlta')}
+          </Button>
         }
       />
 
@@ -716,204 +671,6 @@ export function PanelAdmin() {
         <Stat label={t('adm.sinServicios')} value={totales.sinServicios} />
         <Stat label={t('adm.sinAprobar')} value={totales.pendientes} />
       </div>
-
-      {credencial && <Credencial {...credencial} onClose={() => setCredencial(null)} />}
-
-      {businessDraft && (
-        <Card padded>
-          <h2 className="mb-4 text-ui font-semibold text-ink">{t('adm.nuevoNegocio')}</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!problemaNegocio) createBusiness.mutate(businessDraft)
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <Field label={t('adm.nombre')} htmlFor={`${id}-bn`} required>
-                <Input
-                  id={`${id}-bn`}
-                  value={businessDraft.name}
-                  onChange={(e) => setBusinessDraft({ ...businessDraft, name: e.target.value })}
-                />
-              </Field>
-              <Field label={t('adm.categoria')} htmlFor={`${id}-bc`} required>
-                <Select
-                  id={`${id}-bc`}
-                  value={businessDraft.category}
-                  onChange={(e) => setBusinessDraft({ ...businessDraft, category: e.target.value })}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {idioma === 'en' ? c.labelEn : c.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                label={t('adm.email')}
-                htmlFor={`${id}-be`}
-                hint={t('adm.emailPista')}
-                required
-              >
-                <Input
-                  id={`${id}-be`}
-                  type="email"
-                  value={businessDraft.email}
-                  onChange={(e) => setBusinessDraft({ ...businessDraft, email: e.target.value })}
-                />
-              </Field>
-              <Field label={t('adm.telefono')} htmlFor={`${id}-bp`} hint={t('adm.opcional')}>
-                <Input
-                  id={`${id}-bp`}
-                  value={businessDraft.phone}
-                  onChange={(e) => setBusinessDraft({ ...businessDraft, phone: e.target.value })}
-                />
-              </Field>
-              <Field label={t('adm.calle')} htmlFor={`${id}-bs`} required>
-                <Input
-                  id={`${id}-bs`}
-                  value={businessDraft.street}
-                  onChange={(e) => setBusinessDraft({ ...businessDraft, street: e.target.value })}
-                />
-              </Field>
-              <div className="grid grid-cols-[1.6fr_1fr] gap-3">
-                <Field label={t('adm.ciudad')} htmlFor={`${id}-bci`} required>
-                  <Input
-                    id={`${id}-bci`}
-                    value={businessDraft.city}
-                    onChange={(e) => setBusinessDraft({ ...businessDraft, city: e.target.value })}
-                  />
-                </Field>
-                <Field label={t('adm.cp')} htmlFor={`${id}-bcp`} required>
-                  <Input
-                    id={`${id}-bcp`}
-                    inputMode="numeric"
-                    maxLength={5}
-                    value={businessDraft.postalCode}
-                    onChange={(e) =>
-                      setBusinessDraft({ ...businessDraft, postalCode: e.target.value })
-                    }
-                  />
-                </Field>
-              </div>
-            </div>
-
-            {createBusiness.isError && (
-              <ErrorNote>
-                {createBusiness.error instanceof ApiError
-                  ? createBusiness.error.message
-                  : t('adm.noSePudoCrear')}
-              </ErrorNote>
-            )}
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" loading={createBusiness.isPending} disabled={!!problemaNegocio}>
-                Crear negocio
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => setBusinessDraft(null)}>
-                Cancelar
-              </Button>
-              {problemaNegocio && <span className="text-meta text-muted">{problemaNegocio}</span>}
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {userDraft && (
-        <div ref={vistaCuenta} className="scroll-mt-4">
-          <Card padded>
-            <h2 className="mb-4 text-ui font-semibold text-ink">
-              Nueva cuenta para{' '}
-              <span className="text-brand-text">
-                {businesses?.find((b) => b.id === userDraft.businessId)?.name}
-              </span>
-            </h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!problemaUsuario) createUser.mutate(userDraft)
-              }}
-              className="flex flex-col gap-4"
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
-                  <Input
-                    id={`${id}-un`}
-                    value={userDraft.name}
-                    onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
-                  />
-                </Field>
-                <Field
-                  label={t('adm.email')}
-                  htmlFor={`${id}-ue`}
-                  hint={t('adm.emailAcceso')}
-                  required
-                >
-                  <Input
-                    id={`${id}-ue`}
-                    type="email"
-                    value={userDraft.email}
-                    onChange={(e) => setUserDraft({ ...userDraft, email: e.target.value })}
-                  />
-                </Field>
-                <Field
-                  label={t('adm.contrasenaInicial')}
-                  htmlFor={`${id}-up`}
-                  hint={t('adm.contrasenaPista')}
-                  required
-                >
-                  <div className="flex gap-2">
-                    <Input
-                      id={`${id}-up`}
-                      autoComplete="new-password"
-                      value={userDraft.password}
-                      onChange={(e) => setUserDraft({ ...userDraft, password: e.target.value })}
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setUserDraft({ ...userDraft, password: generarPassword() })}
-                    >
-                      Otra
-                    </Button>
-                  </div>
-                </Field>
-                <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
-                  <Select
-                    id={`${id}-ur`}
-                    value={userDraft.role}
-                    onChange={(e) =>
-                      setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
-                    }
-                  >
-                    <option value="ADMIN">{t('panel.rolAdmin')}</option>
-                    <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
-                  </Select>
-                </Field>
-              </div>
-
-              {createUser.isError && (
-                <ErrorNote>
-                  {createUser.error instanceof ApiError
-                    ? createUser.error.message
-                    : 'No se ha podido crear'}
-                </ErrorNote>
-              )}
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" loading={createUser.isPending} disabled={!!problemaUsuario}>
-                  {t('adm.crearCuenta')}
-                </Button>
-                <Button type="button" variant="secondary" onClick={() => setUserDraft(null)}>
-                  {t('adm.cancelar')}
-                </Button>
-                {problemaUsuario && <span className="text-meta text-muted">{problemaUsuario}</span>}
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
 
       {(businesses?.length ?? 0) > 6 && (
         <Input
@@ -1071,6 +828,199 @@ export function PanelAdmin() {
           </ul>
         </Card>
       )}
+
+      {/* Dar de alta un negocio y crear una cuenta, en diálogos: antes eran
+          tarjetas que aparecían arriba de la página, lejos de la fila desde
+          la que se pedía la cuenta, y la contraseña salía en otra tarjeta. */}
+      <FormDialog
+        open={!!businessDraft}
+        onClose={() => setBusinessDraft(null)}
+        title={t('adm.nuevoNegocio')}
+        hint={t('adm.nuevoNegocioPista')}
+        submitLabel={t('adm.crearNegocio')}
+        onSubmit={() => {
+          setIntentoNegocio(true)
+          if (businessDraft && !problemaNegocio) createBusiness.mutate(businessDraft)
+        }}
+        loading={createBusiness.isPending}
+        error={
+          createBusiness.isError ? textoDeError(createBusiness.error, t('adm.noSePudoCrear')) : null
+        }
+        dirty={!!businessDraft && JSON.stringify(businessDraft) !== JSON.stringify(emptyBusiness)}
+      >
+        {businessDraft && (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('adm.nombre')} htmlFor={`${id}-bn`} required>
+                <Input
+                  id={`${id}-bn`}
+                  value={businessDraft.name}
+                  onChange={(e) => setBusinessDraft({ ...businessDraft, name: e.target.value })}
+                />
+              </Field>
+              <Field label={t('adm.categoria')} htmlFor={`${id}-bc`} required>
+                <Select
+                  id={`${id}-bc`}
+                  value={businessDraft.category}
+                  onChange={(e) => setBusinessDraft({ ...businessDraft, category: e.target.value })}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {idioma === 'en' ? c.labelEn : c.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                label={t('adm.email')}
+                htmlFor={`${id}-be`}
+                hint={t('adm.emailPista')}
+                required
+              >
+                <Input
+                  id={`${id}-be`}
+                  type="email"
+                  value={businessDraft.email}
+                  onChange={(e) => setBusinessDraft({ ...businessDraft, email: e.target.value })}
+                />
+              </Field>
+              <Field label={t('adm.telefono')} htmlFor={`${id}-bp`} hint={t('adm.opcional')}>
+                <Input
+                  id={`${id}-bp`}
+                  value={businessDraft.phone}
+                  onChange={(e) => setBusinessDraft({ ...businessDraft, phone: e.target.value })}
+                />
+              </Field>
+              <Field label={t('adm.calle')} htmlFor={`${id}-bs`} required>
+                <Input
+                  id={`${id}-bs`}
+                  value={businessDraft.street}
+                  onChange={(e) => setBusinessDraft({ ...businessDraft, street: e.target.value })}
+                />
+              </Field>
+              <div className="grid grid-cols-[1.6fr_1fr] gap-3">
+                <Field label={t('adm.ciudad')} htmlFor={`${id}-bci`} required>
+                  <Input
+                    id={`${id}-bci`}
+                    value={businessDraft.city}
+                    onChange={(e) => setBusinessDraft({ ...businessDraft, city: e.target.value })}
+                  />
+                </Field>
+                <Field label={t('adm.cp')} htmlFor={`${id}-bcp`} required>
+                  <Input
+                    id={`${id}-bcp`}
+                    inputMode="numeric"
+                    maxLength={5}
+                    value={businessDraft.postalCode}
+                    onChange={(e) =>
+                      setBusinessDraft({ ...businessDraft, postalCode: e.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+            </div>
+
+            {intentoNegocio && problemaNegocio && <ErrorNote>{problemaNegocio}</ErrorNote>}
+          </>
+        )}
+      </FormDialog>
+
+      <FormDialog
+        open={!!userDraft || !!credencial}
+        onClose={() => {
+          setUserDraft(null)
+          setCredencial(null)
+        }}
+        title={
+          credencial
+            ? t('eq.cuentaCreada')
+            : t('adm.nuevaCuentaPara', {
+                negocio: businesses?.find((b) => b.id === userDraft?.businessId)?.name ?? '',
+              })
+        }
+        submitLabel={t('adm.crearCuenta')}
+        onSubmit={() => {
+          setIntentoCuenta(true)
+          if (userDraft && !problemaUsuario) createUser.mutate(userDraft)
+        }}
+        loading={createUser.isPending}
+        error={createUser.isError ? textoDeError(createUser.error, t('adm.noSePudoCrear')) : null}
+        dirty={!credencial && !!userDraft && userDraft.name.trim() !== ''}
+        sinPie={!!credencial}
+      >
+        {credencial ? (
+          // Desde aquí no se manda correo: los datos se pasan a mano.
+          <CredencialCreada
+            email={credencial.email}
+            password={credencial.password}
+            avisoCorreo={false}
+            onListo={() => setCredencial(null)}
+          />
+        ) : (
+          userDraft && (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
+                  <Input
+                    id={`${id}-un`}
+                    value={userDraft.name}
+                    onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
+                  />
+                </Field>
+                <Field
+                  label={t('adm.email')}
+                  htmlFor={`${id}-ue`}
+                  hint={t('adm.emailAcceso')}
+                  required
+                >
+                  <Input
+                    id={`${id}-ue`}
+                    type="email"
+                    value={userDraft.email}
+                    onChange={(e) => setUserDraft({ ...userDraft, email: e.target.value })}
+                  />
+                </Field>
+                <Field
+                  label={t('adm.contrasenaInicial')}
+                  htmlFor={`${id}-up`}
+                  hint={t('adm.contrasenaPista')}
+                  required
+                >
+                  <div className="flex gap-2">
+                    <Input
+                      id={`${id}-up`}
+                      autoComplete="new-password"
+                      value={userDraft.password}
+                      onChange={(e) => setUserDraft({ ...userDraft, password: e.target.value })}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setUserDraft({ ...userDraft, password: generarPassword() })}
+                    >
+                      {t('eq.otra')}
+                    </Button>
+                  </div>
+                </Field>
+                <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
+                  <Select
+                    id={`${id}-ur`}
+                    value={userDraft.role}
+                    onChange={(e) =>
+                      setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
+                    }
+                  >
+                    <option value="ADMIN">{t('panel.rolAdmin')}</option>
+                    <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
+                  </Select>
+                </Field>
+              </div>
+
+              {intentoCuenta && problemaUsuario && <ErrorNote>{problemaUsuario}</ErrorNote>}
+            </>
+          )
+        )}
+      </FormDialog>
 
       <ConfirmDialog
         open={!!aAprobar}
