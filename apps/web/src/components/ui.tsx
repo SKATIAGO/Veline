@@ -882,6 +882,8 @@ export function Sheet({
   focoInicial,
   rol = 'dialog',
   historial = true,
+  lado = 'abajo',
+  completa = false,
 }: {
   open: boolean
   onClose: () => void
@@ -897,8 +899,19 @@ export function Sheet({
       se contesta justo antes de navegar, y su entrada en el historial se
       quedaría colgando entre la página vieja y la nueva. */
   historial?: boolean
+  /**
+   * `abajo`: la ficha de siempre (abajo en el móvil, centrada en grande).
+   * `derecha`: panel lateral para ver un registro sin perder la lista; en el
+   * móvil ocupa la pantalla entera.
+   */
+  lado?: 'abajo' | 'derecha'
+  /** En el móvil, a pantalla completa: para los asistentes, que no caben en
+      una ficha a media altura con el teclado abierto. */
+  completa?: boolean
 }) {
   const { t } = useIdioma()
+  const ladoRef = useRef(lado)
+  ladoRef.current = lado
   const caja = useRef<HTMLDivElement>(null)
   const fondo = useRef<HTMLDivElement>(null)
   const devolverFoco = useRef<HTMLElement | null>(null)
@@ -923,7 +936,7 @@ export function Sheet({
     }
     cerrando.current = true
     el.style.transition = 'transform 200ms cubic-bezier(.4,0,1,1)'
-    el.style.transform = 'translateY(100%)'
+    el.style.transform = ladoRef.current === 'derecha' ? 'translateX(100%)' : 'translateY(100%)'
     if (fondo.current) {
       fondo.current.style.transition = 'opacity 200ms ease-in'
       fondo.current.style.opacity = '0'
@@ -1035,7 +1048,8 @@ export function Sheet({
      no, el gesto es para leer lo de abajo. */
   useEffect(() => {
     const el = caja.current
-    if (!open || !el) return
+    // Arrastrar hacia abajo solo tiene sentido en la ficha que sube desde abajo.
+    if (!open || !el || lado === 'derecha') return
 
     let inicioY = 0
     let inicioT = 0
@@ -1102,13 +1116,18 @@ export function Sheet({
       el.removeEventListener('touchend', alSoltar)
       el.removeEventListener('touchcancel', alSoltar)
     }
-  }, [open, cerrar])
+  }, [open, cerrar, lado])
 
   if (!open) return null
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className={cx(
+        'fixed inset-0 z-50 flex',
+        lado === 'derecha'
+          ? 'items-stretch justify-end'
+          : 'items-end justify-center sm:items-center',
+      )}
       role="presentation"
     >
       {/* El fondo oscuro cierra al tocarlo. Antes el aviso estaba en el
@@ -1129,18 +1148,29 @@ export function Sheet({
         aria-label={title}
         tabIndex={-1}
         className={cx(
-          'relative w-full max-w-lg bg-surface shadow-overlay outline-none',
-          'max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-2xl px-5',
-          'pb-[max(1.5rem,env(safe-area-inset-bottom))]',
-          'sm:mx-4 sm:rounded-2xl sm:px-6 sm:pb-6',
-          'motion-safe:animate-[veline-sheet_220ms_cubic-bezier(.22,1,.36,1)]',
+          'relative w-full bg-surface shadow-overlay outline-none',
+          'overflow-y-auto overscroll-contain px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]',
+          lado === 'derecha'
+            ? cx(
+                'h-[100dvh] sm:max-w-[480px] sm:rounded-l-2xl sm:px-6 sm:pb-6',
+                'motion-safe:animate-[veline-lateral_240ms_cubic-bezier(.22,1,.36,1)]',
+              )
+            : cx(
+                'max-w-lg rounded-t-2xl sm:mx-4 sm:max-h-[88dvh] sm:rounded-2xl sm:px-6 sm:pb-6',
+                completa
+                  ? 'max-h-[88dvh] max-sm:h-[100dvh] max-sm:max-h-none max-sm:rounded-none'
+                  : 'max-h-[88dvh]',
+                'motion-safe:animate-[veline-sheet_220ms_cubic-bezier(.22,1,.36,1)]',
+              ),
         )}
       >
         {/* Cabecera pegada arriba: el asa, que ahora sí se arrastra, y un
             botón de cerrar a la vista. Sin él, en el móvil —donde no hay
             tecla Escape— la única salida era tocar una de las opciones. */}
         <div className="sticky top-0 z-10 -mx-5 flex h-12 items-center justify-center bg-surface sm:-mx-6">
-          <span aria-hidden className="h-1 w-10 rounded-full bg-line-strong sm:hidden" />
+          {lado === 'abajo' && !completa && (
+            <span aria-hidden className="h-1 w-10 rounded-full bg-line-strong sm:hidden" />
+          )}
           <button
             type="button"
             onClick={cerrar}

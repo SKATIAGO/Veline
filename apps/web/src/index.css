@@ -164,6 +164,17 @@
   }
 }
 
+/* El panel lateral entra por la derecha (y en el móvil, a pantalla completa,
+   también: es la «página siguiente» de la lista). */
+@keyframes veline-lateral {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
 /* Flotación lenta para los adornos */
 @keyframes veline-page-enter {
   from {

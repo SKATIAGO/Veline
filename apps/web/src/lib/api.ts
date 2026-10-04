@@ -210,8 +210,37 @@ export const api = {
 
   createPanelUser: (
     slug: string,
-    body: { name: string; email: string; password: string; role: 'ADMIN' | 'EMPLEADO' },
+    body: {
+      name: string
+      email: string
+      password: string
+      role: 'ADMIN' | 'EMPLEADO'
+      /** La persona del equipo a la que pertenece la cuenta. */
+      staffId?: string
+    },
   ) => request<PanelUser>(`/panel/${slug}/users`, { method: 'POST', body: JSON.stringify(body) }),
+
+  setPanelUserRole: (slug: string, id: string, role: 'ADMIN' | 'EMPLEADO') =>
+    request<{ ok: true }>(`/panel/${slug}/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
+  /** Incorporar a alguien de una vez: su ficha, su horario y su acceso. */
+  incorporar: (
+    slug: string,
+    body: {
+      name: string
+      atiende: boolean
+      locationId?: string | null
+      horario?: { weekday: number; startMin: number; endMin: number }[]
+      acceso?: { email: string; password: string; role: 'ADMIN' | 'EMPLEADO' } | null
+    },
+  ) =>
+    request<{ staffId: string | null; userId: string | null }>(`/panel/${slug}/equipo`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   setPanelUserActive: (slug: string, id: string, active: boolean) =>
     request<{ ok: true }>(`/panel/${slug}/users/${id}`, {
@@ -295,16 +324,20 @@ export const api = {
   // ── Personas que atienden ──────────────────────────────────
   panelStaff: (slug: string) => request<PanelStaff[]>(`/panel/${slug}/staff`),
 
-  createStaff: (slug: string, name: string, locationId?: string | null) =>
+  createStaff: (slug: string, name: string, locationId?: string | null, userId?: string) =>
     request<PanelStaff>(`/panel/${slug}/staff`, {
       method: 'POST',
-      body: JSON.stringify({ name, ...(locationId !== undefined ? { locationId } : {}) }),
+      body: JSON.stringify({
+        name,
+        ...(locationId !== undefined ? { locationId } : {}),
+        ...(userId ? { userId } : {}),
+      }),
     }),
 
   updateStaff: (
     slug: string,
     id: string,
-    body: { name?: string; active?: boolean; locationId?: string | null },
+    body: { name?: string; active?: boolean; locationId?: string | null; userId?: string | null },
   ) =>
     request<PanelStaff>(`/panel/${slug}/staff/${id}`, {
       method: 'PATCH',
@@ -710,6 +743,8 @@ export interface PanelStaff {
   locationId: string | null
   /** Si tiene horario propio, o sigue el del negocio entero. */
   hasHours?: boolean
+  /** Su cuenta del panel, si la tiene. */
+  userId: string | null
 }
 
 export interface PanelNote {

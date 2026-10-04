@@ -72,6 +72,7 @@ describe('diccionarios', () => {
       'ctas.superadmins',
       'env.sms',
       'comun.extras',
+      'equipo.no',
       /* Abreviatura de minutos: «min» en los dos idiomas. */
       'comun.min',
     ]

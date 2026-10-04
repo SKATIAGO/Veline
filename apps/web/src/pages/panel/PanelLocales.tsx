@@ -348,7 +348,7 @@ export function PanelLocales() {
             ),
             personas: (
               <Link
-                to={`/panel/${slug}/personas`}
+                to={`/panel/${slug}/equipo`}
                 className="font-semibold text-brand-text hover:underline"
               >
                 {t('loc.avisoPersonas')}

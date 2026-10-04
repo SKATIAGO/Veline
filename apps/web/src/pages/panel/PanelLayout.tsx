@@ -601,12 +601,6 @@ export function PanelLayout() {
                 grupo: 'panel.grupoConfiguracion',
               },
               {
-                to: `/panel/${slug}/personas`,
-                clave: 'panel.personas',
-                icono: 'personas',
-                grupo: 'panel.grupoConfiguracion',
-              },
-              {
                 to: `/panel/${slug}/equipo`,
                 clave: 'panel.equipo',
                 icono: 'equipo',

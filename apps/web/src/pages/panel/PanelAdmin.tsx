@@ -28,6 +28,7 @@ import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
+import { generarPassword } from '../../lib/password'
 import { CredencialCreada } from '../../components/Credencial'
 
 /**
@@ -61,13 +62,6 @@ interface UserDraft {
   email: string
   password: string
   role: 'ADMIN' | 'EMPLEADO'
-}
-
-function generarPassword() {
-  const abc = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
-  return Array.from(crypto.getRandomValues(new Uint32Array(14)))
-    .map((n) => abc[n % abc.length])
-    .join('')
 }
 
 const esEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim())

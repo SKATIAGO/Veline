@@ -56,7 +56,20 @@ const panelUserBody = z.object({
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(10).max(200),
   role: z.enum(['ADMIN', 'EMPLEADO']),
+  /** La persona del equipo a la que pertenece esta cuenta, si atiende citas. */
+  staffId: z.string().min(1).optional(),
 })
+
+/**
+ * Cuántos administradores activos le quedarían al negocio si se le quita el
+ * acceso o el permiso a `sin`. Con cero, nadie podría entrar a configurar
+ * nada: ni horario, ni servicios, ni dar acceso a otro. Y solo lo arregla
+ * Veline a mano.
+ */
+const otrosAdminsActivos = (businessId: string, sin: string) =>
+  prisma.user.count({
+    where: { businessId, role: 'ADMIN', active: true, id: { not: sin } },
+  })
 
 const rangeQuery = z.object({
   from: z
@@ -403,6 +416,17 @@ export async function panelRoutes(app: FastifyInstance) {
     const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } })
     if (existing) return reply.code(409).send({ error: 'Ya existe un usuario con ese email' })
 
+    if (parsed.data.staffId) {
+      const persona = await prisma.staff.findFirst({
+        where: { id: parsed.data.staffId, businessId: auth.business.id },
+        select: { userId: true },
+      })
+      if (!persona) return reply.code(404).send({ error: 'Persona no encontrada' })
+      if (persona.userId) {
+        return reply.code(409).send({ error: 'Esta persona ya tiene acceso al panel' })
+      }
+    }
+
     const created = await prisma.user.create({
       data: {
         name: parsed.data.name,
@@ -413,6 +437,7 @@ export async function panelRoutes(app: FastifyInstance) {
         // Nace verificada, como las del superadmin: no recibe enlace de
         // confirmación, así que sin esto no podría entrar nunca.
         emailVerifiedAt: new Date(),
+        ...(parsed.data.staffId ? { staff: { connect: { id: parsed.data.staffId } } } : {}),
       },
       select: { id: true, name: true, email: true, role: true, active: true, createdAt: true },
     })
@@ -450,9 +475,19 @@ export async function panelRoutes(app: FastifyInstance) {
     const auth = await authorize(user, slug, 'configuracion')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
-    const parsed = z.object({ active: z.boolean() }).safeParse(req.body)
+    const parsed = z
+      .object({ active: z.boolean().optional(), role: z.enum(['ADMIN', 'EMPLEADO']).optional() })
+      .refine((d) => d.active !== undefined || d.role !== undefined)
+      .safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: 'Datos inválidos' })
-    if (id === user.id) return reply.code(400).send({ error: 'No puedes desactivarte a ti mismo' })
+    if (id === user.id) {
+      return reply.code(400).send({
+        error:
+          parsed.data.role !== undefined
+            ? 'No puedes cambiar tus propios permisos'
+            : 'No puedes desactivarte a ti mismo',
+      })
+    }
 
     // Solo usuarios DEL negocio: un admin no toca usuarios de otros negocios
     // ni superadmins (que no pertenecen a ninguno).
@@ -461,17 +496,41 @@ export async function panelRoutes(app: FastifyInstance) {
     })
     if (!target) return reply.code(404).send({ error: 'Usuario no encontrado' })
 
-    await prisma.user.update({ where: { id }, data: { active: parsed.data.active } })
-    if (!parsed.data.active) await prisma.session.deleteMany({ where: { userId: id } })
+    // Nunca dejar el negocio sin nadie que pueda administrarlo.
+    const dejaDeSerAdmin =
+      target.role === 'ADMIN' &&
+      target.active &&
+      (parsed.data.active === false || parsed.data.role === 'EMPLEADO')
+    if (dejaDeSerAdmin && (await otrosAdminsActivos(auth.business.id, id)) === 0) {
+      return reply.code(409).send({
+        error: `${target.name} es la única persona que administra el negocio. Da permisos de administrador a otra antes.`,
+      })
+    }
 
-    audit(req, {
-      action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
-      summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
-      actor: user,
-      businessId: auth.business.id,
-      entity: 'User',
-      entityId: id,
-    })
+    await prisma.user.update({ where: { id }, data: parsed.data })
+    if (parsed.data.active === false) await prisma.session.deleteMany({ where: { userId: id } })
+
+    if (parsed.data.active !== undefined) {
+      audit(req, {
+        action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
+        summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
+        actor: user,
+        businessId: auth.business.id,
+        entity: 'User',
+        entityId: id,
+      })
+    }
+    if (parsed.data.role !== undefined && parsed.data.role !== target.role) {
+      audit(req, {
+        action: 'USUARIO_ROL_CAMBIADO',
+        summary: `Ha cambiado los permisos de ${target.name}: ahora es ${parsed.data.role === 'ADMIN' ? 'administrador' : 'empleado'}`,
+        actor: user,
+        businessId: auth.business.id,
+        entity: 'User',
+        entityId: id,
+        metadata: { antes: target.role, despues: parsed.data.role },
+      })
+    }
 
     return { ok: true }
   })

@@ -32,7 +32,23 @@ const staffBody = z.object({
   name: z.string().trim().min(2, 'El nombre es demasiado corto').max(120),
   /** En qué local atiende. Sin poner = en todos. */
   locationId: z.string().min(1).nullable().optional(),
+  /** Su cuenta del panel, si la tiene. Null = quitar el enlace. */
+  userId: z.string().min(1).nullable().optional(),
 })
+
+/**
+ * Que la cuenta sea de este negocio y no esté ya enlazada con otra persona.
+ * Devuelve el motivo si no vale, o null si vale.
+ */
+async function cuentaEnlazable(businessId: string, userId: string, staffId?: string) {
+  const u = await prisma.user.findFirst({
+    where: { id: userId, businessId },
+    select: { staff: { select: { id: true } } },
+  })
+  if (!u) return 'Esa cuenta no es de este negocio'
+  if (u.staff && u.staff.id !== staffId) return 'Esa cuenta ya está enlazada con otra persona'
+  return null
+}
 
 const staffHoursBody = z.object({
   hours: z
@@ -132,6 +148,8 @@ export async function negocioRoutes(app: FastifyInstance) {
       locationId: s.locationId,
       /** Si tiene horario propio, o sigue el del negocio entero. */
       hasHours: s._count.hours > 0,
+      /** Su cuenta del panel, si la tiene. */
+      userId: s.userId,
     }))
   })
 
@@ -157,9 +175,19 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (parsed.data.locationId && !auth.business.locationIds.includes(parsed.data.locationId)) {
       return reply.code(400).send({ error: 'Ese local no es de este negocio' })
     }
+    // Alguien que ya entra al panel y ahora también atiende citas.
+    if (parsed.data.userId) {
+      const motivo = await cuentaEnlazable(auth.business.id, parsed.data.userId)
+      if (motivo) return reply.code(409).send({ error: motivo })
+    }
 
     const created = await prisma.staff.create({
-      data: { businessId: auth.business.id, locationId, name: parsed.data.name },
+      data: {
+        businessId: auth.business.id,
+        locationId,
+        name: parsed.data.name,
+        userId: parsed.data.userId ?? null,
+      },
     })
 
     audit(req, {
@@ -199,6 +227,10 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (parsed.data.locationId && !auth.business.locationIds.includes(parsed.data.locationId)) {
       return reply.code(400).send({ error: 'Ese local no es de este negocio' })
     }
+    if (parsed.data.userId) {
+      const motivo = await cuentaEnlazable(auth.business.id, parsed.data.userId, id)
+      if (motivo) return reply.code(409).send({ error: motivo })
+    }
 
     // Dar de baja a alguien con citas por delante dejaría esas citas huérfanas
     // en la agenda. Se avisa en vez de romperlas por la espalda.
@@ -229,7 +261,7 @@ export async function negocioRoutes(app: FastifyInstance) {
       businessId: auth.business.id,
       entity: 'Staff',
       entityId: id,
-      metadata: cambios(existing, updated, ['name', 'active']),
+      metadata: cambios(existing, updated, ['name', 'active', 'locationId', 'userId']),
     })
 
     return { id: updated.id, name: updated.name, active: updated.active }

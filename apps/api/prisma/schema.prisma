@@ -84,20 +84,20 @@ model Business {
   /// y todavía nadie lo ha mirado: no sale en el marketplace ni tiene página
   /// pública. Los que damos de alta nosotros nacen ya aprobados — darlos de
   /// alta ES la revisión.
-  approvedAt DateTime?
+  approvedAt     DateTime?
   /// Cuándo se le cortó o se dio de baja, para poder contarlo después.
-  endedAt    DateTime?
+  endedAt        DateTime?
   /// Nota interna de la ficha: por qué se suspendió, con quién se habló.
-  adminNotes String?
+  adminNotes     String?
   /// Mensajes del cupo que sobraron el mes pasado, para sumarlos al cupo de
   /// este. Solo se acumula en los planes de pago — en Gratis siempre es 0.
   /// Se actualiza una sola vez, al cerrar el mes: mientras el mes está en
   /// curso se queda quieto, así que el cupo efectivo no cambia a media cita.
-  bankedMessages Int @default(0)
+  bankedMessages Int       @default(0)
   /// URLs base de las fotos (sin parámetros de tamaño). La primera es la
   /// portada; el resto rellena la galería del perfil.
-  photos     String[]
-  createdAt  DateTime  @default(now())
+  photos         String[]
+  createdAt      DateTime  @default(now())
 
   locations Location[]
   services  Service[]
@@ -117,9 +117,9 @@ model Business {
 }
 
 model Location {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   businessId String
-  name       String @default("Principal")
+  name       String  @default("Principal")
   street     String
   city       String
   postalCode String
@@ -249,9 +249,17 @@ model Staff {
   locationId String?
   name       String
   active     Boolean @default(true)
+  /// Su cuenta para entrar al panel, si la tiene. Null = atiende citas pero
+  /// no entra al panel (o todavía no se le ha creado el acceso).
+  ///
+  /// Antes no había enlace: quien atiende (Staff) y quien entra al panel
+  /// (User) eran dos listas de la misma gente, en dos pantallas, y dar de
+  /// alta a alguien entero eran tres pasos sin relación entre sí.
+  userId     String? @unique
 
   business Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
   location Location?   @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  user     User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   bookings Booking[]
   hours    StaffHour[]
 
@@ -420,6 +428,8 @@ model User {
 
   business           Business?           @relation(fields: [businessId], references: [id], onDelete: Cascade)
   fichajes           Fichaje[]           @relation("FichajesPropios")
+  /// Si además atiende citas: su ficha de Staff.
+  staff              Staff?
   correcciones       Fichaje[]           @relation("FichajesCorregidos")
   sessions           Session[]
   passwordResets     PasswordReset[]
@@ -625,6 +635,7 @@ enum AuditAction {
   USUARIO_CREADO
   USUARIO_ACTIVADO
   USUARIO_DESACTIVADO
+  USUARIO_ROL_CAMBIADO
   NEGOCIO_CREADO
   NEGOCIO_PLAN_CAMBIADO
   NEGOCIO_SUSPENDIDO
