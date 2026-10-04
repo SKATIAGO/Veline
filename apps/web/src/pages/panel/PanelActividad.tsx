@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { formatPrice } from '@veline/shared'
@@ -15,6 +15,7 @@ import {
   Skeleton,
 } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
+import { Tabs, panelProps } from '../../components/Tabs'
 
 /**
  * Registro de actividad: quién hizo qué y cuándo.
@@ -46,6 +47,29 @@ const ACCIONES: Record<string, { clave: Clave; tono: Tono }> = {
   HORARIO_EDITADO: { clave: 'act.horarioEditado', tono: 'neutral' },
   RESERVA_CREADA: { clave: 'act.reservaCreada', tono: 'ok' },
   RESERVA_CANCELADA: { clave: 'act.reservaCancelada', tono: 'off' },
+  USUARIO_ROL_CAMBIADO: { clave: 'act.usuarioRolCambiado', tono: 'neutral' },
+  NEGOCIO_PLAN_CAMBIADO: { clave: 'act.negocioPlanCambiado', tono: 'neutral' },
+  NEGOCIO_SUSPENDIDO: { clave: 'act.negocioSuspendido', tono: 'off' },
+  NEGOCIO_REACTIVADO: { clave: 'act.negocioReactivado', tono: 'ok' },
+  PRUEBA_AMPLIADA: { clave: 'act.pruebaAmpliada', tono: 'neutral' },
+  COBRO_GENERADO: { clave: 'act.cobroGenerado', tono: 'neutral' },
+  COBRO_MARCADO: { clave: 'act.cobroMarcado', tono: 'ok' },
+  RESENA_PUBLICADA: { clave: 'act.resenaPublicada', tono: 'ok' },
+  RESERVA_MOVIDA: { clave: 'act.reservaMovida', tono: 'neutral' },
+  RESERVA_COMPLETADA: { clave: 'act.reservaCompletada', tono: 'ok' },
+  RESERVA_NO_ASISTIO: { clave: 'act.reservaNoAsistio', tono: 'warn' },
+  PERSONA_CREADA: { clave: 'act.personaCreada', tono: 'ok' },
+  PERSONA_EDITADA: { clave: 'act.personaEditada', tono: 'neutral' },
+  PERSONA_DESACTIVADA: { clave: 'act.personaDesactivada', tono: 'off' },
+  PERSONA_ACTIVADA: { clave: 'act.personaActivada', tono: 'ok' },
+  PERSONA_HORARIO_EDITADO: { clave: 'act.personaHorarioEditado', tono: 'neutral' },
+  PERSONA_ELIMINADA: { clave: 'act.personaEliminada', tono: 'off' },
+  NOTA_CREADA: { clave: 'act.notaCreada', tono: 'neutral' },
+  NOTA_ELIMINADA: { clave: 'act.notaEliminada', tono: 'off' },
+  CIERRE_CREADO: { clave: 'act.cierreCreado', tono: 'neutral' },
+  CIERRE_ELIMINADO: { clave: 'act.cierreEliminado', tono: 'neutral' },
+  NEGOCIO_EDITADO: { clave: 'act.negocioEditado', tono: 'neutral' },
+  FICHAJE_CORREGIDO: { clave: 'act.fichajeCorregido', tono: 'warn' },
 }
 
 /** Filtros rápidos: los tres motivos reales por los que se abre esta pantalla. */
@@ -80,6 +104,8 @@ const ETIQUETAS: Record<string, Clave> = {
   priceCents: 'act.campoPrecio',
   antes: 'act.campoAntes',
   despues: 'act.campoDespues',
+  plan: 'adm.plan',
+  diasPrueba: 'act.campoDiasPrueba',
 }
 
 const ES_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
@@ -150,7 +176,16 @@ function Detalle({ metadata }: { metadata: unknown }) {
   )
 }
 
-function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
+export function Fila({
+  e,
+  verIp,
+  sinNegocio,
+}: {
+  e: AuditEntry
+  verIp: boolean
+  /** Dentro de la ficha de un negocio, su nombre en cada línea sobra. */
+  sinNegocio?: boolean
+}) {
   const { t, fecha } = useTextosRegistro()
   const meta = ACCIONES[e.action]
 
@@ -176,7 +211,7 @@ function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
             ) : (
               t('act.sinSesion')
             )}
-            {e.business && <> · {e.business.name}</>}
+            {e.business && !sinNegocio && <> · {e.business.name}</>}
             {verIp && e.ip && <> · {e.ip}</>}
           </p>
 
@@ -191,13 +226,117 @@ function Fila({ e, verIp }: { e: AuditEntry; verIp: boolean }) {
   )
 }
 
+const TIPO_CLAVE: Record<string, Clave> = {
+  RESERVA_CONFIRMADA: 'env.tipoConfirmacion',
+  RESERVA_CANCELADA: 'env.tipoCancelacion',
+  RECORDATORIO: 'env.tipoRecordatorio',
+  RESENA_PEDIDA: 'env.tipoResena',
+  RESTABLECER_CONTRASENA: 'env.tipoContrasena',
+}
+
+/**
+ * Qué sale de verdad del servidor: es lo único de la plataforma que puede
+ * estar roto sin que nada lo parezca, porque con los SMS en modo de prueba
+ * las citas se confirman igual y nadie recibe nada. Estaba encima de la lista
+ * de negocios; vive aquí, junto a lo que ha pasado, que es donde se mira
+ * cuando alguien dice que no le llegó un aviso.
+ *
+ * La línea de cada canal la escribe el servidor tal cual la pone en su log de
+ * arranque, en castellano: es un diagnóstico, y reescribirlo aquí sería
+ * perder precisión justo donde importa. Lo de alrededor sí va traducido.
+ */
+function Envios() {
+  const { t, locale } = useIdioma()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['admin', 'envios'],
+    queryFn: api.adminEnvios,
+  })
+  if (isLoading) return <Skeleton className="h-48" />
+  if (isError || !data) return <ErrorNote>{t('act.noSePudoCargar')}</ErrorNote>
+
+  const sms = data.ultimos7dias.filter((f) => f.canal === 'SMS')
+  const canales = [
+    ['env.correo', data.correo],
+    ['env.sms', data.sms],
+  ] as const
+
+  return (
+    <Card padded>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-subheading font-semibold text-ink">{t('env.titulo')}</h2>
+        <p className="text-meta text-subtle">{t('env.pista')}</p>
+      </div>
+
+      <dl className="flex flex-col gap-3">
+        {canales.map(([clave, canal]) => (
+          <div key={clave} className="flex flex-wrap items-start gap-x-3 gap-y-1">
+            <dt className="w-[60px] shrink-0 pt-0.5 text-meta font-semibold text-body-2">
+              {t(clave)}
+            </dt>
+            <dd className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+              <Badge tone={canal.activo ? 'ok' : 'warn'}>
+                {canal.activo ? t('env.activo') : t('env.noSale')}
+              </Badge>
+              <span className="min-w-0 text-meta break-words text-muted">{canal.texto}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-4 border-t border-line pt-3">
+        <p className="mb-2 text-meta font-semibold text-body-2">
+          {t('env.smsUltimos7')}
+          {data.ultimoSmsEnviado && (
+            <span className="ml-2 font-normal text-subtle">
+              {t('env.ultimoSms', {
+                fecha: new Date(data.ultimoSmsEnviado).toLocaleString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+              })}
+            </span>
+          )}
+        </p>
+        {sms.length === 0 ? (
+          <p className="text-meta text-subtle">{t('env.sinSms')}</p>
+        ) : (
+          <ul className="flex flex-col gap-1 text-meta">
+            {sms.map((f) => (
+              <li
+                key={`${f.tipo}-${f.estado}-${f.motivo ?? ''}`}
+                className="flex flex-wrap gap-x-2 text-body-2"
+              >
+                <span className="font-semibold text-ink">
+                  {TIPO_CLAVE[f.tipo] ? t(TIPO_CLAVE[f.tipo]!) : f.tipo}
+                </span>
+                <span>
+                  {f.estado === 'ENVIADO'
+                    ? t('env.enviados', { n: f.total })
+                    : t('env.noEnviados', { n: f.total })}
+                </span>
+                {f.motivo && <span className="text-subtle">· {f.motivo}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 export function PanelActividad() {
   const { t } = useTextosRegistro()
   const { slug } = useParams()
   const { user } = useAuth()
   const [filtro, setFiltro] = useState<string>('')
+  const idBase = useId()
+  const [vista, setVista] = useState<'registro' | 'envios'>('registro')
 
   const esSuperadmin = user?.role === 'SUPERADMIN'
+  // Los envíos son de toda la plataforma: solo en la Actividad de la trastienda.
+  const conEnvios = esSuperadmin && !slug
 
   // El superadmin ve el registro del negocio que tenga abierto; en /panel/admin
   // (sin slug) lo ve entero. Al admin la API le fuerza el suyo de todas formas,
@@ -232,43 +371,67 @@ export function PanelActividad() {
         hint={esSuperadmin ? t('act.pistaPlataforma') : t('act.pistaNegocio')}
       />
 
-      <div className="flex flex-wrap gap-2">
-        {FILTROS.map((f) => (
-          <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-            {t(f.clave)}
-          </FilterChip>
-        ))}
-      </div>
-
-      {error && <ErrorNote>{t('act.noSePudoCargar')}</ErrorNote>}
-
-      {isLoading ? (
-        <Card className="flex flex-col gap-3 p-5">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-12" />
-          ))}
-        </Card>
-      ) : entries.length === 0 ? (
-        <EmptyState title={t('act.todaviaNoHay')} hint={t('act.todaviaNoHayPista')} />
-      ) : (
-        <Card className="px-5 py-1">
-          <ul>
-            {entries.map((e) => (
-              <Fila key={e.id} e={e} verIp={esSuperadmin} />
-            ))}
-          </ul>
-        </Card>
+      {conEnvios && (
+        <Tabs
+          idBase={idBase}
+          tabs={[
+            { id: 'registro', label: t('act.registro') },
+            { id: 'envios', label: t('env.titulo') },
+          ]}
+          activa={vista}
+          onCambiar={setVista}
+          label={t('act.titulo')}
+        />
       )}
 
-      {hasNextPage && (
-        <div className="flex justify-center">
-          <Button
-            variant="secondary"
-            onClick={() => void fetchNextPage()}
-            disabled={isFetchingNextPage}
-          >
-            {isFetchingNextPage ? t('comun.cargando') : t('act.verMas')}
-          </Button>
+      {conEnvios && vista === 'envios' ? (
+        <div {...panelProps(idBase, vista)} className="outline-none">
+          <Envios />
+        </div>
+      ) : (
+        <div
+          {...(conEnvios ? panelProps(idBase, vista) : {})}
+          className="flex flex-col gap-5 outline-none"
+        >
+          <div className="flex flex-wrap gap-2">
+            {FILTROS.map((f) => (
+              <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
+                {t(f.clave)}
+              </FilterChip>
+            ))}
+          </div>
+
+          {error && <ErrorNote>{t('act.noSePudoCargar')}</ErrorNote>}
+
+          {isLoading ? (
+            <Card className="flex flex-col gap-3 p-5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-12" />
+              ))}
+            </Card>
+          ) : entries.length === 0 ? (
+            <EmptyState title={t('act.todaviaNoHay')} hint={t('act.todaviaNoHayPista')} />
+          ) : (
+            <Card className="px-5 py-1">
+              <ul>
+                {entries.map((e) => (
+                  <Fila key={e.id} e={e} verIp={esSuperadmin} />
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {hasNextPage && (
+            <div className="flex justify-center">
+              <Button
+                variant="secondary"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? t('comun.cargando') : t('act.verMas')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

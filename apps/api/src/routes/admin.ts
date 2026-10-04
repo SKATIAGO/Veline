@@ -15,7 +15,8 @@ import { hashPassword } from '../auth/passwords.js'
 import { canManagePlatform } from '../auth/permissions.js'
 import { requireUser } from '../auth/sessions.js'
 import { slugLibre } from '../slug.js'
-import { describeMailConfig } from '../mail/enviar.js'
+import { describeMailConfig, sendMailSafely } from '../mail/enviar.js'
+import { panelUserCreatedMail } from '../mail/templates.js'
 import { describeSmsConfig, smsMode } from '../mail/acumbamail.js'
 import { readMailConfig } from '../mail/tipos.js'
 
@@ -32,6 +33,27 @@ const createBusinessSchema = z.object({
   street: z.string().trim().min(3).max(160),
   city: z.string().trim().min(2).max(80),
   postalCode: z.string().trim().min(3).max(10),
+})
+
+/**
+ * Dar de alta un negocio entero de una vez: el negocio, su local, su plan y
+ * la cuenta de su dueño. Antes eran pasos sueltos (crear, buscar la fila,
+ * crear la cuenta, copiar la contraseña, abrir la suscripción) y un fallo a
+ * mitad dejaba un negocio sin dueño que nadie recordaba completar.
+ */
+const altaSchema = createBusinessSchema.extend({
+  plan: z.enum(['GRATIS', 'NEGOCIO', 'EQUIPOS']).default('GRATIS'),
+  /** Días de prueba. 0 = empieza ya activo, sin prueba. */
+  trialDays: z.number().int().min(0).max(90).default(PRUEBA_DIAS_DEFECTO),
+  /** Su cuenta. Sin ella el negocio se crea igual y la cuenta se crea luego. */
+  dueno: z
+    .object({
+      name: z.string().trim().min(2).max(120),
+      email: z.string().trim().toLowerCase().email(),
+      password: z.string().min(10).max(200),
+    })
+    .nullable()
+    .optional(),
 })
 
 const createUserSchema = z.object({
@@ -149,6 +171,115 @@ export async function adminRoutes(app: FastifyInstance) {
         }))
         .sort((a, b) => b.total - a.total),
     }
+  })
+
+  app.post('/api/admin/alta', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const parsed = altaSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Datos inválidos', details: parsed.error.flatten() })
+    }
+    const d = parsed.data
+
+    if (d.dueno) {
+      const ya = await prisma.user.findUnique({ where: { email: d.dueno.email } })
+      if (ya) {
+        return reply.code(409).send({
+          error:
+            'Ese correo ya tiene cuenta en Veline. Usa otro para el dueño, o da de alta el negocio sin cuenta y créala luego desde su ficha.',
+          campo: 'dueno.email',
+        })
+      }
+    }
+
+    const slug = await slugLibre(d.name)
+    if (!slug) {
+      return reply.code(400).send({ error: 'El nombre no genera un identificador válido' })
+    }
+    const passwordHash = d.dueno ? await hashPassword(d.dueno.password) : null
+
+    const { negocio, dueno } = await prisma.$transaction(async (tx) => {
+      const negocio = await tx.business.create({
+        data: {
+          slug,
+          name: d.name,
+          category: d.category,
+          email: d.email,
+          phone: d.phone || null,
+          plan: d.plan,
+          // Con días de prueba, en prueba hasta esa fecha (ver la nota de la
+          // ruta de abajo: sin fecha, la prueba no caducaría nunca). Sin
+          // días, activo desde ya.
+          subStatus: d.trialDays > 0 ? 'PRUEBA' : 'ACTIVA',
+          trialEndsAt: d.trialDays > 0 ? new Date(Date.now() + d.trialDays * 86_400_000) : null,
+          // Darlo de alta a mano ES la revisión: nace publicado.
+          approvedAt: new Date(),
+          locations: {
+            create: { street: d.street, city: d.city, postalCode: d.postalCode },
+          },
+        },
+      })
+      const dueno =
+        d.dueno && passwordHash
+          ? await tx.user.create({
+              data: {
+                name: d.dueno.name,
+                email: d.dueno.email,
+                passwordHash,
+                role: 'ADMIN',
+                businessId: negocio.id,
+                // Lo da de alta Veline: no recibe enlace de confirmación.
+                emailVerifiedAt: new Date(),
+              },
+              select: { id: true, name: true, email: true },
+            })
+          : null
+      return { negocio, dueno }
+    })
+
+    audit(req, {
+      action: 'NEGOCIO_CREADO',
+      summary: `Ha dado de alta el negocio «${negocio.name}»`,
+      actor: user,
+      businessId: negocio.id,
+      entity: 'Business',
+      entityId: negocio.id,
+      metadata: {
+        slug: negocio.slug,
+        categoria: negocio.category,
+        ciudad: d.city,
+        plan: d.plan,
+        diasPrueba: d.trialDays,
+      },
+    })
+    if (dueno) {
+      audit(req, {
+        action: 'USUARIO_CREADO',
+        summary: `Ha dado de alta a ${dueno.name} (${dueno.email}) como ADMIN en «${negocio.name}»`,
+        actor: user,
+        businessId: negocio.id,
+        entity: 'User',
+        entityId: dueno.id,
+        metadata: { rol: 'ADMIN', negocio: negocio.slug },
+      })
+      // Que le lleguen sus datos de acceso a él, no solo a quien lo da de alta.
+      void sendMailSafely(
+        panelUserCreatedMail(
+          { email: dueno.email, name: dueno.name },
+          { businessName: negocio.name, password: d.dueno!.password, role: 'ADMIN' },
+        ),
+      )
+    }
+
+    return reply.code(201).send({
+      id: negocio.id,
+      slug: negocio.slug,
+      name: negocio.name,
+      duenoId: dueno?.id ?? null,
+    })
   })
 
   app.post('/api/admin/businesses', async (req, reply) => {

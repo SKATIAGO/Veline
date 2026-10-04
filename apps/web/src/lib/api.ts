@@ -477,9 +477,9 @@ export const api = {
   panelCuenta: (slug: string) => request<CuentaNegocio>(`/panel/${slug}/cuenta`),
 
   // ── Cobros (SUPERADMIN) ────────────────────────────────────
-  adminCharges: (period?: string) =>
+  adminCharges: (period?: string, businessId?: string) =>
     request<{ charges: Charge[]; totals: { pendienteCents: number; cobradoCents: number } }>(
-      `/admin/charges${qs({ period })}`,
+      `/admin/charges${qs({ period, businessId })}`,
     ),
 
   closeMonth: (period?: string) =>
@@ -510,7 +510,8 @@ export const api = {
   approveLocation: (id: string) =>
     request<{ ok: true }>(`/admin/locations/${id}/approve`, { method: 'PATCH' }),
 
-  createAdminBusiness: (body: {
+  /** El negocio, su local, su plan y la cuenta de su dueño, de una vez. */
+  adminAlta: (body: {
     name: string
     category: string
     email: string
@@ -518,8 +519,11 @@ export const api = {
     street: string
     city: string
     postalCode: string
+    plan: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS'
+    trialDays: number
+    dueno: { name: string; email: string; password: string } | null
   }) =>
-    request<{ id: string; slug: string; name: string }>('/admin/businesses', {
+    request<{ id: string; slug: string; name: string; duenoId: string | null }>('/admin/alta', {
       method: 'POST',
       body: JSON.stringify(body),
     }),

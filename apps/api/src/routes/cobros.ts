@@ -73,11 +73,17 @@ export async function cobrosRoutes(app: FastifyInstance) {
     if (!user) return
     if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
 
-    const parsed = periodParam.safeParse(req.query)
+    // La ficha de un negocio pide solo los suyos, de todos los meses.
+    const parsed = periodParam
+      .extend({ businessId: z.string().min(1).max(64).optional() })
+      .safeParse(req.query)
     if (!parsed.success) return reply.code(400).send({ error: 'Periodo inválido' })
 
     const rows = await prisma.charge.findMany({
-      where: parsed.data.period ? { period: desdeParam(parsed.data.period) } : {},
+      where: {
+        ...(parsed.data.period ? { period: desdeParam(parsed.data.period) } : {}),
+        ...(parsed.data.businessId ? { businessId: parsed.data.businessId } : {}),
+      },
       orderBy: [{ period: 'desc' }, { totalCents: 'desc' }],
       take: 300,
       include: { business: { select: { name: true, slug: true } } },

@@ -73,6 +73,7 @@ describe('diccionarios', () => {
       'env.sms',
       'comun.extras',
       'equipo.no',
+      'altan.pasoPlan',
       /* Abreviatura de minutos: «min» en los dos idiomas. */
       'comun.min',
     ]
