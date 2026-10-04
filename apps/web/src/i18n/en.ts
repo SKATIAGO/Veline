@@ -1139,6 +1139,8 @@ export const en: Record<keyof typeof es, string> = {
   'pre.equipoAsunto': 'Question about the Team plan',
   'pre.equipoF1': 'Everything in Business',
   'pre.equipoF2': 'Unlimited employees and locations',
+  'pre.equipoAgendaPropia':
+    'Each employee with their own calendar and hours: clients book directly with the person they prefer',
   'pre.equipoF3': 'Multi-branch dashboard',
   'pre.equipoF4': 'Dedicated support',
 

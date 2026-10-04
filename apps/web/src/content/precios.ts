@@ -87,7 +87,13 @@ export const PLANES: readonly Plan[] = [
     /** Se escribe al pulsar: el asunto necesita el idioma de quien mira. */
     asunto: 'pre.equipoAsunto',
     variant: 'secondary' as const,
-    features: ['pre.equipoF1', 'pre.equipoF2', 'pre.equipoF3', 'pre.equipoF4'],
+    features: [
+      'pre.equipoF1',
+      'pre.equipoF2',
+      'pre.equipoAgendaPropia',
+      'pre.equipoF3',
+      'pre.equipoF4',
+    ],
   },
 ]
 
