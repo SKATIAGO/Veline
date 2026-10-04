@@ -69,7 +69,7 @@ export async function businessRoutes(app: FastifyInstance) {
           : {}),
       },
       include: {
-        locations: { take: 1 },
+        locations: { where: { approved: true }, orderBy: { id: 'asc' }, take: 1 },
         services: { where: { active: true }, orderBy: { priceCents: 'asc' }, take: 1 },
       },
       orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
@@ -96,6 +96,7 @@ export async function businessRoutes(app: FastifyInstance) {
       where: { slug },
       include: {
         locations: {
+          where: { approved: true },
           include: { openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] } },
         },
         services: { where: { active: true }, orderBy: { position: 'asc' } },

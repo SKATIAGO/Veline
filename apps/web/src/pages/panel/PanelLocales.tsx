@@ -226,11 +226,17 @@ export function PanelLocales() {
                   <div className="min-w-[200px] flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-ui font-semibold text-ink">{l.name}</span>
+                      {!l.approved && <Badge tone="warn">{t('loc.pendienteAprobar')}</Badge>}
                       {falta.length > 0 && <Badge tone="warn">{t('loc.noAceptaReservas')}</Badge>}
                     </div>
                     <p className="mt-0.5 text-meta text-muted">
                       {l.street}, {l.postalCode} {l.city}
                     </p>
+                    {!l.approved && (
+                      <p className="mt-1 text-meta text-brand-text">
+                        {t('loc.pendienteAprobarPista')}
+                      </p>
+                    )}
                     {falta.length > 0 && (
                       <p className="mt-1 text-meta text-brand-text">
                         {t('loc.leFalta', { que: falta.join(t('loc.y')) })}

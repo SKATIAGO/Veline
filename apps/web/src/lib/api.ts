@@ -224,7 +224,10 @@ export const api = {
 
   crearLocal: (
     slug: string,
-    body: Omit<PanelLocal, 'id' | 'personas' | 'personasPropias' | 'citas' | 'tieneHorario'>,
+    body: Omit<
+      PanelLocal,
+      'id' | 'personas' | 'personasPropias' | 'citas' | 'tieneHorario' | 'approved'
+    >,
   ) =>
     request<{ id: string; name: string }>(`/panel/${slug}/locations`, {
       method: 'POST',
@@ -461,6 +464,9 @@ export const api = {
   approveBusiness: (id: string) =>
     request<{ ok: true }>(`/admin/businesses/${id}/approve`, { method: 'PATCH' }),
 
+  approveLocation: (id: string) =>
+    request<{ ok: true }>(`/admin/locations/${id}/approve`, { method: 'PATCH' }),
+
   createAdminBusiness: (body: {
     name: string
     category: string
@@ -609,6 +615,8 @@ export interface PanelLocal {
   personasPropias: number
   citas: number
   tieneHorario: boolean
+  /** Falso = recién abierto y pendiente de que Veline lo apruebe. */
+  approved: boolean
 }
 
 export interface Fichaje {
@@ -642,6 +650,8 @@ export interface AdminBusiness {
   trialEndsAt: string | null
   /** Null = se dio de alta por su cuenta y todavía nadie lo ha revisado. */
   approvedAt: string | null
+  /** Locales que el negocio ha abierto y Veline todavía no ha aprobado. */
+  pendingLocations: { id: string; name: string; street: string; city: string }[]
   adminNotes: string | null
   monthlyCents: number
   accepting: boolean

@@ -99,7 +99,7 @@ export async function bookingRoutes(app: FastifyInstance) {
       where: { slug },
       // Todos, no solo el primero: con varios locales hay que comprobar que el
       // que pide el cliente es de este negocio.
-      include: { locations: { orderBy: { id: 'asc' } } },
+      include: { locations: { where: { approved: true }, orderBy: { id: 'asc' } } },
     })
     // Sin revisar todavía: para el público no existe, ni por enlace directo ni
     // llamando aquí. Mismo 404 que la ficha, para no confirmar que el slug

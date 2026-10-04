@@ -67,6 +67,12 @@ export async function adminRoutes(app: FastifyInstance) {
             staff: { where: { active: true } },
           },
         },
+        // Los locales que el propio negocio ha abierto y nadie ha revisado.
+        locations: {
+          where: { approved: false },
+          orderBy: { id: 'asc' },
+          select: { id: true, name: true, street: true, city: true },
+        },
       },
     })
     return rows.map((b) => ({
@@ -81,6 +87,7 @@ export async function adminRoutes(app: FastifyInstance) {
       subStatus: b.subStatus,
       trialEndsAt: b.trialEndsAt?.toISOString() ?? null,
       approvedAt: b.approvedAt?.toISOString() ?? null,
+      pendingLocations: b.locations,
       adminNotes: b.adminNotes,
       /** Lo que costaría este mes con las personas que tiene ahora. */
       monthlyCents: cuotaMensualCents(b.plan, plazasDelNegocio(b._count.staff)),
@@ -409,6 +416,39 @@ export async function adminRoutes(app: FastifyInstance) {
       actor: user,
       businessId: id,
       entity: 'Business',
+      entityId: id,
+    })
+
+    return { ok: true }
+  })
+
+  /** Aprobar un local que ha abierto un negocio: desde aquí recibe reservas. */
+  app.patch('/api/admin/locations/:id/approve', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const { id } = req.params as { id: string }
+    const local = await prisma.location.findUnique({
+      where: { id },
+      select: {
+        name: true,
+        approved: true,
+        businessId: true,
+        business: { select: { name: true } },
+      },
+    })
+    if (!local) return reply.code(404).send({ error: 'Local no encontrado' })
+    if (local.approved) return reply.code(409).send({ error: 'Ya estaba aprobado' })
+
+    await prisma.location.update({ where: { id }, data: { approved: true } })
+
+    audit(req, {
+      action: 'NEGOCIO_EDITADO',
+      summary: `Ha aprobado el local «${local.name}» de «${local.business.name}»`,
+      actor: user,
+      businessId: local.businessId,
+      entity: 'Location',
       entityId: id,
     })
 

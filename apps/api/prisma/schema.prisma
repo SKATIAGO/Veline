@@ -125,6 +125,11 @@ model Location {
   postalCode String
   lat        Float?
   lng        Float?
+  /// Falso = lo abrió el propio negocio y Veline todavía no lo ha revisado:
+  /// no ofrece huecos ni sale a las reservas del público. Por defecto es
+  /// verdadero para que todo local anterior, o creado desde la plataforma,
+  /// siga funcionando igual.
+  approved   Boolean @default(true)
 
   business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   openingHours OpeningHour[]

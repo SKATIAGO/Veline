@@ -614,3 +614,50 @@ export function signupNotifyTeamMail(
     ].join('\n'),
   }
 }
+
+/* ── 9. Aviso interno de local nuevo ───────────────────────────
+ * Un negocio ya aprobado que abre otro local no pasa por el alta, así que
+ * sin este aviso nadie en Veline se enteraba: el local nuevo se quedaba
+ * esperando revisión sin que hubiera forma de verlo salvo mirar el panel.
+ */
+export function newLocationNotifyTeamMail(
+  to: { email: string },
+  ctx: {
+    businessName: string
+    locationName: string
+    street: string
+    city: string
+    postalCode: string
+    slug: string
+  },
+): MailMessage {
+  const idioma = idiomaParaNegocio()
+  const rows: [string, string][] = [
+    ['Negocio', ctx.businessName],
+    ['Local', ctx.locationName],
+    ['Dirección', `${ctx.street}, ${ctx.postalCode} ${ctx.city}`],
+  ]
+
+  return {
+    to: to.email,
+    subject: `Local nuevo por aprobar: ${ctx.businessName} · ${ctx.locationName}`,
+    tag: 'local-aviso-interno',
+    html: layout({
+      idioma,
+      preheader: `${ctx.businessName} ha abierto un local y espera aprobación`,
+      heading: 'Local nuevo por aprobar',
+      intro: `<strong style="color:${INK};">${esc(ctx.businessName)}</strong> ha abierto un local nuevo. No acepta reservas del público hasta que lo apruebes.`,
+      body: detalles(rows),
+      cta: { label: 'Revisar en la plataforma', url: `${webUrl()}/panel/admin` },
+    }),
+    text: [
+      'Local nuevo por aprobar',
+      '',
+      `${ctx.businessName} ha abierto un local nuevo. No acepta reservas del público hasta que lo apruebes.`,
+      '',
+      textoDetalles(rows),
+      '',
+      `Revisar en la plataforma: ${webUrl()}/panel/admin`,
+    ].join('\n'),
+  }
+}

@@ -72,7 +72,8 @@ async function resolverLocal(businessId: string, locationId?: string) {
     const l = await prisma.location.findFirst({
       // El businessId no sobra: sin él, cualquiera podría pedir los huecos de
       // un local de otro negocio pasando su id.
-      where: { id: locationId, businessId },
+      // Sin aprobar no existe para el público: ni huecos ni reservas.
+      where: { id: locationId, businessId, approved: true },
       include: { openingHours: true },
     })
     if (!l) throw Object.assign(new Error('Local no encontrado'), { statusCode: 404 })
@@ -80,7 +81,7 @@ async function resolverLocal(businessId: string, locationId?: string) {
   }
 
   const locales = await prisma.location.findMany({
-    where: { businessId },
+    where: { businessId, approved: true },
     include: { openingHours: true },
     orderBy: { id: 'asc' },
   })
@@ -320,11 +321,11 @@ export async function isWithinOpeningHours(
 ) {
   const location = locationId
     ? await prisma.location.findFirst({
-        where: { id: locationId, businessId },
+        where: { id: locationId, businessId, approved: true },
         include: { openingHours: true, closures: true },
       })
     : await prisma.location.findFirst({
-        where: { businessId },
+        where: { businessId, approved: true },
         include: { openingHours: true, closures: true },
       })
   if (!location) return false

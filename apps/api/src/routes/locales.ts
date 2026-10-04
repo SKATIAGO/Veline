@@ -4,6 +4,10 @@ import { prisma } from '../prisma.js'
 import { authorizeBusiness } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 import { requireUser } from '../auth/sessions.js'
+import { CONTACT_EMAIL } from '@veline/shared'
+import { sendMailSafely } from '../mail/enviar.js'
+import { newLocationNotifyTeamMail } from '../mail/templates.js'
+import { canManagePlatform } from '../auth/permissions.js'
 
 /**
  * Los locales de un negocio.
@@ -15,6 +19,10 @@ import { requireUser } from '../auth/sessions.js'
  * Cada local tiene SU horario y SUS personas, así que abrir uno nuevo no es
  * solo una dirección más: hasta que no tenga horario y alguien que atienda, no
  * ofrece huecos. Se avisa en la respuesta para que el panel lo pueda decir.
+ *
+ * Además, un local que abre el propio negocio nace SIN APROBAR: Veline lo
+ * revisa antes de que reciba reservas del público, igual que se revisa un
+ * negocio nuevo. Si lo abre la plataforma, nace aprobado.
  */
 
 const localSchema = z.object({
@@ -61,6 +69,7 @@ export async function localesRoutes(app: FastifyInstance) {
       personasPropias: l.staff.length,
       citas: l._count.bookings,
       tieneHorario: l._count.openingHours > 0,
+      approved: l.approved,
     }))
   })
 
@@ -77,12 +86,16 @@ export async function localesRoutes(app: FastifyInstance) {
     }
 
     const local = await prisma.location.create({
-      data: { businessId: auth.business.id, ...parsed.data },
+      data: {
+        businessId: auth.business.id,
+        ...parsed.data,
+        approved: canManagePlatform(user),
+      },
     })
 
     audit(req, {
       action: 'NEGOCIO_EDITADO',
-      summary: `Ha abierto el local «${local.name}»`,
+      summary: `Ha abierto el local «${local.name}»${local.approved ? '' : ' (pendiente de aprobar)'}`,
       actor: user,
       businessId: auth.business.id,
       entity: 'Location',
@@ -90,7 +103,25 @@ export async function localesRoutes(app: FastifyInstance) {
       metadata: { ciudad: local.city },
     })
 
-    return reply.code(201).send({ id: local.id, name: local.name })
+    // A quien lleva la plataforma, no al negocio: sin esto el local se quedaba
+    // esperando revisión sin que nadie lo supiera. No bloquea la respuesta.
+    if (!local.approved) {
+      void sendMailSafely(
+        newLocationNotifyTeamMail(
+          { email: CONTACT_EMAIL },
+          {
+            businessName: auth.business.name,
+            locationName: local.name,
+            street: local.street,
+            city: local.city,
+            postalCode: local.postalCode,
+            slug: auth.business.slug,
+          },
+        ),
+      )
+    }
+
+    return reply.code(201).send({ id: local.id, name: local.name, approved: local.approved })
   })
 
   app.patch('/api/panel/:slug/locations/:id', async (req, reply) => {

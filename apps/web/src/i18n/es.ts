@@ -520,6 +520,9 @@ export const es = {
   'loc.errCp': 'El código postal son 5 cifras.',
   'loc.noSePudoGuardar': 'No se ha podido guardar',
   'loc.noAceptaReservas': 'No acepta reservas',
+  'loc.pendienteAprobar': 'Pendiente de aprobar',
+  'loc.pendienteAprobarPista':
+    'Veline revisa cada local nuevo antes de que reciba reservas. Mientras tanto, puedes ir poniéndole horario y personas.',
   'loc.leFalta': 'Le falta {que}.',
   'loc.faltaHorario': 'horario',
   'loc.faltaPersonas': 'empleados que atiendan',
@@ -940,6 +943,9 @@ export const es = {
   'adm.sinServicios': 'Sin servicios',
   'adm.sinAprobar': 'Sin aprobar',
   'adm.nuevoNegocio': 'Nuevo negocio',
+  'adm.unLocalSinAprobar': '1 local sin aprobar',
+  'adm.variosLocalesSinAprobar': '{n} locales sin aprobar',
+  'adm.aprobarLocal': 'Aprobar local',
   'adm.cuentaCreada': 'Cuenta creada',
   'adm.pasaleDatos': 'Pásale estos datos a {email}:',
   'adm.noSeConsulta':

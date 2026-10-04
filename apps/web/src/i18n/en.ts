@@ -521,6 +521,9 @@ export const en: Record<keyof typeof es, string> = {
   'loc.errCp': 'A Spanish postcode is 5 digits.',
   'loc.noSePudoGuardar': 'Couldn’t save that',
   'loc.noAceptaReservas': 'Not taking bookings',
+  'loc.pendienteAprobar': 'Pending approval',
+  'loc.pendienteAprobarPista':
+    'Veline reviews every new location before it takes bookings. Until it’s approved you can set up its hours and people.',
   'loc.leFalta': 'It still needs {que}.',
   'loc.faltaHorario': 'opening hours',
   'loc.faltaPersonas': 'someone to take the appointments',
@@ -939,6 +942,9 @@ export const en: Record<keyof typeof es, string> = {
   'adm.sinServicios': 'No services',
   'adm.sinAprobar': 'Not approved',
   'adm.nuevoNegocio': 'New business',
+  'adm.unLocalSinAprobar': '1 location not approved',
+  'adm.variosLocalesSinAprobar': '{n} locations not approved',
+  'adm.aprobarLocal': 'Approve location',
   'adm.cuentaCreada': 'Account created',
   'adm.pasaleDatos': 'Pass these details on to {email}:',
   'adm.noSeConsulta':

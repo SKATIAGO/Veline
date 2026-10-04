@@ -431,6 +431,14 @@ export function PanelAdmin() {
     },
   })
 
+  const aprobarLocal = useMutation({
+    mutationFn: (id: string) => api.approveLocation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] })
+      queryClient.invalidateQueries({ queryKey: ['audit'] })
+    },
+  })
+
   const visibles = useMemo(
     () =>
       verBaja ? (businesses ?? []) : (businesses ?? []).filter((b) => b.subStatus !== 'CANCELADA'),
@@ -462,7 +470,9 @@ export function PanelAdmin() {
       sinServicios: list.filter((b) => b.counts.services === 0).length,
       // Los que se dieron de alta solos y nadie ha mirado todavía. Mientras
       // tanto no salen en el marketplace, así que cuanto antes se vean mejor.
-      pendientes: list.filter((b) => !b.approvedAt).length,
+      pendientes:
+        list.filter((b) => !b.approvedAt).length +
+        list.reduce((n, b) => n + b.pendingLocations.length, 0),
     }
   }, [visibles])
 
@@ -798,6 +808,16 @@ export function PanelAdmin() {
                         : ''}
                     </Badge>
                     {!b.approvedAt && <Badge tone="warn">{t('adm.sinAprobar')}</Badge>}
+                    {b.pendingLocations.length > 0 && (
+                      <Badge tone="warn">
+                        {t(
+                          b.pendingLocations.length === 1
+                            ? 'adm.unLocalSinAprobar'
+                            : 'adm.variosLocalesSinAprobar',
+                          { n: b.pendingLocations.length },
+                        )}
+                      </Badge>
+                    )}
                     {!b.accepting && <Badge tone="off">{t('adm.noAceptaReservas')}</Badge>}
                     {b.counts.services === 0 && <Badge tone="warn">{t('adm.sinServicios')}</Badge>}
                     {b.counts.users === 0 && <Badge tone="off">{t('adm.sinAcceso')}</Badge>}
@@ -850,6 +870,25 @@ export function PanelAdmin() {
                   </Link>
                 </div>
 
+                {b.pendingLocations.map((l) => (
+                  <div
+                    key={l.id}
+                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-lg bg-canvas px-3 py-2.5"
+                  >
+                    <p className="min-w-0 text-meta text-body-2">
+                      <strong className="font-semibold text-ink">{l.name}</strong> · {l.street},{' '}
+                      {l.city}
+                    </p>
+                    <Button
+                      size="sm"
+                      loading={aprobarLocal.isPending && aprobarLocal.variables === l.id}
+                      onClick={() => aprobarLocal.mutate(l.id)}
+                    >
+                      {t('adm.aprobarLocal')}
+                    </Button>
+                  </div>
+                ))}
+
                 {abierto === b.id && (
                   <Suscripcion
                     b={b}
@@ -869,6 +908,14 @@ export function PanelAdmin() {
       {aprobar.isError && (
         <ErrorNote>
           {aprobar.error instanceof ApiError ? aprobar.error.message : t('adm.noSePudoAprobar')}
+        </ErrorNote>
+      )}
+
+      {aprobarLocal.isError && (
+        <ErrorNote>
+          {aprobarLocal.error instanceof ApiError
+            ? aprobarLocal.error.message
+            : t('adm.noSePudoAprobar')}
         </ErrorNote>
       )}
 
