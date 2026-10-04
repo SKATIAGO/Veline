@@ -18,7 +18,7 @@ import {
 } from '../../components/ui'
 import { CampoDuracion } from '../../components/SelectorDuracion'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
-import { CartaDeExtras } from './CartaDeExtras'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
@@ -165,7 +165,6 @@ export function PanelServices() {
   const [dialogo, setDialogo] = useState<Dialogo | null>(null)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [intentado, setIntentado] = useState(false)
-  const [creandoExtra, setCreandoExtra] = useState(false)
 
   const abrir = (d: Dialogo) => {
     create.reset()
@@ -265,20 +264,13 @@ export function PanelServices() {
             : undefined
         }
         actions={
-          <>
-            {/* Junto a «Añadir servicio»: es donde se piensa en qué se ofrece,
-                y la carta de extras queda más abajo, fuera de la vista. */}
-            {!creandoExtra && (
-              <Button variant="secondary" onClick={() => setCreandoExtra(true)}>
-                <span aria-hidden>+</span> {t('ext.anadir')}
-              </Button>
-            )}
-            <Button onClick={nuevo}>
-              <span aria-hidden>+</span> {t('serv.anadir')}
-            </Button>
-          </>
+          <Button onClick={nuevo}>
+            <span aria-hidden>+</span> {t('serv.anadir')}
+          </Button>
         }
       />
+
+      <PestanasSeccion seccion="servicios" />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -381,8 +373,6 @@ export function PanelServices() {
           problema={intentado ? validar(draft) : null}
         />
       </FormDialog>
-
-      <CartaDeExtras slug={slug} creando={creandoExtra} setCreando={setCreandoExtra} />
     </div>
   )
 }

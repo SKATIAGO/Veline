@@ -237,7 +237,6 @@ export const es = {
 
   // Grupos del menú
   'panel.grupoDiaADia': 'Día a día',
-  'panel.grupoConfiguracion': 'Configuración',
   'panel.grupoCuenta': 'Cuenta',
   'panel.grupoPlataforma': 'Plataforma',
 
@@ -295,7 +294,8 @@ export const es = {
   'agenda.anioSiguiente': 'Año siguiente',
 
   // ── Contabilidad ───────────────────────────────────────────
-  'cont.pista': 'Lo que se factura cada día, según las citas — lo cancelado no cuenta.',
+  'cont.pista':
+    'Lo que se factura cada día, según las citas: lo cancelado y las citas a las que no vino el cliente no cuentan.',
   'cont.totalMes': 'Total del mes',
   'cont.sinCitasMes': 'Sin citas este mes',
   'cont.sinCitasMesPista': 'Cuando haya citas confirmadas, aparecerán aquí día a día.',
@@ -311,7 +311,7 @@ export const es = {
   'cont.csvServicio': 'Servicio',
   'cont.csvEstado': 'Estado',
   'cont.csvImporte': 'Importe (€)',
-  'cont.csvTotalMes': 'Total del mes (sin canceladas)',
+  'cont.csvTotalMes': 'Total del mes (sin canceladas ni ausencias)',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',
@@ -1764,4 +1764,15 @@ export const es = {
   'fcli.noSeCargo': 'No se ha podido cargar su historial.',
   'fcli.sinCitas': 'Todavía no tiene citas.',
   'cita.eligeServicio': 'Elige un servicio.',
+  'panel.grupoTuNegocio': 'Tu negocio',
+  'panel.horarioYLocales': 'Horario y locales',
+  'panel.dinero': 'Dinero',
+  'secc.partes': 'Partes de esta sección',
+  'secc.horario': 'Horario',
+  'secc.cierres': 'Cierres y vacaciones',
+  'secc.fichaPublica': 'Ficha pública',
+  'secc.ingresos': 'Ingresos',
+  'cont.unNoVino': '{n} no vino (-{importe})',
+  'cont.variosNoVino': '{n} no vinieron (-{importe})',
+  'secc.fotos': 'Fotos',
 } as const

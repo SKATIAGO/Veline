@@ -12,6 +12,7 @@ import {
   PageHeader,
   Skeleton,
 } from '../../components/ui'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
@@ -167,7 +168,7 @@ export function PanelLocales() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={t('panel.locales')}
+        title={t('panel.horarioYLocales')}
         hint={locales ? plural(locales.length, 'loc.unLocal', 'loc.variosLocales') : undefined}
         actions={
           <Button
@@ -180,6 +181,8 @@ export function PanelLocales() {
           </Button>
         }
       />
+
+      <PestanasSeccion seccion="horario" />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">

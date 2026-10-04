@@ -11,6 +11,7 @@ import {
   Skeleton,
   BarraGuardar,
 } from '../../components/ui'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 import {
   FranjasSemanales,
   ORDEN_SEMANA as ORDER,
@@ -95,7 +96,8 @@ export function PanelHours() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title={t('hor.titulo')} />
+        <PageHeader title={t('panel.horarioYLocales')} />
+        <PestanasSeccion seccion="horario" />
         <Card className="flex flex-col gap-3 p-5">
           {ORDER.map((wd) => (
             <Skeleton key={wd} className="h-12" />
@@ -111,7 +113,7 @@ export function PanelHours() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={t('hor.titulo')}
+        title={t('panel.horarioYLocales')}
         hint={plural(diasAbiertos, 'hor.abiertoUnDia', 'hor.abiertoVariosDias')}
         actions={
           <>
@@ -126,6 +128,8 @@ export function PanelHours() {
           </>
         }
       />
+
+      <PestanasSeccion seccion="horario" />
 
       <BarraGuardar visible={dirty}>
         <span className="min-w-0 truncate text-meta text-muted">

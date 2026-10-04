@@ -237,7 +237,6 @@ export const en: Record<keyof typeof es, string> = {
 
   // Menu groups
   'panel.grupoDiaADia': 'Day to day',
-  'panel.grupoConfiguracion': 'Settings',
   'panel.grupoCuenta': 'Account',
   'panel.grupoPlataforma': 'Platform',
 
@@ -295,7 +294,8 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.anioSiguiente': 'Next year',
 
   // ── Accounting ─────────────────────────────────────────────
-  'cont.pista': 'What gets billed each day, based on bookings — cancelled ones don’t count.',
+  'cont.pista':
+    'What gets billed each day, based on bookings: cancellations and no-shows don’t count.',
   'cont.totalMes': 'Total for the month',
   'cont.sinCitasMes': 'No bookings this month',
   'cont.sinCitasMesPista': 'Once there are confirmed bookings, they’ll show up here day by day.',
@@ -311,7 +311,7 @@ export const en: Record<keyof typeof es, string> = {
   'cont.csvServicio': 'Service',
   'cont.csvEstado': 'Status',
   'cont.csvImporte': 'Amount (€)',
-  'cont.csvTotalMes': 'Total for the month (excluding cancelled)',
+  'cont.csvTotalMes': 'Total for the month (excluding cancellations and no-shows)',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',
@@ -1763,4 +1763,15 @@ export const en: Record<keyof typeof es, string> = {
   'fcli.noSeCargo': 'Could not load their history.',
   'fcli.sinCitas': 'No appointments yet.',
   'cita.eligeServicio': 'Pick a service.',
+  'panel.grupoTuNegocio': 'Your business',
+  'panel.horarioYLocales': 'Hours and locations',
+  'panel.dinero': 'Money',
+  'secc.partes': 'Parts of this section',
+  'secc.horario': 'Hours',
+  'secc.cierres': 'Closures and holidays',
+  'secc.fichaPublica': 'Public profile',
+  'secc.ingresos': 'Income',
+  'cont.unNoVino': '{n} no-show (-{importe})',
+  'cont.variosNoVino': '{n} no-shows (-{importe})',
+  'secc.fotos': 'Photos',
 }

@@ -5,6 +5,7 @@ import { formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/sha
 import { api, type PanelBooking } from '../../lib/api'
 import { CabeceraMes } from '../../components/CabeceraMes'
 import { Button, Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
@@ -16,6 +17,9 @@ interface ResumenDia {
   citas: number
   canceladoCents: number
   canceladas: number
+  /** Quien no vino: no se cobra, así que tampoco suma. */
+  noVinoCents: number
+  noVino: number
 }
 
 const ESTADO_CLAVE: Record<PanelBooking['status'], Clave> = {
@@ -32,9 +36,10 @@ function celdaCsv(valor: string) {
 
 /**
  * Lo que ha entrado cada día, según las citas — no según lo que se ha
- * cobrado de verdad, que eso es Suscripción. Una cancelada no suma nada:
- * ni ella ni su dinero cuentan para el total, aunque se enseñan aparte
- * para que quede claro por qué el día no cuadra con el número de citas.
+ * cobrado de verdad, que eso es Suscripción. Una cancelada no suma nada,
+ * ni una a la que el cliente no vino: ni ellas ni su dinero cuentan para el
+ * total, aunque se enseñan aparte para que quede claro por qué el día no
+ * cuadra con el número de citas.
  */
 export function PanelContabilidad() {
   const { slug = '' } = useParams()
@@ -57,10 +62,17 @@ export function PanelContabilidad() {
         citas: 0,
         canceladoCents: 0,
         canceladas: 0,
+        noVinoCents: 0,
+        noVino: 0,
       }
       if (b.status === 'CANCELADA') {
         fila.canceladoCents += b.priceCents
         fila.canceladas += 1
+      } else if (b.status === 'NO_ASISTIO') {
+        /* Antes sumaba como facturada: el total del mes contaba dinero de
+           citas a las que el cliente no vino y que nadie cobró. */
+        fila.noVinoCents += b.priceCents
+        fila.noVino += 1
       } else {
         fila.facturadoCents += b.priceCents
         fila.citas += 1
@@ -70,7 +82,7 @@ export function PanelContabilidad() {
     return (
       [...map.values()]
         // Los días sin nada de nada —ni facturado ni cancelado— no aportan.
-        .filter((d) => d.citas > 0 || d.canceladas > 0)
+        .filter((d) => d.citas > 0 || d.canceladas > 0 || d.noVino > 0)
         .sort((a, b) => b.fecha.localeCompare(a.fecha))
     )
   }, [bookings])
@@ -138,7 +150,7 @@ export function PanelContabilidad() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={t('panel.contabilidad')}
+        title={t('panel.dinero')}
         hint={t('cont.pista')}
         actions={
           bookings &&
@@ -149,6 +161,8 @@ export function PanelContabilidad() {
           )
         }
       />
+
+      <PestanasSeccion seccion="dinero" />
 
       <div className="flex flex-col gap-4">
         <CabeceraMes mes={mes} onCambiarMes={setMes} />
@@ -186,6 +200,8 @@ export function PanelContabilidad() {
                           {t(d.citas === 1 ? 'cont.unaCita' : 'cont.variasCitas', { n: d.citas })}
                           {d.canceladas > 0 &&
                             ` · ${t(d.canceladas === 1 ? 'cont.unaCancelada' : 'cont.variasCanceladas', { n: d.canceladas, importe: formatPrice(d.canceladoCents, idioma) })}`}
+                          {d.noVino > 0 &&
+                            ` · ${t(d.noVino === 1 ? 'cont.unNoVino' : 'cont.variosNoVino', { n: d.noVino, importe: formatPrice(d.noVinoCents, idioma) })}`}
                         </p>
                       </div>
                       <span className="text-ui font-semibold text-ink tabular-nums">

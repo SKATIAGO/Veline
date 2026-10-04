@@ -24,7 +24,9 @@ import { PanelContabilidad } from './pages/panel/PanelContabilidad'
 import { PanelServices } from './pages/panel/PanelServices'
 import { PanelHours } from './pages/panel/PanelHours'
 import { PanelEquipo } from './pages/panel/PanelEquipo'
-import { PanelNegocio } from './pages/panel/PanelNegocio'
+import { PanelFotos, PanelNegocio } from './pages/panel/PanelNegocio'
+import { PanelCierres } from './pages/panel/PanelCierres'
+import { PanelExtras } from './pages/panel/PanelExtras'
 import { PanelClientes } from './pages/panel/PanelClientes'
 import { PanelFichaje } from './pages/panel/PanelFichaje'
 import { PanelLocales } from './pages/panel/PanelLocales'
@@ -89,7 +91,9 @@ function AppRoutes() {
         <Route path="calendario" element={<AlCalendario />} />
         <Route path="contabilidad" element={<PanelContabilidad />} />
         <Route path="servicios" element={<PanelServices />} />
+        <Route path="servicios/extras" element={<PanelExtras />} />
         <Route path="horario" element={<PanelHours />} />
+        <Route path="cierres" element={<PanelCierres />} />
         {/* Empleados y Administrador eran dos pantallas de la misma gente:
             ahora son Equipo. La dirección vieja sigue llevando a su sitio. */}
         <Route path="personas" element={<Navigate to="../equipo" replace />} />
@@ -98,6 +102,7 @@ function AppRoutes() {
         <Route path="locales" element={<PanelLocales />} />
         <Route path="equipo" element={<PanelEquipo />} />
         <Route path="negocio" element={<PanelNegocio />} />
+        <Route path="negocio/fotos" element={<PanelFotos />} />
         <Route path="enlaces" element={<PanelEnlaces />} />
         <Route path="facturacion" element={<PanelMiCuenta />} />
         <Route path="actividad" element={<PanelActividad />} />

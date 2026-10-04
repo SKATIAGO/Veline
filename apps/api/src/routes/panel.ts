@@ -156,8 +156,15 @@ export async function panelRoutes(app: FastifyInstance) {
         : null,
       todayCount,
       weekCount: weekBookings.length,
-      weekRevenueCents: weekBookings.reduce((acc, b) => acc + b.priceCents, 0),
-      weekCommissionCents: weekBookings.reduce((acc, b) => acc + b.commissionCents, 0),
+      /* Los ingresos del negocio son cosa de quien lo administra: el empleado
+         ve la agenda, no la caja. Antes le llegaban igual y la Agenda se los
+         enseñaba. */
+      weekRevenueCents:
+        user.role === 'EMPLEADO' ? null : weekBookings.reduce((acc, b) => acc + b.priceCents, 0),
+      weekCommissionCents:
+        user.role === 'EMPLEADO'
+          ? null
+          : weekBookings.reduce((acc, b) => acc + b.commissionCents, 0),
       newFromMarketplace: weekBookings.filter((b) => b.isFirstFromMarketplace).length,
       staffCount,
       serviceCount,

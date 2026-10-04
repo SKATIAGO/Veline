@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { CONTACT_EMAIL, formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
 import { api } from '../../lib/api'
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /** Lo que el negocio paga cada mes y por qué. Los enlaces que evitan la
@@ -83,7 +84,8 @@ export function PanelMiCuenta() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('panel.facturacion')} hint={t('fac.pista')} />
+      <PageHeader title={t('panel.dinero')} hint={t('fac.pista')} />
+      <PestanasSeccion seccion="dinero" />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">

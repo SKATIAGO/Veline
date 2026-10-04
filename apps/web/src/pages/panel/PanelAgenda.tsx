@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
-import { Button, Card, EmptyState, FilterChip, PageHeader, Skeleton } from '../../components/ui'
+import { Button, Card, EmptyState, FilterChip, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { Tabs, panelProps } from '../../components/Tabs'
 import { BookingRow } from './FilaCita'
@@ -107,6 +107,8 @@ export function PanelAgenda() {
   }, [bookings, rango])
 
   const total = grupos.reduce((n, [, filas]) => n + filas.length, 0)
+  // El servidor no se los manda al empleado: ve la agenda, no la caja.
+  const verIngresos = summary ? summary.weekRevenueCents !== null : false
 
   /** Adónde lleva el «Ver» del aviso de una cita recién apuntada. */
   const verCita = (fecha: Date) => {
@@ -168,20 +170,27 @@ export function PanelAgenda() {
           />
         ) : (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              className={cx(
+                'grid gap-4 sm:grid-cols-2',
+                verIngresos ? 'lg:grid-cols-4' : 'lg:grid-cols-3',
+              )}
+            >
               <Stat label={t('agenda.citasHoy')} value={String(summary?.todayCount ?? 0)} />
               <Stat label={t('agenda.proximos7')} value={String(summary?.weekCount ?? 0)} />
-              <Stat
-                label={t('agenda.ingresos7')}
-                value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
-                hint={
-                  summary?.weekCommissionCents
-                    ? t('agenda.comision', {
-                        importe: formatPrice(summary.weekCommissionCents, idioma),
-                      })
-                    : t('agenda.sinComision')
-                }
-              />
+              {verIngresos && (
+                <Stat
+                  label={t('agenda.ingresos7')}
+                  value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
+                  hint={
+                    summary?.weekCommissionCents
+                      ? t('agenda.comision', {
+                          importe: formatPrice(summary.weekCommissionCents, idioma),
+                        })
+                      : t('agenda.sinComision')
+                  }
+                />
+              )}
               <Stat
                 label={t('agenda.clientesNuevos')}
                 value={String(summary?.newFromMarketplace ?? 0)}

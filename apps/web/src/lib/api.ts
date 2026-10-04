@@ -591,8 +591,9 @@ export interface PanelSummary {
   subscription: PanelSubscription | null
   todayCount: number
   weekCount: number
-  weekRevenueCents: number
-  weekCommissionCents: number
+  /** Null para el empleado: los ingresos los ve quien administra. */
+  weekRevenueCents: number | null
+  weekCommissionCents: number | null
   newFromMarketplace: number
   staffCount: number
   serviceCount: number

@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDuration, formatPrice } from '@veline/shared'
 import { api, ApiError, type DatosExtra, type PanelExtra } from '../../lib/api'
@@ -11,6 +12,7 @@ import {
   ErrorNote,
   Field,
   Input,
+  PageHeader,
   Skeleton,
   Spinner,
   Textarea,
@@ -22,6 +24,7 @@ import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
+import { PestanasSeccion } from '../../components/PestanasSeccion'
 
 /** "12,50" o "12.50" → 1250 céntimos */
 const aCentimos = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
@@ -265,17 +268,10 @@ function DialogoExtra({
  * servicio al confirmar la reserva. Por eso vive en la misma pantalla que los
  * servicios, que es donde se piensa en qué se ofrece y a cuánto.
  */
-export function CartaDeExtras({
-  slug,
-  creando,
-  setCreando,
-}: {
-  slug: string
-  creando: boolean
-  setCreando: (v: boolean) => void
-}) {
+export function PanelExtras() {
   const { t, idioma } = useIdioma()
-  const id = useId()
+  const { slug = '' } = useParams()
+  const [creando, setCreando] = useState(false)
   const queryClient = useQueryClient()
   const [editando, setEditando] = useState<PanelExtra | null>(null)
   const [aQuitar, setAQuitar] = useState<PanelExtra | null>(null)
@@ -335,27 +331,25 @@ export function CartaDeExtras({
   })
 
   return (
-    <section
-      aria-labelledby={`${id}-titulo`}
-      className="flex flex-col gap-4 border-t border-line pt-8"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 id={`${id}-titulo`} className="font-display text-subheading font-semibold text-ink">
-            {t('ext.titulo')}
-          </h2>
-          <p className="mt-1 max-w-[600px] text-body text-muted">{t('ext.pista')}</p>
-        </div>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            crear.reset()
-            setCreando(true)
-          }}
-        >
-          <span aria-hidden>+</span> {t('ext.anadir')}
-        </Button>
-      </div>
+    /* Era una sección al final de Servicios, fuera de la vista: ahora es su
+       pestaña, con su propio botón de añadir arriba. */
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={t('panel.servicios')}
+        hint={t('ext.pista')}
+        actions={
+          <Button
+            onClick={() => {
+              crear.reset()
+              setCreando(true)
+            }}
+          >
+            <span aria-hidden>+</span> {t('ext.anadir')}
+          </Button>
+        }
+      />
+
+      <PestanasSeccion seccion="servicios" />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -477,6 +471,6 @@ export function CartaDeExtras({
       />
 
       {!!extras?.length && <p className="text-meta text-subtle">{t('ext.aviso')}</p>}
-    </section>
+    </div>
   )
 }

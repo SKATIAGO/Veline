@@ -261,12 +261,21 @@ type Seccion = {
   end?: boolean
   /** Si aparece también en la barra de abajo del móvil. */
   enBarra?: boolean
+  /** Otras rutas que también son esta sección: sus pestañas. */
+  tambien?: string[]
 }
+
+/** Si la sección está abierta: su ruta o cualquiera de sus pestañas. */
+const estaEn = (seccion: Seccion, pathname: string) =>
+  [seccion.to, ...(seccion.tambien ?? [])].some(
+    (r) => pathname === r || (!seccion.end && pathname.startsWith(`${r}/`)),
+  )
 
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
 function BotonBarra({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   return (
     <NavLink
@@ -281,7 +290,7 @@ function BotonBarra({ seccion }: { seccion: Seccion }) {
         cx(
           'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
           'text-caption font-semibold transition-colors duration-200',
-          isActive ? 'text-brand-text' : 'text-subtle',
+          isActive || estaEn(seccion, pathname) ? 'text-brand-text' : 'text-subtle',
         )
       }
     >
@@ -295,6 +304,7 @@ function BotonBarra({ seccion }: { seccion: Seccion }) {
 function ItemLateral({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   return (
     <NavLink
@@ -309,7 +319,7 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
         cx(
           'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body',
           'transition-colors duration-200',
-          isActive
+          isActive || estaEn(seccion, pathname)
             ? 'bg-canvas font-semibold text-ink'
             : 'font-medium text-body-2 hover:bg-canvas/60 hover:text-ink',
         )
@@ -317,7 +327,12 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
     >
       {({ isActive }) => (
         <>
-          <Icono className={cx('size-[19px] shrink-0', isActive ? 'text-brand' : 'text-subtle')}>
+          <Icono
+            className={cx(
+              'size-[19px] shrink-0',
+              isActive || estaEn(seccion, pathname) ? 'text-brand' : 'text-subtle',
+            )}
+          >
             {TRAZOS[seccion.icono]}
           </Icono>
           <span className="truncate">{t(seccion.clave)}</span>
@@ -566,62 +581,52 @@ export function PanelLayout() {
           clave: 'panel.fichaje',
           icono: 'fichaje',
           grupo: 'panel.grupoDiaADia',
+          // Quien solo lleva la agenda tiene tres secciones: van las tres abajo.
+          enBarra: !puedeConfigurar,
         },
         // El calendario ya no es una entrada aparte: es una pestaña de Agenda.
         ...(puedeConfigurar
           ? ([
-              /* Va agrupado con Día a día por sitio en el menú —es lo que
-                 se ha facturado cada día—, pero sí lleva la condición de
-                 puedeConfigurar: son los ingresos de todo el negocio, no
-                 algo que enseñarle a quien solo lleva la agenda. */
-              {
-                to: `/panel/${slug}/contabilidad`,
-                clave: 'panel.contabilidad',
-                icono: 'cobros',
-                grupo: 'panel.grupoDiaADia',
-              },
+              /* Lo que se repasa de vez en cuando, agrupado por lo que es y no
+                 por cómo está guardado: el horario con sus cierres y sus
+                 locales, la ficha con sus fotos y sus enlaces. Cada grupo
+                 lleva sus partes en pestañas (PestanasSeccion). */
               {
                 to: `/panel/${slug}/servicios`,
                 clave: 'panel.servicios',
                 icono: 'servicios',
-                grupo: 'panel.grupoConfiguracion',
-              },
-              {
-                to: `/panel/${slug}/horario`,
-                clave: 'panel.horario',
-                icono: 'horario',
-                grupo: 'panel.grupoConfiguracion',
+                grupo: 'panel.grupoTuNegocio',
               },
               {
                 to: `/panel/${slug}/equipo`,
                 clave: 'panel.equipo',
                 icono: 'equipo',
-                grupo: 'panel.grupoConfiguracion',
+                grupo: 'panel.grupoTuNegocio',
+              },
+              {
+                to: `/panel/${slug}/horario`,
+                clave: 'panel.horarioYLocales',
+                icono: 'horario',
+                grupo: 'panel.grupoTuNegocio',
+                tambien: [`/panel/${slug}/cierres`, `/panel/${slug}/locales`],
               },
               {
                 to: `/panel/${slug}/negocio`,
                 clave: 'panel.elNegocio',
                 icono: 'negocio',
-                grupo: 'panel.grupoConfiguracion',
+                grupo: 'panel.grupoTuNegocio',
                 enBarra: true,
+                tambien: [`/panel/${slug}/enlaces`],
               },
+              /* Lo que entra (las citas atendidas) y lo que se paga a Veline,
+                 juntos: antes eran Contabilidad, arriba con el día a día, y
+                 Suscripción, abajo. Solo para quien administra. */
               {
-                to: `/panel/${slug}/locales`,
-                clave: 'panel.locales',
-                icono: 'locales',
-                grupo: 'panel.grupoConfiguracion',
-              },
-              {
-                to: `/panel/${slug}/enlaces`,
-                clave: 'panel.enlaces',
-                icono: 'enlaces',
-                grupo: 'panel.grupoCuenta',
-              },
-              {
-                to: `/panel/${slug}/facturacion`,
-                clave: 'panel.facturacion',
+                to: `/panel/${slug}/contabilidad`,
+                clave: 'panel.dinero',
                 icono: 'cobros',
                 grupo: 'panel.grupoCuenta',
+                tambien: [`/panel/${slug}/facturacion`],
               },
               {
                 to: `/panel/${slug}/actividad`,
@@ -656,9 +661,7 @@ export function PanelLayout() {
   /* Dentro de una sección de «Más» la barra no marcaba nada, y no había
      forma de saber dónde estabas. Se ilumina «Más», como hace cualquier app
      con un botón de «más secciones». */
-  const masActivo = enMas.some(
-    (s) => location.pathname === s.to || location.pathname.startsWith(`${s.to}/`),
-  )
+  const masActivo = enMas.some((s) => estaEn(s, location.pathname))
   // En la plataforma no hay ninguna cita que apuntar.
   const conBotonCentral = !esPlataforma
 
