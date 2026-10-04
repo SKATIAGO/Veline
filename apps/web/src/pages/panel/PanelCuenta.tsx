@@ -11,10 +11,10 @@ import {
   PageHeader,
   PasswordInput,
   Spinner,
-  SuccessNote,
   cx,
 } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
+import { aviso } from '../../components/Avisos'
 
 const ROL_CLAVE: Record<string, Clave> = {
   SUPERADMIN: 'panel.rolSuperadmin',
@@ -56,7 +56,6 @@ export function PanelCuenta() {
   const [next, setNext] = useState('')
   const [repeat, setRepeat] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [hecho, setHecho] = useState(false)
   const [sending, setSending] = useState(false)
 
   if (loading) return <Spinner />
@@ -68,7 +67,6 @@ export function PanelCuenta() {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
-    setHecho(false)
     if (next !== repeat) {
       setError(t('cta.noCoincidenLargo'))
       return
@@ -79,7 +77,7 @@ export function PanelCuenta() {
       setCurrent('')
       setNext('')
       setRepeat('')
-      setHecho(true)
+      aviso.ok(t('cta.cambiada'))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('cta.noSePudoCambiar'))
     } finally {
@@ -194,7 +192,6 @@ export function PanelCuenta() {
             </Field>
 
             {error && <ErrorNote>{error}</ErrorNote>}
-            {hecho && <SuccessNote>{t('cta.cambiada')}</SuccessNote>}
 
             <Button
               type="submit"

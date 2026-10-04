@@ -2,24 +2,23 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice, planLabel } from '@veline/shared'
-import { api, ApiError, type Charge } from '../../lib/api'
+import { api, type Charge } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
-  ErrorNote,
   FilterChip,
   Input,
   PageHeader,
   Skeleton,
   Spinner,
-  SuccessNote,
   cx,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * Quién debe qué. El cobro es manual por ahora (transferencia o recibo), así
@@ -64,11 +63,35 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
   const mesLargo = useMesLargo()
   const [nota, setNota] = useState(c.paidNote ?? '')
   const [abierto, setAbierto] = useState(false)
+  const [anulando, setAnulando] = useState(false)
+
+  const deQuien = { negocio: c.business.name, mes: mesLargo(c.period) }
+  const volverAPendiente = () =>
+    api
+      .markCharge(c.id, 'PENDIENTE')
+      .then(onDone)
+      .catch((e) => aviso.error(textoDeError(e, t('cob.noSePudoMarcar'))))
 
   const marcar = useMutation({
     mutationFn: (status: 'PENDIENTE' | 'COBRADO' | 'ANULADO') =>
       api.markCharge(c.id, status, nota.trim() || undefined),
-    onSuccess: onDone,
+    onSuccess: (_r, status) => {
+      setAbierto(false)
+      setAnulando(false)
+      onDone()
+      if (status === 'PENDIENTE') {
+        aviso.ok(t('cob.vuelvePendiente', deQuien))
+        return
+      }
+      aviso.ok(t(status === 'COBRADO' ? 'cob.cobradoHecho' : 'cob.anuladoHecho', deQuien), {
+        texto: t('avisos.deshacer'),
+        onClick: volverAPendiente,
+      })
+    },
+    // Anular falla dentro de su confirmación; lo demás, en un aviso.
+    onError: (err, status) => {
+      if (status !== 'ANULADO') aviso.error(textoDeError(err, t('cob.noSePudoMarcar')))
+    },
   })
 
   return (
@@ -127,12 +150,9 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
               >
                 {t('cob.marcarCobrado')}
               </Button>
-              <ConfirmAction
-                label={t('cob.anular')}
-                confirmLabel={t('cob.siAnular')}
-                loading={marcar.isPending && marcar.variables === 'ANULADO'}
-                onConfirm={() => marcar.mutate('ANULADO')}
-              />
+              <Button size="sm" variant="danger" onClick={() => setAnulando(true)}>
+                {t('cob.anular')}
+              </Button>
             </>
           ) : (
             <Button
@@ -168,13 +188,26 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         </form>
       )}
 
-      {marcar.isError && (
-        <div className="px-4 pb-4 sm:px-5">
-          <ErrorNote>
-            {marcar.error instanceof ApiError ? marcar.error.message : t('cob.noSePudoMarcar')}
-          </ErrorNote>
-        </div>
-      )}
+      <ConfirmDialog
+        open={anulando}
+        onClose={() => {
+          marcar.reset()
+          setAnulando(false)
+        }}
+        title={t('cob.anularTitulo', deQuien)}
+        consecuencias={[
+          t('cob.anularC1', { importe: formatPrice(c.totalCents, idioma) }),
+          t('cob.anularC2'),
+        ]}
+        confirmLabel={t('cob.anularCobro')}
+        onConfirm={() => marcar.mutate('ANULADO')}
+        loading={marcar.isPending}
+        error={
+          marcar.isError && marcar.variables === 'ANULADO'
+            ? textoDeError(marcar.error, t('cob.noSePudoMarcar'))
+            : null
+        }
+      />
     </li>
   )
 }
@@ -185,6 +218,7 @@ export function PanelCobros() {
   const { user, loading } = useAuth()
   const queryClient = useQueryClient()
   const [filtro, setFiltro] = useState<'todos' | 'PENDIENTE' | 'COBRADO'>('todos')
+  const [cerrando, setCerrando] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'charges'],
@@ -194,9 +228,19 @@ export function PanelCobros() {
 
   const cerrar = useMutation({
     mutationFn: () => api.closeMonth(),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      setCerrando(false)
       queryClient.invalidateQueries({ queryKey: ['admin'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
+      aviso.ok(
+        r.creados === 0
+          ? t('cob.yaCerrado', { mes: mesLargo(r.period) })
+          : t(r.creados === 1 ? 'cob.cerradoUno' : 'cob.cerradoVarios', {
+              mes: mesLargo(r.period),
+              n: r.creados,
+              negocios: r.negocios,
+            }),
+      )
     },
   })
 
@@ -213,28 +257,27 @@ export function PanelCobros() {
         title={t('panel.cobros')}
         hint={t('cob.pista')}
         actions={
-          <Button variant="secondary" loading={cerrar.isPending} onClick={() => cerrar.mutate()}>
+          <Button variant="secondary" onClick={() => setCerrando(true)}>
             {t('cob.cerrarMes', { mes: mesLargo(mesAnterior()) })}
           </Button>
         }
       />
 
-      {cerrar.isError && (
-        <ErrorNote>
-          {cerrar.error instanceof ApiError ? cerrar.error.message : t('cob.noSePudoCerrar')}
-        </ErrorNote>
-      )}
-      {cerrar.isSuccess && (
-        <SuccessNote>
-          {cerrar.data.creados === 0
-            ? t('cob.yaCerrado', { mes: mesLargo(cerrar.data.period) })
-            : t(cerrar.data.creados === 1 ? 'cob.cerradoUno' : 'cob.cerradoVarios', {
-                mes: mesLargo(cerrar.data.period),
-                n: cerrar.data.creados,
-                negocios: cerrar.data.negocios,
-              })}
-        </SuccessNote>
-      )}
+      {/* Cerrar el mes crea los cobros de todos los negocios de golpe. Antes
+          era un botón sin pregunta: un clic de más en la cabecera. */}
+      <ConfirmDialog
+        open={cerrando}
+        onClose={() => {
+          cerrar.reset()
+          setCerrando(false)
+        }}
+        title={t('cob.cerrarTitulo', { mes: mesLargo(mesAnterior()) })}
+        consecuencias={[t('cob.cerrarC1'), t('cob.cerrarC2'), t('cob.cerrarC3')]}
+        confirmLabel={t('cob.cerrarElMes')}
+        onConfirm={() => cerrar.mutate()}
+        loading={cerrar.isPending}
+        error={cerrar.isError ? textoDeError(cerrar.error, t('cob.noSePudoCerrar')) : null}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {[

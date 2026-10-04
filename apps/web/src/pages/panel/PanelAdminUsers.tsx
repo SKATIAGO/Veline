@@ -7,9 +7,7 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
-  ErrorNote,
   FilterChip,
   Input,
   PageHeader,
@@ -18,6 +16,8 @@ import {
   cx,
 } from '../../components/ui'
 import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * Todas las cuentas de acceso de la plataforma, de un vistazo — solo
@@ -50,6 +50,7 @@ export function PanelAdminUsers() {
   const queryClient = useQueryClient()
   const [filtro, setFiltro] = useState<FiltroKey>('todos')
   const [busqueda, setBusqueda] = useState('')
+  const [aQuitar, setAQuitar] = useState<{ id: string; name: string; role: string } | null>(null)
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
@@ -57,13 +58,33 @@ export function PanelAdminUsers() {
     enabled: me?.role === 'SUPERADMIN',
   })
 
+  const refrescar = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin'] })
+    queryClient.invalidateQueries({ queryKey: ['panel'] })
+    queryClient.invalidateQueries({ queryKey: ['audit'] })
+  }
+
   const toggle = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+    mutationFn: ({ id, active }: { id: string; name: string; active: boolean }) =>
       api.setAdminUserActive(id, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin'] })
-      queryClient.invalidateQueries({ queryKey: ['panel'] })
-      queryClient.invalidateQueries({ queryKey: ['audit'] })
+    onSuccess: (_r, v) => {
+      refrescar()
+      if (v.active) {
+        aviso.ok(t('eq.accesoDevuelto', { nombre: v.name }))
+        return
+      }
+      setAQuitar(null)
+      aviso.ok(t('eq.accesoQuitado', { nombre: v.name }), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .setAdminUserActive(v.id, true)
+            .then(refrescar)
+            .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+      })
+    },
+    onError: (err, v) => {
+      if (v.active) aviso.error(textoDeError(err, t('avisos.error')))
     },
   })
 
@@ -117,8 +138,6 @@ export function PanelAdminUsers() {
           className="ml-auto max-w-xs"
         />
       </div>
-
-      {toggle.isError && <ErrorNote>{(toggle.error as Error).message}</ErrorNote>}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -184,18 +203,19 @@ export function PanelAdminUsers() {
                   {u.id === me.id ? (
                     <span className="text-meta text-subtle">{t('ctas.noPuedesDesactivarte')}</span>
                   ) : u.active ? (
-                    <ConfirmAction
-                      label={t('ctas.quitarAcceso')}
-                      confirmLabel={t('ctas.siQuitar')}
-                      loading={toggle.isPending && toggle.variables?.id === u.id}
-                      onConfirm={() => toggle.mutate({ id: u.id, active: false })}
-                    />
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => setAQuitar({ id: u.id, name: u.name, role: u.role })}
+                    >
+                      {t('ctas.quitarAcceso')}
+                    </Button>
                   ) : (
                     <Button
                       size="sm"
                       variant="quiet"
                       loading={toggle.isPending && toggle.variables?.id === u.id}
-                      onClick={() => toggle.mutate({ id: u.id, active: true })}
+                      onClick={() => toggle.mutate({ id: u.id, name: u.name, active: true })}
                     >
                       {t('ctas.devolverAcceso')}
                     </Button>
@@ -206,6 +226,29 @@ export function PanelAdminUsers() {
           </ul>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={!!aQuitar}
+        onClose={() => {
+          toggle.reset()
+          setAQuitar(null)
+        }}
+        title={t('eq.quitarTitulo', { nombre: aQuitar?.name ?? '' })}
+        consecuencias={[
+          t('eq.quitarC1'),
+          // El superadmin no ficha: no pertenece a ningún negocio.
+          ...(aQuitar?.role === 'SUPERADMIN' ? [] : [t('eq.quitarC2')]),
+          t('eq.quitarC3'),
+        ]}
+        confirmLabel={t('ctas.quitarAcceso')}
+        onConfirm={() => aQuitar && toggle.mutate({ ...aQuitar, active: false })}
+        loading={toggle.isPending}
+        error={
+          toggle.isError && toggle.variables?.active === false
+            ? textoDeError(toggle.error, t('avisos.error'))
+            : null
+        }
+      />
 
       <p className="text-meta text-subtle">
         <Texto

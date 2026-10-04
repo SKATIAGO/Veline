@@ -16,7 +16,8 @@ import {
 } from '../../components/ui'
 import { SelectorIdioma } from '../../components/SelectorIdioma'
 import { useIdioma, type Clave } from '../../i18n/idioma'
-import { puedeSalir } from '../../lib/cambios'
+import { hayCambios, siDescarta } from '../../lib/cambios'
+import { DescartarCambios } from '../../components/DescartarCambios'
 
 /**
  * Marco del panel. Exige sesión y adapta la interfaz al rol:
@@ -265,13 +266,16 @@ type Seccion = {
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
 function BotonBarra({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
+  const navigate = useNavigate()
 
   return (
     <NavLink
       to={seccion.to}
       end={seccion.end}
       onClick={(e) => {
-        if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+        if (!hayCambios()) return
+        e.preventDefault()
+        siDescarta(() => navigate(seccion.to))
       }}
       className={({ isActive }) =>
         cx(
@@ -290,13 +294,16 @@ function BotonBarra({ seccion }: { seccion: Seccion }) {
 /** Una entrada del menú lateral. 44 px, con el icono a la izquierda. */
 function ItemLateral({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
+  const navigate = useNavigate()
 
   return (
     <NavLink
       to={seccion.to}
       end={seccion.end}
       onClick={(e) => {
-        if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+        if (!hayCambios()) return
+        e.preventDefault()
+        siDescarta(() => navigate(seccion.to))
       }}
       className={({ isActive }) =>
         cx(
@@ -669,22 +676,24 @@ export function PanelLayout() {
   // En la plataforma no hay ninguna cita que apuntar.
   const conBotonCentral = !esPlataforma
 
-  const irA = (to: string) => {
-    if (!puedeSalir(t('panel.salirSinGuardar'))) return
-    /* Desde la ficha «Más», navegar SUSTITUYE la entrada del historial que
+  const rutaPerfil = esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`
+
+  const irA = (to: string) =>
+    siDescarta(() => {
+      /* Desde la ficha «Más», navegar SUSTITUYE la entrada del historial que
        abrió la ficha en vez de añadir otra encima: así «atrás» vuelve a la
        sección de antes, y no a la misma con la ficha cerrada. Desde el menú
        lateral no hay ficha abierta y se navega normal. */
-    navigate(to, { replace: masAbierto })
-    setMasAbierto(false)
-  }
+      navigate(to, { replace: masAbierto })
+      setMasAbierto(false)
+    })
 
-  const salir = () => {
-    if (!puedeSalir(t('panel.salirSinGuardar'))) return
-    setMasAbierto(false)
-    // logout() ya lleva a /login con una carga limpia.
-    void logout()
-  }
+  const salir = () =>
+    siDescarta(() => {
+      setMasAbierto(false)
+      // logout() ya lleva a /login con una carga limpia.
+      void logout()
+    })
 
   const mostrarSelector = esSuperadmin && !esPlataforma && businesses && businesses.length > 1
   const selectorNegocio = mostrarSelector && (
@@ -762,9 +771,11 @@ export function PanelLayout() {
           )}
 
           <NavLink
-            to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+            to={rutaPerfil}
             onClick={(e) => {
-              if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+              if (!hayCambios()) return
+              e.preventDefault()
+              siDescarta(() => navigate(rutaPerfil))
             }}
             className={({ isActive }) =>
               cx(
@@ -812,9 +823,11 @@ export function PanelLayout() {
               </span>
             </div>
             <NavLink
-              to={esPlataforma ? '/panel/admin/cuenta' : `/panel/${slug}/cuenta`}
+              to={rutaPerfil}
               onClick={(e) => {
-                if (!puedeSalir(t('panel.salirSinGuardar'))) e.preventDefault()
+                if (!hayCambios()) return
+                e.preventDefault()
+                siDescarta(() => navigate(rutaPerfil))
               }}
               aria-label={t('panel.tuPerfil')}
               className={({ isActive }) =>
@@ -875,9 +888,7 @@ export function PanelLayout() {
                   URL, así que además es un enlace que se puede guardar. */}
               <button
                 type="button"
-                onClick={() =>
-                  puedeSalir(t('panel.salirSinGuardar')) && navigate(`/panel/${slug}?nueva=1`)
-                }
+                onClick={() => siDescarta(() => navigate(`/panel/${slug}?nueva=1`))}
                 aria-label={t('panel.apuntarCita')}
                 className={cx(
                   'grid size-14 place-items-center rounded-full bg-brand text-cream',
@@ -913,6 +924,8 @@ export function PanelLayout() {
           </button>
         </div>
       </nav>
+
+      <DescartarCambios />
 
       <Sheet open={masAbierto} onClose={() => setMasAbierto(false)} title={t('panel.masSecciones')}>
         <h2 className="mb-1 font-display text-subheading font-semibold text-ink">

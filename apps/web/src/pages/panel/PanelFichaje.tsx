@@ -16,6 +16,7 @@ import {
   cx,
 } from '../../components/ui'
 import { Texto, useIdioma } from '../../i18n/idioma'
+import { aviso } from '../../components/Avisos'
 
 /**
  * Registro de jornada.
@@ -85,7 +86,10 @@ function Corregir({
         salida: salida ? new Date(salida).toISOString() : null,
         motivo: motivo.trim(),
       }),
-    onSuccess: onHecho,
+    onSuccess: () => {
+      aviso.ok(t('fic.corregidoHecho'))
+      onHecho()
+    },
   })
 
   const problema =
@@ -174,7 +178,14 @@ export function PanelFichaje() {
   const fichar = useMutation({
     mutationFn: (que: 'entrada' | 'salida') =>
       que === 'entrada' ? api.ficharEntrada(slug) : api.ficharSalida(slug),
-    onSuccess: refrescar,
+    onSuccess: (_r, que) => {
+      refrescar()
+      aviso.ok(
+        t(que === 'entrada' ? 'fic.entradaHecha' : 'fic.salidaHecha', {
+          hora: hora(new Date().toISOString()),
+        }),
+      )
+    },
   })
 
   const dentro = !!abierto?.fichaje

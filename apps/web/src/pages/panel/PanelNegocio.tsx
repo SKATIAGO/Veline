@@ -8,7 +8,6 @@ import {
   BarraGuardar,
   Button,
   Card,
-  ConfirmAction,
   ErrorNote,
   Field,
   Input,
@@ -16,12 +15,13 @@ import {
   Select,
   Skeleton,
   Spinner,
-  SuccessNote,
   Textarea,
 } from '../../components/ui'
 import { Photo } from '../../components/Photo'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { useCambiosSinGuardar } from '../../lib/cambios'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * La ficha pública del negocio y sus cierres.
@@ -67,10 +67,29 @@ function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
       const { url } = await api.subirImagen(slug, await prepararFoto(archivo))
       return url
     },
-    onSuccess: (url) => guardar.mutate([...fotos, url]),
+    onSuccess: (url) =>
+      guardar.mutate([...fotos, url], { onSuccess: () => aviso.ok(t('neg.fotoAnadida')) }),
   })
 
-  const quitar = (url: string) => guardar.mutate(fotos.filter((f) => f !== url))
+  /* Quitar una foto va directo —antes también—, pero ahora se puede deshacer:
+     con un toque de más en la ✕ se perdía la portada sin remedio. */
+  const quitar = (url: string) => {
+    const antes = fotos
+    guardar.mutate(
+      fotos.filter((f) => f !== url),
+      {
+        onSuccess: () =>
+          aviso.ok(t('neg.fotoQuitada'), {
+            texto: t('avisos.deshacer'),
+            onClick: () =>
+              api
+                .savePhotos(slug, antes)
+                .then(invalidar)
+                .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+          }),
+      },
+    )
+  }
 
   const enBusca = subir.isPending || guardar.isPending
 
@@ -194,12 +213,14 @@ export function PanelNegocio() {
       queryClient.invalidateQueries({ queryKey: ['business', slug] })
       queryClient.invalidateQueries({ queryKey: ['businesses'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
+      aviso.ok(t('neg.guardada'))
     },
   })
 
   const [desde, setDesde] = useState(hoy())
   const [hasta, setHasta] = useState(hoy())
   const [motivo, setMotivo] = useState('')
+  const [aAbrir, setAAbrir] = useState<{ ids: string[]; dias: string } | null>(null)
 
   const invalidarCierres = () => {
     queryClient.invalidateQueries({ queryKey: ['panel', slug, 'closures'] })
@@ -213,12 +234,17 @@ export function PanelNegocio() {
     onSuccess: () => {
       setMotivo('')
       invalidarCierres()
+      aviso.ok(t('neg.diasCerrados'))
     },
   })
 
   const borrarCierre = useMutation({
-    mutationFn: (ids: string[]) => api.deleteClosure(slug, ids),
-    onSuccess: invalidarCierres,
+    mutationFn: (c: { ids: string[]; dias: string }) => api.deleteClosure(slug, c.ids),
+    onSuccess: (_r, c) => {
+      setAAbrir(null)
+      invalidarCierres()
+      aviso.ok(t('neg.diasAbiertos', { dias: c.dias }))
+    },
   })
 
   const set = <K extends keyof PanelProfile>(campo: K, valor: PanelProfile[K]) => {
@@ -290,7 +316,6 @@ export function PanelNegocio() {
           {guardar.error instanceof ApiError ? guardar.error.message : t('neg.noSePudoGuardar')}
         </ErrorNote>
       )}
-      {guardar.isSuccess && !tocado && <SuccessNote>{t('neg.guardada')}</SuccessNote>}
 
       <Card padded>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -485,12 +510,24 @@ export function PanelNegocio() {
                     </p>
                   </div>
                   <div className="ml-auto sm:ml-0">
-                    <ConfirmAction
-                      label={t('neg.quitar')}
-                      confirmLabel={t('neg.siAbrir')}
-                      loading={borrarCierre.isPending}
-                      onConfirm={() => borrarCierre.mutate(c.ids)}
-                    />
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() =>
+                        setAAbrir({
+                          ids: c.ids,
+                          dias:
+                            c.from === c.to
+                              ? formatoDia(c.from)
+                              : t('neg.delAl', {
+                                  desde: formatoDia(c.from),
+                                  hasta: formatoDia(c.to),
+                                }),
+                        })
+                      }
+                    >
+                      {t('neg.quitar')}
+                    </Button>
                   </div>
                 </li>
               ))}
@@ -498,11 +535,19 @@ export function PanelNegocio() {
           </Card>
         )}
 
-        {borrarCierre.isError && (
-          <div className="mt-4">
-            <ErrorNote>{t('neg.noSePudoQuitar')}</ErrorNote>
-          </div>
-        )}
+        <ConfirmDialog
+          open={!!aAbrir}
+          onClose={() => {
+            borrarCierre.reset()
+            setAAbrir(null)
+          }}
+          title={t('neg.abrirTitulo', { dias: aAbrir?.dias ?? '' })}
+          consecuencias={[t('neg.abrirC1'), t('neg.abrirC2')]}
+          confirmLabel={t('neg.abrirEsosDias')}
+          onConfirm={() => aAbrir && borrarCierre.mutate(aAbrir)}
+          loading={borrarCierre.isPending}
+          error={borrarCierre.isError ? t('neg.noSePudoQuitar') : null}
+        />
       </div>
     </div>
   )

@@ -236,6 +236,41 @@ export async function negocioRoutes(app: FastifyInstance) {
   })
 
   /**
+   * Las citas por delante de una persona, para resolverlas ANTES de darla de
+   * baja. La baja las rechaza igual (ver arriba), pero el panel las enseña en
+   * la confirmación y deja pasarlas a otra persona ahí mismo: antes se
+   * pulsaba «Sí» y el error llegaba después.
+   */
+  app.get('/api/panel/:slug/staff/:id/pendientes', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'configuracion')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const persona = await prisma.staff.findFirst({ where: { id, businessId: auth.business.id } })
+    if (!persona) return reply.code(404).send({ error: 'Persona no encontrada' })
+
+    const citas = await prisma.booking.findMany({
+      where: { staffId: id, status: 'CONFIRMADA', startsAt: { gte: new Date() } },
+      orderBy: { startsAt: 'asc' },
+      take: 50,
+      select: {
+        id: true,
+        startsAt: true,
+        service: { select: { name: true } },
+        customer: { select: { name: true } },
+      },
+    })
+    return citas.map((c) => ({
+      id: c.id,
+      startsAt: c.startsAt.toISOString(),
+      servicio: c.service.name,
+      cliente: c.customer.name,
+    }))
+  })
+
+  /**
    * Borrar de verdad, no dar de baja. Solo se puede si ya está de baja: en
    * activo nunca hay citas por delante huérfanas (no se le puede asignar
    * ninguna nueva estando inactivo), así que exigir el paso por «dar de baja»

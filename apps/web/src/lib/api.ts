@@ -387,11 +387,21 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
-  rescheduleBooking: (slug: string, id: string, startsAt: string, notify: boolean) =>
+  /** staffId: pasar la cita a otra persona (a la misma hora, si startsAt no cambia). */
+  rescheduleBooking: (
+    slug: string,
+    id: string,
+    startsAt: string,
+    notify: boolean,
+    staffId?: string,
+  ) =>
     request<{ ok: true; startsAt: string }>(`/panel/${slug}/bookings/${id}/reschedule`, {
       method: 'PATCH',
-      body: JSON.stringify({ startsAt, notify }),
+      body: JSON.stringify({ startsAt, notify, ...(staffId ? { staffId } : {}) }),
     }),
+
+  staffPendientes: (slug: string, id: string) =>
+    request<CitaPendiente[]>(`/panel/${slug}/staff/${id}/pendientes`),
 
   setBookingOutcome: (
     slug: string,
@@ -681,6 +691,14 @@ export interface AuditEntry {
   /** Solo llega al superadmin; para un admin siempre es null. */
   ip: string | null
   createdAt: string
+}
+
+/** Una cita por delante de alguien que se va a dar de baja. */
+export interface CitaPendiente {
+  id: string
+  startsAt: string
+  servicio: string
+  cliente: string
 }
 
 export interface PanelStaff {

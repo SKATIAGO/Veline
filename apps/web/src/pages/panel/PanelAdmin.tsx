@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -15,7 +15,6 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
   ErrorNote,
   Field,
@@ -28,6 +27,8 @@ import {
   useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * Gestión de la plataforma — SOLO superadmin. Dar de alta negocios y crear
@@ -133,18 +134,157 @@ const diasHasta = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now
  * llevarte a otra pantalla: casi siempre se toca justo después de mirar
  * las cifras de esa misma fila.
  */
+type CambioSuscripcion = Parameters<typeof api.updateSubscription>[1]
+
+/**
+ * Lo que se pregunta antes de tocar el estado o el dinero de un negocio.
+ *
+ * Antes solo «Suspender» y «Dar de baja» preguntaban, y con una línea. Marcar
+ * impagada, reactivar, sumar días de prueba a un negocio activo o cortado, o
+ * pasar a un plan de pago a quien estaba en prueba se aplicaban al momento y
+ * sin decir qué cambiaba —y algunos cambian bastante: «+7 días» a un negocio
+ * suspendido lo vuelve a abrir al público—.
+ */
+interface Pregunta {
+  titulo: string
+  consecuencias: string[]
+  boton: string
+  cambio: CambioSuscripcion
+  /** Para el aviso de después. */
+  hecho: string
+  /** Si se puede escribir el motivo, que se añade a la nota interna. */
+  conMotivo?: boolean
+}
+
 function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
   const { t, idioma, locale } = useIdioma()
   const plural = usePlural()
   const [notas, setNotas] = useState(b.adminNotes ?? '')
+  /* El motivo de una suspensión se escribe en la nota desde la confirmación.
+     Sin esto el campo seguía enseñando la nota de antes, y «Guardar nota»
+     la pisaba y perdía el motivo. */
+  useEffect(() => setNotas(b.adminNotes ?? ''), [b.adminNotes])
+  const [pregunta, setPregunta] = useState<Pregunta | null>(null)
+  const [motivo, setMotivo] = useState('')
 
   const cambiar = useMutation({
-    mutationFn: (body: Parameters<typeof api.updateSubscription>[1]) =>
-      api.updateSubscription(b.id, body),
-    onSuccess: onDone,
+    mutationFn: ({ cambio }: { cambio: CambioSuscripcion; hecho: string }) =>
+      api.updateSubscription(b.id, cambio),
+    onSuccess: (_r, v) => {
+      setPregunta(null)
+      setMotivo('')
+      aviso.ok(v.hecho)
+      onDone()
+    },
+    // Lo que se confirma falla dentro de su confirmación; lo directo, en un aviso.
+    onError: (err) => {
+      if (!pregunta) aviso.error(textoDeError(err, t('adm.noSePudoCambiar')))
+    },
   })
 
   const cortado = b.subStatus === 'SUSPENDIDA' || b.subStatus === 'CANCELADA'
+  const fecha = (d: Date) => d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
+
+  /** El motivo se apunta en la nota interna, con la fecha: es donde se mira
+      después para saber por qué se cortó. Separado con « · » y no con un salto
+      de línea: la nota se edita en un campo de una sola línea, que se los
+      come. */
+  const conNota = (cambio: CambioSuscripcion): CambioSuscripcion => {
+    const m = motivo.trim()
+    if (!m) return cambio
+    const linea = `${new Date().toLocaleDateString(locale)}: ${m}`
+    return {
+      ...cambio,
+      adminNotes: [b.adminNotes, linea].filter(Boolean).join(' · ').slice(0, 600),
+    }
+  }
+
+  const elegirPlan = (p: 'GRATIS' | 'NEGOCIO' | 'EQUIPOS') => {
+    const hecho = t('adm.planCambiado', { nombre: b.name, plan: planLabel(p, idioma) })
+    // Pasar a un plan de pago a quien está en prueba termina la prueba ya.
+    if (b.subStatus === 'PRUEBA' && p !== 'GRATIS') {
+      setPregunta({
+        titulo: t('adm.planPregunta', { nombre: b.name, plan: planLabel(p, idioma) }),
+        consecuencias: [t('adm.planTerminaPrueba'), t('adm.planCobro')],
+        boton: t('adm.cambiarPlan'),
+        cambio: { plan: p },
+        hecho,
+      })
+      return
+    }
+    cambiar.mutate({ cambio: { plan: p }, hecho })
+  }
+
+  const sumarDias = (d: number) => {
+    const base =
+      b.trialEndsAt && new Date(b.trialEndsAt) > new Date() ? new Date(b.trialEndsAt) : new Date()
+    const hasta = fecha(new Date(base.getTime() + d * 86_400_000))
+    const hecho = t('adm.pruebaAmpliada', { nombre: b.name, fecha: hasta })
+    // En prueba, sumar días es solo eso. Fuera de ella, cambia su estado.
+    if (b.subStatus === 'PRUEBA') {
+      cambiar.mutate({ cambio: { trialDays: d }, hecho })
+      return
+    }
+    setPregunta({
+      titulo: t('adm.pruebaPregunta', { nombre: b.name }),
+      consecuencias: [
+        t('adm.pruebaHasta', { fecha: hasta }),
+        ...(cortado ? [t('adm.pruebaReabre')] : []),
+      ],
+      boton: t('adm.ponerEnPrueba'),
+      cambio: { trialDays: d },
+      hecho,
+    })
+  }
+
+  const preguntar = (estado: 'IMPAGADA' | 'SUSPENDIDA' | 'CANCELADA' | 'ACTIVA') => {
+    const nombre = b.name
+    const p: Record<typeof estado, Pregunta> = {
+      IMPAGADA: {
+        titulo: t('adm.impagadaPregunta', { nombre }),
+        consecuencias: [t('adm.impagadaC1'), t('adm.impagadaC2')],
+        boton: t('adm.marcarImpagada'),
+        cambio: { status: 'IMPAGADA' },
+        hecho: t('adm.impagadaHecho', { nombre }),
+        conMotivo: true,
+      },
+      SUSPENDIDA: {
+        titulo: t('adm.suspenderTitulo', { nombre }),
+        consecuencias: [
+          t('adm.suspenderC1'),
+          t('adm.suspenderC2'),
+          t('adm.suspenderC3'),
+          t('adm.cortarCobro'),
+          t('adm.suspenderC4'),
+        ],
+        boton: t('adm.suspender'),
+        cambio: { status: 'SUSPENDIDA' },
+        hecho: t('adm.suspendidoHecho', { nombre }),
+        conMotivo: true,
+      },
+      CANCELADA: {
+        titulo: t('adm.bajaTitulo', { nombre }),
+        consecuencias: [
+          t('adm.suspenderC1'),
+          t('adm.bajaC2'),
+          t('adm.cortarCobro'),
+          t('adm.bajaC4'),
+        ],
+        boton: t('adm.darDeBaja'),
+        cambio: { status: 'CANCELADA' },
+        hecho: t('adm.bajaHecho', { nombre }),
+        conMotivo: true,
+      },
+      ACTIVA: {
+        titulo: t('adm.reactivarTitulo', { nombre }),
+        consecuencias: [t('adm.reactivarC1'), t('adm.reactivarC2')],
+        boton: t('adm.reactivar'),
+        cambio: { status: 'ACTIVA' },
+        hecho: t('adm.reactivadoHecho', { nombre }),
+      },
+    }
+    setPregunta(p[estado])
+  }
 
   return (
     <div className="w-full border-t border-line bg-canvas/50 px-4 py-4 sm:px-5">
@@ -157,8 +297,8 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                 key={p}
                 size="sm"
                 variant={b.plan === p ? 'primary' : 'quiet'}
-                loading={cambiar.isPending && cambiar.variables?.plan === p}
-                onClick={() => cambiar.mutate({ plan: p })}
+                loading={!pregunta && cambiar.isPending && cambiar.variables?.cambio.plan === p}
+                onClick={() => b.plan !== p && elegirPlan(p)}
               >
                 {planLabel(p, idioma)}
               </Button>
@@ -180,8 +320,10 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
                 key={d}
                 size="sm"
                 variant="quiet"
-                loading={cambiar.isPending && cambiar.variables?.trialDays === d}
-                onClick={() => cambiar.mutate({ trialDays: d })}
+                loading={
+                  !pregunta && cambiar.isPending && cambiar.variables?.cambio.trialDays === d
+                }
+                onClick={() => sumarDias(d)}
               >
                 {t('adm.masDias', { n: d })}
               </Button>
@@ -200,40 +342,25 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
           <p className="mb-2 text-meta font-semibold text-body-2">{t('adm.estado')}</p>
           <div className="flex flex-wrap gap-1.5">
             {cortado ? (
-              <Button
-                size="sm"
-                loading={cambiar.isPending && cambiar.variables?.status === 'ACTIVA'}
-                onClick={() => cambiar.mutate({ status: 'ACTIVA' })}
-              >
+              <Button size="sm" onClick={() => preguntar('ACTIVA')}>
                 {t('adm.reactivar')}
               </Button>
             ) : (
               <>
-                <Button
-                  size="sm"
-                  variant="quiet"
-                  loading={cambiar.isPending && cambiar.variables?.status === 'IMPAGADA'}
-                  onClick={() => cambiar.mutate({ status: 'IMPAGADA' })}
-                >
-                  {t('adm.marcarImpagada')}
+                {b.subStatus !== 'IMPAGADA' && (
+                  <Button size="sm" variant="quiet" onClick={() => preguntar('IMPAGADA')}>
+                    {t('adm.marcarImpagada')}
+                  </Button>
+                )}
+                <Button size="sm" variant="danger" onClick={() => preguntar('SUSPENDIDA')}>
+                  {t('adm.suspender')}
                 </Button>
-                <ConfirmAction
-                  label={t('adm.suspender')}
-                  question={t('adm.suspenderPregunta')}
-                  confirmLabel={t('adm.siSuspender')}
-                  loading={cambiar.isPending && cambiar.variables?.status === 'SUSPENDIDA'}
-                  onConfirm={() => cambiar.mutate({ status: 'SUSPENDIDA' })}
-                />
                 {/* No es un borrado: conserva sus reservas y cobros, y se
                     puede reactivar. Un borrado de verdad se llevaría por
                     delante ese historial, y aquí no hace falta. */}
-                <ConfirmAction
-                  label={t('adm.darDeBaja')}
-                  question={t('adm.darDeBajaPregunta')}
-                  confirmLabel={t('adm.siDarDeBaja')}
-                  loading={cambiar.isPending && cambiar.variables?.status === 'CANCELADA'}
-                  onConfirm={() => cambiar.mutate({ status: 'CANCELADA' })}
-                />
+                <Button size="sm" variant="danger" onClick={() => preguntar('CANCELADA')}>
+                  {t('adm.darDeBaja')}
+                </Button>
               </>
             )}
           </div>
@@ -246,7 +373,7 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          cambiar.mutate({ adminNotes: notas.trim() })
+          cambiar.mutate({ cambio: { adminNotes: notas.trim() }, hecho: t('adm.notaGuardada') })
         }}
         className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-4"
       >
@@ -254,18 +381,46 @@ function Suscripcion({ b, onDone }: { b: AdminBusiness; onDone: () => void }) {
           <span className="text-meta font-semibold text-body-2">{t('adm.notaInterna')}</span>
           <Input value={notas} onChange={(e) => setNotas(e.target.value)} />
         </label>
-        <Button type="submit" variant="secondary" loading={cambiar.isPending}>
+        <Button
+          type="submit"
+          variant="secondary"
+          loading={cambiar.isPending && cambiar.variables?.cambio.adminNotes !== undefined}
+        >
           {t('adm.guardarNota')}
         </Button>
       </form>
 
-      {cambiar.isError && (
-        <div className="mt-3">
-          <ErrorNote>
-            {cambiar.error instanceof ApiError ? cambiar.error.message : t('adm.noSePudoCambiar')}
-          </ErrorNote>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!pregunta}
+        onClose={() => {
+          cambiar.reset()
+          setMotivo('')
+          setPregunta(null)
+        }}
+        title={pregunta?.titulo ?? ''}
+        consecuencias={pregunta?.consecuencias}
+        confirmLabel={pregunta?.boton ?? ''}
+        onConfirm={() =>
+          pregunta &&
+          cambiar.mutate({
+            cambio: pregunta.conMotivo ? conNota(pregunta.cambio) : pregunta.cambio,
+            hecho: pregunta.hecho,
+          })
+        }
+        loading={cambiar.isPending}
+        error={cambiar.isError ? textoDeError(cambiar.error, t('adm.noSePudoCambiar')) : null}
+      >
+        {pregunta?.conMotivo && (
+          <Field label={t('adm.motivo')} htmlFor={`motivo-${b.id}`} hint={t('adm.motivoPista')}>
+            <Input
+              id={`motivo-${b.id}`}
+              value={motivo}
+              maxLength={200}
+              onChange={(e) => setMotivo(e.target.value)}
+            />
+          </Field>
+        )}
+      </ConfirmDialog>
     </div>
   )
 }
@@ -404,11 +559,17 @@ export function PanelAdmin() {
   const createBusiness = useMutation({
     mutationFn: (d: BusinessDraft) =>
       api.createAdminBusiness({ ...d, phone: d.phone || undefined }),
-    onSuccess: () => {
+    onSuccess: (r, d) => {
       setBusinessDraft(null)
       queryClient.invalidateQueries({ queryKey: ['admin'] })
       queryClient.invalidateQueries({ queryKey: ['panel', 'businesses'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
+      /* Antes el formulario se cerraba sin más, y el siguiente paso —crear la
+         cuenta del dueño— había que ir a buscarlo a su fila. */
+      aviso.ok(t('adm.negocioCreado', { nombre: d.name }), {
+        texto: t('adm.crearSuCuenta'),
+        onClick: () => abrirCuenta({ id: r.id, email: d.email } as AdminBusiness),
+      })
     },
   })
 
@@ -422,21 +583,29 @@ export function PanelAdmin() {
     },
   })
 
+  const [aAprobar, setAAprobar] = useState<AdminBusiness | null>(null)
+
   const aprobar = useMutation({
-    mutationFn: (id: string) => api.approveBusiness(id),
-    onSuccess: () => {
+    mutationFn: (b: AdminBusiness) => api.approveBusiness(b.id),
+    onSuccess: (_r, b) => {
+      setAAprobar(null)
       queryClient.invalidateQueries({ queryKey: ['admin'] })
       queryClient.invalidateQueries({ queryKey: ['businesses'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
+      aviso.ok(t('adm.aprobadoHecho', { nombre: b.name }))
     },
   })
 
+  // Un local nuevo de un negocio que ya funciona: aprobarlo solo lo publica.
+  // Va directo, con aviso.
   const aprobarLocal = useMutation({
-    mutationFn: (id: string) => api.approveLocation(id),
-    onSuccess: () => {
+    mutationFn: (l: { id: string; name: string }) => api.approveLocation(l.id),
+    onSuccess: (_r, l) => {
       queryClient.invalidateQueries({ queryKey: ['admin'] })
       queryClient.invalidateQueries({ queryKey: ['audit'] })
+      aviso.ok(t('adm.localAprobado', { nombre: l.name }))
     },
+    onError: (err) => aviso.error(textoDeError(err, t('adm.noSePudoAprobar'))),
   })
 
   const visibles = useMemo(
@@ -476,8 +645,10 @@ export function PanelAdmin() {
     }
   }, [visibles])
 
-  if (loading) return <Spinner />
+  // Antes de cualquier return: un hook detrás de uno cambia de orden entre
+  // renders y React deja de saber cuál es cuál.
   const vistaCuenta = useALaVista<HTMLDivElement>(userDraft?.businessId)
+  if (loading) return <Spinner />
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN') return <Navigate to="/panel" replace />
 
@@ -844,11 +1015,7 @@ export function PanelAdmin() {
 
                 <div className="ml-auto flex flex-wrap justify-end gap-1 sm:ml-0">
                   {!b.approvedAt && (
-                    <Button
-                      size="sm"
-                      loading={aprobar.isPending && aprobar.variables === b.id}
-                      onClick={() => aprobar.mutate(b.id)}
-                    >
+                    <Button size="sm" onClick={() => setAAprobar(b)}>
                       {t('adm.aprobar')}
                     </Button>
                   )}
@@ -881,8 +1048,8 @@ export function PanelAdmin() {
                     </p>
                     <Button
                       size="sm"
-                      loading={aprobarLocal.isPending && aprobarLocal.variables === l.id}
-                      onClick={() => aprobarLocal.mutate(l.id)}
+                      loading={aprobarLocal.isPending && aprobarLocal.variables?.id === l.id}
+                      onClick={() => aprobarLocal.mutate(l)}
                     >
                       {t('adm.aprobarLocal')}
                     </Button>
@@ -905,19 +1072,19 @@ export function PanelAdmin() {
         </Card>
       )}
 
-      {aprobar.isError && (
-        <ErrorNote>
-          {aprobar.error instanceof ApiError ? aprobar.error.message : t('adm.noSePudoAprobar')}
-        </ErrorNote>
-      )}
-
-      {aprobarLocal.isError && (
-        <ErrorNote>
-          {aprobarLocal.error instanceof ApiError
-            ? aprobarLocal.error.message
-            : t('adm.noSePudoAprobar')}
-        </ErrorNote>
-      )}
+      <ConfirmDialog
+        open={!!aAprobar}
+        onClose={() => {
+          aprobar.reset()
+          setAAprobar(null)
+        }}
+        title={t('adm.aprobarTitulo', { nombre: aAprobar?.name ?? '' })}
+        consecuencias={[t('adm.aprobarC1'), t('adm.aprobarC2'), t('adm.aprobarC3')]}
+        confirmLabel={t('adm.aprobarYPublicar')}
+        onConfirm={() => aAprobar && aprobar.mutate(aAprobar)}
+        loading={aprobar.isPending}
+        error={aprobar.isError ? textoDeError(aprobar.error, t('adm.noSePudoAprobar')) : null}
+      />
 
       <p className="text-meta text-subtle">
         <Texto

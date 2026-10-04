@@ -9,7 +9,6 @@ import {
   PageHeader,
   Select,
   Skeleton,
-  SuccessNote,
   BarraGuardar,
 } from '../../components/ui'
 import {
@@ -18,7 +17,8 @@ import {
   type Franja as Range,
 } from '../../components/FranjasSemanales'
 import { useIdioma, usePlural } from '../../i18n/idioma'
-import { useCambiosSinGuardar } from '../../lib/cambios'
+import { siDescarta, useCambiosSinGuardar } from '../../lib/cambios'
+import { aviso } from '../../components/Avisos'
 
 export function PanelHours() {
   const { t } = useIdioma()
@@ -72,6 +72,7 @@ export function PanelHours() {
       queryClient.invalidateQueries({ queryKey: ['panel', slug] })
       queryClient.invalidateQueries({ queryKey: ['business', slug] })
       queryClient.invalidateQueries({ queryKey: ['availability', slug] })
+      aviso.ok(t('hor.guardado'))
     },
   })
 
@@ -137,7 +138,6 @@ export function PanelHours() {
 
       {invalid && <ErrorNote>{t('hor.franjaInvalida')}</ErrorNote>}
       {save.isError && <ErrorNote>{(save.error as Error).message}</ErrorNote>}
-      {save.isSuccess && !dirty && <SuccessNote>{t('hor.guardado')}</SuccessNote>}
 
       {varios && (
         <label className="flex max-w-xs flex-col gap-1.5">
@@ -146,9 +146,11 @@ export function PanelHours() {
             value={localActual}
             onChange={(e) => {
               // Cambiar de local también tiraba lo escrito sin preguntar.
-              if (dirty && !window.confirm(t('panel.salirSinGuardar'))) return
-              setLocal(e.target.value)
-              setDirty(false)
+              const elegido = e.target.value
+              siDescarta(() => {
+                setLocal(elegido)
+                setDirty(false)
+              })
             }}
           >
             {locales?.map((l) => (

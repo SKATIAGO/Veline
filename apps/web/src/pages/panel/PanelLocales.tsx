@@ -6,7 +6,6 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   ErrorNote,
   Field,
   Input,
@@ -15,6 +14,8 @@ import {
   useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * Los locales del negocio.
@@ -120,6 +121,7 @@ export function PanelLocales() {
   const queryClient = useQueryClient()
   const [creando, setCreando] = useState(false)
   const [editando, setEditando] = useState<PanelLocal | null>(null)
+  const [aCerrar, setACerrar] = useState<PanelLocal | null>(null)
   const vistaNuevo = useALaVista<HTMLDivElement>(creando)
   const vistaEditar = useALaVista<HTMLDivElement>(editando?.id)
 
@@ -136,9 +138,10 @@ export function PanelLocales() {
 
   const crear = useMutation({
     mutationFn: (d: typeof vacio) => api.crearLocal(slug, d),
-    onSuccess: () => {
+    onSuccess: (_r, d) => {
       setCreando(false)
       refrescar()
+      aviso.ok(t('loc.creado', { nombre: d.name }))
     },
   })
 
@@ -147,12 +150,17 @@ export function PanelLocales() {
     onSuccess: () => {
       setEditando(null)
       refrescar()
+      aviso.ok(t('avisos.guardado'))
     },
   })
 
   const cerrar = useMutation({
-    mutationFn: (id: string) => api.cerrarLocal(slug, id),
-    onSuccess: refrescar,
+    mutationFn: (l: PanelLocal) => api.cerrarLocal(slug, l.id),
+    onSuccess: (_r, l) => {
+      setACerrar(null)
+      refrescar()
+      aviso.ok(t('loc.cerrado', { nombre: l.name }))
+    },
   })
 
   const mensaje = (e: unknown) => (e instanceof ApiError ? e.message : t('loc.noSePudoGuardar'))
@@ -198,8 +206,6 @@ export function PanelLocales() {
           />
         </div>
       )}
-
-      {cerrar.isError && <ErrorNote>{mensaje(cerrar.error)}</ErrorNote>}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -261,13 +267,9 @@ export function PanelLocales() {
                       {t('loc.editar')}
                     </Button>
                     {(locales ?? []).length > 1 && (
-                      <ConfirmAction
-                        label={t('loc.cerrar')}
-                        question={t('loc.cerrarPregunta', { nombre: l.name })}
-                        confirmLabel={t('loc.siCerrar')}
-                        loading={cerrar.isPending && cerrar.variables === l.id}
-                        onConfirm={() => cerrar.mutate(l.id)}
-                      />
+                      <Button size="sm" variant="danger" onClick={() => setACerrar(l)}>
+                        {t('loc.cerrar')}
+                      </Button>
                     )}
                   </div>
                 </li>
@@ -276,6 +278,38 @@ export function PanelLocales() {
           </ul>
         </Card>
       )}
+
+      {/* Con citas no se puede: el servidor lo rechaza porque se perdería su
+          historial. Se dice antes, en vez de dejar pulsar «Sí» y fallar. */}
+      <ConfirmDialog
+        open={!!aCerrar}
+        onClose={() => {
+          cerrar.reset()
+          setACerrar(null)
+        }}
+        title={t('loc.cerrarTitulo', { nombre: aCerrar?.name ?? '' })}
+        imposible={!!aCerrar && aCerrar.citas > 0}
+        consecuencias={
+          aCerrar && aCerrar.citas > 0
+            ? [
+                plural(aCerrar.citas, 'loc.cerrarConUnaCita', 'loc.cerrarConCitas'),
+                t('loc.cerrarAlternativa'),
+              ]
+            : [
+                t('loc.cerrarC1'),
+                t('loc.cerrarC2'),
+                ...(aCerrar && aCerrar.personasPropias > 0
+                  ? [plural(aCerrar.personasPropias, 'loc.cerrarC3Una', 'loc.cerrarC3Varias')]
+                  : []),
+                t('loc.cerrarC4'),
+              ]
+        }
+        confirmLabel={t('loc.cerrarLocal')}
+        tono="destruir"
+        onConfirm={() => aCerrar && cerrar.mutate(aCerrar)}
+        loading={cerrar.isPending}
+        error={cerrar.isError ? textoDeError(cerrar.error, t('loc.noSePudoGuardar')) : null}
+      />
 
       <p className="text-meta text-subtle">
         <Texto

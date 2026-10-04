@@ -16,6 +16,7 @@ import {
   cx,
 } from '../../components/ui'
 import { useIdioma, usePlural } from '../../i18n/idioma'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
@@ -67,12 +68,29 @@ export function PanelCalendario() {
     onSuccess: () => {
       setNotaNueva('')
       queryClient.invalidateQueries({ queryKey: ['panel', slug, 'notes'] })
+      aviso.ok(t('agenda.notaAnadida'))
     },
+    onError: (err) => aviso.error(textoDeError(err, t('avisos.error'))),
   })
 
+  /* Quitar una nota va directo con la ✕, pero se puede deshacer: la nota se
+     vuelve a crear con su día y su texto. Antes se perdía sin remedio, y si
+     fallaba no se decía nada. */
+  const refrescarNotas = () => queryClient.invalidateQueries({ queryKey: ['panel', slug, 'notes'] })
   const eliminarNota = useMutation({
-    mutationFn: (id: string) => api.deleteNote(slug, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['panel', slug, 'notes'] }),
+    mutationFn: (n: PanelNote) => api.deleteNote(slug, n.id),
+    onSuccess: (_r, n) => {
+      refrescarNotas()
+      aviso.ok(t('agenda.notaQuitada'), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .createNote(slug, { date: n.date, text: n.text })
+            .then(refrescarNotas)
+            .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+      })
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('avisos.error'))),
   })
 
   const porDia = useMemo(() => {
@@ -251,7 +269,7 @@ export function PanelCalendario() {
                           </p>
                           <IconButton
                             label={t('agenda.quitarNota')}
-                            onClick={() => eliminarNota.mutate(n.id)}
+                            onClick={() => eliminarNota.mutate(n)}
                           >
                             <span aria-hidden className="text-subheading leading-none">
                               ×

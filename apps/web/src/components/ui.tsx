@@ -65,7 +65,7 @@ export function Logo({
  * redondo se pulsa y lo recto se escribe.
  */
 
-type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'accent' | 'danger' | 'dark'
+type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'accent' | 'danger' | 'dark' | 'destroy'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const buttonBase =
@@ -88,6 +88,11 @@ const buttonVariants: Record<ButtonVariant, string> = {
   // Marrón oscuro, casi negro: para la llamada a la acción de cierre,
   // donde el marrón de marca (más claro) se pedía más serio.
   dark: 'bg-ink text-cream hover:bg-ink-2',
+  /* Relleno rojo, solo para el botón que confirma algo que NO tiene vuelta
+     atrás (borrar, anular, dar de baja). Usa el rojo de error del sistema:
+     el marrón de «danger» se confundía con el de la marca, y lo irreversible
+     tiene que distinguirse de un vistazo. */
+  destroy: 'bg-danger text-white hover:brightness-90',
 }
 
 /* Alto mínimo garantizado + padding horizontal proporcionado.
@@ -119,6 +124,7 @@ export function Button({
   loading,
   className,
   children,
+  ref,
   ...props
 }: ComponentPropsWithoutRef<'button'> & {
   variant?: ButtonVariant
@@ -126,10 +132,12 @@ export function Button({
   block?: boolean
   /** Muestra un giro y bloquea el botón, para no enviar dos veces. */
   loading?: boolean
+  ref?: Ref<HTMLButtonElement>
 }) {
   return (
     <button
       {...props}
+      ref={ref}
       disabled={props.disabled || loading}
       aria-busy={loading || undefined}
       className={cx(buttonClass(variant, size, block), className)}
@@ -820,16 +828,69 @@ export function Skeleton({ className }: { className?: string }) {
  * backdrop-filter —la cabecera pública lleva desenfoque— convierte el
  * `position: fixed` en relativo a él, y la ficha acabaría encajada dentro.
  */
+/* Capas abiertas, de abajo arriba. Con una ficha encima de otra —una
+   confirmación sobre la ficha de una cita— solo la de arriba debe atender a
+   Escape, al «atrás» y al tabulador: si no, una pulsación cerraba las dos. */
+const capas: symbol[] = []
+const esLaDeArriba = (id: symbol) => capas[capas.length - 1] === id
+
+/* Las entradas que las fichas han metido en el historial, en orden, y las de
+   fichas ya cerradas que aún hay que quitar.
+
+   Cerrar dos fichas a la vez —confirmar una cancelación cierra la
+   confirmación y la ficha de la cita— hacía que cada una mirase el historial
+   antes de que el «atrás» de la otra hubiera ocurrido (es asíncrono): la de
+   debajo creía que no estaba arriba y dejaba su entrada colgando, y luego
+   había que pulsar «atrás» una vez de más para salir. Ahora los cierres del
+   mismo momento se juntan y se retrocede una sola vez, las entradas que
+   hagan falta. */
+const entradas: string[] = []
+const porQuitar = new Set<string>()
+let quitarProgramado = false
+
+function quitarEntradasCerradas() {
+  quitarProgramado = false
+  // Si la de arriba ya no es nuestra, se navegó desde la ficha (o se
+  // sustituyó su entrada): retroceder desharía esa navegación. Se olvidan.
+  if (window.history.state?.velineFicha !== entradas[entradas.length - 1]) {
+    for (const m of porQuitar) entradas.splice(entradas.indexOf(m), 1)
+    porQuitar.clear()
+    return
+  }
+  let cuantas = 0
+  while (entradas.length && porQuitar.has(entradas[entradas.length - 1]!)) {
+    porQuitar.delete(entradas.pop()!)
+    cuantas++
+  }
+  if (cuantas > 0) window.history.go(-cuantas)
+}
+
+const ENFOCABLES =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 export function Sheet({
   open,
   onClose,
   title,
   children,
+  focoInicial,
+  rol = 'dialog',
+  historial = true,
 }: {
   open: boolean
   onClose: () => void
   title: string
   children: ReactNode
+  /** Dónde empieza el foco. Sin esto, en la ficha entera. Una confirmación lo
+      pone en «Cancelar»: así un Intro de más no borra nada. */
+  focoInicial?: { current: HTMLElement | null }
+  /** alertdialog para las confirmaciones: el lector de pantalla lo anuncia
+      como algo que hay que contestar, no como una ficha más. */
+  rol?: 'dialog' | 'alertdialog'
+  /** Si «atrás» la cierra. Se apaga en la pregunta de descartar cambios: esa
+      se contesta justo antes de navegar, y su entrada en el historial se
+      quedaría colgando entre la página vieja y la nueva. */
+  historial?: boolean
 }) {
   const { t } = useIdioma()
   const caja = useRef<HTMLDivElement>(null)
@@ -868,14 +929,42 @@ export function Sheet({
     if (!open) return
     cerrando.current = false
     devolverFoco.current = document.activeElement as HTMLElement | null
-    caja.current?.focus()
+    const yo = Symbol('capa')
+    capas.push(yo)
+    ;(focoInicial?.current ?? caja.current)?.focus()
 
     // Con la ficha abierta, el fondo no debe desplazarse por debajo.
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
     const alPulsarTecla = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') cerrar()
+      if (!esLaDeArriba(yo)) return
+      if (e.key === 'Escape') {
+        cerrar()
+        return
+      }
+      /* El tabulador da la vuelta dentro de la ficha. Sin esto, con el
+         teclado se acababa pulsando cosas de la página de detrás, que el velo
+         tapa pero no desactiva. */
+      if (e.key === 'Tab' && caja.current) {
+        const dentro = [...caja.current.querySelectorAll<HTMLElement>(ENFOCABLES)].filter(
+          (el) => el.offsetParent !== null,
+        )
+        if (dentro.length === 0) {
+          e.preventDefault()
+          return
+        }
+        const primero = dentro[0]!
+        const ultimo = dentro[dentro.length - 1]!
+        const activo = document.activeElement
+        if (e.shiftKey && (activo === primero || activo === caja.current)) {
+          e.preventDefault()
+          ultimo.focus()
+        } else if (!e.shiftKey && activo === ultimo) {
+          e.preventDefault()
+          primero.focus()
+        }
+      }
     }
     document.addEventListener('keydown', alPulsarTecla)
 
@@ -887,7 +976,14 @@ export function Sheet({
     const marca = `ficha-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     let cerradaConAtras = false
     const alVolverAtras = () => {
+      /* Con dos fichas abiertas, «atrás» quita la entrada de la de arriba y
+         deja a la vista la de debajo: esa sigue siendo la entrada actual y no
+         se toca. Solo se cierra la ficha cuya entrada ya no está. */
+      if (window.history.state?.velineFicha === marca) return
       cerradaConAtras = true
+      // El navegador ya la ha quitado: deja de contarse como nuestra.
+      const i = entradas.indexOf(marca)
+      if (i >= 0) entradas.splice(i, 1)
       alCerrar.current()
     }
     /* Un instante después y no ya: en desarrollo, React monta, desmonta y
@@ -897,25 +993,33 @@ export function Sheet({
        historial. */
     let metida = false
     const meter = window.setTimeout(() => {
+      if (!historial) return
       window.history.pushState({ ...window.history.state, velineFicha: marca }, '')
+      entradas.push(marca)
       metida = true
       window.addEventListener('popstate', alVolverAtras)
     }, 0)
 
     return () => {
+      capas.splice(capas.indexOf(yo), 1)
       document.removeEventListener('keydown', alPulsarTecla)
       window.clearTimeout(meter)
       window.removeEventListener('popstate', alVolverAtras)
       document.body.style.overflow = overflow
-      /* Cerrada de cualquier otra forma, su entrada sigue arriba del todo: se
+      /* Cerrada de cualquier otra forma, su entrada sigue en el historial: se
          quita, o habría que pulsar «atrás» dos veces para salir de la página.
-         Si ya no está arriba es que se ha navegado a otra parte desde la
-         ficha, y entonces no se toca: volver atrás desharía esa navegación. */
-      if (metida && !cerradaConAtras && window.history.state?.velineFicha === marca) {
-        window.history.back()
+         Se apunta y se quita un instante después, junto con las de las fichas
+         que se cierren en este mismo momento (ver quitarEntradasCerradas). */
+      if (metida && !cerradaConAtras && entradas.includes(marca)) {
+        porQuitar.add(marca)
+        if (!quitarProgramado) {
+          quitarProgramado = true
+          window.setTimeout(quitarEntradasCerradas, 0)
+        }
       }
       devolverFoco.current?.focus?.()
     }
+    // focoInicial es un ref y historial no cambia en vida de la ficha.
   }, [open, cerrar])
 
   /* Arrastrar hacia abajo para cerrar: el asa lo promete. Con eventos táctiles
@@ -1014,7 +1118,7 @@ export function Sheet({
       />
       <div
         ref={caja}
-        role="dialog"
+        role={rol}
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}

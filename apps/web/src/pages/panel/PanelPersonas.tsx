@@ -1,12 +1,12 @@
 import { useEffect, useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, ApiError } from '../../lib/api'
+import { formatLongDate } from '@veline/shared'
+import { api, ApiError, type PanelStaff } from '../../lib/api'
 import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
   ErrorNote,
   Field,
@@ -20,6 +20,8 @@ import {
 import { FranjasSemanales, ORDEN_SEMANA, type Franja } from '../../components/FranjasSemanales'
 import { generarPassword } from './PanelUsers'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+import { Bloqueo, ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * El editor del horario propio de una persona, dentro de la ficha.
@@ -67,6 +69,7 @@ function EditorHorarioPersona({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['panel', slug] })
       queryClient.invalidateQueries({ queryKey: ['availability', slug] })
+      aviso.ok(t('pers.horarioGuardado', { nombre }))
       onClose()
     },
   })
@@ -114,6 +117,157 @@ function EditorHorarioPersona({
         </Button>
       </div>
     </div>
+  )
+}
+
+/**
+ * Dar de baja a una persona, con sus citas resueltas antes.
+ *
+ * Antes era un «¿Seguro? Sí» y, si tenía citas por delante, el servidor lo
+ * rechazaba DESPUÉS de confirmar. Ahora las citas salen aquí, cada una con
+ * a quién pasarla, y «Dar de baja» no se puede pulsar hasta que no queda
+ * ninguna. Pasarla no avisa al cliente: la hora no cambia, solo quién le
+ * atiende.
+ */
+function BajaPersona({
+  slug,
+  persona,
+  otras,
+  onClose,
+}: {
+  slug: string
+  persona: PanelStaff | null
+  otras: PanelStaff[]
+  onClose: () => void
+}) {
+  const { t, idioma, locale } = useIdioma()
+  const queryClient = useQueryClient()
+  const [destino, setDestino] = useState<Record<string, string>>({})
+  const [fallos, setFallos] = useState<Record<string, string>>({})
+
+  const { data: pendientes, isLoading } = useQuery({
+    queryKey: ['panel', slug, 'staff', persona?.id, 'pendientes'],
+    queryFn: () => api.staffPendientes(slug, persona!.id),
+    enabled: !!persona,
+  })
+
+  const invalidar = () => {
+    queryClient.invalidateQueries({ queryKey: ['panel', slug] })
+    queryClient.invalidateQueries({ queryKey: ['business', slug] })
+    queryClient.invalidateQueries({ queryKey: ['audit'] })
+  }
+
+  const pasar = useMutation({
+    mutationFn: ({ citaId, startsAt, a }: { citaId: string; startsAt: string; a: string }) =>
+      api.rescheduleBooking(slug, citaId, startsAt, false, a),
+    onSuccess: (_r, v) => {
+      setFallos((f) => ({ ...f, [v.citaId]: '' }))
+      invalidar()
+    },
+    onError: (err, v) =>
+      setFallos((f) => ({ ...f, [v.citaId]: textoDeError(err, t('pers.noSePudoPasar')) })),
+  })
+
+  const baja = useMutation({
+    mutationFn: () => api.updateStaff(slug, persona!.id, { active: false }),
+    onSuccess: () => {
+      const quien = persona!
+      invalidar()
+      onClose()
+      aviso.ok(t('pers.bajaHecha', { nombre: quien.name }), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .updateStaff(slug, quien.id, { active: true })
+            .then(invalidar)
+            .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+      })
+    },
+  })
+
+  const hora = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid',
+    })
+  const quedan = pendientes?.length ?? 0
+
+  return (
+    <ConfirmDialog
+      open={!!persona}
+      onClose={() => {
+        baja.reset()
+        onClose()
+      }}
+      title={t('pers.bajaTitulo', { nombre: persona?.name ?? '' })}
+      consecuencias={[t('pers.bajaC1'), t('pers.bajaC2'), t('pers.bajaC3')]}
+      confirmLabel={t('pers.darDeBaja')}
+      onConfirm={() => baja.mutate()}
+      loading={baja.isPending}
+      error={baja.isError ? textoDeError(baja.error, t('pers.noSePudoCambiar')) : null}
+      bloqueado={isLoading || quedan > 0}
+    >
+      {isLoading && <Skeleton className="h-16" />}
+      {quedan > 0 && (
+        <Bloqueo titulo={t('pers.bajaAntes', { n: quedan })}>
+          {otras.length === 0 && (
+            <p className="text-meta text-amber-900">{t('pers.bajaSinOtras')}</p>
+          )}
+          <ul className="flex flex-col gap-2">
+            {pendientes!.map((c) => (
+              <li
+                key={c.id}
+                className="flex flex-col gap-2 rounded-lg border border-line bg-surface px-3 py-2.5"
+              >
+                <div className="text-meta">
+                  <span className="font-semibold text-ink first-letter:uppercase">
+                    {formatLongDate(new Date(c.startsAt), idioma)} · {hora(c.startsAt)}
+                  </span>
+                  <span className="block text-muted">
+                    {c.servicio} · {c.cliente}
+                  </span>
+                </div>
+                {otras.length > 0 && (
+                  <div className="flex gap-2">
+                    <Select
+                      aria-label={t('pers.pasarA', { cliente: c.cliente })}
+                      value={destino[c.id] ?? ''}
+                      onChange={(e) => setDestino((d) => ({ ...d, [c.id]: e.target.value }))}
+                      className="h-9 flex-1 text-meta"
+                    >
+                      <option value="">{t('pers.pasarAElegir')}</option>
+                      {otras.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={!destino[c.id]}
+                      loading={pasar.isPending && pasar.variables?.citaId === c.id}
+                      onClick={() =>
+                        pasar.mutate({ citaId: c.id, startsAt: c.startsAt, a: destino[c.id]! })
+                      }
+                    >
+                      {t('pers.pasar')}
+                    </Button>
+                  </div>
+                )}
+                {fallos[c.id] && (
+                  <p role="alert" className="text-meta font-semibold text-danger">
+                    {fallos[c.id]}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="text-meta text-amber-900">{t('pers.bajaPasarAviso')}</p>
+        </Bloqueo>
+      )}
+    </ConfirmDialog>
   )
 }
 
@@ -287,6 +441,8 @@ export function PanelPersonas() {
   const [nombreEdit, setNombreEdit] = useState('')
   const [horarioAbierto, setHorarioAbierto] = useState<string | null>(null)
   const [altaAbierto, setAltaAbierto] = useState<string | null>(null)
+  const [bajaDe, setBajaDe] = useState<PanelStaff | null>(null)
+  const [eliminarA, setEliminarA] = useState<PanelStaff | null>(null)
 
   /* Con varios locales hay que poder decir dónde atiende cada persona: de eso
      depende en qué local sale su hueco. Sin elegir = atiende en todos, que es
@@ -312,6 +468,7 @@ export function PanelPersonas() {
   const crear = useMutation({
     mutationFn: () => api.createStaff(slug, nombre.trim(), varios ? localNuevo || null : undefined),
     onSuccess: () => {
+      aviso.ok(t('pers.anadida', { nombre: nombre.trim() }))
       setNombre('')
       invalidate()
     },
@@ -323,18 +480,28 @@ export function PanelPersonas() {
     onSuccess: () => {
       setEditando(null)
       invalidate()
+      aviso.ok(t('avisos.guardado'))
     },
   })
 
-  const cambiarEstado = useMutation({
-    mutationFn: ({ personaId, active }: { personaId: string; active: boolean }) =>
-      api.updateStaff(slug, personaId, { active }),
-    onSuccess: invalidate,
+  // Volver a activar: se puede deshacer dando de baja otra vez, así que va
+  // directo, con aviso.
+  const reactivar = useMutation({
+    mutationFn: (p: PanelStaff) => api.updateStaff(slug, p.id, { active: true }),
+    onSuccess: (_r, p) => {
+      invalidate()
+      aviso.ok(t('pers.reactivada', { nombre: p.name }))
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('pers.noSePudoCambiar'))),
   })
 
   const eliminar = useMutation({
-    mutationFn: (personaId: string) => api.deleteStaff(slug, personaId),
-    onSuccess: invalidate,
+    mutationFn: (p: PanelStaff) => api.deleteStaff(slug, p.id),
+    onSuccess: (_r, p) => {
+      setEliminarA(null)
+      invalidate()
+      aviso.ok(t('pers.eliminada', { nombre: p.name }))
+    },
   })
 
   const activas = personas?.filter((p) => p.active).length ?? 0
@@ -404,20 +571,6 @@ export function PanelPersonas() {
           </div>
         )}
       </Card>
-
-      {cambiarEstado.isError && (
-        <ErrorNote>
-          {cambiarEstado.error instanceof ApiError
-            ? cambiarEstado.error.message
-            : t('pers.noSePudoCambiar')}
-        </ErrorNote>
-      )}
-
-      {eliminar.isError && (
-        <ErrorNote>
-          {eliminar.error instanceof ApiError ? eliminar.error.message : t('pers.noSePudoEliminar')}
-        </ErrorNote>
-      )}
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">
@@ -516,32 +669,22 @@ export function PanelPersonas() {
                         {t('pers.renombrar')}
                       </Button>
                       {p.active ? (
-                        <ConfirmAction
-                          label={t('pers.darDeBaja')}
-                          confirmLabel={t('pers.siDeBaja')}
-                          loading={
-                            cambiarEstado.isPending && cambiarEstado.variables?.personaId === p.id
-                          }
-                          onConfirm={() => cambiarEstado.mutate({ personaId: p.id, active: false })}
-                        />
+                        <Button size="sm" variant="danger" onClick={() => setBajaDe(p)}>
+                          {t('pers.darDeBaja')}
+                        </Button>
                       ) : (
                         <>
                           <Button
                             size="sm"
                             variant="quiet"
-                            loading={
-                              cambiarEstado.isPending && cambiarEstado.variables?.personaId === p.id
-                            }
-                            onClick={() => cambiarEstado.mutate({ personaId: p.id, active: true })}
+                            loading={reactivar.isPending && reactivar.variables?.id === p.id}
+                            onClick={() => reactivar.mutate(p)}
                           >
                             {t('pers.volverAActivar')}
                           </Button>
-                          <ConfirmAction
-                            label={t('pers.eliminar')}
-                            confirmLabel={t('pers.siEliminar')}
-                            loading={eliminar.isPending && eliminar.variables === p.id}
-                            onConfirm={() => eliminar.mutate(p.id)}
-                          />
+                          <Button size="sm" variant="danger" onClick={() => setEliminarA(p)}>
+                            {t('pers.eliminar')}
+                          </Button>
                         </>
                       )}
                     </div>
@@ -563,6 +706,28 @@ export function PanelPersonas() {
           }}
         />
       </p>
+
+      <BajaPersona
+        slug={slug}
+        persona={bajaDe}
+        otras={(personas ?? []).filter((o) => o.active && o.id !== bajaDe?.id)}
+        onClose={() => setBajaDe(null)}
+      />
+
+      <ConfirmDialog
+        open={!!eliminarA}
+        onClose={() => {
+          eliminar.reset()
+          setEliminarA(null)
+        }}
+        title={t('pers.eliminarTitulo', { nombre: eliminarA?.name ?? '' })}
+        consecuencias={[t('pers.eliminarC1'), t('pers.eliminarC2')]}
+        confirmLabel={t('pers.eliminar')}
+        tono="destruir"
+        onConfirm={() => eliminarA && eliminar.mutate(eliminarA)}
+        loading={eliminar.isPending}
+        error={eliminar.isError ? textoDeError(eliminar.error, t('pers.noSePudoEliminar')) : null}
+      />
 
       <Sheet
         open={!!horarioAbierto}

@@ -19,6 +19,7 @@ import {
 import { CampoDuracion } from '../../components/SelectorDuracion'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { CartaDeExtras } from './CartaDeExtras'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 interface Draft {
   name: string
@@ -206,6 +207,7 @@ export function PanelServices() {
         active: true,
       }),
     onSuccess: () => {
+      aviso.ok(t('serv.creado', { nombre: draft.name.trim() }))
       setDraft(emptyDraft)
       setCreating(false)
       invalidate()
@@ -224,13 +226,26 @@ export function PanelServices() {
     onSuccess: () => {
       setEditingId(null)
       invalidate()
+      aviso.ok(t('avisos.guardado'))
     },
   })
 
+  // Ocultar o publicar se deshace con el mismo botón: va directo, con aviso.
   const toggle = useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+    mutationFn: ({ id, active }: { id: string; name: string; active: boolean }) =>
       api.updateService(slug, id, { active }),
-    onSuccess: invalidate,
+    onSuccess: (_r, v) => {
+      invalidate()
+      aviso.ok(t(v.active ? 'serv.publicado' : 'serv.ocultado', { nombre: v.name }), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .updateService(slug, v.id, { active: !v.active })
+            .then(invalidate)
+            .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+      })
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('avisos.error'))),
   })
 
   const startEdit = (s: PanelService) => {
@@ -362,7 +377,7 @@ export function PanelServices() {
                         size="sm"
                         variant="quiet"
                         loading={toggle.isPending && toggle.variables?.id === s.id}
-                        onClick={() => toggle.mutate({ id: s.id, active: !s.active })}
+                        onClick={() => toggle.mutate({ id: s.id, name: s.name, active: !s.active })}
                       >
                         {s.active ? t('serv.ocultar') : t('serv.publicar')}
                       </Button>
@@ -374,8 +389,6 @@ export function PanelServices() {
           </ul>
         </Card>
       )}
-
-      {toggle.isError && <ErrorNote>{(toggle.error as Error).message}</ErrorNote>}
 
       <p className="text-meta text-subtle">
         <Texto

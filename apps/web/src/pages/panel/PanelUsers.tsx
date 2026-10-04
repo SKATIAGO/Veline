@@ -7,7 +7,6 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
   ErrorNote,
   Field,
@@ -19,6 +18,8 @@ import {
   cx,
 } from '../../components/ui'
 import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /**
  * Equipo del negocio: los usuarios que pueden entrar a este panel.
@@ -69,6 +70,7 @@ export function PanelUsers() {
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [creada, setCreada] = useState<{ email: string; password: string } | null>(null)
   const [copiado, setCopiado] = useState(false)
+  const [aQuitar, setAQuitar] = useState<{ id: string; name: string } | null>(null)
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['panel', slug, 'users'],
@@ -88,12 +90,33 @@ export function PanelUsers() {
     },
   })
 
+  const refrescar = () => {
+    queryClient.invalidateQueries({ queryKey: ['panel', slug, 'users'] })
+    queryClient.invalidateQueries({ queryKey: ['audit'] })
+  }
+
   const toggle = useMutation({
-    mutationFn: ({ id: uid, active }: { id: string; active: boolean }) =>
+    mutationFn: ({ id: uid, active }: { id: string; name: string; active: boolean }) =>
       api.setPanelUserActive(slug, uid, active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['panel', slug, 'users'] })
-      queryClient.invalidateQueries({ queryKey: ['audit'] })
+    onSuccess: (_r, v) => {
+      refrescar()
+      if (v.active) {
+        aviso.ok(t('eq.accesoDevuelto', { nombre: v.name }))
+        return
+      }
+      setAQuitar(null)
+      aviso.ok(t('eq.accesoQuitado', { nombre: v.name }), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .setPanelUserActive(slug, v.id, true)
+            .then(refrescar)
+            .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+      })
+    },
+    // Quitar el acceso falla dentro de su confirmación; devolverlo, en un aviso.
+    onError: (err, v) => {
+      if (v.active) aviso.error(textoDeError(err, t('avisos.error')))
     },
   })
 
@@ -307,18 +330,19 @@ export function PanelUsers() {
                   {u.id === me?.id ? (
                     <span className="text-meta text-subtle">{t('eq.noPuedesDesactivarte')}</span>
                   ) : u.active ? (
-                    <ConfirmAction
-                      label={t('eq.quitarAcceso')}
-                      confirmLabel={t('eq.siQuitar')}
-                      loading={toggle.isPending && toggle.variables?.id === u.id}
-                      onConfirm={() => toggle.mutate({ id: u.id, active: false })}
-                    />
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => setAQuitar({ id: u.id, name: u.name })}
+                    >
+                      {t('eq.quitarAcceso')}
+                    </Button>
                   ) : (
                     <Button
                       size="sm"
                       variant="quiet"
                       loading={toggle.isPending && toggle.variables?.id === u.id}
-                      onClick={() => toggle.mutate({ id: u.id, active: true })}
+                      onClick={() => toggle.mutate({ id: u.id, name: u.name, active: true })}
                     >
                       {t('eq.devolverAcceso')}
                     </Button>
@@ -330,7 +354,23 @@ export function PanelUsers() {
         </Card>
       )}
 
-      {toggle.isError && <ErrorNote>{(toggle.error as Error).message}</ErrorNote>}
+      <ConfirmDialog
+        open={!!aQuitar}
+        onClose={() => {
+          toggle.reset()
+          setAQuitar(null)
+        }}
+        title={t('eq.quitarTitulo', { nombre: aQuitar?.name ?? '' })}
+        consecuencias={[t('eq.quitarC1'), t('eq.quitarC2'), t('eq.quitarC3')]}
+        confirmLabel={t('eq.quitarAcceso')}
+        onConfirm={() => aQuitar && toggle.mutate({ ...aQuitar, active: false })}
+        loading={toggle.isPending}
+        error={
+          toggle.isError && toggle.variables?.active === false
+            ? textoDeError(toggle.error, t('avisos.error'))
+            : null
+        }
+      />
 
       <p className="text-meta text-subtle">
         <Texto

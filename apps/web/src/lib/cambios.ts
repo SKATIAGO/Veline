@@ -10,8 +10,13 @@ import { useEffect } from 'react'
  *
  * No se usa useBlocker de React Router porque solo existe con el enrutador de
  * datos, y la app usa BrowserRouter. Basta con un contador: la pantalla avisa
- * de que tiene cambios, y los enlaces del marco del panel preguntan antes de
- * irse. Cerrar o recargar la pestaña lo cubre beforeunload.
+ * de que tiene cambios, y lo que vaya a tirarlos (cambiar de sección, de
+ * local, salir) pasa por `siDescarta`. Cerrar o recargar la pestaña lo cubre
+ * beforeunload, que es lo único que puede preguntar el navegador.
+ *
+ * La pregunta es la confirmación del panel (DescartarCambios), no el diálogo
+ * del navegador: aquel no se puede vestir, en el móvil tapa la pantalla
+ * entera y era el único sitio del panel que lo usaba.
  */
 let pendientes = 0
 
@@ -28,7 +33,43 @@ export function useCambiosSinGuardar(hay: boolean) {
   }, [hay])
 }
 
-/** true si no hay nada pendiente o si quien navega acepta perderlo. */
-export function puedeSalir(pregunta: string): boolean {
-  return pendientes === 0 || window.confirm(pregunta)
+export const hayCambios = () => pendientes > 0
+
+/* La acción que espera respuesta. Una sola: no se pueden pulsar dos cosas a
+   la vez con la pregunta delante. */
+let enEspera: (() => void) | null = null
+const oyentes = new Set<() => void>()
+const emitir = () => oyentes.forEach((o) => o())
+
+/**
+ * Hace `accion` ya si no hay nada pendiente; si lo hay, pregunta antes.
+ * Devuelve true si se hizo en el momento: quien llama desde un enlace lo usa
+ * para saber si dejar que el enlace siga o cortarlo y esperar la respuesta.
+ */
+export function siDescarta(accion: () => void): boolean {
+  if (!hayCambios()) {
+    accion()
+    return true
+  }
+  enEspera = accion
+  emitir()
+  return false
+}
+
+export const descarte = {
+  suscribir: (o: () => void) => {
+    oyentes.add(o)
+    return () => oyentes.delete(o)
+  },
+  pendiente: () => enEspera,
+  confirmar: () => {
+    const accion = enEspera
+    enEspera = null
+    emitir()
+    accion?.()
+  },
+  cancelar: () => {
+    enEspera = null
+    emitir()
+  },
 }

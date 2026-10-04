@@ -7,7 +7,6 @@ import {
   Badge,
   Button,
   Card,
-  ConfirmAction,
   EmptyState,
   ErrorNote,
   Field,
@@ -20,6 +19,8 @@ import {
 } from '../../components/ui'
 import { Photo } from '../../components/Photo'
 import { useIdioma, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /** "12,50" o "12.50" → 1250 céntimos */
 const aCentimos = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
@@ -264,6 +265,7 @@ export function CartaDeExtras({
   const id = useId()
   const queryClient = useQueryClient()
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [aQuitar, setAQuitar] = useState<PanelExtra | null>(null)
   const vistaNuevo = useALaVista<HTMLDivElement>(creando)
 
   const { data: extras, isLoading } = useQuery({
@@ -279,9 +281,10 @@ export function CartaDeExtras({
 
   const crear = useMutation({
     mutationFn: (d: DatosExtra) => api.createExtra(slug, d),
-    onSuccess: () => {
+    onSuccess: (_r, d) => {
       setCreando(false)
       invalidar()
+      aviso.ok(t('ext.creado', { nombre: d.name }))
     },
   })
   const guardar = useMutation({
@@ -290,15 +293,32 @@ export function CartaDeExtras({
     onSuccess: () => {
       setEditandoId(null)
       invalidar()
+      aviso.ok(t('avisos.guardado'))
     },
   })
+  // Ocultar o mostrar se deshace con el mismo botón: va directo, con aviso.
   const alternar = useMutation({
     mutationFn: (e: PanelExtra) => api.updateExtra(slug, e.id, { active: !e.active }),
-    onSuccess: invalidar,
+    onSuccess: (_r, e) => {
+      invalidar()
+      aviso.ok(t(e.active ? 'ext.ocultado' : 'ext.mostrado', { nombre: e.name }), {
+        texto: t('avisos.deshacer'),
+        onClick: () =>
+          api
+            .updateExtra(slug, e.id, { active: e.active })
+            .then(invalidar)
+            .catch((err) => aviso.error(textoDeError(err, t('avisos.error')))),
+      })
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('avisos.error'))),
   })
   const quitar = useMutation({
     mutationFn: (e: PanelExtra) => api.deleteExtra(slug, e.id),
-    onSuccess: invalidar,
+    onSuccess: (_r, e) => {
+      setAQuitar(null)
+      invalidar()
+      aviso.ok(t('ext.quitado', { nombre: e.name }))
+    },
   })
 
   return (
@@ -399,13 +419,9 @@ export function CartaDeExtras({
                       >
                         {e.active ? t('ext.ocultar') : t('ext.mostrar')}
                       </Button>
-                      <ConfirmAction
-                        label={t('ext.quitar')}
-                        question={t('ext.quitarPregunta', { nombre: e.name })}
-                        confirmLabel={t('ext.siQuitar')}
-                        loading={quitar.isPending && quitar.variables?.id === e.id}
-                        onConfirm={() => quitar.mutate(e)}
-                      />
+                      <Button size="sm" variant="danger" onClick={() => setAQuitar(e)}>
+                        {t('ext.quitar')}
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -415,8 +431,20 @@ export function CartaDeExtras({
         </Card>
       )}
 
-      {alternar.isError && <ErrorNote>{mensaje(alternar.error)}</ErrorNote>}
-      {quitar.isError && <ErrorNote>{mensaje(quitar.error)}</ErrorNote>}
+      <ConfirmDialog
+        open={!!aQuitar}
+        onClose={() => {
+          quitar.reset()
+          setAQuitar(null)
+        }}
+        title={t('ext.quitarPregunta', { nombre: aQuitar?.name ?? '' })}
+        consecuencias={[t('ext.quitarC1'), t('ext.quitarC2'), t('ext.quitarC3')]}
+        confirmLabel={t('ext.quitarExtra')}
+        tono="destruir"
+        onConfirm={() => aQuitar && quitar.mutate(aQuitar)}
+        loading={quitar.isPending}
+        error={quitar.isError ? textoDeError(quitar.error, t('avisos.error')) : null}
+      />
 
       {!!extras?.length && <p className="text-meta text-subtle">{t('ext.aviso')}</p>}
     </section>

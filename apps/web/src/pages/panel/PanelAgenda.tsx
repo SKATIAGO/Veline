@@ -24,6 +24,8 @@ import {
   useALaVista,
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 
 /* Marketplace, Instagram y Google son nombres propios: no se traducen. El
    único que es una palabra es «Directo». */
@@ -94,23 +96,55 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
     mutationFn: () => api.cancelBooking(booking.code, motivoCancelar.trim() || undefined),
     onSuccess: () => {
       setCancelando(false)
+      setFicha(false)
+      setMotivoCancelar('')
       refrescar()
+      aviso.ok(t('agenda.canceladaHecho', { nombre: booking.customer.name }))
     },
   })
 
   const mover = useMutation({
     mutationFn: () =>
       api.rescheduleBooking(slug, booking.id, new Date(nuevaHora).toISOString(), avisar),
-    onSuccess: () => {
+    onSuccess: (r) => {
       setMoviendo(false)
       refrescar()
+      const nueva = new Date(r.startsAt)
+      aviso.ok(
+        t(avisar ? 'agenda.movidaAvisada' : 'agenda.movida', {
+          fecha: formatLongDate(nueva, idioma),
+          hora: fmt(nueva),
+        }),
+      )
     },
   })
 
+  /* Vino / No vino van directos, como antes: se marcan a diario, uno detrás
+     de otro, y una pregunta por cada uno sería un estorbo. A cambio, el aviso
+     trae «Deshacer» por si se tocó el que no era. */
   const marcar = useMutation({
     mutationFn: (status: 'COMPLETADA' | 'NO_ASISTIO' | 'CONFIRMADA') =>
       api.setBookingOutcome(slug, booking.id, status),
-    onSuccess: refrescar,
+    onSuccess: (_r, status) => {
+      refrescar()
+      if (status === 'CONFIRMADA') {
+        aviso.ok(t('agenda.marcaQuitada'))
+        return
+      }
+      aviso.ok(
+        t(status === 'COMPLETADA' ? 'agenda.marcadaVino' : 'agenda.marcadaNoVino', {
+          nombre: booking.customer.name,
+        }),
+        {
+          texto: t('avisos.deshacer'),
+          onClick: () =>
+            api
+              .setBookingOutcome(slug, booking.id, 'CONFIRMADA')
+              .then(refrescar)
+              .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+        },
+      )
+    },
   })
 
   const start = new Date(booking.startsAt)
@@ -126,16 +160,13 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
   const estado = ESTADO[booking.status]
   const yaPaso = start.getTime() < Date.now()
 
-  const error =
-    (cancel.error as Error | null) ??
-    (mover.error as Error | null) ??
-    (marcar.error as Error | null)
+  // Los fallos al cancelar salen en su confirmación, no aquí.
+  const error = (mover.error as Error | null) ?? (marcar.error as Error | null)
 
   const abrirFicha = () => setFicha(true)
   const cerrarFicha = () => {
     setFicha(false)
     setMoviendo(false)
-    setCancelando(false)
   }
   /* Tras actuar, la ficha se cierra sola: dejarla abierta obliga a un toque
      de más y esconde la lista, que es donde se ve el resultado. */
@@ -177,15 +208,36 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
     </form>
   )
 
-  const formularioCancelar = (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        cancel.mutate(undefined, alTerminar)
+  /* Cancelar es lo único de la cita que no se deshace y que le llega al
+     cliente: va en una confirmación que lo dice, con el motivo dentro. Antes
+     era un formulario que se abría en la fila o en la ficha. */
+  const confirmarCancelacion = (
+    <ConfirmDialog
+      open={cancelando}
+      onClose={() => {
+        cancel.reset()
+        setCancelando(false)
       }}
-      className="flex flex-col gap-3"
+      title={t('agenda.cancelarTitulo', { nombre: booking.customer.name })}
+      consecuencias={[
+        t('agenda.cancelarC1', { fecha: formatLongDate(start, idioma), hora: fmt(start) }),
+        // Una cita que ya ha pasado no avisa a nadie (ver avisarCancelacion).
+        ...(yaPaso
+          ? []
+          : [
+              t(booking.customer.email ? 'agenda.cancelarAvisoConCorreo' : 'agenda.cancelarAviso', {
+                nombre: nombrePila,
+              }),
+            ]),
+        t('agenda.cancelarC3'),
+      ]}
+      confirmLabel={t('agenda.cancelarLaCita')}
+      cancelLabel={t('agenda.mantenerla')}
+      tono="destruir"
+      onConfirm={() => cancel.mutate()}
+      loading={cancel.isPending}
+      error={cancel.isError ? textoDeError(cancel.error, t('avisos.error')) : null}
     >
-      <p className="text-meta text-body-2">{t('agenda.cancelarLaDe', { nombre: nombrePila })}</p>
       <label className="flex flex-col gap-1.5">
         <span className="text-meta font-semibold text-body-2">
           {t('agenda.motivoCancelar')}{' '}
@@ -198,15 +250,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
         />
         <span className="text-meta text-subtle">{t('agenda.motivoCancelarPista')}</span>
       </label>
-      <div className="flex gap-2">
-        <Button type="submit" variant="danger" loading={cancel.isPending} block>
-          {t('agenda.siCancelar')}
-        </Button>
-        <Button type="button" variant="quiet" onClick={() => setCancelando(false)}>
-          {t('agenda.dejarlo')}
-        </Button>
-      </div>
-    </form>
+    </ConfirmDialog>
   )
 
   return (
@@ -359,7 +403,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
                 {t('agenda.mover')}
               </Button>
               <span className="ml-1 border-l border-line pl-2">
-                <Button size="sm" variant="danger" onClick={() => setCancelando((c) => !c)}>
+                <Button size="sm" variant="danger" onClick={() => setCancelando(true)}>
                   {t('agenda.cancelar')}
                 </Button>
               </span>
@@ -371,12 +415,6 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
       {moviendo && !ficha && (
         <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
           {formularioMover}
-        </div>
-      )}
-
-      {cancelando && !ficha && (
-        <div className="hidden border-t border-line bg-canvas/50 px-5 py-4 md:block">
-          {formularioCancelar}
         </div>
       )}
 
@@ -479,8 +517,6 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
             <>
               {moviendo ? (
                 formularioMover
-              ) : cancelando ? (
-                formularioCancelar
               ) : (
                 <>
                   {yaPaso && (
@@ -514,6 +550,8 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
           )}
         </div>
       </Sheet>
+
+      {confirmarCancelacion}
     </li>
   )
 }
@@ -522,8 +560,17 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
  * La cita que entra por teléfono o por la puerta. Sin esto, el negocio tenía
  * que reservarse a sí mismo desde su página pública como si fuera un cliente.
  */
-function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
-  const { t, idioma } = useIdioma()
+function NuevaCita({
+  slug,
+  onHecho,
+  alApuntar,
+}: {
+  slug: string
+  onHecho: () => void
+  /** Para el «Ver» del aviso: lleva la lista a donde ha caído la cita. */
+  alApuntar?: (cuando: Date) => (() => void) | undefined
+}) {
+  const { t, idioma, locale } = useIdioma()
   const id = useId()
   const [serviceId, setServiceId] = useState('')
   const [cuando, setCuando] = useState(() => paraInput(new Date().toISOString()))
@@ -579,7 +626,20 @@ function NuevaCita({ slug, onHecho }: { slug: string; onHecho: () => void }) {
         extras: extrasElegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })),
         staffId: staffId || undefined,
       }),
-    onSuccess: onHecho,
+    onSuccess: () => {
+      /* Antes se cerraba sin decir nada, y una cita para mañana no salía en
+         la vista «Hoy»: parecía que no se había guardado. */
+      const fecha = new Date(cuando)
+      const ver = alApuntar?.(fecha)
+      aviso.ok(
+        t('agenda.apuntadaHecho', {
+          fecha: formatLongDate(fecha, idioma),
+          hora: fecha.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+        }),
+        ver ? { texto: t('avisos.ver'), onClick: ver } : undefined,
+      )
+      onHecho()
+    },
   })
 
   const problema = !elegido
@@ -848,6 +908,21 @@ export function PanelAgenda() {
         <div ref={vistaNueva} className="scroll-mt-4">
           <NuevaCita
             slug={slug}
+            alApuntar={(fecha) => {
+              const dias = Math.floor(
+                (new Date(fecha).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
+                  86_400_000,
+              )
+              // «Todo» son 14 días: más allá no hay vista que la enseñe aquí.
+              if (dias < 0 || dias > 14) return undefined
+              const seVe =
+                rango === 'todo' ||
+                (rango === 'semana' && dias <= 7) ||
+                (rango === 'hoy' && dias === 0)
+              if (seVe) return undefined
+              const destino: RangoKey = dias <= 7 ? 'semana' : 'todo'
+              return () => setRango(destino)
+            }}
             onHecho={() => {
               setApuntando(false)
               queryClient.invalidateQueries({ queryKey: ['panel', slug] })
