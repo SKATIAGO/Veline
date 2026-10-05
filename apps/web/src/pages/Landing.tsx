@@ -119,8 +119,13 @@ export function Landing() {
         </div>
       </section>
 
-      {/* CINTA DE SECTORES */}
-      <SectorMarquee items={CATEGORIES.map((c) => (idioma === 'en' ? c.labelEn : c.label))} />
+      {/* CINTA DE SECTORES — sin «Tiendas de barrio»: sigue siendo un sector
+          válido para darse de alta y buscar, solo no se anuncia aquí. */}
+      <SectorMarquee
+        items={CATEGORIES.filter((c) => c.slug !== 'tiendas').map((c) =>
+          idioma === 'en' ? c.labelEn : c.label,
+        )}
+      />
 
       {/* DESTACADOS */}
       <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
