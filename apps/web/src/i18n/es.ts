@@ -1125,7 +1125,7 @@ export const es = {
   'pre.equipoF1': 'Todo lo de Negocio',
   'pre.equipoF2': 'Empleados y locales ilimitados',
   'pre.equipoExplicacion':
-    'Cada empleado que añades tiene su propia agenda, y tus clientes pueden reservar directamente con esa persona. Así, quien quiere que le atienda alguien en concreto reserva contigo en lugar de irse a otro sitio.',
+    'Cada empleado tiene su propia agenda: tus clientes reservan directamente con la persona que prefieran.',
   'pre.equipoAgendaPropia': 'Agenda y horario propios para cada empleado',
   'pre.equipoF3': 'Panel multi-sucursal',
   'pre.equipoF4': 'Soporte dedicado',

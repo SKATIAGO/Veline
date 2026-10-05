@@ -1123,7 +1123,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.equipoF1': 'Everything in Business',
   'pre.equipoF2': 'Unlimited employees and locations',
   'pre.equipoExplicacion':
-    'Every employee you add gets their own calendar, and your clients can book directly with that person. So whoever wants a specific person books with you instead of going elsewhere.',
+    'Each employee has their own calendar: your clients book directly with the person they prefer.',
   'pre.equipoAgendaPropia': 'Own calendar and hours for each employee',
   'pre.equipoF3': 'Multi-branch dashboard',
   'pre.equipoF4': 'Dedicated support',
