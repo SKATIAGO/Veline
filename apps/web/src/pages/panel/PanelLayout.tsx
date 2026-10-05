@@ -616,17 +616,28 @@ export function PanelLayout() {
                 icono: 'negocio',
                 grupo: 'panel.grupoTuNegocio',
                 enBarra: true,
-                tambien: [`/panel/${slug}/enlaces`],
               },
-              /* Lo que entra (las citas atendidas) y lo que se paga a Veline,
-                 juntos: antes eran Contabilidad, arriba con el día a día, y
-                 Suscripción, abajo. Solo para quien administra. */
+              /* Cada una con su nombre y su hueco, para encontrarlas sin buscar:
+                 lo que entra por las citas (Contabilidad), los enlaces que se
+                 mandan a los clientes y lo que se paga a Veline (Suscripción).
+                 Solo para quien administra. */
               {
                 to: `/panel/${slug}/contabilidad`,
-                clave: 'panel.dinero',
+                clave: 'panel.contabilidad',
                 icono: 'cobros',
                 grupo: 'panel.grupoCuenta',
-                tambien: [`/panel/${slug}/facturacion`],
+              },
+              {
+                to: `/panel/${slug}/enlaces`,
+                clave: 'panel.enlaces',
+                icono: 'enlaces',
+                grupo: 'panel.grupoCuenta',
+              },
+              {
+                to: `/panel/${slug}/facturacion`,
+                clave: 'panel.facturacion',
+                icono: 'cuenta',
+                grupo: 'panel.grupoCuenta',
               },
               {
                 to: `/panel/${slug}/actividad`,

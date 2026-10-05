@@ -17,7 +17,7 @@ import { hayCambios, siDescarta } from '../lib/cambios'
  * subrayadas de las fichas.
  */
 
-export type SeccionConPestanas = 'servicios' | 'horario' | 'negocio' | 'dinero'
+export type SeccionConPestanas = 'servicios' | 'horario' | 'negocio'
 
 /** Ruta (tras /panel/:slug/) y nombre de cada parte. */
 export const PESTANAS: Record<SeccionConPestanas, { ruta: string; clave: Clave }[]> = {
@@ -33,11 +33,6 @@ export const PESTANAS: Record<SeccionConPestanas, { ruta: string; clave: Clave }
   negocio: [
     { ruta: 'negocio', clave: 'secc.fichaPublica' },
     { ruta: 'negocio/fotos', clave: 'secc.fotos' },
-    { ruta: 'enlaces', clave: 'panel.enlaces' },
-  ],
-  dinero: [
-    { ruta: 'contabilidad', clave: 'secc.ingresos' },
-    { ruta: 'facturacion', clave: 'adm.suscripcion' },
   ],
 }
 

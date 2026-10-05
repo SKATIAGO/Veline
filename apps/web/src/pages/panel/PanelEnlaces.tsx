@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { enlacesDeOrigen } from '../../lib/origen'
 import { Button, Card, PageHeader } from '../../components/ui'
-import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { Texto, useIdioma } from '../../i18n/idioma'
 
 /**
@@ -25,8 +24,7 @@ export function PanelEnlaces() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('panel.elNegocio')} hint={t('enl.pista')} />
-      <PestanasSeccion seccion="negocio" />
+      <PageHeader title={t('panel.enlaces')} hint={t('enl.pista')} />
 
       <Card padded className="max-w-[640px]">
         <p className="text-body text-muted">

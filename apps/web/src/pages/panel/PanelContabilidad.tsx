@@ -5,7 +5,6 @@ import { formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/sha
 import { api, type PanelBooking } from '../../lib/api'
 import { CabeceraMes } from '../../components/CabeceraMes'
 import { Button, Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
-import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
@@ -150,7 +149,7 @@ export function PanelContabilidad() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={t('panel.dinero')}
+        title={t('panel.contabilidad')}
         hint={t('cont.pista')}
         actions={
           bookings &&
@@ -161,8 +160,6 @@ export function PanelContabilidad() {
           )
         }
       />
-
-      <PestanasSeccion seccion="dinero" />
 
       <div className="flex flex-col gap-4">
         <CabeceraMes mes={mes} onCambiarMes={setMes} />
