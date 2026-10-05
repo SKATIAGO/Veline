@@ -37,6 +37,8 @@ interface Plan {
   priceCents?: number
   pricePrefix?: string
   periodo: Clave
+  /** Por qué merece la pena lo que se paga, si el precio solo no lo cuenta. */
+  explicacion?: Clave
   popular?: boolean
   cta: Clave
   /** Adónde lleva el botón, si es una pantalla de Veline. */
@@ -83,6 +85,7 @@ export const PLANES: readonly Plan[] = [
     priceCents: 1095,
     pricePrefix: '+',
     periodo: 'pre.equipoPeriodo',
+    explicacion: 'pre.equipoExplicacion',
     cta: 'pre.hablarVentas',
     /** Se escribe al pulsar: el asunto necesita el idioma de quien mira. */
     asunto: 'pre.equipoAsunto',

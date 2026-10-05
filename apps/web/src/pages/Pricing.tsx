@@ -123,6 +123,11 @@ export function Pricing() {
                   {t(plan.periodo, { n: PRUEBA_DIAS })}
                 </span>
               </div>
+              {plan.explicacion && (
+                <p className="-mt-2 mb-6 rounded-lg bg-cream px-4 py-3 text-meta leading-relaxed text-body-2">
+                  {t(plan.explicacion)}
+                </p>
+              )}
               {/* `to` para las pantallas de Veline y `href` para salir fuera
                   (el mailto de Equipo). Con href a una ruta interna el
                   navegador recargaría la aplicación entera. */}
