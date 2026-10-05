@@ -1,9 +1,5 @@
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { CATEGORIES } from '@veline/shared'
-import { api } from '../lib/api'
-import { ButtonLink, Card, Eyebrow, Spinner } from '../components/ui'
-import { BusinessCard } from '../components/BusinessCard'
+import { ButtonLink, Card, Eyebrow } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { DoorMotif, Glow, SectorMarquee } from '../components/Ornaments'
 import { DESTACADOS, ESLOGAN, ESLOGAN_NEGOCIO, SERVICIOS_EMPRESA } from '../content/negocio'
@@ -11,8 +7,8 @@ import { PRUEBA_DIAS } from '../content/precios'
 import { Texto, useIdioma, type Clave } from '../i18n/idioma'
 
 /**
- * Home orientada al negocio. El marketplace dejó de ser la portada: aparece
- * como argumento de venta ("así te ven tus clientes") y vive en /buscar.
+ * Home orientada al negocio. El marketplace dejó de ser la portada y vive en
+ * /buscar.
  */
 
 const PASOS = [
@@ -34,10 +30,6 @@ function Check() {
 
 export function Landing() {
   const { t, idioma } = useIdioma()
-  const { data: businesses, isLoading } = useQuery({
-    queryKey: ['businesses', 'home'],
-    queryFn: () => api.listBusinesses({ limit: 3 }),
-  })
 
   return (
     <>
@@ -283,46 +275,6 @@ export function Landing() {
             </ButtonLink>
           </div>
         </Reveal>
-      </section>
-
-      {/* EL MARKETPLACE, COMO ARGUMENTO DE VENTA */}
-      <section className="relative overflow-hidden border-y border-line bg-canvas">
-        <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <Reveal>
-              <Eyebrow>{t('home.clientesNuevos')}</Eyebrow>
-              <h2 className="quill max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-                {t('home.asiTeVen')}
-              </h2>
-              <p className="mt-6 max-w-[560px] text-ui leading-relaxed text-body">
-                {t('home.marketplaceTexto')}
-              </p>
-            </Reveal>
-            <Reveal delay={120}>
-              <Link
-                to="/buscar"
-                className="group inline-flex min-h-10 items-center gap-1.5 px-1 text-body font-semibold text-brand-text hover:text-ink"
-              >
-                {t('home.verMarketplace')}
-                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
-            </Reveal>
-          </div>
-
-          {isLoading ? (
-            <Spinner />
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {businesses?.map((b, i) => (
-                <Reveal key={b.id} delay={i * 100} variant="zoom">
-                  <BusinessCard business={b} />
-                </Reveal>
-              ))}
-            </div>
-          )}
-        </div>
       </section>
 
       {/* CIERRE */}

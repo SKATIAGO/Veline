@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CONTACT_EMAIL, formatPrice } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
-import { DoorMotif, Glow, QuoteMark } from '../components/Ornaments'
+import { DoorMotif, Glow } from '../components/Ornaments'
 import { Texto, useIdioma, type Clave } from '../i18n/idioma'
 import { EXTRAS, FAQ, PLANES, PRUEBA_DIAS } from '../content/precios'
 
@@ -221,41 +221,6 @@ export function Pricing() {
                   <p className="mt-4 text-meta text-subtle">{t(extra.nota)}</p>
                 )}
               </Card>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* RESEÑAS */}
-      <section className="mt-24">
-        <Reveal>
-          <Eyebrow>{t('pre.resenasNombre')}</Eyebrow>
-          <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
-            {t('pre.loQueDicen')}
-          </h2>
-          <p className="mb-10 max-w-[620px] text-ui leading-relaxed text-body">
-            {t('pre.resenasPendientes')}
-          </p>
-        </Reveal>
-
-        <div className="grid gap-5 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <Reveal key={i} delay={i * 110} variant="zoom">
-              <div className="lift flex min-h-[200px] flex-col justify-between rounded-xl border border-dashed border-ph-border bg-ph-bg/40 p-6">
-                <QuoteMark className="mb-3 text-ph-border" />
-                <p className="flex-1 text-ui leading-relaxed text-ph-text">
-                  {t('pre.resenaHueco')}
-                </p>
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="size-10 shrink-0 rounded-full border border-dashed border-ph-border bg-ph-bg" />
-                  <div>
-                    <div className="text-body font-semibold text-ph-text">
-                      {t('pre.nombreYNegocio')}
-                    </div>
-                    <div className="text-meta text-ph-text/80">{t('pre.sectorCiudad')}</div>
-                  </div>
-                </div>
-              </div>
             </Reveal>
           ))}
         </div>

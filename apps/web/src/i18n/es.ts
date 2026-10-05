@@ -1076,11 +1076,6 @@ export const es = {
   'home.impulsarBoton': 'Ver estos servicios',
 
   // El marketplace
-  'home.clientesNuevos': 'Y además, clientes nuevos',
-  'home.asiTeVen': 'Así te ven tus clientes',
-  'home.marketplaceTexto':
-    'Tu negocio entra en el marketplace de Veline, donde la gente de tu zona busca y reserva. Solo cobramos el 15 % la primera vez que un cliente nuevo te descubre ahí; si ya era tuyo, es gratis siempre.',
-  'home.verMarketplace': 'Ver el marketplace',
 
   // Cierre
   'home.pruebaloYDecide': 'Pruébalo {n} días y decide después.',
@@ -1170,12 +1165,6 @@ export const es = {
   'pre.recordatoriosI2': 'Los que no gastes se acumulan para el mes siguiente',
 
   // Reseñas (hueco reservado)
-  'pre.loQueDicen': 'Lo que dicen los negocios que ya lo usan',
-  'pre.resenasPendientes':
-    'Aquí van las opiniones reales de los primeros negocios. El espacio está montado y maquetado: en cuanto tengamos sus frases y su permiso, se colocan tal cual.',
-  'pre.resenaHueco': 'Reseña de un negocio — cita textual',
-  'pre.nombreYNegocio': 'Nombre y negocio',
-  'pre.sectorCiudad': 'Sector · Ciudad',
 
   // Preguntas
   'pre.preguntas': 'Preguntas frecuentes',

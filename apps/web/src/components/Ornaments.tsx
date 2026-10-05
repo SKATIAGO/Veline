@@ -208,17 +208,3 @@ export function SectorMarquee({ items }: { items: readonly string[] }) {
     </div>
   )
 }
-
-/** Comillas decorativas para las reseñas. */
-export function QuoteMark({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 44 32"
-      className={cx('h-7 w-9', className)}
-      fill="currentColor"
-    >
-      <path d="M0 32V18.4C0 8.9 5.3 2.4 15.4 0l2.2 4.9C11.4 6.8 8.3 10.3 8.3 15h6.9V32H0Zm26.4 0V18.4C26.4 8.9 31.7 2.4 41.8 0L44 4.9c-6.2 1.9-9.3 5.4-9.3 10.1h6.9V32H26.4Z" />
-    </svg>
-  )
-}

@@ -1074,11 +1074,6 @@ export const en: Record<keyof typeof es, string> = {
   'home.impulsarBoton': 'See these services',
 
   // The marketplace
-  'home.clientesNuevos': 'And new customers too',
-  'home.asiTeVen': 'This is how your customers see you',
-  'home.marketplaceTexto':
-    'Your business goes into the Veline marketplace, where people in your area search and book. We charge 15% only the first time a new customer finds you there; if they were already yours, it’s free for good.',
-  'home.verMarketplace': 'See the marketplace',
 
   // Closing
   'home.pruebaloYDecide': 'Try it for {n} days and decide after that.',
@@ -1168,12 +1163,6 @@ export const en: Record<keyof typeof es, string> = {
   'pre.recordatoriosI2': 'Whatever you don’t use rolls over to next month',
 
   // Reviews (space held)
-  'pre.loQueDicen': 'What the businesses already using it say',
-  'pre.resenasPendientes':
-    'Real opinions from the first businesses go here. The space is built and laid out: as soon as we have their words and their permission, they go in as they are.',
-  'pre.resenaHueco': 'A business’s review — their own words',
-  'pre.nombreYNegocio': 'Name and business',
-  'pre.sectorCiudad': 'Sector · City',
 
   // Questions
   'pre.preguntas': 'Frequently asked',
