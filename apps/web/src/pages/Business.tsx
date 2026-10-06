@@ -13,7 +13,8 @@ import { BackBar, Button, ButtonLink, Card, EmptyState, Spinner, Stars, cx } fro
 import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
 import { MarbleWash } from '../components/Ornaments'
-import { Lightbox } from '../components/Lightbox'
+import { FotoAmpliable, Galeria } from '../components/Galeria'
+import { useFotosNegocio } from '../lib/galeria'
 import { recordarOrigen } from '../lib/origen'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -116,6 +117,9 @@ export function Business() {
     queryFn: () => api.getBusiness(slug),
   })
 
+  // Antes de cualquier return: las fotos del local, de los servicios y de los extras.
+  const { fotos, indiceDe } = useFotosNegocio(business)
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 lg:px-16">
@@ -201,13 +205,13 @@ export function Business() {
               />
             </div>
 
-            {business.photos.length > 0 && (
+            {fotos.length > 0 && (
               <button
                 type="button"
                 onClick={() => setLightbox(0)}
                 className="absolute bottom-3 left-3 inline-flex min-h-10 items-center rounded-full bg-surface/95 px-4 text-meta font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
               >
-                {t('ficha.verFotos', { n: business.photos.length })}
+                {t('ficha.verFotos', { n: fotos.length })}
               </button>
             )}
           </Reveal>
@@ -245,10 +249,27 @@ export function Business() {
                   key={s.id}
                   className="flex items-center justify-between gap-4 border-b border-line px-2 py-5 transition-colors duration-200 hover:bg-canvas/60"
                 >
-                  <div className="min-w-0">
-                    <div className="font-semibold text-ink">{s.name}</div>
-                    <div className="mt-1 text-meta text-subtle">
-                      {formatDuration(s.durationMin, idioma)}
+                  <div className="flex min-w-0 items-center gap-3.5">
+                    {s.photo ? (
+                      <FotoAmpliable
+                        src={s.photo}
+                        nombre={s.name}
+                        lado={72}
+                        className="size-[72px] rounded-xl"
+                        onOpen={() => setLightbox(indiceDe({ de: 'servicio', id: s.id }))}
+                      />
+                    ) : (
+                      // Si otros servicios tienen foto, este reserva el mismo
+                      // hueco: así los nombres quedan alineados.
+                      business.services.some((o) => o.photo) && (
+                        <div aria-hidden className="size-[72px] shrink-0 rounded-xl bg-canvas" />
+                      )
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-semibold text-ink">{s.name}</div>
+                      <div className="mt-1 text-meta text-subtle">
+                        {formatDuration(s.durationMin, idioma)}
+                      </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
@@ -278,13 +299,12 @@ export function Business() {
                         className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3.5"
                       >
                         {e.photo && (
-                          <Photo
+                          <FotoAmpliable
                             src={e.photo}
-                            alt=""
-                            width={112}
-                            height={112}
-                            className="size-14 shrink-0 rounded-lg"
-                            fallback=""
+                            nombre={e.name}
+                            lado={56}
+                            className="size-14"
+                            onOpen={() => setLightbox(indiceDe({ de: 'extra', id: e.id }))}
                           />
                         )}
                         <div className="min-w-0 flex-1">
@@ -408,12 +428,12 @@ export function Business() {
         </aside>
       </div>
 
-      <Lightbox
-        photos={business.photos}
+      <Galeria
+        fotos={fotos}
         index={lightbox}
         onIndex={setLightbox}
         onClose={() => setLightbox(null)}
-        title={business.name}
+        titulo={business.name}
       />
     </>
   )

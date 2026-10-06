@@ -150,6 +150,7 @@ export async function businessRoutes(app: FastifyInstance) {
         description: s.description,
         durationMin: s.durationMin,
         priceCents: s.priceCents,
+        photo: s.photo,
       })),
       extras: b.extras.map((e) => ({
         id: e.id,

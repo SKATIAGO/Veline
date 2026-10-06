@@ -151,6 +151,9 @@ model Service {
   /// Margen posterior reservado para el negocio (limpieza, papeleo…)
   bufferMin   Int     @default(0)
   priceCents  Int
+  /// Dirección de la foto (/api/imagenes/…). Opcional: en belleza o estética,
+  /// ver cómo queda el servicio es lo que decide.
+  photo       String?
   active      Boolean @default(true)
   position    Int     @default(0)
 

@@ -4,7 +4,8 @@ import { prisma } from '../prisma.js'
 import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
-import { MAX_IMAGEN_BYTES, idDeImagen, tipoDeImagen, urlDeImagen } from '../extras.js'
+import { MAX_IMAGEN_BYTES, tipoDeImagen, urlDeImagen } from '../extras.js'
+import { barrerFotosHuerfanas, fotoDelNegocio, soltarFoto } from '../fotos.js'
 
 /**
  * Carta de extras y fotos del panel.
@@ -37,51 +38,6 @@ const imagenBody = z.object({
 /** Tope de fotos guardadas por negocio. Una carta normal usa una docena; esto
     es para que nadie pueda llenar la base subiendo en bucle. */
 const MAX_IMAGENES_POR_NEGOCIO = 200
-
-/** Una foto solo vale si es nuestra y de este negocio: si no, un negocio
-    podría enseñar en su carta la foto que ha subido otro. */
-async function fotoDelNegocio(businessId: string, photo: string | null | undefined) {
-  if (photo === undefined || photo === null) return true
-  const id = idDeImagen(photo)
-  if (!id) return false
-  return (await prisma.imagen.count({ where: { id, businessId } })) === 1
-}
-
-/** Borra una foto que ya no usa nadie del negocio. */
-async function soltarFoto(businessId: string, url: string | null) {
-  const id = idDeImagen(url)
-  if (!id || !url) return
-  const [enExtras, enFicha] = await Promise.all([
-    prisma.extra.count({ where: { businessId, photo: url } }),
-    prisma.business.count({ where: { id: businessId, photos: { has: url } } }),
-  ])
-  if (enExtras + enFicha === 0) await prisma.imagen.deleteMany({ where: { id, businessId } })
-}
-
-/**
- * Fotos subidas hace más de un día que nadie llegó a guardar: se abrió el
- * formulario, se subió la foto y se canceló. Se barren al subir otra, que es
- * justo cuando podrían empezar a acumularse.
- */
-async function barrerFotosHuerfanas(businessId: string) {
-  const [extras, negocio] = await Promise.all([
-    prisma.extra.findMany({
-      where: { businessId, photo: { not: null } },
-      select: { photo: true },
-    }),
-    prisma.business.findUnique({ where: { id: businessId }, select: { photos: true } }),
-  ])
-  const enUso = [...extras.map((e) => e.photo), ...(negocio?.photos ?? [])]
-    .map(idDeImagen)
-    .filter((id): id is string => id !== null)
-  await prisma.imagen.deleteMany({
-    where: {
-      businessId,
-      createdAt: { lt: new Date(Date.now() - 86_400_000) },
-      id: { notIn: enUso },
-    },
-  })
-}
 
 export async function extrasRoutes(app: FastifyInstance) {
   app.get('/api/panel/:slug/extras', async (req, reply) => {
@@ -215,8 +171,9 @@ export async function extrasRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/panel/:slug/imagenes',
-    // El único cuerpo grande de la API: el tope general es de 64 KB.
-    { bodyLimit: 1024 * 1024 },
+    // El único cuerpo grande de la API: el tope general es de 64 KB. Lo que cabe
+    // una foto de MAX_IMAGEN_BYTES en base64, con margen.
+    { bodyLimit: Math.ceil((MAX_IMAGEN_BYTES * 4) / 3) + 4096 },
     async (req, reply) => {
       const user = await requireUser(req, reply)
       if (!user) return

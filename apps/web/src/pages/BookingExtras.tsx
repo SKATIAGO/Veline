@@ -5,7 +5,8 @@ import { formatDuration, formatPrice, type ExtraPedido } from '@veline/shared'
 import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, Contador, MAX_POR_EXTRA, Spinner, cx } from '../components/ui'
-import { Photo } from '../components/Photo'
+import { AtajoFotos, FotoAmpliable, Galeria } from '../components/Galeria'
+import { useFotosNegocio } from '../lib/galeria'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
@@ -43,6 +44,8 @@ export function BookingExtras() {
   })
 
   const service = business?.services.find((s) => s.id === serviceId) ?? business?.services[0]
+  const { fotos, indiceDe } = useFotosNegocio(business)
+  const [visor, setVisor] = useState<number | null>(null)
 
   if (!business || !service) {
     return (
@@ -111,13 +114,12 @@ export function BookingExtras() {
                 >
                   <div className="flex items-start gap-3">
                     {e.photo && (
-                      <Photo
+                      <FotoAmpliable
                         src={e.photo}
-                        alt=""
-                        width={112}
-                        height={112}
-                        className="size-14 shrink-0 rounded-lg"
-                        fallback=""
+                        nombre={e.name}
+                        lado={64}
+                        className="size-16"
+                        onOpen={() => setVisor(indiceDe({ de: 'extra', id: e.id }))}
                       />
                     )}
                     <div className="min-w-0 flex-1">
@@ -173,6 +175,14 @@ export function BookingExtras() {
               {t('extras.resumen')}
             </div>
 
+            <AtajoFotos
+              fotoServicio={service.photo}
+              nombreServicio={service.name}
+              total={fotos.length}
+              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
+              onVerTodas={() => setVisor(0)}
+            />
+
             <div className="mb-2.5 flex justify-between gap-4 text-body">
               <span className="min-w-0 text-muted">{service.name}</span>
               <span className="shrink-0 font-semibold text-ink tabular-nums">
@@ -210,6 +220,14 @@ export function BookingExtras() {
           </Card>
         </Reveal>
       </div>
+
+      <Galeria
+        fotos={fotos}
+        index={visor}
+        onIndex={setVisor}
+        onClose={() => setVisor(null)}
+        titulo={business.name}
+      />
     </>
   )
 }

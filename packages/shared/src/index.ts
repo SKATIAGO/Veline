@@ -502,6 +502,7 @@ export interface ServiceDTO {
   description: string | null
   durationMin: number
   priceCents: number
+  photo: string | null
 }
 
 /** Un extra de la carta del negocio, tal y como lo ve quien reserva. */

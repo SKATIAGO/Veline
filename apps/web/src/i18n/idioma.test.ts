@@ -75,6 +75,7 @@ describe('diccionarios', () => {
       'equipo.no',
       'altan.pasoPlan',
       'cita.fechaHora',
+      'galeria.extra',
       /* Abreviatura de minutos: «min» en los dos idiomas. */
       'comun.min',
     ]

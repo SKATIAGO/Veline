@@ -664,6 +664,7 @@ export interface PanelService {
   durationMin: number
   bufferMin: number
   priceCents: number
+  photo: string | null
   active: boolean
   position: number
 }

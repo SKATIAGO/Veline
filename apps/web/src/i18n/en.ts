@@ -102,9 +102,6 @@ export const en: Record<keyof typeof es, string> = {
   'ficha.mediaResenas': '{nota} ★ average from {n} reviews',
   'ficha.resenasProxima': 'Full reviews are coming in the next release.',
   'ficha.fotosDe': 'Photos of {nombre}',
-  'ficha.verFoto': 'See photo {n}',
-  'ficha.fotoAnterior': 'Previous photo',
-  'ficha.fotoSiguiente': 'Next photo',
   'ficha.fotoNegocio': 'Business photo',
   'ficha.cerrarGaleria': 'Close gallery',
 
@@ -1907,4 +1904,14 @@ export const en: Record<keyof typeof es, string> = {
   'fneg.rechazadoHecho': 'Sign-up of {nombre} rejected: it is closed',
   'eq.guardalaSinCorreo':
     'Nothing has been sent to them: copy these details and pass them on yourself. The password cannot be viewed again, and whoever signs in can change it from their account.',
+  'galeria.local': 'The location',
+  'galeria.servicio': 'Service',
+  'galeria.extra': 'Extra',
+  'galeria.verFotoDe': 'View the photo of {nombre}',
+  'galeria.anterior': 'Previous photo',
+  'galeria.siguiente': 'Next photo',
+  'galeria.ampliar': 'Zoom in',
+  'galeria.reducir': 'Zoom out',
+  'galeria.miniaturas': 'Thumbnails',
+  'galeria.xDeN': 'Photo {index} of {total}',
 }

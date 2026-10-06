@@ -101,9 +101,6 @@ export const es = {
   'ficha.mediaResenas': '{nota} ★ de media en {n} reseñas',
   'ficha.resenasProxima': 'El detalle de las reseñas llega en la próxima versión.',
   'ficha.fotosDe': 'Fotos de {nombre}',
-  'ficha.verFoto': 'Ver la foto {n}',
-  'ficha.fotoAnterior': 'Foto anterior',
-  'ficha.fotoSiguiente': 'Foto siguiente',
   'ficha.fotoNegocio': 'Foto del negocio',
   'ficha.cerrarGaleria': 'Cerrar galería',
 
@@ -1904,4 +1901,14 @@ export const es = {
   'fneg.rechazadoHecho': 'Alta de {nombre} rechazada: queda de baja',
   'eq.guardalaSinCorreo':
     'No se le ha enviado nada: copia estos datos y pásaselos tú. La contraseña no se puede volver a consultar, y quien entre podrá cambiarla desde su cuenta.',
+  'galeria.local': 'El local',
+  'galeria.servicio': 'Servicio',
+  'galeria.extra': 'Extra',
+  'galeria.verFotoDe': 'Ver la foto de {nombre}',
+  'galeria.anterior': 'Foto anterior',
+  'galeria.siguiente': 'Foto siguiente',
+  'galeria.ampliar': 'Ampliar',
+  'galeria.reducir': 'Reducir',
+  'galeria.miniaturas': 'Miniaturas',
+  'galeria.xDeN': 'Foto {index} de {total}',
 } as const

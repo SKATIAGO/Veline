@@ -475,3 +475,20 @@
     padding: 8px;
   }
 }
+
+/* El visor de fotos (yet-another-react-lightbox): los colores de Veline en vez
+   de los grises de fábrica. Un fondo cálido casi opaco: la foto es lo que se
+   mira y el resto de la página no debe distraer. */
+.veline-visor {
+  --yarl__color_backdrop: rgb(24, 16, 11);
+  --yarl__color_button: rgba(242, 231, 214, 0.85);
+  --yarl__color_button_active: #fff;
+  --yarl__thumbnails_container_background_color: rgb(24, 16, 11);
+  --yarl__thumbnails_thumbnail_active_border_color: var(--color-accent);
+  --yarl__slide_captions_container_background: linear-gradient(
+    to top,
+    rgba(24, 16, 11, 0.94),
+    rgba(24, 16, 11, 0)
+  );
+  font-family: inherit;
+}

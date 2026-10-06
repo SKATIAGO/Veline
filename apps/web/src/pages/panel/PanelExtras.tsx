@@ -1,9 +1,8 @@
-import { useId, useRef, useState } from 'react'
+import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDuration, formatPrice } from '@veline/shared'
-import { api, ApiError, type DatosExtra, type PanelExtra } from '../../lib/api'
-import { prepararFoto } from '../../lib/imagen'
+import { api, type DatosExtra, type PanelExtra } from '../../lib/api'
 import {
   Badge,
   Button,
@@ -14,7 +13,6 @@ import {
   Input,
   PageHeader,
   Skeleton,
-  Spinner,
   Textarea,
   cx,
 } from '../../components/ui'
@@ -24,6 +22,7 @@ import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
+import { CampoFoto } from '../../components/CampoFoto'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
 
 /** "12,50" o "12.50" → 1250 céntimos */
@@ -91,12 +90,6 @@ function DialogoExtra({
   const [foto, setFoto] = useState<string | null>(inicial.photo)
   // Se avisa al intentar guardar, no mientras se escribe.
   const [tocado, setTocado] = useState(false)
-  const selector = useRef<HTMLInputElement>(null)
-
-  const subir = useMutation({
-    mutationFn: async (archivo: File) => api.subirImagen(slug, await prepararFoto(archivo)),
-    onSuccess: (r) => setFoto(r.url),
-  })
 
   const cents = aCentimos(precio || '0')
   const mins = Number(minutos)
@@ -124,7 +117,7 @@ function DialogoExtra({
       submitLabel={textoGuardar}
       onSubmit={() => {
         setTocado(true)
-        if (problema || subir.isPending) return
+        if (problema) return
         onGuardar({
           name: nombre.trim(),
           description: descripcion.trim(),
@@ -139,65 +132,7 @@ function DialogoExtra({
       borrar={onQuitar && { label: t('ext.quitar'), onClick: onQuitar }}
     >
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex shrink-0 flex-col items-start gap-1.5">
-          <span className="text-meta font-semibold text-body-2">
-            {t('ext.foto')} <span className="font-normal text-subtle">{t('comun.opcional')}</span>
-          </span>
-          {/* Un botón grande y no un campo de archivo: en el móvil abre la
-              cámara o la galería, y se ve la foto en cuanto se elige. */}
-          <button
-            type="button"
-            onClick={() => selector.current?.click()}
-            disabled={subir.isPending}
-            aria-label={foto ? t('ext.cambiarFoto') : t('ext.subirFoto')}
-            className={cx(
-              'relative grid size-28 place-items-center overflow-hidden rounded-xl text-meta font-semibold',
-              'transition-colors duration-200',
-              foto
-                ? 'border border-line'
-                : 'border border-dashed border-line-strong bg-canvas text-muted hover:border-brand hover:text-brand-text',
-            )}
-          >
-            {foto ? (
-              <img src={foto} alt="" className="size-full object-cover" />
-            ) : (
-              !subir.isPending && <span className="px-3 text-center">+ {t('ext.subirFoto')}</span>
-            )}
-            {subir.isPending && (
-              <span className="absolute inset-0 grid place-items-center bg-surface/80">
-                <Spinner />
-              </span>
-            )}
-          </button>
-          <input
-            ref={selector}
-            type="file"
-            accept="image/*"
-            tabIndex={-1}
-            className="sr-only"
-            onChange={(e) => {
-              const archivo = e.target.files?.[0]
-              // Se vacía: si no, elegir la misma foto otra vez no hace nada.
-              e.target.value = ''
-              if (archivo) subir.mutate(archivo)
-            }}
-          />
-          {foto && (
-            <div className="flex gap-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="quiet"
-                onClick={() => selector.current?.click()}
-              >
-                {t('ext.cambiarFoto')}
-              </Button>
-              <Button type="button" size="sm" variant="quiet" onClick={() => setFoto(null)}>
-                {t('ext.quitarFoto')}
-              </Button>
-            </div>
-          )}
-        </div>
+        <CampoFoto slug={slug} foto={foto} onChange={setFoto} />
 
         <div className="grid flex-1 content-start gap-4 sm:grid-cols-2">
           <Field
@@ -251,11 +186,6 @@ function DialogoExtra({
         </div>
       </div>
 
-      {subir.isError && (
-        <ErrorNote>
-          {subir.error instanceof ApiError ? subir.error.message : t('ext.errFoto')}
-        </ErrorNote>
-      )}
       {tocado && problema && <ErrorNote>{t(problema)}</ErrorNote>}
     </FormDialog>
   )

@@ -3,9 +3,10 @@
  * panel. Van aparte de las rutas para poder probarlas sin base de datos.
  */
 
-/** Tope de una foto ya reducida. El navegador la deja en ~100 KB; esto es el
-    margen para una foto con mucho detalle, no para una sin reducir. */
-export const MAX_IMAGEN_BYTES = 600 * 1024
+/** Tope de una foto ya reducida. El navegador la deja en 150-400 KB (1600 px
+    por el lado largo); esto es el margen para una foto con mucho detalle, no
+    para una sin reducir. */
+export const MAX_IMAGEN_BYTES = 1024 * 1024
 
 export type TipoImagen = 'image/jpeg' | 'image/png' | 'image/webp'
 

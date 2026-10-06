@@ -18,6 +18,8 @@ import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
+import { AtajoFotos, Galeria } from '../components/Galeria'
+import { useFotosNegocio } from '../lib/galeria'
 import { useIdioma } from '../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
@@ -114,6 +116,10 @@ export function BookingDate() {
       }),
     enabled: Boolean(service),
   })
+
+  // Fotos del local, del servicio y de los extras, para ver cómo es lo que se reserva.
+  const { fotos, indiceDe } = useFotosNegocio(business)
+  const [visor, setVisor] = useState<number | null>(null)
 
   const byDate = useMemo(() => {
     const map = new Map<string, DayAvailabilityDTO>()
@@ -389,6 +395,13 @@ export function BookingDate() {
           className="relative w-full shrink-0 lg:w-[340px]"
         >
           <Card className="p-6 shadow-pop lg:sticky lg:top-24">
+            <AtajoFotos
+              fotoServicio={service.photo}
+              nombreServicio={service.name}
+              total={fotos.length}
+              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
+              onVerTodas={() => setVisor(0)}
+            />
             {isLoading && <Spinner label={t('fecha.buscandoHuecos')} />}
             {isError && <ErrorNote>{(error as Error).message}</ErrorNote>}
 
@@ -499,6 +512,14 @@ export function BookingDate() {
           </Card>
         </Reveal>
       </div>
+
+      <Galeria
+        fotos={fotos}
+        index={visor}
+        onIndex={setVisor}
+        onClose={() => setVisor(null)}
+        titulo={business.name}
+      />
     </>
   )
 }

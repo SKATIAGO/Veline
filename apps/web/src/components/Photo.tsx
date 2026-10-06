@@ -12,6 +12,17 @@ export function photoSrc(url: string, w: number, h: number) {
   return `${url}?auto=format&fit=crop&w=${w}&h=${h}&q=70`
 }
 
+/**
+ * La foto entera, sin recortar, para verla ampliada. `photoSrc` recorta al
+ * tamaño que se le pide (`fit=crop`), que está bien en una miniatura pero no
+ * en el visor: quien mira un tinte o unas uñas quiere ver todo lo que hay en
+ * la foto, no el centro. Con `fit=max` el CDN solo reduce hasta el ancho dado.
+ */
+export function photoFull(url: string, w: number) {
+  if (!url.startsWith('https://images.unsplash.com/')) return url
+  return `${url}?auto=format&fit=max&w=${w}&q=80`
+}
+
 interface PhotoProps {
   src: string | null | undefined
   alt: string

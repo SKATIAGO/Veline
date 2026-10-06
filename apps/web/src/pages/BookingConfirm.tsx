@@ -5,6 +5,8 @@ import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from
 import { api, ApiError } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
+import { AtajoFotos, Galeria } from '../components/Galeria'
+import { useFotosNegocio } from '../lib/galeria'
 import { origenActual } from '../lib/origen'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
@@ -90,6 +92,8 @@ export function BookingConfirm() {
   })
 
   const service = business?.services.find((s) => s.id === serviceId)
+  const { fotos, indiceDe } = useFotosNegocio(business)
+  const [visor, setVisor] = useState<number | null>(null)
 
   /* La carta de extras es la misma para cualquier servicio. Solo cuentan los
      que siguen en ella: si el negocio quita uno mientras alguien reserva, al
@@ -244,6 +248,13 @@ export function BookingConfirm() {
             <div className="mb-4 font-display text-base font-semibold text-ink">
               {t('confirmar.resumen')}
             </div>
+            <AtajoFotos
+              fotoServicio={service.photo}
+              nombreServicio={service.name}
+              total={fotos.length}
+              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
+              onVerTodas={() => setVisor(0)}
+            />
             {[
               { clave: 'confirmar.negocio', value: business.name },
               // Solo si de verdad se eligió: sin preferencia, el negocio
@@ -324,6 +335,14 @@ export function BookingConfirm() {
           </Card>
         </Reveal>
       </div>
+
+      <Galeria
+        fotos={fotos}
+        index={visor}
+        onIndex={setVisor}
+        onClose={() => setVisor(null)}
+        titulo={business.name}
+      />
     </>
   )
 }
