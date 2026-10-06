@@ -301,6 +301,12 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  /** El fichaje que alguien se olvidó de hacer, añadido por quien administra. */
+  anadirFichaje: (
+    slug: string,
+    body: { userId: string; entrada: string; salida: string; motivo: string },
+  ) => request<Fichaje>(`/panel/${slug}/fichajes`, { method: 'POST', body: JSON.stringify(body) }),
+
   // ── Suscripción (SUPERADMIN) ───────────────────────────────
   updateSubscription: (
     businessId: string,

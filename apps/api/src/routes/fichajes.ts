@@ -29,6 +29,24 @@ const correccionSchema = z
     message: 'La salida no puede ser anterior a la entrada',
   })
 
+/**
+ * Un fichaje que nadie fichó: alguien se olvidó de hacerlo y el administrador
+ * lo añade. Lleva siempre entrada y salida, y el motivo es obligatorio.
+ */
+const anadirSchema = z
+  .object({
+    userId: z.string().min(1),
+    entrada: z.string().datetime({ offset: true }),
+    salida: z.string().datetime({ offset: true }),
+    motivo: z.string().trim().min(3, 'Escribe por qué se añade').max(300),
+  })
+  .refine((d) => new Date(d.salida) > new Date(d.entrada), {
+    message: 'La salida no puede ser anterior a la entrada',
+  })
+  .refine((d) => new Date(d.salida).getTime() - new Date(d.entrada).getTime() <= 24 * 3_600_000, {
+    message: 'Una jornada no puede durar más de 24 horas',
+  })
+
 const rangoSchema = z.object({
   desde: z
     .string()
@@ -241,6 +259,84 @@ export async function fichajeRoutes(app: FastifyInstance) {
   })
 
   /**
+   * Añadir el fichaje que alguien se olvidó de hacer.
+   *
+   * Corregir solo sirve si hay un fichaje que corregir: quien no fichó en todo
+   * el día no tenía nada que tocar, y el administrador no tenía cómo dejarlo
+   * reflejado. Se añade como se corrige —con quién, cuándo y por qué— y se
+   * distingue de uno fichado: no tiene «original», porque no lo hubo.
+   * Tampoco se deja añadir sobre otra jornada de la misma persona ni hacia el
+   * futuro: eso no es olvidar fichar.
+   */
+  app.post('/api/panel/:slug/fichajes', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug } = req.params as { slug: string }
+    const scope = await authorizeBusiness(user, slug, 'configuracion')
+    if (!scope.ok) return reply.code(scope.status).send({ error: scope.error })
+
+    const parsed = anadirSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+    const entrada = new Date(parsed.data.entrada)
+    const salida = new Date(parsed.data.salida)
+    if (salida.getTime() > Date.now()) {
+      return reply.code(400).send({ error: 'No se puede añadir un fichaje que aún no ha ocurrido' })
+    }
+
+    const persona = await prisma.user.findFirst({
+      where: { id: parsed.data.userId, businessId: scope.business.id },
+      select: { id: true, name: true },
+    })
+    if (!persona) return reply.code(404).send({ error: 'Esa persona no es de este negocio' })
+
+    // Una jornada ya fichada que se pisa con esta (o una que sigue abierta).
+    const choca = await prisma.fichaje.findFirst({
+      where: {
+        userId: persona.id,
+        entrada: { lt: salida },
+        OR: [{ salida: null }, { salida: { gt: entrada } }],
+      },
+    })
+    if (choca) {
+      return reply
+        .code(409)
+        .send({ error: 'Ese tramo se pisa con otro fichaje de la misma persona: corrige ese' })
+    }
+
+    const f = await prisma.fichaje.create({
+      data: {
+        userId: persona.id,
+        businessId: scope.business.id,
+        entrada,
+        salida,
+        corregidoPorId: user.id,
+        corregidoEn: new Date(),
+        motivo: parsed.data.motivo,
+      },
+      include: incluir,
+    })
+
+    audit(req, {
+      action: 'FICHAJE_CORREGIDO',
+      summary: `Ha añadido el fichaje olvidado de ${persona.name}`,
+      actor: user,
+      businessId: scope.business.id,
+      entity: 'Fichaje',
+      entityId: f.id,
+      metadata: {
+        anadido: true,
+        motivo: parsed.data.motivo,
+        entrada: parsed.data.entrada,
+        salida: parsed.data.salida,
+      },
+    })
+
+    return reply.code(201).send(aDTO(f))
+  })
+
+  /**
    * El registro en un archivo, para la Inspección o para la gestoría.
    *
    * CSV con punto y coma y BOM: es lo que abre Excel en español sin pelearse
@@ -305,7 +401,8 @@ export async function fichajeRoutes(app: FastifyInstance) {
         campo(fecha(f.entrada)),
         campo(fecha(f.salida)),
         campo(min === null ? '' : `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`),
-        campo(f.corregidoEn ? 'Sí' : 'No'),
+        // Sin original porque no se fichó: lo añadió el administrador.
+        campo(f.corregidoEn ? (f.entradaOriginal ? 'Sí' : 'Añadido a mano') : 'No'),
         campo(fecha(f.entradaOriginal)),
         campo(fecha(f.salidaOriginal)),
         campo(f.corregidoPor?.name ?? ''),

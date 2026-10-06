@@ -12,6 +12,7 @@ import {
   PageHeader,
   Skeleton,
 } from '../../components/ui'
+import { AbrirLocal } from './AbrirLocal'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
@@ -135,15 +136,6 @@ export function PanelLocales() {
     queryClient.invalidateQueries({ queryKey: ['audit'] })
   }
 
-  const crear = useMutation({
-    mutationFn: (d: typeof vacio) => api.crearLocal(slug, d),
-    onSuccess: (_r, d) => {
-      setCreando(false)
-      refrescar()
-      aviso.ok(t('loc.creado', { nombre: d.name }))
-    },
-  })
-
   const editar = useMutation({
     mutationFn: (d: typeof vacio) => api.editarLocal(slug, editando!.id, d),
     onSuccess: () => {
@@ -170,16 +162,7 @@ export function PanelLocales() {
       <PageHeader
         title={t('panel.horarioYLocales')}
         hint={locales ? plural(locales.length, 'loc.unLocal', 'loc.variosLocales') : undefined}
-        actions={
-          <Button
-            onClick={() => {
-              crear.reset()
-              setCreando(true)
-            }}
-          >
-            {t('loc.abrir')}
-          </Button>
-        }
+        actions={<Button onClick={() => setCreando(true)}>{t('loc.abrir')}</Button>}
       />
 
       <PestanasSeccion seccion="horario" />
@@ -274,17 +257,7 @@ export function PanelLocales() {
         </Card>
       )}
 
-      {creando && (
-        <DialogoLocal
-          key="nuevo"
-          inicial={vacio}
-          titulo={t('loc.nuevo')}
-          enviando={crear.isPending}
-          error={crear.isError ? mensaje(crear.error) : null}
-          onGuardar={(d) => crear.mutate(d)}
-          onCancelar={() => setCreando(false)}
-        />
-      )}
+      {creando && <AbrirLocal slug={slug} open onClose={() => setCreando(false)} />}
 
       {editando && (
         <DialogoLocal

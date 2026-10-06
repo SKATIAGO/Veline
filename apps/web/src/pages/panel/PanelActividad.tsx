@@ -104,6 +104,7 @@ const ETIQUETAS: Record<string, Clave> = {
   priceCents: 'act.campoPrecio',
   antes: 'act.campoAntes',
   despues: 'act.campoDespues',
+  anadido: 'act.campoAnadido',
   plan: 'adm.plan',
   diasPrueba: 'act.campoDiasPrueba',
 }

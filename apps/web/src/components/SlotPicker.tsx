@@ -37,6 +37,7 @@ export function SlotPicker({
   valor,
   onElegir,
   diaInicial,
+  minimo,
 }: {
   slug: string
   /** De qué son los huecos: un servicio con sus extras, o una cita. */
@@ -52,10 +53,15 @@ export function SlotPicker({
   onElegir: (iso: string | null) => void
   /** Por qué día empezar: el del calendario desde el que se abrió, por ejemplo. */
   diaInicial?: string
+  /** El primer día que se puede elegir (AAAA-MM-DD). Por defecto, hoy. Para
+      mover una cita a después de un cierre, por ejemplo. */
+  minimo?: string
 }) {
   const { t, idioma, locale } = useIdioma()
   const id = useId()
-  const hoy = toDateKey(new Date())
+  const hoyReal = toDateKey(new Date())
+  // Nada anterior a hoy, ni al primer día que se pueda elegir.
+  const hoy = minimo && minimo > hoyReal ? minimo : hoyReal
   const [desde, setDesde] = useState(() => (diaInicial && diaInicial > hoy ? diaInicial : hoy))
   const [dia, setDia] = useState<string | null>(diaInicial ?? null)
   const [aMano, setAMano] = useState(false)

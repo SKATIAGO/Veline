@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
+import { PrimerosPasos } from '../../components/PrimerosPasos'
+import { useAuth } from '../../lib/auth'
 import { Button, Card, EmptyState, FilterChip, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { Tabs, panelProps } from '../../components/Tabs'
@@ -45,6 +47,7 @@ export function PanelAgenda() {
   const { t, idioma } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
+  const { user } = useAuth()
   const idBase = useId()
   const [params, setParams] = useSearchParams()
   const [rango, setRango] = useState<RangoKey>('hoy')
@@ -148,6 +151,12 @@ export function PanelAgenda() {
       />
 
       <AvisoSuscripcion sub={summary?.subscription ?? null} />
+
+      <PrimerosPasos
+        slug={slug}
+        servicios={summary?.serviceCount}
+        puedeConfigurar={user?.role === 'ADMIN' || user?.role === 'SUPERADMIN'}
+      />
 
       <Tabs
         idBase={idBase}

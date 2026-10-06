@@ -12,6 +12,7 @@ import {
   Field,
   Input,
   PageHeader,
+  Select,
   Skeleton,
 } from '../../components/ui'
 import { Texto, useIdioma } from '../../i18n/idioma'
@@ -159,6 +160,123 @@ function Corregir({
   )
 }
 
+/**
+ * Añadir el fichaje que alguien se olvidó de hacer.
+ *
+ * Corregir solo vale si hay algo fichado que corregir: quien no fichó en todo
+ * el día no tenía nada que tocar. Se añade con su entrada, su salida y por
+ * qué, y queda marcado como añadido: en la pantalla y en el archivo, para que
+ * no se confunda con una jornada que fichó él mismo.
+ */
+function Anadir({
+  slug,
+  onHecho,
+  onCancelar,
+}: {
+  slug: string
+  onHecho: () => void
+  onCancelar: () => void
+}) {
+  const { t } = useFormatos()
+  const id = useId()
+  const [intentado, setIntentado] = useState(false)
+  const [userId, setUserId] = useState('')
+  const [entrada, setEntrada] = useState('')
+  const [salida, setSalida] = useState('')
+  const [motivo, setMotivo] = useState('')
+
+  const { data: personas } = useQuery({
+    queryKey: ['panel', slug, 'users'],
+    queryFn: () => api.panelUsers(slug),
+  })
+  const elegida = userId || personas?.[0]?.id || ''
+
+  const anadir = useMutation({
+    mutationFn: () =>
+      api.anadirFichaje(slug, {
+        userId: elegida,
+        entrada: new Date(entrada).toISOString(),
+        salida: new Date(salida).toISOString(),
+        motivo: motivo.trim(),
+      }),
+    onSuccess: () => {
+      aviso.ok(t('fic.anadidoHecho'))
+      onHecho()
+    },
+  })
+
+  const problema = !elegida
+    ? t('fic.errPersona')
+    : !entrada || !salida
+      ? t('fic.errFechas')
+      : new Date(salida) <= new Date(entrada)
+        ? t('fic.errSalida')
+        : new Date(salida) > new Date()
+          ? t('fic.errFuturo')
+          : motivo.trim().length < 3
+            ? t('fic.errMotivoAnadir')
+            : null
+
+  return (
+    <FormDialog
+      open
+      onClose={onCancelar}
+      title={t('fic.anadirTitulo')}
+      hint={t('fic.anadirPista')}
+      submitLabel={t('fic.guardarAnadido')}
+      onSubmit={() => {
+        setIntentado(true)
+        if (!problema) anadir.mutate()
+      }}
+      loading={anadir.isPending}
+      error={anadir.isError ? textoDeError(anadir.error, t('fic.noSePudoAnadir')) : null}
+      dirty={!!entrada || !!salida || motivo.trim() !== ''}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t('fic.persona')} htmlFor={`${id}-p`} required className="sm:col-span-2">
+          <Select id={`${id}-p`} value={elegida} onChange={(e) => setUserId(e.target.value)}>
+            {(personas ?? []).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label={t('fic.entrada')} htmlFor={`${id}-e`} required>
+          <Input
+            id={`${id}-e`}
+            type="datetime-local"
+            value={entrada}
+            max={paraInput(new Date().toISOString())}
+            onChange={(e) => setEntrada(e.target.value)}
+          />
+        </Field>
+        <Field label={t('fic.salida')} htmlFor={`${id}-s`} required>
+          <Input
+            id={`${id}-s`}
+            type="datetime-local"
+            value={salida}
+            min={entrada || undefined}
+            max={paraInput(new Date().toISOString())}
+            onChange={(e) => setSalida(e.target.value)}
+          />
+        </Field>
+        <Field
+          label={t('fic.motivo')}
+          htmlFor={`${id}-m`}
+          hint={t('fic.motivoPista')}
+          required
+          className="sm:col-span-2"
+        >
+          <Input id={`${id}-m`} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+        </Field>
+      </div>
+
+      {intentado && problema && <ErrorNote>{problema}</ErrorNote>}
+    </FormDialog>
+  )
+}
+
 export function PanelFichaje() {
   const { t, hora, dia, duracion } = useFormatos()
   const { slug = '' } = useParams()
@@ -166,6 +284,7 @@ export function PanelFichaje() {
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
   const [corrigiendo, setCorrigiendo] = useState<Fichaje | null>(null)
+  const [anadiendo, setAnadiendo] = useState(false)
 
   const { data: abierto } = useQuery({
     queryKey: ['fichaje', slug, 'abierto'],
@@ -211,6 +330,13 @@ export function PanelFichaje() {
       <PageHeader
         title={t('panel.fichaje')}
         hint={puedeVerTodos ? t('fic.pistaTodos') : t('fic.pistaMio')}
+        actions={
+          puedeVerTodos && (
+            <Button variant="secondary" onClick={() => setAnadiendo(true)}>
+              {t('fic.anadir')}
+            </Button>
+          )
+        }
       />
 
       {/* El botón grande: lo que se viene a hacer aquí el 95 % de las veces. */}
@@ -303,7 +429,13 @@ export function PanelFichaje() {
                         <span className="text-ui font-semibold text-ink">{f.persona}</span>
                       )}
                       {!f.salida && <Badge tone="ok">{t('fic.dentroAhora')}</Badge>}
-                      {f.correccion && <Badge tone="warn">{t('fic.corregido')}</Badge>}
+                      {f.correccion && (
+                        <Badge tone="warn">
+                          {f.correccion.entradaOriginal
+                            ? t('fic.corregido')
+                            : t('fic.anadidoBadge')}
+                        </Badge>
+                      )}
                     </div>
                     <p className="mt-0.5 text-meta text-muted first-letter:uppercase">
                       {dia(f.entrada)}
@@ -330,7 +462,10 @@ export function PanelFichaje() {
                     horas y por qué. */}
                 {f.correccion && (
                   <p className="px-4 pb-3 text-meta text-subtle sm:px-5">
-                    {t('fic.corregidoPor', { quien: f.correccion.por })} ·{' '}
+                    {t(f.correccion.entradaOriginal ? 'fic.corregidoPor' : 'fic.anadidoPor', {
+                      quien: f.correccion.por,
+                    })}{' '}
+                    ·{' '}
                     {f.correccion.entradaOriginal && (
                       <>
                         {t('fic.antesEra', {
@@ -349,6 +484,17 @@ export function PanelFichaje() {
             ))}
           </ul>
         </Card>
+      )}
+
+      {anadiendo && (
+        <Anadir
+          slug={slug}
+          onHecho={() => {
+            setAnadiendo(false)
+            refrescar()
+          }}
+          onCancelar={() => setAnadiendo(false)}
+        />
       )}
 
       {corrigiendo && (
