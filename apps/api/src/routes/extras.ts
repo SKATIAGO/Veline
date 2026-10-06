@@ -5,7 +5,14 @@ import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize, cambios } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
 import { MAX_IMAGEN_BYTES, tipoDeImagen, urlDeImagen } from '../extras.js'
-import { barrerFotosHuerfanas, fotoDelNegocio, soltarFoto } from '../fotos.js'
+import {
+  barrerFotosHuerfanas,
+  fotosDelNegocio,
+  quitadas,
+  sinRepetidas,
+  soltarFotos,
+} from '../fotos.js'
+import { MAX_FOTOS_POR_ITEM } from '@veline/shared'
 
 /**
  * Carta de extras y fotos del panel.
@@ -21,8 +28,8 @@ const extraBody = z.object({
   priceCents: z.number().int().min(0).max(1_000_000),
   /** Lo que alarga la cita. 0 = no la alarga. El tope son 8 horas. */
   durationMin: z.number().int().min(0).max(480).default(0),
-  /** Dirección de una foto subida antes a /imagenes. Null para quitarla. */
-  photo: z.string().max(80).nullable().optional(),
+  /** Direcciones de fotos subidas antes a /imagenes; la primera es la principal. */
+  photos: z.array(z.string().max(80)).max(MAX_FOTOS_POR_ITEM).default([]),
   active: z.boolean().default(true),
 })
 
@@ -63,8 +70,9 @@ export async function extrasRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Datos inválidos', details: parsed.error.flatten() })
     }
     const d = parsed.data
-    if (!(await fotoDelNegocio(auth.business.id, d.photo))) {
-      return reply.code(400).send({ error: 'Esa foto no es válida. Súbela de nuevo.' })
+    const fotos = sinRepetidas(d.photos)
+    if (!(await fotosDelNegocio(auth.business.id, fotos))) {
+      return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
     }
 
     const count = await prisma.extra.count({ where: { businessId: auth.business.id } })
@@ -74,7 +82,7 @@ export async function extrasRoutes(app: FastifyInstance) {
         name: d.name,
         description: d.description || null,
         priceCents: d.priceCents,
-        photo: d.photo ?? null,
+        photos: fotos,
         active: d.active,
         position: count,
       },
@@ -107,9 +115,10 @@ export async function extrasRoutes(app: FastifyInstance) {
     const existing = await prisma.extra.findFirst({ where: { id, businessId: auth.business.id } })
     if (!existing) return reply.code(404).send({ error: 'Extra no encontrado' })
 
-    const { description, photo, ...rest } = parsed.data
-    if (!(await fotoDelNegocio(auth.business.id, photo))) {
-      return reply.code(400).send({ error: 'Esa foto no es válida. Súbela de nuevo.' })
+    const { description, photos, ...rest } = parsed.data
+    const fotos = photos === undefined ? undefined : sinRepetidas(photos)
+    if (!(await fotosDelNegocio(auth.business.id, fotos))) {
+      return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
     }
 
     const actualizado = await prisma.extra.update({
@@ -117,11 +126,11 @@ export async function extrasRoutes(app: FastifyInstance) {
       data: {
         ...rest,
         ...(description !== undefined ? { description: description || null } : {}),
-        ...(photo !== undefined ? { photo } : {}),
+        ...(fotos !== undefined ? { photos: fotos } : {}),
       },
     })
-    if (photo !== undefined && existing.photo !== actualizado.photo) {
-      await soltarFoto(auth.business.id, existing.photo)
+    if (fotos !== undefined) {
+      await soltarFotos(auth.business.id, quitadas(existing.photos, actualizado.photos))
     }
 
     audit(req, {
@@ -153,7 +162,7 @@ export async function extrasRoutes(app: FastifyInstance) {
     if (!existing) return reply.code(404).send({ error: 'Extra no encontrado' })
 
     await prisma.extra.delete({ where: { id } })
-    await soltarFoto(auth.business.id, existing.photo)
+    await soltarFotos(auth.business.id, existing.photos)
 
     audit(req, {
       action: 'EXTRA_ELIMINADO',

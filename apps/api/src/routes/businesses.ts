@@ -150,7 +150,7 @@ export async function businessRoutes(app: FastifyInstance) {
         description: s.description,
         durationMin: s.durationMin,
         priceCents: s.priceCents,
-        photo: s.photo,
+        photos: s.photos,
       })),
       extras: b.extras.map((e) => ({
         id: e.id,
@@ -158,7 +158,7 @@ export async function businessRoutes(app: FastifyInstance) {
         description: e.description,
         priceCents: e.priceCents,
         durationMin: e.durationMin,
-        photo: e.photo,
+        photos: e.photos,
       })),
       staff: b.staff.map((s) => ({ id: s.id, name: s.name, locationId: s.locationId })),
       openingHours: (main?.openingHours ?? []).map((w) => ({

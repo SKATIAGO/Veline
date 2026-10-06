@@ -61,12 +61,15 @@ export function FotoAmpliable({
   src,
   nombre,
   lado,
+  cuantas = 1,
   onOpen,
   className,
 }: {
   src: string
   /** Qué es, para el lector de pantalla: «Ver la foto de Tinte». */
   nombre: string
+  /** Cuántas fotos hay detrás: con más de una, la insignia dice cuántas. */
+  cuantas?: number
   /** Lado de la miniatura en píxeles (se pide al doble para pantallas nítidas). */
   lado: number
   onOpen: () => void
@@ -92,66 +95,88 @@ export function FotoAmpliable({
         className="size-full transition-transform duration-300 group-hover:scale-105"
         fallback=""
       />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-ink/65 text-cream"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className="size-3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
+      {cuantas > 1 ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-1 bottom-1 inline-flex h-5 items-center gap-1 rounded-full bg-ink/70 px-1.5 text-caption font-bold text-cream tabular-nums"
         >
-          <circle cx="10.5" cy="10.5" r="6" />
-          <path d="m15 15 5 5M10.5 8v5M8 10.5h5" />
-        </svg>
-      </span>
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="5" width="18" height="14" rx="2.5" />
+            <circle cx="9" cy="10.5" r="1.6" />
+            <path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" />
+          </svg>
+          {cuantas}
+        </span>
+      ) : (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-ink/65 text-cream"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          >
+            <circle cx="10.5" cy="10.5" r="6" />
+            <path d="m15 15 5 5M10.5 8v5M8 10.5h5" />
+          </svg>
+        </span>
+      )}
     </button>
   )
 }
 
 /**
  * Lo que se enseña en el resumen de la reserva para ver cómo es lo que se
- * reserva: la foto del servicio y un enlace a todas las demás (local, otros
- * servicios, extras). Mientras se elige fecha o se confirma, es justo cuando
- * más se quiere comprobar que es lo que se esperaba.
+ * reserva: las fotos del servicio y un enlace a las del local. Mientras se
+ * elige fecha o se confirma, es justo cuando más se quiere comprobar que es lo
+ * que se esperaba.
  */
 export function AtajoFotos({
-  fotoServicio,
+  fotosServicio,
   nombreServicio,
-  total,
+  fotosLocal,
   onVerServicio,
-  onVerTodas,
+  onVerLocal,
 }: {
-  fotoServicio: string | null
+  fotosServicio: string[]
   nombreServicio: string
-  /** Cuántas fotos hay en total en el negocio. */
-  total: number
+  /** Cuántas fotos tiene el local. */
+  fotosLocal: number
   onVerServicio: () => void
-  onVerTodas: () => void
+  onVerLocal: () => void
 }) {
   const { t } = useIdioma()
-  if (!fotoServicio && total === 0) return null
+  if (fotosServicio.length === 0 && fotosLocal === 0) return null
   return (
     <div className="mb-4 flex items-center gap-3">
-      {fotoServicio && (
+      {fotosServicio[0] && (
         <FotoAmpliable
-          src={fotoServicio}
+          src={fotosServicio[0]}
           nombre={nombreServicio}
           lado={64}
+          cuantas={fotosServicio.length}
           className="size-16 rounded-xl"
           onOpen={onVerServicio}
         />
       )}
-      {total > 0 && (
+      {fotosLocal > 0 && (
         <button
           type="button"
-          onClick={onVerTodas}
+          onClick={onVerLocal}
           className="inline-flex min-h-10 items-center text-meta font-semibold text-brand-text hover:underline"
         >
-          {t('ficha.verFotos', { n: total })}
+          {t('galeria.verFotosLocal', { n: fotosLocal })}
         </button>
       )}
     </div>

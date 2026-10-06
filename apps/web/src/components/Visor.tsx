@@ -69,7 +69,9 @@ export default function Visor({
       }))}
       plugins={[Zoom, Captions, Counter, ...(varias ? [Thumbnails] : [])]}
       controller={{ closeOnBackdropClick: true, closeOnPullDown: true }}
-      carousel={{ finite: !varias, preload: 2 }}
+      // Con principio y fin: al llegar a la última no vuelve a la primera. Cada
+      // visor tiene solo las fotos de lo que se ha abierto.
+      carousel={{ finite: true, preload: 2 }}
       zoom={{ maxZoomPixelRatio: 3, scrollToZoom: true }}
       thumbnails={{
         position: 'bottom',

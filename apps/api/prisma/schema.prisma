@@ -151,9 +151,9 @@ model Service {
   /// Margen posterior reservado para el negocio (limpieza, papeleo…)
   bufferMin   Int     @default(0)
   priceCents  Int
-  /// Dirección de la foto (/api/imagenes/…). Opcional: en belleza o estética,
-  /// ver cómo queda el servicio es lo que decide.
-  photo       String?
+  /// Direcciones de las fotos (/api/imagenes/…), la primera es la principal.
+  /// En belleza o estética, ver cómo queda el servicio es lo que decide.
+  photos      String[]
   active      Boolean @default(true)
   position    Int     @default(0)
 
@@ -183,8 +183,8 @@ model Extra {
   /// que se bloquea en la agenda, así que un tinte que añade 20 min deja de
   /// pisar la cita siguiente.
   durationMin Int      @default(0)
-  /// Dirección de la foto (/api/imagenes/…). Opcional.
-  photo       String?
+  /// Direcciones de las fotos (/api/imagenes/…), la primera es la principal.
+  photos      String[]
   /// Oculto: no sale al reservar, pero no se pierde.
   active      Boolean  @default(true)
   position    Int      @default(0)

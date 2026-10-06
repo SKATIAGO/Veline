@@ -6,7 +6,7 @@ import { api, ApiError } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
 import { AtajoFotos, Galeria } from '../components/Galeria'
-import { useFotosNegocio } from '../lib/galeria'
+import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { origenActual } from '../lib/origen'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
@@ -92,8 +92,8 @@ export function BookingConfirm() {
   })
 
   const service = business?.services.find((s) => s.id === serviceId)
-  const { fotos, indiceDe } = useFotosNegocio(business)
-  const [visor, setVisor] = useState<number | null>(null)
+  const fotosDe = useFotosNegocio()
+  const visor = useVisor()
 
   /* La carta de extras es la misma para cualquier servicio. Solo cuentan los
      que siguen en ella: si el negocio quita uno mientras alguien reserva, al
@@ -249,11 +249,11 @@ export function BookingConfirm() {
               {t('confirmar.resumen')}
             </div>
             <AtajoFotos
-              fotoServicio={service.photo}
+              fotosServicio={service.photos}
               nombreServicio={service.name}
-              total={fotos.length}
-              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
-              onVerTodas={() => setVisor(0)}
+              fotosLocal={business.photos.length}
+              onVerServicio={() => visor.abrir(fotosDe.deServicio(service))}
+              onVerLocal={() => visor.abrir(fotosDe.deLocal(business))}
             />
             {[
               { clave: 'confirmar.negocio', value: business.name },
@@ -337,10 +337,10 @@ export function BookingConfirm() {
       </div>
 
       <Galeria
-        fotos={fotos}
-        index={visor}
-        onIndex={setVisor}
-        onClose={() => setVisor(null)}
+        fotos={visor.estado?.fotos ?? []}
+        index={visor.estado?.index ?? null}
+        onIndex={visor.irA}
+        onClose={visor.cerrar}
         titulo={business.name}
       />
     </>

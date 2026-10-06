@@ -13,7 +13,8 @@ import {
   resolverLocalDelPanel,
 } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
-import { fotoDelNegocio, soltarFoto } from '../fotos.js'
+import { fotosDelNegocio, quitadas, sinRepetidas, soltarFotos } from '../fotos.js'
+import { MAX_FOTOS_POR_ITEM } from '@veline/shared'
 
 /**
  * Panel del negocio. Todos los endpoints exigen sesión, y el alcance depende
@@ -33,8 +34,8 @@ const serviceBody = z.object({
   durationMin: z.number().int().min(5).max(480),
   bufferMin: z.number().int().min(0).max(120).default(0),
   priceCents: z.number().int().min(0).max(1_000_000),
-  /** Dirección de una foto subida antes a /imagenes. Null para quitarla. */
-  photo: z.string().max(80).nullable().optional(),
+  /** Direcciones de fotos subidas antes a /imagenes; la primera es la principal. */
+  photos: z.array(z.string().max(80)).max(MAX_FOTOS_POR_ITEM).default([]),
   active: z.boolean().default(true),
 })
 
@@ -240,8 +241,9 @@ export async function panelRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.code(400).send({ error: 'Datos inválidos', details: parsed.error.flatten() })
     }
-    if (!(await fotoDelNegocio(auth.business.id, parsed.data.photo))) {
-      return reply.code(400).send({ error: 'Esa foto no es de este negocio. Súbela de nuevo.' })
+    const fotos = sinRepetidas(parsed.data.photos)
+    if (!(await fotosDelNegocio(auth.business.id, fotos))) {
+      return reply.code(400).send({ error: 'Alguna foto no es de este negocio. Súbela de nuevo.' })
     }
     const count = await prisma.service.count({ where: { businessId: auth.business.id } })
     const creado = await prisma.service.create({
@@ -252,7 +254,7 @@ export async function panelRoutes(app: FastifyInstance) {
         durationMin: parsed.data.durationMin,
         bufferMin: parsed.data.bufferMin,
         priceCents: parsed.data.priceCents,
-        photo: parsed.data.photo ?? null,
+        photos: fotos,
         active: parsed.data.active,
         position: count,
       },
@@ -287,16 +289,18 @@ export async function panelRoutes(app: FastifyInstance) {
     })
     if (!existing) return reply.code(404).send({ error: 'Servicio no encontrado' })
 
-    if (!(await fotoDelNegocio(auth.business.id, parsed.data.photo))) {
-      return reply.code(400).send({ error: 'Esa foto no es de este negocio. Súbela de nuevo.' })
+    const fotos = parsed.data.photos === undefined ? undefined : sinRepetidas(parsed.data.photos)
+    if (!(await fotosDelNegocio(auth.business.id, fotos))) {
+      return reply.code(400).send({ error: 'Alguna foto no es de este negocio. Súbela de nuevo.' })
     }
 
-    const { description, ...rest } = parsed.data
+    const { description, photos: _fotos, ...rest } = parsed.data
     const actualizado = await prisma.service.update({
       where: { id },
       data: {
         ...rest,
         ...(description !== undefined ? { description: description || null } : {}),
+        ...(fotos !== undefined ? { photos: fotos } : {}),
       },
     })
 
@@ -313,14 +317,13 @@ export async function panelRoutes(app: FastifyInstance) {
         'durationMin',
         'bufferMin',
         'priceCents',
-        'photo',
         'active',
       ]),
     })
 
-    // Si se cambió o se quitó la foto, la vieja se suelta (si nadie más la usa).
-    if (parsed.data.photo !== undefined && existing.photo !== actualizado.photo) {
-      await soltarFoto(auth.business.id, existing.photo)
+    // Las fotos que ya no están se sueltan (si nadie más las usa).
+    if (fotos !== undefined) {
+      await soltarFotos(auth.business.id, quitadas(existing.photos, actualizado.photos))
     }
 
     return actualizado

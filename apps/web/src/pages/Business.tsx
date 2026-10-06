@@ -14,7 +14,7 @@ import { Reveal } from '../components/Reveal'
 import { Photo } from '../components/Photo'
 import { MarbleWash } from '../components/Ornaments'
 import { FotoAmpliable, Galeria } from '../components/Galeria'
-import { useFotosNegocio } from '../lib/galeria'
+import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { recordarOrigen } from '../lib/origen'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -106,7 +106,7 @@ export function Business() {
     recordarOrigen(search)
   }, [search])
   const [tab, setTab] = useState<TabId>('servicios')
-  const [lightbox, setLightbox] = useState<number | null>(null)
+  const visor = useVisor()
 
   const {
     data: business,
@@ -117,8 +117,7 @@ export function Business() {
     queryFn: () => api.getBusiness(slug),
   })
 
-  // Antes de cualquier return: las fotos del local, de los servicios y de los extras.
-  const { fotos, indiceDe } = useFotosNegocio(business)
+  const fotosDe = useFotosNegocio()
 
   if (isLoading) {
     return (
@@ -175,7 +174,7 @@ export function Business() {
                 photos={business.photos}
                 i={0}
                 name={business.name}
-                onOpen={setLightbox}
+                onOpen={(i) => visor.abrir(fotosDe.deLocal(business), i)}
                 width={900}
                 height={620}
                 priority
@@ -186,7 +185,7 @@ export function Business() {
                 photos={business.photos}
                 i={1}
                 name={business.name}
-                onOpen={setLightbox}
+                onOpen={(i) => visor.abrir(fotosDe.deLocal(business), i)}
                 width={460}
                 height={300}
                 className="hidden sm:block"
@@ -196,7 +195,7 @@ export function Business() {
                 photos={business.photos}
                 i={2}
                 name={business.name}
-                onOpen={setLightbox}
+                onOpen={(i) => visor.abrir(fotosDe.deLocal(business), i)}
                 width={460}
                 height={300}
                 className="hidden sm:block"
@@ -205,13 +204,13 @@ export function Business() {
               />
             </div>
 
-            {fotos.length > 0 && (
+            {business.photos.length > 0 && (
               <button
                 type="button"
-                onClick={() => setLightbox(0)}
+                onClick={() => visor.abrir(fotosDe.deLocal(business))}
                 className="absolute bottom-3 left-3 inline-flex min-h-10 items-center rounded-full bg-surface/95 px-4 text-meta font-semibold text-ink shadow-sm transition-colors hover:bg-surface"
               >
-                {t('ficha.verFotos', { n: fotos.length })}
+                {t('ficha.verFotos', { n: business.photos.length })}
               </button>
             )}
           </Reveal>
@@ -250,18 +249,19 @@ export function Business() {
                   className="flex items-center justify-between gap-4 border-b border-line px-2 py-5 transition-colors duration-200 hover:bg-canvas/60"
                 >
                   <div className="flex min-w-0 items-center gap-3.5">
-                    {s.photo ? (
+                    {s.photos[0] ? (
                       <FotoAmpliable
-                        src={s.photo}
+                        src={s.photos[0]}
                         nombre={s.name}
                         lado={72}
+                        cuantas={s.photos.length}
                         className="size-[72px] rounded-xl"
-                        onOpen={() => setLightbox(indiceDe({ de: 'servicio', id: s.id }))}
+                        onOpen={() => visor.abrir(fotosDe.deServicio(s))}
                       />
                     ) : (
                       // Si otros servicios tienen foto, este reserva el mismo
                       // hueco: así los nombres quedan alineados.
-                      business.services.some((o) => o.photo) && (
+                      business.services.some((o) => o.photos.length > 0) && (
                         <div aria-hidden className="size-[72px] shrink-0 rounded-xl bg-canvas" />
                       )
                     )}
@@ -298,13 +298,14 @@ export function Business() {
                         key={e.id}
                         className="flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3.5"
                       >
-                        {e.photo && (
+                        {e.photos[0] && (
                           <FotoAmpliable
-                            src={e.photo}
+                            src={e.photos[0]}
                             nombre={e.name}
                             lado={56}
+                            cuantas={e.photos.length}
                             className="size-14"
-                            onOpen={() => setLightbox(indiceDe({ de: 'extra', id: e.id }))}
+                            onOpen={() => visor.abrir(fotosDe.deExtra(e))}
                           />
                         )}
                         <div className="min-w-0 flex-1">
@@ -429,10 +430,10 @@ export function Business() {
       </div>
 
       <Galeria
-        fotos={fotos}
-        index={lightbox}
-        onIndex={setLightbox}
-        onClose={() => setLightbox(null)}
+        fotos={visor.estado?.fotos ?? []}
+        index={visor.estado?.index ?? null}
+        onIndex={visor.irA}
+        onClose={visor.cerrar}
         titulo={business.name}
       />
     </>

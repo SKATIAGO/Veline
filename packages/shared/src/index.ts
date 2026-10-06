@@ -35,6 +35,10 @@ export const SOCIAL = {
 
 export const PRUEBA_DIAS_DEFECTO = 15
 
+/** Cuántas fotos puede tener cada servicio y cada extra. Las del negocio tienen
+    su propio tope. La primera es la que sale en la lista. */
+export const MAX_FOTOS_POR_ITEM = 6
+
 export const PLAN_INFO = {
   GRATIS: {
     label: 'Gratis',
@@ -502,7 +506,8 @@ export interface ServiceDTO {
   description: string | null
   durationMin: number
   priceCents: number
-  photo: string | null
+  /** Hasta MAX_FOTOS_POR_ITEM; la primera es la principal. */
+  photos: string[]
 }
 
 /** Un extra de la carta del negocio, tal y como lo ve quien reserva. */
@@ -513,7 +518,7 @@ export interface ExtraDTO {
   priceCents: number
   /** Lo que alarga la cita, en minutos. 0 = no la alarga. */
   durationMin: number
-  photo: string | null
+  photos: string[]
 }
 
 /** Un extra ya elegido en una cita, con el precio y los minutos que tenía al reservar. */

@@ -6,7 +6,7 @@ import { api } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, Contador, MAX_POR_EXTRA, Spinner, cx } from '../components/ui'
 import { AtajoFotos, FotoAmpliable, Galeria } from '../components/Galeria'
-import { useFotosNegocio } from '../lib/galeria'
+import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma } from '../i18n/idioma'
@@ -44,8 +44,8 @@ export function BookingExtras() {
   })
 
   const service = business?.services.find((s) => s.id === serviceId) ?? business?.services[0]
-  const { fotos, indiceDe } = useFotosNegocio(business)
-  const [visor, setVisor] = useState<number | null>(null)
+  const fotosDe = useFotosNegocio()
+  const visor = useVisor()
 
   if (!business || !service) {
     return (
@@ -113,13 +113,14 @@ export function BookingExtras() {
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    {e.photo && (
+                    {e.photos[0] && (
                       <FotoAmpliable
-                        src={e.photo}
+                        src={e.photos[0]}
                         nombre={e.name}
                         lado={64}
+                        cuantas={e.photos.length}
                         className="size-16"
-                        onOpen={() => setVisor(indiceDe({ de: 'extra', id: e.id }))}
+                        onOpen={() => visor.abrir(fotosDe.deExtra(e))}
                       />
                     )}
                     <div className="min-w-0 flex-1">
@@ -176,11 +177,11 @@ export function BookingExtras() {
             </div>
 
             <AtajoFotos
-              fotoServicio={service.photo}
+              fotosServicio={service.photos}
               nombreServicio={service.name}
-              total={fotos.length}
-              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
-              onVerTodas={() => setVisor(0)}
+              fotosLocal={business.photos.length}
+              onVerServicio={() => visor.abrir(fotosDe.deServicio(service))}
+              onVerLocal={() => visor.abrir(fotosDe.deLocal(business))}
             />
 
             <div className="mb-2.5 flex justify-between gap-4 text-body">
@@ -222,10 +223,10 @@ export function BookingExtras() {
       </div>
 
       <Galeria
-        fotos={fotos}
-        index={visor}
-        onIndex={setVisor}
-        onClose={() => setVisor(null)}
+        fotos={visor.estado?.fotos ?? []}
+        index={visor.estado?.index ?? null}
+        onIndex={visor.irA}
+        onClose={visor.cerrar}
         titulo={business.name}
       />
     </>

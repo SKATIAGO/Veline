@@ -22,7 +22,7 @@ import { PestanasSeccion } from '../../components/PestanasSeccion'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
-import { CampoFoto } from '../../components/CampoFoto'
+import { CampoFotos } from '../../components/CampoFotos'
 import { Photo } from '../../components/Photo'
 
 interface Draft {
@@ -31,7 +31,7 @@ interface Draft {
   bufferMin: string
   price: string
   description: string
-  photo: string | null
+  photos: string[]
 }
 
 const emptyDraft: Draft = {
@@ -40,7 +40,7 @@ const emptyDraft: Draft = {
   bufferMin: '0',
   price: '',
   description: '',
-  photo: null,
+  photos: [],
 }
 
 /** Lo que dura un servicio, de menos a más. La rueda apaga lo que se sale de
@@ -148,10 +148,10 @@ function CamposServicio({
       </Field>
       {/* En belleza o estética, ver cómo queda decide la reserva: la foto sale
           en la ficha, y ampliada al reservar. */}
-      <CampoFoto
+      <CampoFotos
         slug={slug}
-        foto={draft.photo}
-        onChange={(photo) => setDraft({ ...draft, photo })}
+        fotos={draft.photos}
+        onChange={(photos) => setDraft({ ...draft, photos })}
       />
       {problema && <ErrorNote>{t(problema)}</ErrorNote>}
     </>
@@ -168,7 +168,7 @@ const aDraft = (s: PanelService): Draft => ({
   bufferMin: String(s.bufferMin),
   price: (s.priceCents / 100).toString().replace('.', ','),
   description: s.description ?? '',
-  photo: s.photo,
+  photos: s.photos,
 })
 
 export function PanelServices() {
@@ -207,7 +207,7 @@ export function PanelServices() {
       api.createService(slug, {
         name: draft.name.trim(),
         description: draft.description.trim(),
-        photo: draft.photo,
+        photos: draft.photos,
         durationMin: Number(draft.durationMin),
         bufferMin: Number(draft.bufferMin || 0),
         priceCents: toCents(draft.price || '0'),
@@ -225,7 +225,7 @@ export function PanelServices() {
       api.updateService(slug, id, {
         name: draft.name.trim(),
         description: draft.description.trim(),
-        photo: draft.photo,
+        photos: draft.photos,
         durationMin: Number(draft.durationMin),
         bufferMin: Number(draft.bufferMin || 0),
         priceCents: toCents(draft.price || '0'),
@@ -313,15 +313,22 @@ export function PanelServices() {
                   aria-label={t('serv.editarComillas', { nombre: s.name })}
                   className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 py-4 pr-2 pl-5 text-left transition-colors duration-200 hover:bg-canvas/50"
                 >
-                  {s.photo && (
-                    <Photo
-                      src={s.photo}
-                      alt=""
-                      width={96}
-                      height={96}
-                      className={cx('size-12 shrink-0 rounded-lg', !s.active && 'opacity-55')}
-                      fallback=""
-                    />
+                  {s.photos[0] && (
+                    <span className={cx('relative size-12 shrink-0', !s.active && 'opacity-55')}>
+                      <Photo
+                        src={s.photos[0]}
+                        alt=""
+                        width={96}
+                        height={96}
+                        className="size-full rounded-lg"
+                        fallback=""
+                      />
+                      {s.photos.length > 1 && (
+                        <span className="absolute -right-1 -bottom-1 rounded-full bg-ink px-1.5 text-caption font-bold text-cream">
+                          {s.photos.length}
+                        </span>
+                      )}
+                    </span>
                   )}
                   <span className={cx('min-w-[180px] flex-1', !s.active && 'opacity-55')}>
                     <span className="flex flex-wrap items-center gap-2">

@@ -648,7 +648,8 @@ export interface DatosExtra {
   priceCents: number
   /** Lo que alarga la cita, en minutos. 0 = no la alarga. */
   durationMin: number
-  photo: string | null
+  /** Hasta MAX_FOTOS_POR_ITEM; la primera es la principal. */
+  photos: string[]
 }
 
 export interface PanelExtra extends DatosExtra {
@@ -664,7 +665,7 @@ export interface PanelService {
   durationMin: number
   bufferMin: number
   priceCents: number
-  photo: string | null
+  photos: string[]
   active: boolean
   position: number
 }

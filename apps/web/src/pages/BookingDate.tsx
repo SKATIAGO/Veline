@@ -19,7 +19,7 @@ import { BackBar, Button, Card, ErrorNote, Spinner, cx } from '../components/ui'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { AtajoFotos, Galeria } from '../components/Galeria'
-import { useFotosNegocio } from '../lib/galeria'
+import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { useIdioma } from '../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
@@ -118,8 +118,8 @@ export function BookingDate() {
   })
 
   // Fotos del local, del servicio y de los extras, para ver cómo es lo que se reserva.
-  const { fotos, indiceDe } = useFotosNegocio(business)
-  const [visor, setVisor] = useState<number | null>(null)
+  const fotosDe = useFotosNegocio()
+  const visor = useVisor()
 
   const byDate = useMemo(() => {
     const map = new Map<string, DayAvailabilityDTO>()
@@ -396,11 +396,11 @@ export function BookingDate() {
         >
           <Card className="p-6 shadow-pop lg:sticky lg:top-24">
             <AtajoFotos
-              fotoServicio={service.photo}
+              fotosServicio={service.photos}
               nombreServicio={service.name}
-              total={fotos.length}
-              onVerServicio={() => setVisor(indiceDe({ de: 'servicio', id: service.id }))}
-              onVerTodas={() => setVisor(0)}
+              fotosLocal={business.photos.length}
+              onVerServicio={() => visor.abrir(fotosDe.deServicio(service))}
+              onVerLocal={() => visor.abrir(fotosDe.deLocal(business))}
             />
             {isLoading && <Spinner label={t('fecha.buscandoHuecos')} />}
             {isError && <ErrorNote>{(error as Error).message}</ErrorNote>}
@@ -514,10 +514,10 @@ export function BookingDate() {
       </div>
 
       <Galeria
-        fotos={fotos}
-        index={visor}
-        onIndex={setVisor}
-        onClose={() => setVisor(null)}
+        fotos={visor.estado?.fotos ?? []}
+        index={visor.estado?.index ?? null}
+        onIndex={visor.irA}
+        onClose={visor.cerrar}
         titulo={business.name}
       />
     </>

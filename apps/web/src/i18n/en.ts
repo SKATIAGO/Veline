@@ -1914,4 +1914,11 @@ export const en: Record<keyof typeof es, string> = {
   'galeria.reducir': 'Zoom out',
   'galeria.miniaturas': 'Thumbnails',
   'galeria.xDeN': 'Photo {index} of {total}',
+  'galeria.verFotosLocal': 'View the {n} photos of the location',
+  'fotos.titulo': 'Photos',
+  'fotos.cuantas': '{n} of {max}',
+  'fotos.principal': 'Main',
+  'fotos.hacerPrincipal': 'Make main photo',
+  'fotos.anadir': 'Add',
+  'fotos.pista': 'The main photo is the one shown in the list. Tap ★ on another to change it.',
 }

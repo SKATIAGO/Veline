@@ -22,17 +22,26 @@ import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
-import { CampoFoto } from '../../components/CampoFoto'
+import { CampoFotos } from '../../components/CampoFotos'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
 
 /** "12,50" o "12.50" → 1250 céntimos */
 const aCentimos = (v: string) => Math.round(Number(v.replace(',', '.')) * 100)
 const aTexto = (cents: number) => (cents / 100).toString().replace('.', ',')
 
-const VACIO: DatosExtra = { name: '', description: '', priceCents: 0, durationMin: 0, photo: null }
+const VACIO: DatosExtra = { name: '', description: '', priceCents: 0, durationMin: 0, photos: [] }
 
-/** Miniatura de la carta: la foto si la hay, y si no un hueco discreto. */
-function Miniatura({ foto, className }: { foto: string | null; className?: string }) {
+/** Miniatura de la carta: la foto principal si la hay (con cuántas tiene), y
+    si no un hueco discreto. */
+function Miniatura({
+  foto,
+  cuantas,
+  className,
+}: {
+  foto: string | null
+  cuantas: number
+  className?: string
+}) {
   if (!foto) {
     return (
       <div
@@ -42,14 +51,21 @@ function Miniatura({ foto, className }: { foto: string | null; className?: strin
     )
   }
   return (
-    <Photo
-      src={foto}
-      alt=""
-      width={112}
-      height={112}
-      className={cx('size-14 shrink-0 rounded-lg', className)}
-      fallback=""
-    />
+    <div className={cx('relative size-14 shrink-0', className)}>
+      <Photo
+        src={foto}
+        alt=""
+        width={112}
+        height={112}
+        className="size-full rounded-lg"
+        fallback=""
+      />
+      {cuantas > 1 && (
+        <span className="absolute -right-1 -bottom-1 rounded-full bg-ink px-1.5 text-caption font-bold text-cream">
+          {cuantas}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -87,7 +103,7 @@ function DialogoExtra({
      vista explica el campo mejor que un hueco con una pista debajo. */
   const [minutos, setMinutos] = useState(String(inicial.durationMin))
   const [descripcion, setDescripcion] = useState(inicial.description ?? '')
-  const [foto, setFoto] = useState<string | null>(inicial.photo)
+  const [fotos, setFotos] = useState<string[]>(inicial.photos)
   // Se avisa al intentar guardar, no mientras se escribe.
   const [tocado, setTocado] = useState(false)
 
@@ -107,7 +123,7 @@ function DialogoExtra({
     precio !== (inicial.name ? aTexto(inicial.priceCents) : '') ||
     minutos !== String(inicial.durationMin) ||
     descripcion !== (inicial.description ?? '') ||
-    foto !== inicial.photo
+    JSON.stringify(fotos) !== JSON.stringify(inicial.photos)
 
   return (
     <FormDialog
@@ -123,7 +139,7 @@ function DialogoExtra({
           description: descripcion.trim(),
           priceCents: cents,
           durationMin: mins,
-          photo: foto,
+          photos: fotos,
         })
       }}
       loading={enviando}
@@ -132,7 +148,7 @@ function DialogoExtra({
       borrar={onQuitar && { label: t('ext.quitar'), onClick: onQuitar }}
     >
       <div className="flex flex-col gap-4 sm:flex-row">
-        <CampoFoto slug={slug} foto={foto} onChange={setFoto} />
+        <CampoFotos slug={slug} fotos={fotos} onChange={setFotos} />
 
         <div className="grid flex-1 content-start gap-4 sm:grid-cols-2">
           <Field
@@ -303,7 +319,11 @@ export function PanelExtras() {
                   aria-label={t('ext.editarComillas', { nombre: e.name })}
                   className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 py-4 pr-2 pl-5 text-left transition-colors duration-200 hover:bg-canvas/50"
                 >
-                  <Miniatura foto={e.photo} className={cx(!e.active && 'opacity-55')} />
+                  <Miniatura
+                    foto={e.photos[0] ?? null}
+                    cuantas={e.photos.length}
+                    className={cx(!e.active && 'opacity-55')}
+                  />
                   <span className={cx('min-w-[160px] flex-1', !e.active && 'opacity-55')}>
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="text-ui font-semibold text-ink">{e.name}</span>

@@ -1,60 +1,63 @@
-import { useMemo } from 'react'
-import { formatDuration, formatPrice, type BusinessDTO } from '@veline/shared'
+import { useCallback, useMemo, useState } from 'react'
+import {
+  formatDuration,
+  formatPrice,
+  type BusinessDTO,
+  type ExtraDTO,
+  type ServiceDTO,
+} from '@veline/shared'
 import type { FotoGaleria } from '../components/Galeria'
 import { useIdioma } from '../i18n/idioma'
 
-/** De dónde sale una foto: para saber en cuál abrir el visor. */
-export type OrigenFoto = { de: 'local'; n: number } | { de: 'servicio' | 'extra'; id: string }
-
 /**
- * Todas las fotos de un negocio, en el orden en que se ven al pasarlas: las
- * del local, luego las de sus servicios y al final las de los extras. Cada una
- * lleva su nombre y lo que cuesta, para que al verla ampliada se sepa qué es
- * sin tener que volver atrás: un servicio y un extra se parecen mucho en una
- * foto.
+ * Las fotos de cada cosa, por separado.
  *
- * `indiceDe` devuelve en qué posición está una foto, para abrir el visor justo
- * en la que se ha tocado.
+ * El visor enseña solo las de lo que se ha tocado: abrirlo desde un extra no
+ * debe llevar por las fotos del local ni de los servicios, y al llegar a la
+ * última no da la vuelta. Cada foto lleva su nombre y lo que cuesta, para que
+ * al verla ampliada se sepa qué es sin volver atrás.
  */
-export function useFotosNegocio(business: BusinessDTO | undefined) {
+export function useFotosNegocio() {
   const { t, idioma } = useIdioma()
 
-  return useMemo(() => {
-    const fotos: FotoGaleria[] = []
-    const posiciones = new Map<string, number>()
-    if (!business) return { fotos, indiceDe: () => null as number | null }
+  return useMemo(
+    () => ({
+      deLocal: (b: BusinessDTO): FotoGaleria[] =>
+        b.photos.map((src) => ({ src, titulo: b.name, detalle: t('galeria.local') })),
 
-    business.photos.forEach((src, n) => {
-      posiciones.set(`local:${n}`, fotos.length)
-      fotos.push({ src, titulo: business.name, detalle: t('galeria.local') })
-    })
-    for (const s of business.services) {
-      if (!s.photo) continue
-      posiciones.set(`servicio:${s.id}`, fotos.length)
-      fotos.push({
-        src: s.photo,
-        titulo: s.name,
-        detalle: `${t('galeria.servicio')} · ${formatDuration(s.durationMin, idioma)} · ${formatPrice(s.priceCents, idioma)}`,
-      })
-    }
-    for (const e of business.extras) {
-      if (!e.photo) continue
-      posiciones.set(`extra:${e.id}`, fotos.length)
-      fotos.push({
-        src: e.photo,
-        titulo: e.name,
-        detalle: [
-          t('galeria.extra'),
-          `+${formatPrice(e.priceCents, idioma)}`,
-          e.durationMin > 0 ? `+${formatDuration(e.durationMin, idioma)}` : null,
-        ]
-          .filter(Boolean)
-          .join(' · '),
-      })
-    }
+      deServicio: (s: ServiceDTO): FotoGaleria[] =>
+        s.photos.map((src) => ({
+          src,
+          titulo: s.name,
+          detalle: `${t('galeria.servicio')} · ${formatDuration(s.durationMin, idioma)} · ${formatPrice(s.priceCents, idioma)}`,
+        })),
 
-    const indiceDe = (o: OrigenFoto) =>
-      posiciones.get(o.de === 'local' ? `local:${o.n}` : `${o.de}:${o.id}`) ?? null
-    return { fotos, indiceDe }
-  }, [business, t, idioma])
+      deExtra: (e: ExtraDTO): FotoGaleria[] =>
+        e.photos.map((src) => ({
+          src,
+          titulo: e.name,
+          detalle: [
+            t('galeria.extra'),
+            `+${formatPrice(e.priceCents, idioma)}`,
+            e.durationMin > 0 ? `+${formatDuration(e.durationMin, idioma)}` : null,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+        })),
+    }),
+    [t, idioma],
+  )
+}
+
+/** Qué fotos se están viendo y en cuál: un solo estado para el visor de la página. */
+export function useVisor() {
+  const [estado, setEstado] = useState<{ fotos: FotoGaleria[]; index: number } | null>(null)
+
+  const abrir = useCallback((fotos: FotoGaleria[], index = 0) => {
+    if (fotos.length > 0) setEstado({ fotos, index })
+  }, [])
+  const cerrar = useCallback(() => setEstado(null), [])
+  const irA = useCallback((index: number) => setEstado((e) => (e ? { ...e, index } : e)), [])
+
+  return { estado, abrir, cerrar, irA }
 }

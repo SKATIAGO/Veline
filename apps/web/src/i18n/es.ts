@@ -1911,4 +1911,11 @@ export const es = {
   'galeria.reducir': 'Reducir',
   'galeria.miniaturas': 'Miniaturas',
   'galeria.xDeN': 'Foto {index} de {total}',
+  'galeria.verFotosLocal': 'Ver las {n} fotos del local',
+  'fotos.titulo': 'Fotos',
+  'fotos.cuantas': '{n} de {max}',
+  'fotos.principal': 'Principal',
+  'fotos.hacerPrincipal': 'Poner como principal',
+  'fotos.anadir': 'Añadir',
+  'fotos.pista': 'La principal es la que sale en la lista. Toca ★ en otra para cambiarla.',
 } as const
