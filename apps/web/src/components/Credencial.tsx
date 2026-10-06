@@ -49,7 +49,10 @@ export function CredencialCreada({
         <dt className="text-muted">{t('cred.entrarEn')}</dt>
         <dd className="font-semibold break-all text-ink">{entrar}</dd>
       </dl>
-      <p className="text-meta text-muted">{t('eq.guardalaAhora')}</p>
+      <p className="text-meta text-muted">
+        {/* Sin correo no hay «por si no le llega»: se la pasa quien la crea. */}
+        {t(avisoCorreo ? 'eq.guardalaAhora' : 'eq.guardalaSinCorreo')}
+      </p>
       <div className="flex flex-col-reverse gap-2 border-t border-line pt-4 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={copiar}>
           {copiado ? t('cred.copiado') : t('cred.copiarTodo')}

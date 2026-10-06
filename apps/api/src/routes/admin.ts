@@ -485,22 +485,115 @@ export async function adminRoutes(app: FastifyInstance) {
     if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
 
     const { id } = req.params as { id: string }
-    const parsed = z.object({ active: z.boolean() }).safeParse(req.body)
+    const parsed = z
+      .object({ active: z.boolean().optional(), role: z.enum(['ADMIN', 'EMPLEADO']).optional() })
+      .refine((d) => d.active !== undefined || d.role !== undefined)
+      .safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: 'Datos inválidos' })
 
-    // Nadie se desactiva a sí mismo: evita quedarse fuera de la plataforma.
-    if (id === user.id) return reply.code(400).send({ error: 'No puedes desactivarte a ti mismo' })
+    // Nadie se toca a sí mismo: evita quedarse fuera de la plataforma.
+    if (id === user.id) {
+      return reply.code(400).send({
+        error:
+          parsed.data.role !== undefined
+            ? 'No puedes cambiar tus propios permisos'
+            : 'No puedes desactivarte a ti mismo',
+      })
+    }
 
     const target = await prisma.user.findUnique({ where: { id } })
     if (!target) return reply.code(404).send({ error: 'Usuario no encontrado' })
 
-    await prisma.user.update({ where: { id }, data: { active: parsed.data.active } })
+    // Los permisos son de ADMIN y EMPLEADO de un negocio: un superadmin no
+    // pertenece a ninguno y no se degrada desde aquí.
+    if (parsed.data.role !== undefined && (target.role === 'SUPERADMIN' || !target.businessId)) {
+      return reply.code(400).send({ error: 'Los permisos de un superadmin no se cambian aquí' })
+    }
+
+    // Nunca dejar un negocio sin nadie que pueda administrarlo.
+    const dejaDeSerAdmin =
+      target.role === 'ADMIN' &&
+      target.active &&
+      target.businessId &&
+      (parsed.data.active === false || parsed.data.role === 'EMPLEADO')
+    if (dejaDeSerAdmin) {
+      const otros = await prisma.user.count({
+        where: { businessId: target.businessId, role: 'ADMIN', active: true, id: { not: id } },
+      })
+      if (otros === 0) {
+        return reply.code(409).send({
+          error: `${target.name} es la única persona que administra el negocio. Da permisos de administrador a otra antes.`,
+        })
+      }
+    }
+
+    await prisma.user.update({ where: { id }, data: parsed.data })
     // Al desactivar, sus sesiones abiertas mueren también.
-    if (!parsed.data.active) await prisma.session.deleteMany({ where: { userId: id } })
+    if (parsed.data.active === false) await prisma.session.deleteMany({ where: { userId: id } })
+
+    if (parsed.data.active !== undefined) {
+      audit(req, {
+        action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
+        summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
+        actor: user,
+        businessId: target.businessId,
+        entity: 'User',
+        entityId: id,
+      })
+    }
+    if (parsed.data.role !== undefined && parsed.data.role !== target.role) {
+      audit(req, {
+        action: 'USUARIO_ROL_CAMBIADO',
+        summary: `Ha cambiado los permisos de ${target.name}: ahora es ${parsed.data.role === 'ADMIN' ? 'administrador' : 'empleado'}`,
+        actor: user,
+        businessId: target.businessId,
+        entity: 'User',
+        entityId: id,
+        metadata: { antes: target.role, despues: parsed.data.role },
+      })
+    }
+
+    return { ok: true }
+  })
+
+  /**
+   * Poner otra contraseña a una cuenta, para quien no recibe el correo de
+   * «he olvidado mi contraseña» (o no se acuerda de con qué correo entra).
+   *
+   * Las sesiones abiertas de esa cuenta se cierran: quien la tuviera abierta
+   * con la contraseña vieja deja de entrar. A las de otro superadmin no: esas
+   * se restablecen por su propio correo, y que cualquiera pudiera cambiarle la
+   * contraseña a otro superadmin sería la forma más corta de apoderarse de la
+   * plataforma.
+   */
+  app.post('/api/admin/users/:id/password', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const { id } = req.params as { id: string }
+    const parsed = z.object({ password: z.string().min(10).max(200) }).safeParse(req.body)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'La contraseña debe tener al menos 10 caracteres' })
+    }
+
+    const target = await prisma.user.findUnique({ where: { id } })
+    if (!target) return reply.code(404).send({ error: 'Usuario no encontrado' })
+    if (target.role === 'SUPERADMIN') {
+      return reply.code(403).send({
+        error: 'La contraseña de un superadmin se restablece desde su propio correo',
+      })
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash: await hashPassword(parsed.data.password) },
+    })
+    await prisma.session.deleteMany({ where: { userId: id } })
 
     audit(req, {
-      action: parsed.data.active ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO',
-      summary: `Ha ${parsed.data.active ? 'reactivado' : 'desactivado'} a ${target.name} (${target.email})`,
+      action: 'CONTRASENA_RESTABLECIDA',
+      summary: `Ha puesto una contraseña nueva a ${target.name} (${target.email})`,
       actor: user,
       businessId: target.businessId,
       entity: 'User',

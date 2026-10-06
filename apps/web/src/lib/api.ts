@@ -515,6 +515,10 @@ export const api = {
       `/admin/charges${qs({ period, businessId })}`,
     ),
 
+  /** Lo que se cobraría a cada negocio al cerrar un mes, sin cerrarlo. */
+  chargesPreview: (period: string) =>
+    request<ChargesPreview>(`/admin/charges/preview${qs({ period })}`),
+
   closeMonth: (period?: string) =>
     request<{ period: string; negocios: number; creados: number }>('/admin/charges/close', {
       method: 'POST',
@@ -568,6 +572,19 @@ export const api = {
     request<{ ok: true }>(`/admin/users/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ active }),
+    }),
+
+  setAdminUserRole: (id: string, role: 'ADMIN' | 'EMPLEADO') =>
+    request<{ ok: true }>(`/admin/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
+  /** Pone otra contraseña a una cuenta y cierra sus sesiones abiertas. */
+  resetAdminUserPassword: (id: string, password: string) =>
+    request<{ ok: true }>(`/admin/users/${id}/password`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
     }),
 
   createAdminUser: (body: {
@@ -818,6 +835,20 @@ export interface Desglose {
   commissionCents: number
   extraMessages: number
   messagesCents: number
+  totalCents: number
+}
+
+export interface ChargesPreview {
+  period: string
+  filas: {
+    businessId: string
+    name: string
+    slug: string
+    /** Nuevo = se creará un cobro; a cero = no genera cobro; ya cerrado = ya existe. */
+    estado: 'NUEVO' | 'A_CERO' | 'YA_CERRADO'
+    desglose: Desglose | null
+  }[]
+  nuevos: number
   totalCents: number
 }
 

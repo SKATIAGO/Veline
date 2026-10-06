@@ -116,6 +116,65 @@ export async function cobrosRoutes(app: FastifyInstance) {
     }
   })
 
+  /**
+   * Lo que saldría de cerrar un mes, sin cerrarlo: negocio a negocio, qué se
+   * le cobraría. Usa el mismo cálculo que el cierre (calcularMes) y no guarda
+   * nada, así que lo que se ve aquí es lo que se crea al confirmar.
+   *
+   * Antes el cierre era un botón con una pregunta de tres líneas: se aceptaba
+   * sin saber de cuántos negocios ni de cuánto dinero hablaba.
+   */
+  app.get('/api/admin/charges/preview', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    if (!canManagePlatform(user)) return reply.code(403).send({ error: 'Solo superadmin' })
+
+    const parsed = periodParam.safeParse(req.query)
+    if (!parsed.success) return reply.code(400).send({ error: 'Periodo inválido' })
+    const period = parsed.data.period ? desdeParam(parsed.data.period) : periodoAnterior()
+    if (period >= periodoDe()) {
+      return reply.code(409).send({
+        error: 'No se puede cerrar un mes que todavía está corriendo',
+      })
+    }
+
+    // Los mismos que recorre cerrarMesDeTodos.
+    const negocios = await prisma.business.findMany({
+      where: { subStatus: { in: ['ACTIVA', 'IMPAGADA', 'PRUEBA'] } },
+      select: { id: true, name: true, slug: true },
+      orderBy: { name: 'asc' },
+    })
+    const cerrados = new Set(
+      (await prisma.charge.findMany({ where: { period }, select: { businessId: true } })).map(
+        (c) => c.businessId,
+      ),
+    )
+
+    const filas = []
+    for (const n of negocios) {
+      const yaCerrado = cerrados.has(n.id)
+      const d = yaCerrado ? null : await calcularMes(n.id, period)
+      filas.push({
+        businessId: n.id,
+        name: n.name,
+        slug: n.slug,
+        // Un mes ya cerrado no se recalcula: las cifras se congelan al cerrar.
+        estado: yaCerrado ? 'YA_CERRADO' : !d || d.totalCents === 0 ? 'A_CERO' : 'NUEVO',
+        desglose: d,
+      })
+    }
+
+    return {
+      period: comoTexto(period),
+      filas,
+      nuevos: filas.filter((f) => f.estado === 'NUEVO').length,
+      totalCents: filas.reduce(
+        (n, f) => n + (f.estado === 'NUEVO' ? f.desglose!.totalCents : 0),
+        0,
+      ),
+    }
+  })
+
   /** Cierra un mes y deja los cobros pendientes. Se lanza a mano. */
   app.post('/api/admin/charges/close', async (req, reply) => {
     const user = await requireUser(req, reply)

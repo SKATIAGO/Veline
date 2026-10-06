@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../lib/api'
+import { api, type AdminUser } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import {
   Badge,
   Button,
   Card,
   EmptyState,
+  Field,
   FilterChip,
   Input,
   PageHeader,
+  Select,
   Skeleton,
   Spinner,
   cx,
@@ -18,6 +20,11 @@ import {
 import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
+import { FormDialog } from '../../components/FormDialog'
+import { RowMenu, type AccionFila } from '../../components/RowMenu'
+import { CredencialCreada } from '../../components/Credencial'
+import { generarPassword } from '../../lib/password'
+import { CrearCuentaAdmin } from './CrearCuentaAdmin'
 
 /**
  * Todas las cuentas de acceso de la plataforma, de un vistazo — solo
@@ -29,6 +36,11 @@ const ROL_CLAVE = {
   SUPERADMIN: 'panel.rolSuperadmin',
   ADMIN: 'panel.rolAdmin',
   EMPLEADO: 'panel.rolEmpleado',
+} as const satisfies Record<string, Clave>
+
+const ROL_AYUDA = {
+  ADMIN: 'eq.ayudaAdmin',
+  EMPLEADO: 'eq.ayudaEmpleado',
 } as const satisfies Record<string, Clave>
 
 const FILTROS = [
@@ -51,6 +63,12 @@ export function PanelAdminUsers() {
   const [filtro, setFiltro] = useState<FiltroKey>('todos')
   const [busqueda, setBusqueda] = useState('')
   const [aQuitar, setAQuitar] = useState<{ id: string; name: string; role: string } | null>(null)
+  const [creando, setCreando] = useState(false)
+  const [permisosDe, setPermisosDe] = useState<AdminUser | null>(null)
+  const [rolNuevo, setRolNuevo] = useState<'ADMIN' | 'EMPLEADO'>('EMPLEADO')
+  const [restablecerA, setRestablecerA] = useState<AdminUser | null>(null)
+  const [contrasena, setContrasena] = useState('')
+  const [entregar, setEntregar] = useState<{ email: string; password: string } | null>(null)
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
@@ -88,6 +106,35 @@ export function PanelAdminUsers() {
     },
   })
 
+  const { data: negocios } = useQuery({
+    queryKey: ['admin', 'businesses'],
+    queryFn: api.adminBusinesses,
+    enabled: me?.role === 'SUPERADMIN',
+  })
+
+  const cambiarRol = useMutation({
+    mutationFn: (u: AdminUser) => api.setAdminUserRole(u.id, rolNuevo),
+    onSuccess: (_r, u) => {
+      setPermisosDe(null)
+      refrescar()
+      aviso.ok(
+        t('equipo.permisosCambiados', {
+          nombre: u.name,
+          rol: t(rolNuevo === 'ADMIN' ? 'panel.rolAdmin' : 'panel.rolEmpleado').toLowerCase(),
+        }),
+      )
+    },
+  })
+
+  const restablecer = useMutation({
+    mutationFn: (u: AdminUser) => api.resetAdminUserPassword(u.id, contrasena),
+    onSuccess: (_r, u) => {
+      refrescar()
+      setEntregar({ email: u.email, password: contrasena })
+      setRestablecerA(null)
+    },
+  })
+
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
     return (users ?? []).filter((u) => {
@@ -120,6 +167,7 @@ export function PanelAdminUsers() {
               ].join(' · ')
             : undefined
         }
+        actions={<Button onClick={() => setCreando(true)}>{t('cuentas.crear')}</Button>}
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -199,26 +247,54 @@ export function PanelAdminUsers() {
                   {t('ctas.altaFecha', { fecha: fecha(u.createdAt) })}
                 </div>
 
-                <div className="ml-auto flex justify-end sm:ml-0 sm:w-[170px]">
+                <div className="ml-auto flex items-center justify-end sm:ml-0 sm:w-[170px]">
                   {u.id === me.id ? (
                     <span className="text-meta text-subtle">{t('ctas.noPuedesDesactivarte')}</span>
-                  ) : u.active ? (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => setAQuitar({ id: u.id, name: u.name, role: u.role })}
-                    >
-                      {t('ctas.quitarAcceso')}
-                    </Button>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="quiet"
-                      loading={toggle.isPending && toggle.variables?.id === u.id}
-                      onClick={() => toggle.mutate({ id: u.id, name: u.name, active: true })}
-                    >
-                      {t('ctas.devolverAcceso')}
-                    </Button>
+                    <RowMenu
+                      label={u.name}
+                      acciones={
+                        [
+                          ...(u.role !== 'SUPERADMIN' && u.active
+                            ? [
+                                {
+                                  label: t('equipo.cambiarPermisos'),
+                                  onClick: () => {
+                                    restablecer.reset()
+                                    cambiarRol.reset()
+                                    setRolNuevo(u.role === 'ADMIN' ? 'ADMIN' : 'EMPLEADO')
+                                    setPermisosDe(u)
+                                  },
+                                },
+                              ]
+                            : []),
+                          // La de un superadmin se restablece desde su propio correo.
+                          ...(u.role !== 'SUPERADMIN'
+                            ? [
+                                {
+                                  label: t('cuentas.restablecer'),
+                                  onClick: () => {
+                                    restablecer.reset()
+                                    setContrasena(generarPassword())
+                                    setRestablecerA(u)
+                                  },
+                                },
+                              ]
+                            : []),
+                          u.active
+                            ? {
+                                label: t('ctas.quitarAcceso'),
+                                peligro: true,
+                                onClick: () => setAQuitar({ id: u.id, name: u.name, role: u.role }),
+                              }
+                            : {
+                                label: t('ctas.devolverAcceso'),
+                                onClick: () =>
+                                  toggle.mutate({ id: u.id, name: u.name, active: true }),
+                              },
+                        ] satisfies AccionFila[]
+                      }
+                    />
                   )}
                 </div>
               </li>
@@ -226,6 +302,93 @@ export function PanelAdminUsers() {
           </ul>
         </Card>
       )}
+
+      {creando && (
+        <CrearCuentaAdmin
+          negocios={negocios ?? []}
+          inicial={{ businessId: '', email: '' }}
+          onClose={() => setCreando(false)}
+        />
+      )}
+
+      <FormDialog
+        open={!!permisosDe}
+        onClose={() => setPermisosDe(null)}
+        title={t('equipo.permisosTitulo', { nombre: permisosDe?.name ?? '' })}
+        hint={permisosDe?.business?.name}
+        submitLabel={t('equipo.cambiarPermisos')}
+        onSubmit={() => permisosDe && cambiarRol.mutate(permisosDe)}
+        loading={cambiarRol.isPending}
+        error={cambiarRol.isError ? textoDeError(cambiarRol.error, t('avisos.error')) : null}
+        dirty={!!permisosDe && rolNuevo !== permisosDe.role}
+      >
+        <Field label={t('eq.permisos')} htmlFor="ctas-rol" hint={t(ROL_AYUDA[rolNuevo])}>
+          <Select
+            id="ctas-rol"
+            value={rolNuevo}
+            onChange={(e) => setRolNuevo(e.target.value as 'ADMIN' | 'EMPLEADO')}
+          >
+            <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
+            <option value="ADMIN">{t('panel.rolAdmin')}</option>
+          </Select>
+        </Field>
+      </FormDialog>
+
+      <FormDialog
+        open={!!restablecerA || !!entregar}
+        onClose={() => {
+          setRestablecerA(null)
+          setEntregar(null)
+        }}
+        title={
+          entregar
+            ? t('cuentas.contrasenaPuesta')
+            : t('cuentas.restablecerTitulo', { nombre: restablecerA?.name ?? '' })
+        }
+        hint={entregar ? undefined : t('cuentas.restablecerPista')}
+        submitLabel={t('cuentas.ponerContrasena')}
+        onSubmit={() => {
+          if (restablecerA && contrasena.length >= 10) restablecer.mutate(restablecerA)
+        }}
+        loading={restablecer.isPending}
+        error={restablecer.isError ? textoDeError(restablecer.error, t('avisos.error')) : null}
+        dirty={false}
+        sinPie={!!entregar}
+      >
+        {entregar ? (
+          <CredencialCreada
+            email={entregar.email}
+            password={entregar.password}
+            avisoCorreo={false}
+            onListo={() => setEntregar(null)}
+          />
+        ) : (
+          <>
+            <Field
+              label={t('cuentas.contrasenaNueva')}
+              htmlFor="ctas-pass"
+              hint={contrasena.length < 10 ? t('adm.errContrasena') : t('adm.contrasenaPista')}
+            >
+              <div className="flex gap-2">
+                <Input
+                  id="ctas-pass"
+                  autoComplete="new-password"
+                  value={contrasena}
+                  invalid={contrasena.length < 10}
+                  onChange={(e) => setContrasena(e.target.value)}
+                />
+                <Button variant="secondary" onClick={() => setContrasena(generarPassword())}>
+                  {t('eq.otra')}
+                </Button>
+              </div>
+            </Field>
+            <ul className="flex flex-col gap-1.5 text-body text-body-2">
+              <li>— {t('cuentas.restablecerC1')}</li>
+              <li>— {t('cuentas.restablecerC2')}</li>
+            </ul>
+          </>
+        )}
+      </FormDialog>
 
       <ConfirmDialog
         open={!!aQuitar}

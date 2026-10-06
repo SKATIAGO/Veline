@@ -320,6 +320,81 @@ function Suscripcion({ b }: { b: AdminBusiness }) {
   )
 }
 
+/**
+ * Rechazar un alta que llegó sola: no se publica y el negocio queda de baja.
+ *
+ * Aprobar era lo único que se podía hacer con un alta que nadie había mirado;
+ * si no convencía había que ir a Suscripción y «dar de baja», sin que quedara
+ * dicho por qué. Es la misma baja —no borra nada, se puede reactivar—, pero
+ * dicha como lo que es aquí, con el motivo apuntado en la nota interna.
+ */
+function RechazarAlta({
+  b,
+  open,
+  onClose,
+}: {
+  b: AdminBusiness
+  open: boolean
+  onClose: () => void
+}) {
+  const { t, locale } = useIdioma()
+  const refrescar = useRefrescar()
+  const id = useId()
+  const [motivo, setMotivo] = useState('')
+
+  const rechazar = useMutation({
+    mutationFn: () => {
+      const m = motivo.trim()
+      const linea = m
+        ? `${new Date().toLocaleDateString(locale)}: ${t('fneg.rechazadaNota')} ${m}`
+        : ''
+      return api.updateSubscription(b.id, {
+        status: 'CANCELADA',
+        ...(linea
+          ? { adminNotes: [b.adminNotes, linea].filter(Boolean).join(' · ').slice(0, 600) }
+          : {}),
+      })
+    },
+    onSuccess: () => {
+      onClose()
+      setMotivo('')
+      refrescar()
+      aviso.ok(t('fneg.rechazadoHecho', { nombre: b.name }))
+    },
+  })
+
+  return (
+    <ConfirmDialog
+      open={open}
+      onClose={() => {
+        rechazar.reset()
+        onClose()
+      }}
+      title={t('fneg.rechazarTitulo', { nombre: b.name })}
+      consecuencias={[
+        t('fneg.rechazarC1'),
+        t('fneg.rechazarC2'),
+        t('fneg.rechazarC3'),
+        t('fneg.rechazarC4'),
+      ]}
+      confirmLabel={t('fneg.rechazar')}
+      tono="destruir"
+      onConfirm={() => rechazar.mutate()}
+      loading={rechazar.isPending}
+      error={rechazar.isError ? textoDeError(rechazar.error, t('adm.noSePudoCambiar')) : null}
+    >
+      <Field label={t('adm.motivo')} htmlFor={`${id}-rechazo`} hint={t('adm.motivoPista')}>
+        <Input
+          id={`${id}-rechazo`}
+          value={motivo}
+          maxLength={200}
+          onChange={(e) => setMotivo(e.target.value)}
+        />
+      </Field>
+    </ConfirmDialog>
+  )
+}
+
 /** La nota que solo ve Veline: por qué se suspendió, con quién se habló… */
 function NotaInterna({ b }: { b: AdminBusiness }) {
   const { t } = useIdioma()
@@ -600,6 +675,7 @@ export function FichaNegocio({
   const idBase = useId()
   const refrescar = useRefrescar()
   const [pestana, setPestana] = useState<Pestana>('resumen')
+  const [rechazando, setRechazando] = useState(false)
   // Al abrir otro negocio, se empieza por su resumen.
   useEffect(() => setPestana('resumen'), [b?.id])
 
@@ -660,9 +736,12 @@ export function FichaNegocio({
                 {!b.approvedAt && (
                   <div className="flex flex-col gap-3 rounded-xl bg-cream px-4 py-3">
                     <p className="text-meta text-body-2">{t('fneg.sinAprobarTexto')}</p>
-                    <div>
+                    <div className="flex flex-wrap gap-2">
                       <Button size="sm" onClick={() => onAprobar(b)}>
                         {t('adm.aprobar')}
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => setRechazando(true)}>
+                        {t('fneg.rechazar')}
                       </Button>
                     </div>
                   </div>
@@ -737,6 +816,8 @@ export function FichaNegocio({
           <div className="sticky bottom-[calc(-1*max(1.5rem,env(safe-area-inset-bottom)))] -mx-5 -mb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-wrap gap-2 border-t border-line bg-surface px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:-mb-6 sm:-bottom-6 sm:px-6 sm:pb-5">
             <ButtonLink to={`/panel/${b.slug}`}>{t('fneg.abrirSuPanel')}</ButtonLink>
           </div>
+
+          <RechazarAlta b={b} open={rechazando} onClose={() => setRechazando(false)} />
         </div>
       )}
     </Sheet>

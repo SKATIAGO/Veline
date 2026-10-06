@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { categoryLabel, formatPrice, planLabel, subStatusLabel } from '@veline/shared'
@@ -9,11 +9,8 @@ import {
   Button,
   Card,
   EmptyState,
-  ErrorNote,
-  Field,
   Input,
   PageHeader,
-  Select,
   Skeleton,
   Spinner,
   cx,
@@ -21,12 +18,10 @@ import {
 import { Texto, useIdioma, type Clave } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso, textoDeError } from '../../components/Avisos'
-import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
-import { generarPassword } from '../../lib/password'
-import { CredencialCreada } from '../../components/Credencial'
 import { ESTADO_TONO, FichaNegocio, diasHasta } from './FichaNegocio'
 import { AltaNegocio } from './AltaNegocio'
+import { CrearCuentaAdmin } from './CrearCuentaAdmin'
 
 /**
  * Los negocios de la plataforma — SOLO superadmin.
@@ -37,16 +32,6 @@ import { AltaNegocio } from './AltaNegocio'
  * fila abre la ficha del negocio al lado, con su suscripción, sus cuentas, sus
  * cobros y su actividad; lo demás está en «···».
  */
-
-interface UserDraft {
-  businessId: string
-  name: string
-  email: string
-  password: string
-  role: 'ADMIN' | 'EMPLEADO'
-}
-
-const esEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim())
 
 /** Las cifras de arriba, que a la vez son los filtros de la lista. */
 const FILTROS = [
@@ -137,12 +122,10 @@ export function PanelAdmin() {
   const { user, loading } = useAuth()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const id = useId()
 
   const [dandoDeAlta, setDandoDeAlta] = useState(false)
-  const [userDraft, setUserDraft] = useState<UserDraft | null>(null)
-  const [credencial, setCredencial] = useState<{ email: string; password: string } | null>(null)
-  const [intentoCuenta, setIntentoCuenta] = useState(false)
+  // Para qué negocio se está creando una cuenta (y con qué correo de partida).
+  const [cuentaPara, setCuentaPara] = useState<{ businessId: string; email: string } | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<FiltroKey>('todos')
   // El id y no el negocio: así la ficha enseña lo último tras cada cambio.
@@ -153,16 +136,6 @@ export function PanelAdmin() {
     queryKey: ['admin', 'businesses'],
     queryFn: api.adminBusinesses,
     enabled: user?.role === 'SUPERADMIN',
-  })
-
-  const createUser = useMutation({
-    mutationFn: (d: UserDraft) => api.createAdminUser(d),
-    onSuccess: (_data, d) => {
-      setCredencial({ email: d.email, password: d.password })
-      setUserDraft(null)
-      queryClient.invalidateQueries({ queryKey: ['admin'] })
-      queryClient.invalidateQueries({ queryKey: ['audit'] })
-    },
   })
 
   const aprobar = useMutation({
@@ -206,28 +179,8 @@ export function PanelAdmin() {
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN') return <Navigate to="/panel" replace />
 
-  const problemaUsuario = !userDraft
-    ? null
-    : userDraft.name.trim().length < 2
-      ? t('altan.errNombreDueno')
-      : !esEmail(userDraft.email)
-        ? t('adm.errEmail')
-        : userDraft.password.length < 10
-          ? t('adm.errContrasena')
-          : null
-
-  const abrirCuenta = (b: AdminBusiness) => {
-    createUser.reset()
-    setIntentoCuenta(false)
-    setCredencial(null)
-    setUserDraft({
-      businessId: b.id,
-      name: '',
-      email: b.email ?? '',
-      password: generarPassword(),
-      role: 'ADMIN',
-    })
-  }
+  const abrirCuenta = (b: AdminBusiness) =>
+    setCuentaPara({ businessId: b.id, email: b.email ?? '' })
 
   const filtroActivo = FILTROS.find((f) => f.key === filtro)!
 
@@ -385,102 +338,13 @@ export function PanelAdmin() {
 
       <AltaNegocio open={dandoDeAlta} onClose={() => setDandoDeAlta(false)} />
 
-      <FormDialog
-        open={!!userDraft || !!credencial}
-        onClose={() => {
-          setUserDraft(null)
-          setCredencial(null)
-        }}
-        title={
-          credencial
-            ? t('eq.cuentaCreada')
-            : t('adm.nuevaCuentaPara', {
-                negocio: businesses?.find((b) => b.id === userDraft?.businessId)?.name ?? '',
-              })
-        }
-        submitLabel={t('adm.crearCuenta')}
-        onSubmit={() => {
-          setIntentoCuenta(true)
-          if (userDraft && !problemaUsuario) createUser.mutate(userDraft)
-        }}
-        loading={createUser.isPending}
-        error={createUser.isError ? textoDeError(createUser.error, t('adm.noSePudoCrear')) : null}
-        dirty={!credencial && !!userDraft && userDraft.name.trim() !== ''}
-        sinPie={!!credencial}
-      >
-        {credencial ? (
-          // Desde aquí no se manda correo: los datos se pasan a mano.
-          <CredencialCreada
-            email={credencial.email}
-            password={credencial.password}
-            avisoCorreo={false}
-            onListo={() => setCredencial(null)}
-          />
-        ) : (
-          userDraft && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t('adm.nombre')} htmlFor={`${id}-un`} required>
-                  <Input
-                    id={`${id}-un`}
-                    value={userDraft.name}
-                    onChange={(e) => setUserDraft({ ...userDraft, name: e.target.value })}
-                  />
-                </Field>
-                <Field
-                  label={t('adm.email')}
-                  htmlFor={`${id}-ue`}
-                  hint={t('adm.emailAcceso')}
-                  required
-                >
-                  <Input
-                    id={`${id}-ue`}
-                    type="email"
-                    value={userDraft.email}
-                    onChange={(e) => setUserDraft({ ...userDraft, email: e.target.value })}
-                  />
-                </Field>
-                <Field
-                  label={t('adm.contrasenaInicial')}
-                  htmlFor={`${id}-up`}
-                  hint={t('adm.contrasenaPista')}
-                  required
-                >
-                  <div className="flex gap-2">
-                    <Input
-                      id={`${id}-up`}
-                      autoComplete="new-password"
-                      value={userDraft.password}
-                      onChange={(e) => setUserDraft({ ...userDraft, password: e.target.value })}
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setUserDraft({ ...userDraft, password: generarPassword() })}
-                    >
-                      {t('eq.otra')}
-                    </Button>
-                  </div>
-                </Field>
-                <Field label={t('adm.permisos')} htmlFor={`${id}-ur`} required>
-                  <Select
-                    id={`${id}-ur`}
-                    value={userDraft.role}
-                    onChange={(e) =>
-                      setUserDraft({ ...userDraft, role: e.target.value as UserDraft['role'] })
-                    }
-                  >
-                    <option value="ADMIN">{t('panel.rolAdmin')}</option>
-                    <option value="EMPLEADO">{t('panel.rolEmpleado')}</option>
-                  </Select>
-                </Field>
-              </div>
-
-              {intentoCuenta && problemaUsuario && <ErrorNote>{problemaUsuario}</ErrorNote>}
-            </>
-          )
-        )}
-      </FormDialog>
+      {cuentaPara && (
+        <CrearCuentaAdmin
+          negocios={businesses ?? []}
+          inicial={cuentaPara}
+          onClose={() => setCuentaPara(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={!!aAprobar}
