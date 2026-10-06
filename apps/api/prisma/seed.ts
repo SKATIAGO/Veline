@@ -368,7 +368,7 @@ async function main() {
 
   // Dos citas ya ocupadas para que la agenda y los huecos no salgan vacíos
   const cliente = await prisma.customer.create({
-    data: { name: 'Marina López', phone: '612 34 56 78', email: 'marina.lopez@mail.com' },
+    data: { name: 'Marina López', phone: '612345678', email: 'marina.lopez@mail.com' },
   })
 
   const servicio = rivas.services[0]!

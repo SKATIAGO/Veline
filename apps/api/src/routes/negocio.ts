@@ -787,6 +787,8 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
     const q = (req.query as { q?: string }).q?.trim().toLowerCase() ?? ''
+    // El teléfono está guardado sin espacios: «612 34» tiene que encontrar a «612345678».
+    const qTel = q.replace(/\D/g, '')
 
     const citas = await prisma.booking.findMany({
       where: {
@@ -794,7 +796,10 @@ export async function negocioRoutes(app: FastifyInstance) {
         ...(q
           ? {
               customer: {
-                OR: [{ name: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }],
+                OR: [
+                  { name: { contains: q, mode: 'insensitive' } },
+                  ...(qTel ? [{ phone: { contains: qTel } }] : []),
+                ],
               },
             }
           : {}),

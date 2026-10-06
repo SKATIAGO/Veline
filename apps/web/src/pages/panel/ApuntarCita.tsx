@@ -5,6 +5,7 @@ import {
   formatDuration,
   formatLongDate,
   formatPrice,
+  normalizarTelefono,
   phoneES,
   TIMEZONE,
 } from '@veline/shared'
@@ -24,8 +25,8 @@ import { aviso, textoDeError } from '../../components/Avisos'
 import { Wizard } from '../../components/Wizard'
 import { SlotPicker } from '../../components/SlotPicker'
 
-/** Solo las cifras, para comparar teléfonos escritos de mil maneras. */
-const cifras = (v: string) => v.replace(/\D/g, '').replace(/^34(?=\d{9}$)/, '')
+/** Para comparar con los teléfonos guardados, que van siempre normalizados. */
+const cifras = normalizarTelefono
 
 /**
  * Apuntar la cita que entra por teléfono o por la puerta, paso a paso.
@@ -141,10 +142,7 @@ export function ApuntarCita({
         staffId: staffId || undefined,
         locationId: local,
         customerName: nombre.trim(),
-        /* El teléfono tal como está guardado si es alguien conocido: el
-           cliente se busca por ese texto exacto, y «612 34 56 78» no
-           encontraría a quien se guardó como «612345678». */
-        customerPhone: conocido?.phone ?? telefono.trim(),
+        customerPhone: telefono.trim(),
         customerEmail: email.trim() || undefined,
         notes: notas.trim() || undefined,
         extras: extras.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad })),

@@ -7,6 +7,7 @@ import {
   formatMinutes,
   formatPrice,
   fromDateKey,
+  normalizarTelefono,
   phoneES,
   plazasDelNegocio,
   toDateKey,
@@ -105,6 +106,25 @@ describe('validación de teléfono español', () => {
     for (const valor of ['612345678', '612 34 56 78', '+34 612 34 56 78', '612-34-56-78']) {
       expect(phoneES.safeParse(valor).success, valor).toBe(true)
     }
+  })
+
+  it('lo guarda siempre igual: nueve cifras', () => {
+    for (const valor of [
+      '612345678',
+      '612 34 56 78',
+      '+34 612 34 56 78',
+      '612-34-56-78',
+      ' 612345678 ',
+    ]) {
+      expect(phoneES.parse(valor), valor).toBe('612345678')
+    }
+  })
+
+  it('normaliza sin validar, para comparar lo que ya está guardado', () => {
+    expect(normalizarTelefono('+34 612 34 56 78')).toBe('612345678')
+    expect(normalizarTelefono('34612345678')).toBe('612345678')
+    // Un número que empieza por 34 pero no lleva prefijo no se toca.
+    expect(normalizarTelefono('341234567')).toBe('341234567')
   })
 
   it('rechaza lo que no tiene nueve dígitos', () => {

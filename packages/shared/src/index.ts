@@ -375,7 +375,25 @@ export function formatLongDate(d: Date, idioma: Idioma = 'es') {
 export const BOOKING_SOURCES = ['MARKETPLACE', 'DIRECTO', 'INSTAGRAM', 'GOOGLE'] as const
 export type BookingSource = (typeof BOOKING_SOURCES)[number]
 
-/** Teléfono móvil o fijo español: 9 dígitos, admite prefijo +34 y separadores. */
+/**
+ * El teléfono como se guarda: nueve cifras, sin espacios, guiones ni prefijo.
+ *
+ * El cliente se identifica por su teléfono (`Customer.phone` es único), y la
+ * gente lo escribe de mil maneras: «612345678», «612 34 56 78», «+34 612…».
+ * Guardado tal cual, cada forma era una persona distinta —con su propio
+ * historial, y con la comisión de marketplace cobrada otra vez por «primera
+ * reserva»—. Se guarda siempre así, y quien lo lee (el SMS, el enlace de
+ * llamar) ya sabe ponerle el prefijo.
+ */
+export function normalizarTelefono(valor: string): string {
+  const cifras = valor.replace(/\D/g, '')
+  return /^34\d{9}$/.test(cifras) ? cifras.slice(2) : cifras
+}
+
+/**
+ * Teléfono móvil o fijo español: 9 dígitos, admite prefijo +34 y separadores.
+ * Lo que sale ya está normalizado (ver `normalizarTelefono`).
+ */
 export const phoneES = z
   .string()
   .trim()
@@ -383,6 +401,7 @@ export const phoneES = z
     (v) => /^(?:\+34[\s-]?)?(?:\d[\s-]?){9}$/.test(v),
     'Introduce un teléfono español de 9 dígitos',
   )
+  .transform(normalizarTelefono)
 
 /**
  * Un extra pedido y cuántas veces.
