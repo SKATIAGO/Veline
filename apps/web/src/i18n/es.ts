@@ -1683,7 +1683,6 @@ export const es = {
   'act.campoDiasPrueba': 'Días de prueba',
   'agenda.vistaLista': 'Lista',
   'agenda.vistas': 'Vistas de la agenda',
-  'cal.apuntarEsteDia': '+ Apuntar cita este día',
   'cita.pasoServicio': 'Servicio',
   'cita.pasoCuando': 'Con quién y cuándo',
   'cita.pasoCliente': 'Cliente',

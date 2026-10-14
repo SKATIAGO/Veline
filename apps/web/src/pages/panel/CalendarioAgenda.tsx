@@ -32,14 +32,11 @@ export function CalendarioAgenda({
   slug,
   dia: diaSeleccionado,
   onDia: setDiaSeleccionado,
-  onApuntar,
 }: {
   slug: string
   /** El día elegido (AAAA-MM-DD), o null. */
   dia: string | null
   onDia: (dia: string | null) => void
-  /** «Apuntar cita este día». */
-  onApuntar: (dia: string) => void
 }) {
   const { t, idioma, locale } = useIdioma()
   const plural = usePlural()
@@ -254,16 +251,6 @@ export function CalendarioAgenda({
                   <h3 className="text-meta font-semibold tracking-[0.04em] text-muted uppercase">
                     {formatLongDate(fromDateKey(diaSeleccionado), idioma)}
                   </h3>
-                  {/* Un día que ya ha pasado no admite citas nuevas. */}
-                  {diaSeleccionado >= hoyKey && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => onApuntar(diaSeleccionado)}
-                    >
-                      {t('cal.apuntarEsteDia')}
-                    </Button>
-                  )}
                 </div>
                 {citasDelDia.length === 0 ? (
                   <EmptyState title={t('agenda.sinCitasEseDia')} />

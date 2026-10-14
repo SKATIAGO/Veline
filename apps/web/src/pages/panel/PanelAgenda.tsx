@@ -175,7 +175,6 @@ export function PanelAgenda() {
             slug={slug}
             dia={dia}
             onDia={(d) => cambiar({ dia: d })}
-            onApuntar={(d) => cambiar({ nueva: '1', dia: d })}
           />
         ) : (
           <>

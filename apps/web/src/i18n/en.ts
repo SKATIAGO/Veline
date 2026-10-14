@@ -1681,7 +1681,6 @@ export const en: Record<keyof typeof es, string> = {
   'act.campoDiasPrueba': 'Trial days',
   'agenda.vistaLista': 'List',
   'agenda.vistas': 'Calendar views',
-  'cal.apuntarEsteDia': '+ Book on this day',
   'cita.pasoServicio': 'Service',
   'cita.pasoCuando': 'Who and when',
   'cita.pasoCliente': 'Customer',
