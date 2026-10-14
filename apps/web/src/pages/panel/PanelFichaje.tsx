@@ -371,26 +371,28 @@ export function PanelFichaje() {
       </Card>
 
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">{t('fic.desde')}</span>
-          <Input
-            type="date"
-            value={desde}
-            max={hasta || hoy()}
-            onChange={(e) => setDesde(e.target.value)}
-            className="w-auto"
-          />
+        <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-meta font-semibold text-body-2">{t('fic.desde')}</span>
+            <Input
+              type="date"
+              value={desde}
+              max={hasta || hoy()}
+              onChange={(e) => setDesde(e.target.value)}
+              className="w-full min-w-0"
+            />
+          </label>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-meta font-semibold text-body-2">{t('fic.hasta')}</span>
+            <Input
+              type="date"
+              value={hasta}
+              min={desde || undefined}
+              onChange={(e) => setHasta(e.target.value)}
+              className="w-full min-w-0"
+            />
         </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">{t('fic.hasta')}</span>
-          <Input
-            type="date"
-            value={hasta}
-            min={desde || undefined}
-            onChange={(e) => setHasta(e.target.value)}
-            className="w-auto"
-          />
-        </label>
+        </div>
         {(desde || hasta) && (
           <Button
             variant="quiet"
