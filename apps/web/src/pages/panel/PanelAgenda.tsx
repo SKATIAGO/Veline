@@ -171,11 +171,7 @@ export function PanelAgenda() {
 
       <div {...panelProps(idBase, vista)} className="flex flex-col gap-6 outline-none">
         {vista === 'calendario' ? (
-          <CalendarioAgenda
-            slug={slug}
-            dia={dia}
-            onDia={(d) => cambiar({ dia: d })}
-          />
+          <CalendarioAgenda slug={slug} dia={dia} onDia={(d) => cambiar({ dia: d })} />
         ) : (
           <>
             <div

@@ -391,7 +391,7 @@ export function PanelFichaje() {
               onChange={(e) => setHasta(e.target.value)}
               className="w-full min-w-0"
             />
-        </label>
+          </label>
         </div>
         {(desde || hasta) && (
           <Button
