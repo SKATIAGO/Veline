@@ -28,6 +28,7 @@ a mano los flujos de reserva.
 ## Alta gravedad
 
 ### 1. Un empleado puede abrir por URL pantallas de configuración y ve datos falsos
+
 El menú las oculta, pero la dirección funciona. El servidor responde 403 y la
 interfaz lo trata como «no hay nada»:
 
@@ -43,6 +44,7 @@ las rutas del panel (redirigir a la agenda) y que un 403 se muestre como «no
 tienes acceso», nunca como vacío.
 
 ### 2. Un 429 (demasiadas peticiones) te manda al login sin avisar
+
 `/api/auth/me` falla con 429 → la interfaz deduce «sin sesión» y redirige a
 `/login`. Visto en la auditoría. El límite es 120 peticiones/minuto **por IP**,
 así que varias personas tras la misma wifi (un salón con 5 empleados) o un
@@ -52,6 +54,7 @@ Arreglo: tratar solo el 401 como «sin sesión»; reintentar o avisar con un 429
 subir el cupo de lecturas o limitar por sesión en usuarios con sesión.
 
 ### 3. El formulario de reserva no te lleva al error
+
 En móvil, al pulsar «Confirmar reserva» con campos vacíos los errores aparecen
 **arriba**, fuera de pantalla (la página queda en el botón, scrollY 1108, el
 primer error no es visible), el foco se queda en el body y los campos no llevan
@@ -62,37 +65,42 @@ Arreglo: scroll y foco al primer campo con error, `aria-invalid` y
 ## Gravedad media
 
 ### 4. El botón de marca no llega a contraste AA
+
 Texto blanco sobre `#a96a3e`: **4,36:1** (AA pide 4,5:1). Es el botón primario
 de toda la app. El estado hover (`#935a33`, 5,6:1) sí cumple. Basta oscurecer
 el marrón un punto (p. ej. `#a2633a`).
 
 ### 5. El título de la pestaña es el mismo en todas las pantallas
+
 Todas dicen «Veline — Gestiona tu negocio de forma inteligente»: la ficha de un
 negocio, el panel, el login. Afecta a la accesibilidad (el lector no anuncia
 dónde estás), al historial/pestañas y a compartir un enlace. Para un
 marketplace, el nombre del negocio debería estar en el título.
 
 ### 6. Zonas pulsables por debajo de 44 px (AA mínimo: 24 px)
-| Elemento | Tamaño | Dónde |
-|---|---|---|
-| «¿Olvidaste la contraseña?» | **19 px** de alto | login |
-| «Elegir mes» | **21 px** | calendario, contabilidad |
-| «Quitar foto» | 28×28 | panel → fotos |
-| Mes anterior / siguiente | 32×32 | calendario, contabilidad |
-| Teléfono de la lista de clientes | 32 px | clientes |
-| «Escríbenos» | 27 px | precios |
-| ES / EN | 36×32 | todas |
-| Pestañas de sección, filtros, «+ Franja», «Copiar a L–V», «Corregir», «Marcar cobrado», «Copiar», «Reservar», cabecera y pie públicos | 33–36 px | varias |
+
+| Elemento                                                                                                                              | Tamaño            | Dónde                    |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------ |
+| «¿Olvidaste la contraseña?»                                                                                                           | **19 px** de alto | login                    |
+| «Elegir mes»                                                                                                                          | **21 px**         | calendario, contabilidad |
+| «Quitar foto»                                                                                                                         | 28×28             | panel → fotos            |
+| Mes anterior / siguiente                                                                                                              | 32×32             | calendario, contabilidad |
+| Teléfono de la lista de clientes                                                                                                      | 32 px             | clientes                 |
+| «Escríbenos»                                                                                                                          | 27 px             | precios                  |
+| ES / EN                                                                                                                               | 36×32             | todas                    |
+| Pestañas de sección, filtros, «+ Franja», «Copiar a L–V», «Corregir», «Marcar cobrado», «Copiar», «Reservar», cabecera y pie públicos | 33–36 px          | varias                   |
 
 Los botones «estirados» de las listas (cliente, persona, local, negocio)
 miden 21 px pero cubren la fila entera: son correctos.
 
 ### 7. «Sí, cancelar» recibe el foco al pedir cancelar una reserva
+
 En la gestión de reserva, la confirmación en línea pone el foco en el botón
 destructivo: un Intro de más cancela. El resto del panel pone el foco en
 «Cancelar»/«Mantener».
 
 ### 8. El formulario de reserva no usa autocompletado
+
 Nombre, teléfono y email sin `autocomplete` (`name`, `tel`, `email`) ni
 `inputMode`: el móvil no ofrece los datos guardados, y es el paso en el que se
 pierde más gente.
