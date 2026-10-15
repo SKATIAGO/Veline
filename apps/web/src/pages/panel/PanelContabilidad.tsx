@@ -12,7 +12,7 @@ import {
 import { api, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { CabeceraMes } from '../../components/CabeceraMes'
-import { Button, Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
+import { Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
@@ -27,6 +27,8 @@ interface ResumenDia {
   /** Quien no vino: no se cobra, así que tampoco suma. */
   noVinoCents: number
   noVino: number
+  /** Las citas del día por hora, para ver de quién fue cada una. */
+  lista: PanelBooking[]
 }
 
 const ESTADO_CLAVE: Record<PanelBooking['status'], Clave> = {
@@ -72,7 +74,9 @@ export function PanelContabilidad() {
         canceladas: 0,
         noVinoCents: 0,
         noVino: 0,
+        lista: [],
       }
+      fila.lista.push(b)
       if (b.status === 'CANCELADA') {
         fila.canceladoCents += b.priceCents
         fila.canceladas += 1
@@ -92,8 +96,19 @@ export function PanelContabilidad() {
         // Los días sin nada de nada —ni facturado ni cancelado— no aportan.
         .filter((d) => d.citas > 0 || d.canceladas > 0 || d.noVino > 0)
         .sort((a, b) => b.fecha.localeCompare(a.fecha))
+        .map((d) => ({
+          ...d,
+          lista: [...d.lista].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+        }))
     )
   }, [bookings])
+
+  const horaDe = (iso: string) =>
+    new Date(iso).toLocaleTimeString(idioma === 'en' ? 'en-GB' : 'es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: TIMEZONE,
+    })
 
   const totalMesCents = dias.reduce((n, d) => n + d.facturadoCents, 0)
 
@@ -121,6 +136,7 @@ export function PanelContabilidad() {
       t('cont.csvHora'),
       t('cont.csvCliente'),
       t('cont.csvServicio'),
+      t('cont.csvAtendio'),
       t('cont.csvEstado'),
       t('cont.csvImporte'),
     ]
@@ -128,13 +144,10 @@ export function PanelContabilidad() {
       const inicio = new Date(b.startsAt)
       return [
         madridDateKey(inicio),
-        inicio.toLocaleTimeString(idioma === 'en' ? 'en-GB' : 'es-ES', {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: TIMEZONE,
-        }),
+        horaDe(b.startsAt),
         b.customer.name,
         b.service.name,
+        b.staff?.name ?? t('agenda.sinAsignar'),
         t(ESTADO_CLAVE[b.status]),
         importe(b.priceCents),
       ]
@@ -142,7 +155,9 @@ export function PanelContabilidad() {
         .join(separador)
     })
     lineas.push(
-      ['', '', '', '', t('cont.csvTotalMes'), importe(totalMesCents)].map(celdaCsv).join(separador),
+      ['', '', '', '', '', t('cont.csvTotalMes'), importe(totalMesCents)]
+        .map(celdaCsv)
+        .join(separador),
     )
 
     // El BOM al principio es lo que hace que Excel abra los acentos bien.
@@ -197,23 +212,54 @@ export function PanelContabilidad() {
                   {dias.map((d) => (
                     <li
                       key={d.fecha}
-                      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-line px-4 py-3.5 last:border-b-0 sm:px-5"
+                      className="flex flex-col gap-3 border-b border-line px-4 py-3.5 last:border-b-0 sm:px-5"
                     >
-                      <div className="min-w-0">
-                        <p className="text-ui font-semibold text-ink capitalize">
-                          {formatLongDate(fromDateKey(d.fecha), idioma)}
-                        </p>
-                        <p className="mt-0.5 text-meta text-muted">
-                          {t(d.citas === 1 ? 'cont.unaCita' : 'cont.variasCitas', { n: d.citas })}
-                          {d.canceladas > 0 &&
-                            ` · ${t(d.canceladas === 1 ? 'cont.unaCancelada' : 'cont.variasCanceladas', { n: d.canceladas, importe: formatPrice(d.canceladoCents, idioma) })}`}
-                          {d.noVino > 0 &&
-                            ` · ${t(d.noVino === 1 ? 'cont.unNoVino' : 'cont.variosNoVino', { n: d.noVino, importe: formatPrice(d.noVinoCents, idioma) })}`}
-                        </p>
+                      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                        <div className="min-w-0">
+                          <p className="text-ui font-semibold text-ink capitalize">
+                            {formatLongDate(fromDateKey(d.fecha), idioma)}
+                          </p>
+                          <p className="mt-0.5 text-meta text-muted">
+                            {t(d.citas === 1 ? 'cont.unaCita' : 'cont.variasCitas', { n: d.citas })}
+                            {d.canceladas > 0 &&
+                              ` · ${t(d.canceladas === 1 ? 'cont.unaCancelada' : 'cont.variasCanceladas', { n: d.canceladas, importe: formatPrice(d.canceladoCents, idioma) })}`}
+                            {d.noVino > 0 &&
+                              ` · ${t(d.noVino === 1 ? 'cont.unNoVino' : 'cont.variosNoVino', { n: d.noVino, importe: formatPrice(d.noVinoCents, idioma) })}`}
+                          </p>
+                        </div>
+                        <span className="text-ui font-semibold text-ink tabular-nums">
+                          {formatPrice(d.facturadoCents, idioma)}
+                        </span>
                       </div>
-                      <span className="text-ui font-semibold text-ink tabular-nums">
-                        {formatPrice(d.facturadoCents, idioma)}
-                      </span>
+                      <ul className="flex flex-col gap-2">
+                        {d.lista.map((b) => {
+                          const sinCobro = b.status === 'CANCELADA' || b.status === 'NO_ASISTIO'
+                          return (
+                            <li
+                              key={b.id}
+                              className="flex items-start justify-between gap-3 text-meta"
+                            >
+                              <div className="min-w-0">
+                                <p className="font-semibold text-ink">
+                                  {horaDe(b.startsAt)} · {b.customer.name}
+                                </p>
+                                <p className="text-muted">
+                                  {b.service.name} · {b.staff?.name ?? t('agenda.sinAsignar')}
+                                  {sinCobro && ` · ${t(ESTADO_CLAVE[b.status])}`}
+                                </p>
+                              </div>
+                              <span
+                                className={cx(
+                                  'tabular-nums',
+                                  sinCobro ? 'text-muted line-through' : 'text-ink',
+                                )}
+                              >
+                                {formatPrice(b.priceCents, idioma)}
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
                     </li>
                   ))}
                 </ul>

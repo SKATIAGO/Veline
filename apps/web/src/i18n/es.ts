@@ -306,6 +306,7 @@ export const es = {
   'cont.csvHora': 'Hora',
   'cont.csvCliente': 'Cliente',
   'cont.csvServicio': 'Servicio',
+  'cont.csvAtendio': 'Atendió',
   'cont.csvEstado': 'Estado',
   'cont.csvImporte': 'Importe (€)',
   'cont.csvTotalMes': 'Total del mes (sin canceladas ni ausencias)',

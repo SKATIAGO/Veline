@@ -306,6 +306,7 @@ export const en: Record<keyof typeof es, string> = {
   'cont.csvHora': 'Time',
   'cont.csvCliente': 'Customer',
   'cont.csvServicio': 'Service',
+  'cont.csvAtendio': 'Attended by',
   'cont.csvEstado': 'Status',
   'cont.csvImporte': 'Amount (€)',
   'cont.csvTotalMes': 'Total for the month (excluding cancellations and no-shows)',
