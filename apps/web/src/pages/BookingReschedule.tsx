@@ -98,7 +98,7 @@ export function BookingReschedule() {
     mutationFn: () => api.rescheduleMyBooking(code, slot!.startsAt),
     onSuccess: (actualizada) => {
       queryClient.setQueryData(['booking', code], actualizada)
-      navigate(`/reserva/${code}`)
+      navigate(`/reserva/${code}`, { state: { recien: true } })
     },
   })
 

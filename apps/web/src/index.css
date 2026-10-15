@@ -59,7 +59,7 @@
    * y el panel se había quedado en 12,5 px: demasiado pequeño para leer una
    * agenda a diario. El cuerpo sube a 14 px y 11 px queda solo para etiquetas.
    * El tracking se cierra al crecer, que es lo propio de una grotesca. */
-  --text-caption: 11px;
+  --text-caption: 12px;
   --text-caption--line-height: 1.2;
   --text-meta: 13px;
   --text-meta--line-height: 1.45;

@@ -1937,4 +1937,7 @@ export const en: Record<keyof typeof es, string> = {
   'sesion.noVerificada.texto':
     "You're still signed in, but we can't verify your session right now. Try again in a few seconds.",
   'sesion.noVerificada.reintentar': 'Try again',
+  'hecha.tuReserva': 'Your booking',
+  'hecha.yaPaso': 'This booking has already passed',
+  'hecha.yaPasoTexto': 'It was on {fecha} at {hora} at {negocio}.',
 }

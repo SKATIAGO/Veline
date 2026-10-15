@@ -152,7 +152,8 @@ export function BookingConfirm() {
         ...(locationId ? { locationId } : {}),
         ...(staffId ? { staffId } : {}),
       }),
-    onSuccess: (booking) => navigate(`/reserva/${booking.code}`, { replace: true }),
+    onSuccess: (booking) =>
+      navigate(`/reserva/${booking.code}`, { replace: true, state: { recien: true } }),
   })
 
   if (!business || !service) {

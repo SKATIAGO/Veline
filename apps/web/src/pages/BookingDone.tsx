@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
 import { api } from '../lib/api'
@@ -42,6 +42,9 @@ function downloadIcs(b: BookingDTO, descripcion: string) {
 export function BookingDone() {
   const { t, idioma, locale } = useIdioma()
   const { code = '' } = useParams()
+  // Solo quien acaba de reservar (o de cambiar la hora) llega con esto: quien
+  // abre el enlace del SMS días después no necesita que le feliciten otra vez.
+  const recien = !!(useLocation().state as { recien?: boolean } | null)?.recien
   const queryClient = useQueryClient()
 
   const { data: booking, isLoading } = useQuery({
@@ -65,13 +68,22 @@ export function BookingDone() {
   if (!booking) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
-        <EmptyState title={t('hecha.noEncontrada')} hint={t('hecha.noEncontradaPista')} />
+        <EmptyState
+          title={t('hecha.noEncontrada')}
+          hint={t('hecha.noEncontradaPista')}
+          action={
+            <ButtonLink to="/" variant="secondary">
+              {t('hecha.volverInicio')}
+            </ButtonLink>
+          }
+        />
       </div>
     )
   }
 
   const start = new Date(booking.startsAt)
   const cancelled = booking.status === 'CANCELADA'
+  const pasada = !cancelled && (booking.status !== 'CONFIRMADA' || start.getTime() < Date.now())
   const time = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
   return (
@@ -116,12 +128,18 @@ export function BookingDone() {
           </div>
 
           <h1 className="text-[24px] font-semibold text-ink">
-            {cancelled ? t('hecha.cancelada') : t('hecha.confirmada')}
+            {cancelled
+              ? t('hecha.cancelada')
+              : recien
+                ? t('hecha.confirmada')
+                : pasada
+                  ? t('hecha.yaPaso')
+                  : t('hecha.tuReserva')}
           </h1>
           <p className="mt-2.5 max-w-[320px] text-sm leading-relaxed text-muted first-letter:uppercase">
             {cancelled
               ? t('hecha.canceladaTexto', { negocio: booking.business.name })
-              : t('hecha.confirmadaTexto', {
+              : t(pasada ? 'hecha.yaPasoTexto' : 'hecha.confirmadaTexto', {
                   fecha: formatLongDate(start, idioma),
                   hora: time,
                   negocio: booking.business.name,
@@ -171,7 +189,7 @@ export function BookingDone() {
             ))}
           </div>
 
-          {!cancelled && (
+          {!cancelled && !pasada && (
             <div className="flex w-full flex-col gap-3 sm:flex-row">
               <Button
                 variant="secondary"
@@ -192,7 +210,7 @@ export function BookingDone() {
             </ButtonLink>
           )}
 
-          {!cancelled && (
+          {!cancelled && !pasada && (
             <div className="mt-5 flex flex-col items-center gap-3">
               <ButtonLink to={`/reserva/${booking.code}/reprogramar`} variant="secondary" size="md">
                 {t('hecha.reprogramar')}

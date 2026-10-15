@@ -1935,4 +1935,7 @@ export const es = {
   'sesion.noVerificada.texto':
     'Tu sesión sigue abierta, pero ahora mismo no logramos verificarla. Reintenta en unos segundos.',
   'sesion.noVerificada.reintentar': 'Reintentar',
+  'hecha.tuReserva': 'Tu reserva',
+  'hecha.yaPaso': 'Esta reserva ya pasó',
+  'hecha.yaPasoTexto': 'Fue el {fecha} a las {hora} en {negocio}.',
 } as const

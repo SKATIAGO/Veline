@@ -198,7 +198,9 @@ export function BookingDate() {
           seed={6}
         />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-6 text-[24px] font-semibold text-ink lg:hidden">{t('fecha.titulo')}</h1>
+          <h1 className="mb-6 text-[24px] font-semibold text-ink lg:sr-only lg:mb-0">
+            {t('fecha.titulo')}
+          </h1>
 
           {/* Selector de local: solo si hay más de uno que elegir. */}
           {varios && (
@@ -322,9 +324,9 @@ export function BookingDate() {
           {/* Calendario mensual — desktop */}
           <div className="hidden lg:block">
             <div className="mb-5 flex items-center justify-between">
-              <h1 className="font-display text-xl font-semibold text-ink capitalize">
+              <h2 className="font-display text-xl font-semibold text-ink capitalize">
                 {monthLong(month.getMonth(), idioma)} {month.getFullYear()}
-              </h1>
+              </h2>
               <div className="flex gap-2.5">
                 <button
                   type="button"

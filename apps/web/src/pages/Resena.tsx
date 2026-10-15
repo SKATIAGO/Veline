@@ -3,7 +3,16 @@ import { useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { formatLongDate } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { Button, Card, EmptyState, ErrorNote, Spinner, Textarea, cx } from '../components/ui'
+import {
+  Button,
+  ButtonLink,
+  Card,
+  EmptyState,
+  ErrorNote,
+  Spinner,
+  Textarea,
+  cx,
+} from '../components/ui'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
 /**
@@ -52,7 +61,15 @@ export function Resena() {
   if (isError || !data) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 py-16 lg:px-16">
-        <EmptyState title={t('resena.enlaceNoVale')} hint={t('resena.enlaceNoValePista')} />
+        <EmptyState
+          title={t('resena.enlaceNoVale')}
+          hint={t('resena.enlaceNoValePista')}
+          action={
+            <ButtonLink to="/" variant="secondary">
+              {t('hecha.volverInicio')}
+            </ButtonLink>
+          }
+        />
       </div>
     )
   }
