@@ -25,3 +25,21 @@ export function tramoExtras(pedidos: ExtraPedido[]): string {
   const valor = extrasParam(pedidos)
   return valor ? `&extras=${encodeURIComponent(valor)}` : ''
 }
+
+/**
+ * Los pasos de la reserva, en orden. El primero (elegir servicio) se hace en
+ * la ficha del negocio; el de extras solo existe si el negocio tiene carta.
+ * Las pantallas lo usan para pintar «Paso X de N» con los mismos nombres.
+ */
+export type PasoReserva = 'servicio' | 'extras' | 'fecha' | 'datos'
+
+export const CLAVES_PASO = {
+  servicio: 'reserva.pasoServicio',
+  extras: 'reserva.pasoExtras',
+  fecha: 'reserva.pasoFecha',
+  datos: 'reserva.pasoDatos',
+} as const
+
+export function pasosReserva(tieneCarta: boolean): PasoReserva[] {
+  return tieneCarta ? ['servicio', 'extras', 'fecha', 'datos'] : ['servicio', 'fecha', 'datos']
+}

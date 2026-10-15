@@ -53,6 +53,7 @@ describe('diccionarios', () => {
       'pie.contacto',
       'pie.cookies',
       'pieMin.cookies',
+      'reserva.pasoExtras',
       'leg.cookies',
       'leg.colCookie',
       'ficha.info',

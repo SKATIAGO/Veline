@@ -16,6 +16,7 @@ import { MarbleWash } from '../components/Ornaments'
 import { FotoAmpliable, Galeria } from '../components/Galeria'
 import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { recordarOrigen } from '../lib/origen'
+import { pasosReserva } from '../lib/reserva'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
 /** La pestaña se identifica por su nombre interno, no por lo que pone en
@@ -245,6 +246,13 @@ export function Business() {
 
           {tab === 'servicios' && (
             <div key="servicios" className="rise">
+              {/* La reserva empieza aquí: es el paso 1 del asistente, y se dice
+                  para que al elegir un servicio el «Paso 2 de N» no sorprenda. */}
+              <p className="mb-3 text-meta font-semibold text-body-2">
+                {t('reserva.pasoUnoPista', {
+                  total: pasosReserva(business.extras.length > 0).length,
+                })}
+              </p>
               {business.services.map((s) => (
                 <div
                   key={s.id}

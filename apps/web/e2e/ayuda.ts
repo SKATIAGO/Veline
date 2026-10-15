@@ -1,4 +1,6 @@
-import type { Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { BrowserContext, Page } from '@playwright/test'
 
 /** Cuentas de demostración del seed. Solo existen en local y en CI. */
 export const CUENTAS = {
@@ -9,22 +11,15 @@ export const CUENTAS = {
 
 export const NEGOCIO = 'taller-mecanico-rivas'
 
-/* La sesión de cada cuenta se guarda tras el primer login: el servidor limita
-   el login a cinco por minuto, y cada prueba entraba de nuevo. Es una cookie
-   de sesión del servidor, así que sirve en cualquier navegador del mismo run. */
-const sesiones = new Map<string, Awaited<ReturnType<Page['context']['prototype']['cookies']>>>()
+export const rutaSesion = (quien: keyof typeof CUENTAS) =>
+  join(import.meta.dirname, '.auth', `${quien}.json`)
 
-/** Entra por la API, sin pasar por el formulario: lo que se prueba es la
-    pantalla de destino, no el login. */
+/** Entra con la sesión que guardó global-setup.ts (una por cuenta). */
 export async function entrar(page: Page, quien: keyof typeof CUENTAS) {
-  const guardada = sesiones.get(quien)
-  if (guardada) {
-    await page.context().addCookies(guardada)
-    return
+  const estado = JSON.parse(readFileSync(rutaSesion(quien), 'utf8')) as {
+    cookies: Parameters<BrowserContext['addCookies']>[0]
   }
-  const r = await page.request.post('/api/auth/login', { data: CUENTAS[quien] })
-  if (!r.ok()) throw new Error(`No se pudo entrar como ${quien}: ${r.status()}`)
-  sesiones.set(quien, await page.context().cookies())
+  await page.context().addCookies(estado.cookies)
 }
 
 /** Acepta el aviso de cookies si está, para que no tape nada. */

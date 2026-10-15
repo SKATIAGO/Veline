@@ -16,6 +16,9 @@ const base = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173'
 
 export default defineConfig({
   testDir: './e2e',
+  // Entra una vez por cuenta y guarda la sesión: el login está limitado a
+  // cinco por minuto y cada prueba entraba de nuevo.
+  globalSetup: './e2e/global-setup.ts',
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
@@ -58,6 +61,8 @@ export default defineConfig({
             MAIL_MODE: 'dry',
             SMS_MODE: 'dry',
             DATABASE_URL: process.env.DATABASE_URL ?? '',
+            RATE_LIMIT_MAX: '2000',
+            RATE_LIMIT_PANEL_MAX: '5000',
           },
         },
         {

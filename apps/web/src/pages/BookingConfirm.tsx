@@ -1,22 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import {
-  createBookingSchema,
-  formatDuration,
-  formatLongDate,
-  formatPrice,
-  formatTimeMadrid,
-  madridDay,
-} from '@veline/shared'
+import { createBookingSchema, formatLongDate, formatTimeMadrid, madridDay } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { extrasDeUrl, tramoExtras } from '../lib/reserva'
-import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
-import { AtajoFotos, Galeria } from '../components/Galeria'
+import { CLAVES_PASO, extrasDeUrl, pasosReserva, tramoExtras } from '../lib/reserva'
+import { Button, ErrorNote, Spinner } from '../components/ui'
+import { MarcoReserva } from '../components/reserva/MarcoReserva'
+import { ResumenReserva } from '../components/reserva/ResumenReserva'
+import { SinServicio } from '../components/reserva/SinServicio'
 import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { origenActual } from '../lib/origen'
-import { MarbleWash } from '../components/Ornaments'
-import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
 interface FieldProps {
@@ -56,8 +49,8 @@ function Field({
   inputMode,
 }: FieldProps & { id: string }) {
   const cls =
-    'w-full rounded-lg border bg-surface px-4 py-3.5 text-sm text-ink outline-none placeholder:text-subtle ' +
-    (error ? 'border-danger' : 'border-line focus:border-brand')
+    'w-full rounded-lg border bg-surface px-4 py-3 text-ui text-ink placeholder:text-subtle outline-none transition-[border-color,box-shadow] duration-200 focus:border-brand focus:ring-2 focus:ring-brand/25 ' +
+    (error ? 'border-danger' : 'border-line')
   const errorId = `${id}-error`
   const comunes = {
     id,
@@ -70,7 +63,7 @@ function Field({
   }
   return (
     <div className="block">
-      <label htmlFor={id} className="mb-1.5 block text-meta font-semibold text-body">
+      <label htmlFor={id} className="mb-1.5 block text-meta font-semibold text-body-2">
         {label}
         {optional && <span className="font-normal text-subtle"> {optional}</span>}
       </label>
@@ -97,6 +90,11 @@ function Field({
   )
 }
 
+/**
+ * Último paso: los datos de quien reserva. El resumen de al lado ya lo dice
+ * todo (servicio, extras, persona, fecha y hora) y cada cosa se puede cambiar
+ * desde ahí sin retroceder a ciegas.
+ */
 export function BookingConfirm() {
   const { t, idioma, locale } = useIdioma()
   const { slug = '' } = useParams()
@@ -104,8 +102,6 @@ export function BookingConfirm() {
   const [params] = useSearchParams()
   const serviceId = params.get('servicio') ?? ''
   const startsAt = params.get('hora') ?? ''
-  // Viene de la pantalla anterior. Con un solo local va vacío y el servidor
-  // coge el único que hay.
   const locationId = params.get('local') ?? ''
   const staffId = params.get('persona') ?? ''
 
@@ -114,89 +110,72 @@ export function BookingConfirm() {
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
-  // Elegidos en el primer paso de la reserva y arrastrados por la URL desde
-  // allí. Aquí solo se enseñan y se cobran.
   const pedidos = extrasDeUrl(params)
 
   const { data: business } = useQuery({
     queryKey: ['business', slug],
     queryFn: () => api.getBusiness(slug),
   })
-
-  const service = business?.services.find((s) => s.id === serviceId)
   const fotosDe = useFotosNegocio()
   const visor = useVisor()
 
-  /* La carta de extras es la misma para cualquier servicio. Solo cuentan los
-     que siguen en ella: si el negocio quita uno mientras alguien reserva, al
-     recargar deja de sumarse en vez de quedarse cobrado sin verse. */
+  const service = business?.services.find((s) => s.id === serviceId)
   const carta = business?.extras ?? []
   const elegidos = pedidos.flatMap((p) => {
     const extra = carta.find((e) => e.id === p.extraId)
     return extra ? [{ extra, cantidad: p.quantity }] : []
   })
   const aPedir = elegidos.map((l) => ({ extraId: l.extra.id, quantity: l.cantidad }))
-  // Quien atiende, elegido en el paso anterior. Solo se enseña: aquí no se puede cambiar.
-  const staff = business?.staff.find((p) => p.id === staffId)
-  const tramoComun = `servicio=${serviceId}${locationId ? `&local=${locationId}` : ''}${
-    staffId ? `&persona=${staffId}` : ''
-  }${tramoExtras(aPedir)}`
-  const urlFecha = `/${slug}/reservar/fecha?${tramoComun}`
-  const urlExtras = `/${slug}/reservar/extras?${tramoComun}`
+
+  const datos = () => ({
+    serviceId,
+    startsAt,
+    customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
+    notes: notes.trim(),
+    source: origenActual(),
+    idioma,
+    extras: aPedir,
+    ...(locationId ? { locationId } : {}),
+    ...(staffId ? { staffId } : {}),
+  })
 
   const mutation = useMutation({
-    mutationFn: () =>
-      api.createBooking(slug, {
-        serviceId,
-        startsAt,
-        customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
-        notes: notes.trim(),
-        source: origenActual(),
-        // El idioma en el que está mirando esta persona ahora mismo. De aquí
-        // saldrán su confirmación, su recordatorio y su petición de reseña.
-        idioma,
-        extras: aPedir,
-        ...(locationId ? { locationId } : {}),
-        ...(staffId ? { staffId } : {}),
-      }),
+    mutationFn: () => api.createBooking(slug, datos()),
     onSuccess: (booking) =>
       navigate(`/reserva/${booking.code}`, { replace: true, state: { recien: true } }),
   })
 
-  if (!business || !service) {
+  if (!business) {
     return (
       <div className="mx-auto max-w-[1440px] px-6 lg:px-16">
         <Spinner />
       </div>
     )
   }
+  if (!service) return <SinServicio slug={slug} />
 
-  const total =
-    service.priceCents + elegidos.reduce((suma, l) => suma + l.extra.priceCents * l.cantidad, 0)
-  /* Con extras que alargan, la duración del servicio a secas mentiría: es la
-     hora que el cliente va a estar allí lo que tiene que ver aquí. */
-  const duracion =
-    service.durationMin + elegidos.reduce((suma, l) => suma + l.extra.durationMin * l.cantidad, 0)
+  const staff = business.staff.find((p) => p.id === staffId)
+  const locales = business.locations
+  const local = locales.find((l) => l.id === locationId)
   const start = new Date(startsAt)
   const validStart = !Number.isNaN(start.getTime())
+  const total =
+    service.priceCents + elegidos.reduce((suma, l) => suma + l.extra.priceCents * l.cantidad, 0)
+  const duracion =
+    service.durationMin + elegidos.reduce((suma, l) => suma + l.extra.durationMin * l.cantidad, 0)
+  const tramoComun = `servicio=${service.id}${locationId ? `&local=${locationId}` : ''}${
+    staffId ? `&persona=${staffId}` : ''
+  }${tramoExtras(aPedir)}`
+  const urlFecha = `/${slug}/reservar/fecha?${tramoComun}`
+  const urlExtras = `/${slug}/reservar/extras?${tramoComun}`
+  const pasos = pasosReserva(carta.length > 0)
 
   const submit = () => {
-    const parsed = createBookingSchema.safeParse({
-      serviceId,
-      startsAt,
-      customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
-      notes: notes.trim(),
-      source: origenActual(),
-      idioma,
-      extras: aPedir,
-      ...(locationId ? { locationId } : {}),
-      ...(staffId ? { staffId } : {}),
-    })
+    const parsed = createBookingSchema.safeParse(datos())
     if (!parsed.success) {
       const next: Record<string, string> = {}
       // El esquema dice QUÉ campo falla; el texto lo pone Veline, en el idioma
-      // de quien está reservando. Los mensajes del esquema son los que ve el
-      // servidor, y ese habla castellano.
+      // de quien está reservando.
       const POR_CAMPO: Record<string, Clave> = {
         name: 'confirmar.errNombre',
         phone: 'confirmar.errTelefono',
@@ -209,9 +188,8 @@ export function BookingConfirm() {
         }
       }
       setErrors(next)
-      /* Al primer campo con error, a la vista y con el foco. El botón está
-         abajo del todo: sin esto, en el móvil los errores salían arriba,
-         fuera de pantalla, y parecía que el botón no hacía nada. */
+      /* Al primer campo con error, a la vista y con el foco: el botón está
+         abajo y los errores arriba. */
       const primero = (['name', 'phone', 'email'] as const).find((k) => next[k])
       if (primero) {
         setTimeout(() => {
@@ -227,173 +205,112 @@ export function BookingConfirm() {
     mutation.mutate()
   }
 
+  const resumenCorto = validStart
+    ? `${service.name} · ${formatLongDate(madridDay(start), idioma)} · ${formatTimeMadrid(start, locale)}`
+    : service.name
+
   return (
-    <>
-      <BackBar to={urlFecha}>
-        {business.name} · {service.name}
-      </BackBar>
-
-      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-10 lg:flex-row lg:px-16">
-        {/* Mismo halo que ya usan Precios y Alta: 620 px es lo que hace falta
-            para que se note contra un fondo claro; algo más pequeño se disuelve
-            en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
-            padre) evita el scroll horizontal sin tocar la posición fija de la
-            tarjeta de 360. */}
-        <MarbleWash
-          className="-top-40 -right-20 hidden h-[640px] w-[640px] opacity-[.55] lg:block"
-          seed={8}
+    <MarcoReserva
+      negocio={business}
+      servicio={service}
+      pasos={pasos.map((p) => t(CLAVES_PASO[p]))}
+      paso={pasos.indexOf('datos')}
+      volverA={urlFecha}
+      resumenCorto={resumenCorto}
+      total={total}
+      fotos={{ fotosDe, visor }}
+      resumen={
+        <ResumenReserva
+          servicio={service}
+          elegidos={elegidos}
+          persona={staff}
+          local={locales.length > 1 ? local : null}
+          cuando={validStart ? startsAt : null}
+          duracionMin={duracion}
+          urlServicio={`/${slug}`}
+          urlExtras={carta.length > 0 ? urlExtras : undefined}
+          urlFecha={urlFecha}
+          tieneCarta={carta.length > 0}
         />
-        <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-7 text-title font-semibold text-ink">{t('confirmar.titulo')}</h1>
-
-          <div className="flex max-w-[440px] flex-col gap-5">
-            <Field
-              id="confirmar-name"
-              label={t('confirmar.nombre')}
-              value={name}
-              onChange={setName}
-              autoComplete="name"
-              error={errors.name}
-            />
-            <Field
-              id="confirmar-phone"
-              label={t('confirmar.telefono')}
-              value={phone}
-              onChange={setPhone}
-              type="tel"
-              autoComplete="tel"
-              inputMode="tel"
-              error={errors.phone}
-            />
-            <Field
-              id="confirmar-email"
-              label={t('confirmar.email')}
-              value={email}
-              onChange={setEmail}
-              type="email"
-              autoComplete="email"
-              inputMode="email"
-              optional={t('comun.opcional')}
-              error={errors.email}
-            />
-            <Field
-              id="confirmar-notes"
-              label={t('confirmar.notas')}
-              value={notes}
-              onChange={setNotes}
-              placeholder={t('confirmar.notasEjemplo')}
-              optional={t('comun.opcional')}
-              multiline
-            />
-          </div>
-
-          <p className="mt-6 max-w-[440px] text-meta leading-relaxed text-muted">
-            {t('confirmar.sinCuenta')}
-          </p>
-        </Reveal>
-
-        <Reveal
-          variant="right"
-          delay={100}
-          as="aside"
-          className="relative w-full shrink-0 lg:w-[360px]"
+      }
+      error={
+        mutation.isError ? (
+          <ErrorNote>
+            {(mutation.error as ApiError).message}
+            {(mutation.error as ApiError).status === 409 && (
+              <>
+                {' '}
+                <Link to={urlFecha} className="font-semibold text-brand-text underline">
+                  {t('confirmar.eligeOtraHora')}
+                </Link>
+              </>
+            )}
+          </ErrorNote>
+        ) : undefined
+      }
+      accion={
+        <Button
+          size="lg"
+          type="submit"
+          form="confirmar-form"
+          loading={mutation.isPending}
+          disabled={!validStart}
         >
-          <Card className="p-6 shadow-pop lg:sticky lg:top-24">
-            <div className="mb-4 font-display text-base font-semibold text-ink">
-              {t('confirmar.resumen')}
-            </div>
-            <AtajoFotos
-              fotosServicio={service.photos}
-              nombreServicio={service.name}
-              fotosLocal={business.photos.length}
-              onVerServicio={() => visor.abrir(fotosDe.deServicio(service))}
-              onVerLocal={() => visor.abrir(fotosDe.deLocal(business))}
-            />
-            {[
-              { clave: 'confirmar.negocio', value: business.name },
-              // Solo si de verdad se eligió: sin preferencia, el negocio
-              // asigna a quien esté libre y aquí no hay nada que decir.
-              ...(staff ? [{ clave: 'confirmar.conQuien', value: staff.name } as const] : []),
-              { clave: 'confirmar.servicio', value: service.name },
-              {
-                clave: 'confirmar.fecha',
-                value: validStart
-                  ? `${formatLongDate(madridDay(start), idioma)}, ${formatTimeMadrid(start, locale)}`
-                  : '—',
-              },
-              { clave: 'confirmar.duracion', value: formatDuration(duracion, idioma) },
-            ].map((row) => (
-              <div key={row.clave} className="mb-2.5 flex justify-between gap-4 text-body">
-                <span className="shrink-0 text-muted">{t(row.clave as Clave)}</span>
-                <span className="text-right font-semibold text-ink first-letter:uppercase">
-                  {row.value}
-                </span>
-              </div>
-            ))}
+          {mutation.isPending ? t('confirmar.confirmando') : t('confirmar.confirmar')}
+        </Button>
+      }
+    >
+      <h1 className="mb-6 text-title font-semibold text-ink">{t('confirmar.titulo')}</h1>
 
-            {elegidos.map(({ extra, cantidad }) => (
-              <div key={extra.id} className="mb-2.5 flex justify-between gap-4 text-body">
-                <span className="min-w-0 text-muted">
-                  + {extra.name}
-                  {cantidad > 1 && ` ×${cantidad}`}
-                </span>
-                <span className="shrink-0 font-semibold text-ink tabular-nums">
-                  {formatPrice(extra.priceCents * cantidad, idioma)}
-                </span>
-              </div>
-            ))}
-
-            {/* Cambiar de idea sin retroceder a ciegas: lleva a la carta con
-                lo ya marcado puesto. */}
-            {carta.length > 0 && (
-              <Link
-                to={urlExtras}
-                className="mb-2.5 inline-block text-meta font-semibold text-brand-text underline"
-              >
-                {elegidos.length > 0 ? t('confirmar.extrasCambiar') : t('confirmar.extrasAnadir')}
-              </Link>
-            )}
-
-            <div className="mt-4 mb-5 flex justify-between border-t border-line pt-4">
-              <span className="text-sm text-muted">{t('comun.total')}</span>
-              <span className="text-base font-semibold text-ink">{formatPrice(total, idioma)}</span>
-            </div>
-
-            {mutation.isError && (
-              <div className="mb-4">
-                <ErrorNote>
-                  {(mutation.error as ApiError).message}
-                  {(mutation.error as ApiError).status === 409 && (
-                    <>
-                      {' '}
-                      <Link to={urlFecha} className="font-semibold text-brand-text underline">
-                        {t('confirmar.eligeOtraHora')}
-                      </Link>
-                    </>
-                  )}
-                </ErrorNote>
-              </div>
-            )}
-
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={submit}
-              disabled={mutation.isPending || !validStart}
-            >
-              {mutation.isPending ? t('confirmar.confirmando') : t('confirmar.confirmar')}
-            </Button>
-          </Card>
-        </Reveal>
-      </div>
-
-      <Galeria
-        fotos={visor.estado?.fotos ?? []}
-        index={visor.estado?.index ?? null}
-        onIndex={visor.irA}
-        onClose={visor.cerrar}
-        titulo={business.name}
-      />
-    </>
+      <form
+        id="confirmar-form"
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!mutation.isPending) submit()
+        }}
+        className="flex max-w-[440px] flex-col gap-5"
+      >
+        <Field
+          id="confirmar-name"
+          label={t('confirmar.nombre')}
+          value={name}
+          onChange={setName}
+          autoComplete="name"
+          error={errors.name}
+        />
+        <Field
+          id="confirmar-phone"
+          label={t('confirmar.telefono')}
+          value={phone}
+          onChange={setPhone}
+          type="tel"
+          autoComplete="tel"
+          inputMode="tel"
+          error={errors.phone}
+        />
+        <Field
+          id="confirmar-email"
+          label={t('confirmar.email')}
+          value={email}
+          onChange={setEmail}
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          optional={t('comun.opcional')}
+          error={errors.email}
+        />
+        <Field
+          id="confirmar-notes"
+          label={t('confirmar.notas')}
+          value={notes}
+          onChange={setNotes}
+          placeholder={t('confirmar.notasEjemplo')}
+          optional={t('comun.opcional')}
+          multiline
+        />
+        <p className="text-meta leading-relaxed text-muted">{t('confirmar.sinCuenta')}</p>
+      </form>
+    </MarcoReserva>
   )
 }

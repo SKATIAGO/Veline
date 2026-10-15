@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Button, ButtonLink, Logo, Sheet, cx } from './ui'
 import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
 import { AvisoCookies } from './AvisoCookies'
+import { PieMinimo } from './PieMinimo'
 import { SelectorIdioma } from './SelectorIdioma'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
@@ -296,13 +297,17 @@ export function Layout() {
   // navegación, y con él la animación de entrada vuelve a arrancar desde
   // cero — así cada página nueva aparece con el mismo gesto suave.
   const { pathname } = useLocation()
+  /* Mientras alguien reserva, el pie completo es una salida en cada paso y
+     empuja el botón de continuar hacia abajo: queda solo ayuda y legal. */
+  const reservando =
+    /\/reservar\//.test(pathname) || /^\/reserva\/[^/]+\/reprogramar/.test(pathname)
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main key={pathname} className="page-enter flex-1">
         <Outlet />
       </main>
-      <Footer />
+      {reservando ? <PieMinimo /> : <Footer />}
       <AvisoCookies />
     </div>
   )
