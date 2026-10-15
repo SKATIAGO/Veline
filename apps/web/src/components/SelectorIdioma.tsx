@@ -45,7 +45,7 @@ export function SelectorIdioma({ className }: { className?: string }) {
             aria-pressed={activo}
             onClick={() => cambiar(i.codigo)}
             className={cx(
-              'min-h-8 min-w-9 rounded-full px-2 text-meta font-semibold transition-colors duration-200',
+              'min-h-10 min-w-10 rounded-full px-2 text-meta font-semibold transition-colors duration-200',
               activo ? 'bg-ink text-cream' : 'text-subtle hover:bg-canvas hover:text-ink',
             )}
           >

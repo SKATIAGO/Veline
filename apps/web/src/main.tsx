@@ -6,6 +6,7 @@ import { App } from './App'
 import { AuthProvider } from './lib/auth'
 import { ProveedorIdioma } from './i18n/idioma'
 import { Avisos } from './components/Avisos'
+import { TituloDePagina } from './components/TituloDePagina'
 import { crearCacheDeConsultas, reintentarLecturas } from './lib/errores'
 import './index.css'
 
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ProveedorIdioma>
           <BrowserRouter>
+            <TituloDePagina />
             <App />
             <Avisos />
           </BrowserRouter>

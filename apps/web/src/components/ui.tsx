@@ -38,7 +38,11 @@ export function Logo({
   const { t } = useIdioma()
 
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label={t('comun.inicio')}>
+    <Link
+      to="/"
+      className="-my-2 flex min-h-11 items-center gap-2.5"
+      aria-label={t('comun.inicio')}
+    >
       <LogoMark size={size} variant={variant} />
       <span
         className={cx(
@@ -98,7 +102,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
 /* Alto mínimo garantizado + padding horizontal proporcionado.
    `lg` es la medida de las llamadas a la acción de la web pública. */
 const buttonSizes: Record<ButtonSize, string> = {
-  sm: 'min-h-9 px-3.5 text-meta',
+  sm: 'min-h-9 px-3.5 text-meta max-sm:min-h-11',
   md: 'min-h-11 px-5 text-body',
   lg: 'min-h-12 px-7 text-ui',
 }
@@ -287,7 +291,6 @@ export function ConfirmAction({
       <Button
         size={size}
         variant="danger"
-        autoFocus
         loading={loading}
         onClick={() => {
           setArmado(false)
@@ -296,7 +299,9 @@ export function ConfirmAction({
       >
         {siLabel}
       </Button>
-      <Button size={size} variant="quiet" onClick={() => setArmado(false)}>
+      {/* El foco cae en «No»: la acción destructiva no queda a un Intro de
+          distancia. Quien la quiera, un Tab o un toque. */}
+      <Button size={size} variant="quiet" autoFocus onClick={() => setArmado(false)}>
         {t('comun.no')}
       </Button>
     </span>
@@ -702,7 +707,7 @@ export function FilterChip({
       aria-pressed={active}
       {...props}
       className={cx(
-        'inline-flex min-h-9 items-center rounded-full border px-4 text-meta font-semibold',
+        'inline-flex min-h-9 max-sm:min-h-11 items-center rounded-full border px-4 text-meta font-semibold',
         'whitespace-nowrap transition-colors duration-200',
         active
           ? 'border-ink bg-ink text-cream'

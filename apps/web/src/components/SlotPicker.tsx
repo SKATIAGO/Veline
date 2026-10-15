@@ -137,7 +137,7 @@ export function SlotPicker({
               setAMano(false)
               onElegir(null)
             }}
-            className="inline-flex min-h-9 items-center text-meta font-semibold text-brand-text hover:underline"
+            className="inline-flex min-h-9 max-sm:min-h-11 items-center text-meta font-semibold text-brand-text hover:underline"
           >
             {t('slots.volverAHuecos')}
           </button>

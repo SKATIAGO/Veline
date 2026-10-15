@@ -104,7 +104,7 @@ function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
                 onClick={() => quitar(url)}
                 disabled={enBusca}
                 aria-label={t('neg.quitarFoto')}
-                className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-ink/70 text-body-2 text-white backdrop-blur transition-colors duration-200 hover:bg-ink disabled:pointer-events-none disabled:opacity-50"
+                className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full after:absolute after:-inset-2 after:content-[''] bg-ink/70 text-body-2 text-white backdrop-blur transition-colors duration-200 hover:bg-ink disabled:pointer-events-none disabled:opacity-50"
               >
                 ✕
               </button>

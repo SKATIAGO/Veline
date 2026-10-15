@@ -359,7 +359,7 @@ export function PanelClientes() {
                   <p className="mt-0.5 text-meta text-muted">
                     <a
                       href={`tel:${c.phone}`}
-                      className="relative z-10 -my-1.5 inline-flex min-h-8 items-center rounded-lg px-1 py-1.5 hover:text-brand hover:underline"
+                      className="relative z-10 -my-3 inline-flex min-h-11 items-center rounded-lg px-1 hover:text-brand hover:underline"
                     >
                       {c.phone}
                     </a>

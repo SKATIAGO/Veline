@@ -383,7 +383,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
             {booking.customer.name} ·{' '}
             <a
               href={`tel:${booking.customer.phone}`}
-              className="-my-1.5 inline-flex min-h-8 items-center rounded-lg px-1 py-1.5 hover:text-brand hover:underline"
+              className="-my-3 inline-flex min-h-11 items-center rounded-lg px-1 hover:text-brand hover:underline"
             >
               {booking.customer.phone}
             </a>

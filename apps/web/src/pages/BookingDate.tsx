@@ -331,7 +331,7 @@ export function BookingDate() {
                   aria-label={t('fecha.mesAnterior')}
                   disabled={month <= startOfMonth(today)}
                   onClick={() => setMonth(addMonths(month, -1))}
-                  className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line"
+                  className="flex size-11 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line"
                 >
                   ‹
                 </button>
@@ -339,7 +339,7 @@ export function BookingDate() {
                   type="button"
                   aria-label={t('fecha.mesSiguiente')}
                   onClick={() => setMonth(addMonths(month, 1))}
-                  className="flex size-10 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand"
+                  className="flex size-11 items-center justify-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors hover:border-brand hover:text-brand"
                 >
                   ›
                 </button>

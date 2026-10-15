@@ -286,7 +286,7 @@ export function CerrarDias({
                             setEligiendo(a.id === 'mover' && !d.hora ? b.id : null)
                           }}
                           className={cx(
-                            'inline-flex min-h-9 items-center rounded-full border px-3 text-meta font-semibold transition-colors duration-200',
+                            'inline-flex min-h-9 max-sm:min-h-11 items-center rounded-full border px-3 text-meta font-semibold transition-colors duration-200',
                             d.accion === a.id
                               ? a.id === 'cancelar'
                                 ? 'border-danger bg-danger text-white'

@@ -75,14 +75,13 @@ export function ProveedorIdioma({ children }: { children: ReactNode }) {
   /* Lo que hay fuera del <div id="root">, que React no toca.
      - lang: lo usan los lectores de pantalla para elegir la voz y el navegador
        para ofrecer traducir la página.
-     - title: es la pestaña, y lo que se guarda al marcar el sitio.
+     - title: lo escribe TituloDePagina, que lo saca del <h1> de cada pantalla.
      - description: es lo que enseña Google debajo del enlace.
      Se escriben aquí y no en index.html porque index.html es un archivo
      estático: solo puede estar en un idioma, y estaba en castellano. */
   useEffect(() => {
     const doc = document.documentElement
     doc.lang = idioma
-    document.title = DICCIONARIOS[idioma]['meta.titulo']
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute('content', DICCIONARIOS[idioma]['meta.descripcion'])

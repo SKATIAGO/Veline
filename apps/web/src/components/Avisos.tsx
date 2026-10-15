@@ -117,7 +117,7 @@ function Tarjeta({ a }: { a: Aviso }) {
             a.accion!.onClick()
             quitar(a.id)
           }}
-          className="min-h-9 shrink-0 rounded-full px-3 text-[14px] font-bold text-accent transition-colors duration-200 hover:bg-ink-2"
+          className="min-h-9 max-sm:min-h-11 shrink-0 rounded-full px-3 text-[14px] font-bold text-accent transition-colors duration-200 hover:bg-ink-2"
         >
           {a.accion.texto}
         </button>

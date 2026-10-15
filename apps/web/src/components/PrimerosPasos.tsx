@@ -101,7 +101,7 @@ export function PrimerosPasos({
             {!p.hecho && (
               <Link
                 to={p.to}
-                className="inline-flex min-h-9 items-center rounded-full bg-brand px-3.5 text-meta font-semibold text-white transition-colors duration-200 hover:bg-brand-dark"
+                className="inline-flex min-h-9 max-sm:min-h-11 items-center rounded-full bg-brand px-3.5 text-meta font-semibold text-white transition-colors duration-200 hover:bg-brand-dark"
               >
                 {p.boton}
               </Link>

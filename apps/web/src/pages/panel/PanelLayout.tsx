@@ -897,7 +897,7 @@ export function PanelLayout() {
                 aria-label={t('panel.tuPerfil')}
                 className={({ isActive }) =>
                   cx(
-                    'inline-flex min-h-10 items-center rounded-full px-1',
+                    'inline-flex min-h-11 items-center rounded-full px-1',
                     isActive ? 'bg-ink' : 'hover:bg-canvas',
                   )
                 }

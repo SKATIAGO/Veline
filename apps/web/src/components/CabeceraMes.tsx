@@ -49,7 +49,7 @@ export function CabeceraMes({
                 setAnioSelector(mes.getFullYear())
                 setSelectorAbierto((v) => !v)
               }}
-              className="font-display text-ui font-semibold text-ink capitalize transition-colors hover:text-brand-text sm:text-subheading"
+              className="-my-2.5 inline-flex min-h-11 items-center font-display text-ui font-semibold text-ink capitalize transition-colors hover:text-brand-text sm:text-subheading"
             >
               {monthLong(mes.getMonth(), idioma)} {mes.getFullYear()}
             </button>
@@ -105,7 +105,7 @@ export function CabeceraMes({
             type="button"
             aria-label={t('fecha.mesAnterior')}
             onClick={() => onCambiarMes(addMonths(mes, -1))}
-            className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-9"
+            className="flex size-11 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-10"
           >
             ‹
           </button>
@@ -113,7 +113,7 @@ export function CabeceraMes({
             type="button"
             aria-label={t('fecha.mesSiguiente')}
             onClick={() => onCambiarMes(addMonths(mes, 1))}
-            className="flex size-8 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-9"
+            className="flex size-11 items-center justify-center rounded-full text-subheading leading-none text-brand-text transition-colors hover:bg-brand/10 sm:size-10"
           >
             ›
           </button>

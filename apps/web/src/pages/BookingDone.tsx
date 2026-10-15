@@ -212,7 +212,7 @@ export function BookingDone() {
             {t('hecha.guardaEnlace')}{' '}
             <Link
               to={`/reserva/${booking.code}`}
-              className="inline-flex min-h-9 items-center px-1 font-semibold text-brand-text"
+              className="inline-flex min-h-9 max-sm:min-h-11 items-center px-1 font-semibold text-brand-text"
             >
               /reserva/{booking.code}
             </Link>

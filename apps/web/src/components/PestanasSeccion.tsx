@@ -59,7 +59,7 @@ export function PestanasSeccion({ seccion }: { seccion: SeccionConPestanas }) {
               }}
               className={({ isActive }) =>
                 cx(
-                  'inline-flex min-h-9 items-center rounded-full px-4 text-meta font-semibold whitespace-nowrap',
+                  'inline-flex min-h-9 max-sm:min-h-11 items-center rounded-full px-4 text-meta font-semibold whitespace-nowrap',
                   'transition-colors duration-200',
                   isActive ? 'bg-surface text-ink shadow-raised' : 'text-body-2 hover:text-ink',
                 )

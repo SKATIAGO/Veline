@@ -204,7 +204,7 @@ export function Pricing() {
                           ? `?subject=${encodeURIComponent(t(extra.asunto))}`
                           : ''
                       }`}
-                      className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text hover:text-ink"
+                      className="inline-flex min-h-10 items-center rounded-full bg-cream px-3 text-meta font-semibold text-brand-text hover:text-ink"
                     >
                       {t('pre.escribenos')}
                     </a>

@@ -209,7 +209,7 @@ function IconoSocial({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="grid size-9 shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-canvas hover:text-brand"
+      className="grid size-11 shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-canvas hover:text-brand"
     >
       <span className="size-[19px]">{children}</span>
     </a>
@@ -268,16 +268,16 @@ function Footer() {
           {columns.map((col) => (
             <div key={col.title}>
               <div className="mb-3.5 text-meta font-semibold text-ink">{t(col.title)}</div>
-              {/* -my-1.5 compensa el padding: el blanco pulsable crece a 32 px
+              {/* -my-2.5 compensa el padding: el blanco pulsable llega a 44 px
                   sin que la lista se vea más separada de lo que estaba. */}
-              <div className="-my-1.5 flex flex-col text-body text-subtle">
+              <div className="-my-2.5 flex flex-col text-body text-subtle">
                 {col.links.map((l) =>
                   l.href ? (
-                    <a key={l.label} href={l.href} className="py-1.5 hover:text-brand">
+                    <a key={l.label} href={l.href} className="py-2.5 hover:text-brand">
                       {t(l.label)}
                     </a>
                   ) : (
-                    <Link key={l.label} to={l.to!} className="py-1.5 hover:text-brand">
+                    <Link key={l.label} to={l.to!} className="py-2.5 hover:text-brand">
                       {t(l.label)}
                     </Link>
                   ),

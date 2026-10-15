@@ -114,7 +114,7 @@ export function Login() {
 
         <Link
           to="/recuperar"
-          className="mt-5 block text-center text-meta font-medium text-muted hover:text-brand"
+          className="mx-auto mt-2 flex min-h-11 items-center justify-center text-meta font-medium text-muted hover:text-brand"
         >
           {t('acc.olvidaste')}
         </Link>
