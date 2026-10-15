@@ -1130,7 +1130,7 @@ export const es = {
   'pre.siQuieresMas': 'Si quieres que hagamos más',
   'pre.extrasTexto':
     'Se contratan cuando los necesitas y se quitan cuando no. Nada de esto es obligatorio para empezar a recibir reservas.',
-  'pre.webNombre': 'Creación de web y app móvil',
+  'pre.webNombre': 'Creación de web',
   'pre.webPrecio': 'Desde 350 €',
   'pre.pagoUnico': 'pago único',
   'pre.webI1': 'Imagen propia de tu negocio',

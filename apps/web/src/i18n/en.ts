@@ -1128,7 +1128,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.siQuieresMas': 'If you want us to do more',
   'pre.extrasTexto':
     'You take them on when you need them and drop them when you don’t. None of this is required to start taking bookings.',
-  'pre.webNombre': 'Website and mobile app',
+  'pre.webNombre': 'Website creation',
   'pre.webPrecio': 'From €350',
   'pre.pagoUnico': 'one-off payment',
   'pre.webI1': 'Your business’s own look',
