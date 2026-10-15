@@ -125,3 +125,36 @@ export function LocalDeLaPagina({ que }: { que: string }) {
     </p>
   )
 }
+
+/**
+ * Lo que va en el centro de la cabecera del móvil.
+ *
+ * Con selector, el selector ocupa todo el ancho y el nombre del negocio se
+ * quita: quien trabaja ahí ya sabe en qué negocio está, y el nombre solo le
+ * quitaba sitio a lo que sí cambia, que es el local. Sin selector (un solo
+ * local, o un empleado de uno), se queda el nombre del negocio, y debajo el
+ * local si el negocio tiene varios.
+ */
+export function CentroCabeceraMovil({ nombre }: { nombre: string }) {
+  const { varios, negocioConVarios, nombreActual } = useLocal()
+
+  if (varios) {
+    return (
+      <div className="min-w-0 flex-1">
+        <SelectorLocal />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-body font-semibold text-ink">{nombre}</p>
+      {negocioConVarios && nombreActual && (
+        <p className="flex min-w-0 items-center gap-1 text-caption font-semibold text-muted">
+          <Alfiler className="size-3 text-brand" />
+          <span className="truncate">{nombreActual}</span>
+        </p>
+      )}
+    </div>
+  )
+}

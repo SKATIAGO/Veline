@@ -1,7 +1,7 @@
 import { useId, useMemo, useRef, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LocalProvider } from '../../lib/local'
-import { SelectorLocal } from '../../components/SelectorLocal'
+import { CentroCabeceraMovil, SelectorLocal } from '../../components/SelectorLocal'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
@@ -825,16 +825,13 @@ export function PanelLayout() {
             barra de abajo, que está a un dedo. */}
           <header className="border-b border-line bg-cream md:hidden">
             <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <LogoMark size={22} />
+              <LogoMark size={22} />
+              {esPlataforma ? (
                 <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">
-                  {esPlataforma ? t('panel.plataforma') : (negocioActual?.name ?? t('panel.panel'))}
+                  {t('panel.plataforma')}
                 </span>
-              </div>
-              {!esPlataforma && (
-                <div className="max-w-[46%] min-w-0">
-                  <SelectorLocal compacto />
-                </div>
+              ) : (
+                <CentroCabeceraMovil nombre={negocioActual?.name ?? t('panel.panel')} />
               )}
               <NavLink
                 to={rutaPerfil}
