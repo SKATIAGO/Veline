@@ -1,6 +1,6 @@
 import { useId, useMemo, useRef, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { LocalProvider } from '../../lib/local'
+import { LocalProvider, useLocal } from '../../lib/local'
 import { CentroCabeceraMovil, SelectorLocal } from '../../components/SelectorLocal'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -65,6 +65,41 @@ const ROL_CLAVE = {
  * único que cambia al resolverse es el contenido. Se sustituyen huecos por
  * cosas en lugar de construir la página delante del usuario.
  */
+/**
+ * No se ha podido comprobar la sesión (límite de peticiones, servidor caído,
+ * sin red). Eso no es «sin sesión»: mandar al login aquí sacaba a la gente del
+ * panel por un fallo pasajero, justo con la wifi del local repartida entre
+ * varios. Se avisa y se deja reintentar.
+ */
+function SesionNoVerificada() {
+  const { t } = useIdioma()
+  const { refresh } = useAuth()
+  const [reintentando, setReintentando] = useState(false)
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
+      <div className="w-full max-w-sm" role="alert">
+        <EmptyState
+          title={t('sesion.noVerificada.titulo')}
+          hint={t('sesion.noVerificada.texto')}
+          action={
+            <Button
+              loading={reintentando}
+              onClick={async () => {
+                setReintentando(true)
+                await refresh()
+                setReintentando(false)
+              }}
+            >
+              {t('sesion.noVerificada.reintentar')}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  )
+}
+
 function MarcoCargando() {
   const { t } = useIdioma()
 
@@ -123,9 +158,26 @@ function MarcoCargando() {
   )
 }
 
+/**
+ * El contenido de la sección. Espera a saber qué locales ve quien mira: si no,
+ * cada pantalla pediría sus datos sin local y los repetiría al saberlo.
+ */
+function ContenidoPanel() {
+  const { listo } = useLocal()
+  if (!listo) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy="true">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-40" />
+      </div>
+    )
+  }
+  return <Outlet />
+}
+
 /** /panel sin más: cada rol aterriza donde le corresponde. */
 export function PanelIndex() {
-  const { user, loading } = useAuth()
+  const { user, loading, fallo } = useAuth()
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['panel', 'businesses'],
     queryFn: api.panelBusinesses,
@@ -133,6 +185,7 @@ export function PanelIndex() {
   })
 
   if (loading) return <MarcoCargando />
+  if (!user && fallo) return <SesionNoVerificada />
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'SUPERADMIN' && user.businessSlug) {
     return <Navigate to={`/panel/${user.businessSlug}`} replace />
@@ -495,7 +548,7 @@ export function PanelLayout() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, loading, logout } = useAuth()
+  const { user, loading, fallo, logout } = useAuth()
   const [masAbierto, setMasAbierto] = useState(false)
 
   const esSuperadmin = user?.role === 'SUPERADMIN'
@@ -510,6 +563,7 @@ export function PanelLayout() {
   })
 
   if (loading) return <MarcoCargando />
+  if (!user && fallo) return <SesionNoVerificada />
   /* Con la dirección de vuelta: quien abre un enlace del panel o se queda sin
      sesión en Horario tiene que volver a Horario, no a la agenda. */
   if (!user) {
@@ -867,7 +921,7 @@ export function PanelLayout() {
             key={location.pathname}
             className="section-enter mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
           >
-            <Outlet />
+            <ContenidoPanel />
           </main>
         </div>
 

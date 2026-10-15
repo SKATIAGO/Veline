@@ -1929,4 +1929,12 @@ export const en: Record<keyof typeof es, string> = {
   'local.queHorario': 'its own hours',
   'local.queCierres': 'its own closures',
   'cierre.tituloEn': 'Close days at {local}',
+  'error.demasiadasPeticiones': 'Too many requests in a row. Wait a moment and try again.',
+  'error.sinAcceso': "You don't have permission to do this.",
+  'error.servidor': 'The server is not responding right now. Try again in a moment.',
+  'error.sinConexion': 'No connection. Check your internet and try again.',
+  'sesion.noVerificada.titulo': "We couldn't check your session",
+  'sesion.noVerificada.texto':
+    "You're still signed in, but we can't verify your session right now. Try again in a few seconds.",
+  'sesion.noVerificada.reintentar': 'Try again',
 }

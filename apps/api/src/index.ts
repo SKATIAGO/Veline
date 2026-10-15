@@ -50,8 +50,26 @@ await app.register(cookie)
  * abuso: crear reservas en masa o recorrer códigos de reserva hasta dar con
  * uno válido y leer los datos del cliente.
  */
+/**
+ * Dos cupos. El del público (reservas, buscador) es el que protege del abuso:
+ * 120 por minuto y IP. El del panel es más holgado y va aparte: un salón con
+ * cinco personas detrás de la misma wifi, o un móvil con CGNAT, comparten IP, y
+ * cada pantalla del panel lanza varias lecturas. Con un solo cupo, el panel se
+ * quedaba sin respuesta (y echaba al login) justo en el mostrador, en hora punta.
+ * Todo lo del panel exige sesión, así que no es una puerta de abuso.
+ */
+const esDelPanel = (url: string) =>
+  url.startsWith('/api/panel') ||
+  url.startsWith('/api/admin') ||
+  url.startsWith('/api/audit') ||
+  url.startsWith('/api/auth/me')
+
 await app.register(rateLimit, {
-  max: Number(process.env.RATE_LIMIT_MAX ?? 120),
+  max: (req) =>
+    esDelPanel(req.url)
+      ? Number(process.env.RATE_LIMIT_PANEL_MAX ?? 600)
+      : Number(process.env.RATE_LIMIT_MAX ?? 120),
+  keyGenerator: (req) => `${esDelPanel(req.url) ? 'p' : 'o'}:${req.ip}`,
   timeWindow: '1 minute',
   // La salud la consulta el despliegue en bucle: no debe agotar el cupo.
   allowList: (req) => req.url === '/api/health',

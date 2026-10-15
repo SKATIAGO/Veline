@@ -1926,4 +1926,13 @@ export const es = {
   'local.queHorario': 'su horario',
   'local.queCierres': 'sus cierres',
   'cierre.tituloEn': 'Cerrar días en {local}',
+  'error.demasiadasPeticiones':
+    'Demasiadas peticiones seguidas. Espera un momento e inténtalo de nuevo.',
+  'error.sinAcceso': 'No tienes permiso para hacer esto.',
+  'error.servidor': 'El servidor no responde ahora mismo. Inténtalo de nuevo en un momento.',
+  'error.sinConexion': 'Sin conexión. Revisa tu internet e inténtalo de nuevo.',
+  'sesion.noVerificada.titulo': 'No hemos podido comprobar tu sesión',
+  'sesion.noVerificada.texto':
+    'Tu sesión sigue abierta, pero ahora mismo no logramos verificarla. Reintenta en unos segundos.',
+  'sesion.noVerificada.reintentar': 'Reintentar',
 } as const

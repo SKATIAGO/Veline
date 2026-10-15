@@ -63,6 +63,12 @@ function leerGuardado(): Idioma {
   return 'es'
 }
 
+/** El texto de una clave en el idioma guardado, para quien no está dentro de
+    un componente (los avisos globales de errores de red). */
+export function textoFuera(clave: Clave): string {
+  return DICCIONARIOS[leerGuardado()][clave] ?? es[clave]
+}
+
 export function ProveedorIdioma({ children }: { children: ReactNode }) {
   const [idioma, setIdioma] = useState<Idioma>(leerGuardado)
 

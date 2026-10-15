@@ -26,6 +26,10 @@ export interface LocalVisible {
 }
 
 interface ContextoLocal {
+  /** Ya se sabe qué locales ve quien mira. Hasta entonces las pantallas
+      esperan: pedir sus datos antes y repetirlos al saberlo doblaba las
+      peticiones y hacía parpadear la lista. */
+  listo: boolean
   /** Los locales que puede ver quien abre el panel. */
   locales: LocalVisible[]
   /** Si hay algo que elegir: más de un local a la vista. */
@@ -45,6 +49,7 @@ interface ContextoLocal {
 }
 
 const VACIO: ContextoLocal = {
+  listo: true,
   locales: [],
   varios: false,
   negocioConVarios: false,
@@ -81,7 +86,7 @@ export function LocalProvider({
   slug: string | undefined
   children: ReactNode
 }) {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['panel', slug, 'mis-locales'],
     queryFn: () => api.misLocales(slug!),
     enabled: !!slug,
@@ -100,28 +105,32 @@ export function LocalProvider({
   )
 
   const valor = useMemo<ContextoLocal>(() => {
-    if (!slug || !data) return VACIO
+    if (!slug) return VACIO
+    // Sin respuesta (cargando, o un fallo): nada elegido. Si falla, el panel
+    // sigue; el servidor, sin local pedido, ya aplica lo que toca a cada uno.
+    if (!data) return { ...VACIO, listo: !isLoading }
     const locales = data.locales
     const pedido = slug in elegidos ? elegidos[slug] : leer(slug)
     // Solo vale si es de los que se pueden ver: un local cerrado o ajeno se olvida.
     const valido = pedido && locales.some((l) => l.id === pedido) ? pedido : null
-    const actual =
-      locales.length === 1
-        ? locales[0]!.id
-        : !data.verTodos
-          ? (valido ?? locales[0]?.id ?? null)
-          : valido
+    /* Solo hay un local «elegido» cuando de verdad se ha podido elegir entre
+       varios. Con uno solo, o con un empleado de uno, no hay elección: no se
+       manda ningún local y el servidor aplica el que toca. Así la clave de las
+       consultas no cambia al cargar y no se repite ninguna petición. */
+    const actual = locales.length > 1 && data.verTodos ? valido : null
+    const unico = locales.length === 1 ? locales[0]! : null
     return {
+      listo: true,
       locales,
-      varios: locales.length > 1,
+      varios: locales.length > 1 && data.verTodos,
       negocioConVarios: data.total > 1,
       verTodos: data.verTodos,
       actual,
       elegir,
-      nombreActual: locales.find((l) => l.id === actual)?.name ?? null,
+      nombreActual: (locales.find((l) => l.id === actual) ?? unico)?.name ?? null,
       paraEditar: actual ?? locales[0]?.id ?? null,
     }
-  }, [slug, data, elegidos, elegir])
+  }, [slug, data, isLoading, elegidos, elegir])
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }

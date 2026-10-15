@@ -35,8 +35,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
+    /* El servidor cuenta los errores en `error`, salvo el límite de peticiones,
+       que sale del plugin de límites con su texto en `message`. */
+    const { error, message } = body as { error?: string; message?: string }
     throw new ApiError(
-      (body as { error?: string }).error ?? 'Algo ha ido mal',
+      error ?? (res.status === 429 ? message : undefined) ?? 'Algo ha ido mal',
       res.status,
       (body as { details?: unknown }).details,
     )

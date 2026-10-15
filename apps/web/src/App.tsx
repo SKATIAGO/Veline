@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { useAuth } from './lib/auth'
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Landing } from './pages/Landing'
 import { Search } from './pages/Search'
@@ -59,6 +60,19 @@ export function App() {
   )
 }
 
+/**
+ * Las pantallas de configuración y de dinero son de quien administra. Un
+ * empleado que llegue por una dirección (un enlace, el historial) vuelve a la
+ * agenda.
+ */
+function SoloAdministracion() {
+  const { slug = '' } = useParams()
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (user?.role === 'EMPLEADO') return <Navigate to={`/panel/${slug}`} replace />
+  return <Outlet />
+}
+
 /** /panel/:slug/calendario → la pestaña Calendario de Agenda. */
 function AlCalendario() {
   const { slug = '' } = useParams()
@@ -89,23 +103,29 @@ function AppRoutes() {
         {/* El calendario es ahora una pestaña de Agenda. La dirección vieja
             sigue llevando a su sitio. */}
         <Route path="calendario" element={<AlCalendario />} />
-        <Route path="contabilidad" element={<PanelContabilidad />} />
-        <Route path="servicios" element={<PanelServices />} />
-        <Route path="servicios/extras" element={<PanelExtras />} />
-        <Route path="horario" element={<PanelHours />} />
-        <Route path="cierres" element={<PanelCierres />} />
+        {/* Antes de entrar a ninguna de estas, se comprueba el rol. El menú ya
+            las oculta a quien solo lleva la agenda, pero la dirección
+            funcionaba: el servidor respondía 403 y la pantalla lo leía como
+            «no hay nada», con su botón de añadir. */}
+        <Route element={<SoloAdministracion />}>
+          <Route path="contabilidad" element={<PanelContabilidad />} />
+          <Route path="servicios" element={<PanelServices />} />
+          <Route path="servicios/extras" element={<PanelExtras />} />
+          <Route path="horario" element={<PanelHours />} />
+          <Route path="cierres" element={<PanelCierres />} />
+          <Route path="locales" element={<PanelLocales />} />
+          <Route path="equipo" element={<PanelEquipo />} />
+          <Route path="negocio" element={<PanelNegocio />} />
+          <Route path="negocio/fotos" element={<PanelFotos />} />
+          <Route path="enlaces" element={<PanelEnlaces />} />
+          <Route path="facturacion" element={<PanelMiCuenta />} />
+          <Route path="actividad" element={<PanelActividad />} />
+        </Route>
         {/* Empleados y Administrador eran dos pantallas de la misma gente:
             ahora son Equipo. La dirección vieja sigue llevando a su sitio. */}
         <Route path="personas" element={<Navigate to="../equipo" replace />} />
         <Route path="clientes" element={<PanelClientes />} />
         <Route path="fichaje" element={<PanelFichaje />} />
-        <Route path="locales" element={<PanelLocales />} />
-        <Route path="equipo" element={<PanelEquipo />} />
-        <Route path="negocio" element={<PanelNegocio />} />
-        <Route path="negocio/fotos" element={<PanelFotos />} />
-        <Route path="enlaces" element={<PanelEnlaces />} />
-        <Route path="facturacion" element={<PanelMiCuenta />} />
-        <Route path="actividad" element={<PanelActividad />} />
         <Route path="cuenta" element={<PanelCuenta />} />
         <Route path="*" element={<PanelNoExiste />} />
       </Route>

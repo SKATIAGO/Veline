@@ -22,9 +22,21 @@ interface FieldProps {
   /** El «(opcional)» ya traducido; ausente si el campo es obligatorio. */
   optional?: string
   multiline?: boolean
+  autoComplete?: string
+  inputMode?: 'tel' | 'email' | 'text'
 }
 
+/**
+ * Un campo del formulario de la reserva.
+ *
+ * Lleva su `id` para poder enfocarlo desde fuera (al fallar la validación se
+ * lleva al primer campo con error), su error enlazado con `aria-describedby`
+ * y `aria-invalid`, y el `autocomplete` y el teclado que le corresponden: en
+ * el móvil, que se ofrezcan los datos guardados es lo que más acorta este
+ * paso, que es donde más gente se queda.
+ */
 function Field({
+  id,
   label,
   value,
   onChange,
@@ -33,35 +45,48 @@ function Field({
   error,
   optional,
   multiline,
-}: FieldProps) {
+  autoComplete,
+  inputMode,
+}: FieldProps & { id: string }) {
   const cls =
     'w-full rounded-lg border bg-surface px-4 py-3.5 text-sm text-ink outline-none placeholder:text-subtle ' +
     (error ? 'border-danger' : 'border-line focus:border-brand')
+  const errorId = `${id}-error`
+  const comunes = {
+    id,
+    value,
+    placeholder,
+    autoComplete,
+    'aria-invalid': error ? (true as const) : undefined,
+    'aria-describedby': error ? errorId : undefined,
+    className: cls,
+  }
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-meta font-semibold text-body">
+    <div className="block">
+      <label htmlFor={id} className="mb-1.5 block text-meta font-semibold text-body">
         {label}
         {optional && <span className="font-normal text-subtle"> {optional}</span>}
-      </span>
+      </label>
       {multiline ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={3}
-          className={cls}
-        />
+        <textarea {...comunes} onChange={(e) => onChange(e.target.value)} rows={3} />
       ) : (
         <input
+          {...comunes}
           type={type}
-          value={value}
+          inputMode={inputMode}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={cls}
         />
       )}
-      {error && <span className="mt-1.5 block text-meta font-semibold text-danger">{error}</span>}
-    </label>
+      {error && (
+        <span
+          id={errorId}
+          role="alert"
+          className="mt-1.5 block text-meta font-semibold text-danger"
+        >
+          {error}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -176,6 +201,18 @@ export function BookingConfirm() {
         }
       }
       setErrors(next)
+      /* Al primer campo con error, a la vista y con el foco. El botón está
+         abajo del todo: sin esto, en el móvil los errores salían arriba,
+         fuera de pantalla, y parecía que el botón no hacía nada. */
+      const primero = (['name', 'phone', 'email'] as const).find((k) => next[k])
+      if (primero) {
+        setTimeout(() => {
+          const el = document.getElementById(`confirmar-${primero}`)
+          const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          el?.scrollIntoView({ block: 'center', behavior: sinMovimiento ? 'auto' : 'smooth' })
+          el?.focus({ preventScroll: true })
+        }, 0)
+      }
       return
     }
     setErrors({})
@@ -203,27 +240,36 @@ export function BookingConfirm() {
 
           <div className="flex max-w-[440px] flex-col gap-5">
             <Field
+              id="confirmar-name"
               label={t('confirmar.nombre')}
               value={name}
               onChange={setName}
+              autoComplete="name"
               error={errors.name}
             />
             <Field
+              id="confirmar-phone"
               label={t('confirmar.telefono')}
               value={phone}
               onChange={setPhone}
               type="tel"
+              autoComplete="tel"
+              inputMode="tel"
               error={errors.phone}
             />
             <Field
+              id="confirmar-email"
               label={t('confirmar.email')}
               value={email}
               onChange={setEmail}
               type="email"
+              autoComplete="email"
+              inputMode="email"
               optional={t('comun.opcional')}
               error={errors.email}
             />
             <Field
+              id="confirmar-notes"
               label={t('confirmar.notas')}
               value={notes}
               onChange={setNotes}

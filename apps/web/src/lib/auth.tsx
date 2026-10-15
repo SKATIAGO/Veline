@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, type AuthUser } from './api'
+import { reintentarLecturas } from './errores'
 
 /**
  * Sesión del panel. La cookie es httpOnly (el JS no puede leerla), así que la
@@ -10,6 +11,9 @@ import { api, ApiError, type AuthUser } from './api'
 interface AuthState {
   user: AuthUser | null
   loading: boolean
+  /** No se ha podido saber si hay sesión (límite de peticiones, servidor caído,
+      sin red). No es «sin sesión»: no hay que mandar al login. */
+  fallo: boolean
   refresh: () => Promise<void>
   logout: () => Promise<void>
 }
@@ -17,6 +21,7 @@ interface AuthState {
 const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
+  fallo: false,
   refresh: async () => {},
   logout: async () => {},
 })
@@ -24,7 +29,7 @@ const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
       try {
@@ -36,7 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     staleTime: 5 * 60 * 1000,
-    retry: false,
+    // Solo se reintenta lo que se arregla solo. Un 401 ya vuelve como null.
+    retry: reintentarLecturas,
   })
 
   const refresh = async () => {
@@ -65,7 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user: data ?? null, loading: isLoading, refresh, logout }}>
+    <AuthContext.Provider
+      value={{ user: data ?? null, loading: isLoading, fallo: isError && !data, refresh, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )
