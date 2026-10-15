@@ -1920,4 +1920,13 @@ export const en: Record<keyof typeof es, string> = {
   'fotos.hacerPrincipal': 'Make main photo',
   'fotos.anadir': 'Add',
   'fotos.pista': 'The main photo is the one shown in the list. Tap ★ on another to change it.',
+  'local.selector': 'Location you are viewing',
+  'local.todos': 'All locations',
+  'local.pendiente': '{nombre} (pending approval)',
+  'local.local': 'Location',
+  'local.cadaUnoTiene': 'Each location has {que}. Which one?',
+  'local.deEste': 'You are viewing {local}. Change it in the menu.',
+  'local.queHorario': 'its own hours',
+  'local.queCierres': 'its own closures',
+  'cierre.tituloEn': 'Close days at {local}',
 }

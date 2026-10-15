@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import { Button, Card, EmptyState, PageHeader } from '../../components/ui'
 import { CerrarDias } from './CerrarDias'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
+import { LocalDeLaPagina } from '../../components/SelectorLocal'
 import { useIdioma, usePlural } from '../../i18n/idioma'
 import { ConfirmDialog } from '../../components/Confirmar'
 import { aviso } from '../../components/Avisos'
@@ -29,9 +31,12 @@ export function PanelCierres() {
       year: 'numeric',
     })
 
+  // Los cierres son de cada local: los del elegido en el menú (o del primero
+  // si se están mirando todos, y entonces se pide elegir uno arriba).
+  const { paraEditar: local } = useLocal()
   const { data: cierres } = useQuery({
-    queryKey: ['panel', slug, 'closures'],
-    queryFn: () => api.panelClosures(slug),
+    queryKey: ['panel', slug, 'closures', local],
+    queryFn: () => api.panelClosures(slug, local),
   })
 
   const [cerrando, setCerrando] = useState(false)
@@ -44,7 +49,7 @@ export function PanelCierres() {
   }
 
   const borrarCierre = useMutation({
-    mutationFn: (c: { ids: string[]; dias: string }) => api.deleteClosure(slug, c.ids),
+    mutationFn: (c: { ids: string[]; dias: string }) => api.deleteClosure(slug, c.ids, local),
     onSuccess: (_r, c) => {
       setAAbrir(null)
       invalidarCierres()
@@ -60,6 +65,7 @@ export function PanelCierres() {
         actions={<Button onClick={() => setCerrando(true)}>{t('cierre.cerrarDias')}</Button>}
       />
       <PestanasSeccion seccion="horario" />
+      <LocalDeLaPagina que={t('local.queCierres')} />
 
       <div>
         {cierres && cierres.length === 0 && (

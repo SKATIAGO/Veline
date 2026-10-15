@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import { CabeceraMes } from '../../components/CabeceraMes'
 import { Button, Card, EmptyState, PageHeader, Skeleton } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
@@ -42,13 +43,14 @@ function celdaCsv(valor: string) {
  */
 export function PanelContabilidad() {
   const { slug = '' } = useParams()
+  const { actual: local } = useLocal()
   const { t, idioma } = useIdioma()
   const [mes, setMes] = useState(() => startOfMonth(new Date()))
 
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes)],
+    queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes), local],
     queryFn: () =>
-      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)) }),
+      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)), local }),
   })
 
   const dias = useMemo(() => {

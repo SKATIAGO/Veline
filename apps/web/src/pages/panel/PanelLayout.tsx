@@ -1,5 +1,7 @@
 import { useId, useMemo, useRef, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { LocalProvider } from '../../lib/local'
+import { SelectorLocal } from '../../components/SelectorLocal'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
@@ -705,123 +707,78 @@ export function PanelLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
-      {/* ── Menú lateral (escritorio) ──
+    <LocalProvider slug={esPlataforma ? undefined : slug}>
+      <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
+        {/* ── Menú lateral (escritorio) ──
           Se queda quieto mientras la página baja, y se desplaza por su cuenta
           si algún día no cabe. */}
-      <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
-        <div className="flex flex-col gap-3 px-4 pt-5 pb-4">
-          <div className="flex items-center gap-2">
-            <Logo size={19} />
-            <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
-              {t('panel.panel')}
-            </span>
-          </div>
-          {/* Qué estás mirando, siempre a la vista: es lo que antes decía
+        <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
+          <div className="flex flex-col gap-3 px-4 pt-5 pb-4">
+            <div className="flex items-center gap-2">
+              <Logo size={19} />
+              <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
+                {t('panel.panel')}
+              </span>
+            </div>
+            {/* Qué estás mirando, siempre a la vista: es lo que antes decía
               «Estás gestionando…» en una línea suelta sobre el contenido. */}
-          {esPlataforma ? (
-            <p className="text-meta font-semibold text-body-2">{t('panel.gestionPlataforma')}</p>
-          ) : (
-            (selectorNegocio ?? (
-              <p className="truncate text-meta font-semibold text-body-2">
-                {negocioActual?.name ?? ''}
-              </p>
-            ))
-          )}
-        </div>
-
-        <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label={t('panel.secciones')}>
-          {grupos.map((grupo) => (
-            <div key={grupo} className="mb-1">
-              <p className="px-3 pt-3 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
-                {t(grupo)}
-              </p>
-              <ul className="flex flex-col gap-0.5">
-                {secciones
-                  .filter((s) => s.grupo === grupo)
-                  .map((s) => (
-                    <li key={s.to}>
-                      <ItemLateral seccion={s} />
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
-
-        <div className="flex flex-col gap-1 border-t border-line px-2 py-3">
-          {esSuperadmin && (
-            <button
-              type="button"
-              onClick={() =>
-                irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
-              }
-              className={cx(
-                'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body font-medium',
-                'text-body-2 transition-colors duration-200 hover:bg-canvas/60 hover:text-ink',
-              )}
-            >
-              <Icono className="size-[19px] shrink-0 text-subtle">
-                {esPlataforma ? TRAZOS.agenda : TRAZOS.cobros}
-              </Icono>
-              <span className="truncate">
-                {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
-              </span>
-            </button>
-          )}
-
-          <NavLink
-            to={rutaPerfil}
-            onClick={(e) => {
-              if (!hayCambios()) return
-              e.preventDefault()
-              siDescarta(() => navigate(rutaPerfil))
-            }}
-            className={({ isActive }) =>
-              cx(
-                'flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-meta',
-                'transition-colors duration-200',
-                isActive ? 'bg-ink text-cream' : 'text-body-2 hover:bg-canvas/60 hover:text-ink',
-              )
-            }
-          >
-            <span
-              aria-hidden
-              className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-caption font-bold text-white"
-            >
-              {user.name.trim().charAt(0).toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1 truncate">
-              <span className="block truncate font-semibold">{user.name}</span>
-              <span className="block truncate text-caption opacity-80">
-                {t(ROL_CLAVE[user.role])}
-              </span>
-            </span>
-          </NavLink>
-
-          {/* El idioma, junto a la cuenta: es una preferencia de quien mira,
-              como su nombre y su rol, no una sección más del negocio. */}
-          <div className="flex items-center justify-between gap-2 px-1 pt-1">
-            <Button size="sm" variant="quiet" className="justify-start px-2" onClick={salir}>
-              {t('panel.salir')}
-            </Button>
-            <SelectorIdioma />
+            {esPlataforma ? (
+              <p className="text-meta font-semibold text-body-2">{t('panel.gestionPlataforma')}</p>
+            ) : (
+              <>
+                {/* «||» y no «??»: sin selector vale false, no null, y con «??»
+                    el nombre del negocio no salía nunca. */}
+                {selectorNegocio || (
+                  <p className="truncate text-meta font-semibold text-body-2">
+                    {negocioActual?.name ?? ''}
+                  </p>
+                )}
+                {/* Con varios locales, de cuál es lo que se ve. */}
+                <SelectorLocal />
+              </>
+            )}
           </div>
-        </div>
-      </aside>
 
-      <div className="min-w-0">
-        {/* ── Cabecera (solo móvil) ──
-            Una sola línea: marca, dónde estás y tú. Todo lo demás vive en la
-            barra de abajo, que está a un dedo. */}
-        <header className="border-b border-line bg-cream md:hidden">
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <LogoMark size={22} />
-              <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">
-                {esPlataforma ? t('panel.plataforma') : (negocioActual?.name ?? t('panel.panel'))}
-              </span>
-            </div>
+          <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label={t('panel.secciones')}>
+            {grupos.map((grupo) => (
+              <div key={grupo} className="mb-1">
+                <p className="px-3 pt-3 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
+                  {t(grupo)}
+                </p>
+                <ul className="flex flex-col gap-0.5">
+                  {secciones
+                    .filter((s) => s.grupo === grupo)
+                    .map((s) => (
+                      <li key={s.to}>
+                        <ItemLateral seccion={s} />
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+
+          <div className="flex flex-col gap-1 border-t border-line px-2 py-3">
+            {esSuperadmin && (
+              <button
+                type="button"
+                onClick={() =>
+                  irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
+                }
+                className={cx(
+                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-body font-medium',
+                  'text-body-2 transition-colors duration-200 hover:bg-canvas/60 hover:text-ink',
+                )}
+              >
+                <Icono className="size-[19px] shrink-0 text-subtle">
+                  {esPlataforma ? TRAZOS.agenda : TRAZOS.cobros}
+                </Icono>
+                <span className="truncate">
+                  {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
+                </span>
+              </button>
+            )}
+
             <NavLink
               to={rutaPerfil}
               onClick={(e) => {
@@ -829,186 +786,256 @@ export function PanelLayout() {
                 e.preventDefault()
                 siDescarta(() => navigate(rutaPerfil))
               }}
-              aria-label={t('panel.tuPerfil')}
               className={({ isActive }) =>
                 cx(
-                  'inline-flex min-h-10 items-center rounded-full px-1',
-                  isActive ? 'bg-ink' : 'hover:bg-canvas',
+                  'flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-meta',
+                  'transition-colors duration-200',
+                  isActive ? 'bg-ink text-cream' : 'text-body-2 hover:bg-canvas/60 hover:text-ink',
                 )
               }
             >
               <span
                 aria-hidden
-                className="grid size-8 place-items-center rounded-full bg-brand text-caption font-bold text-white"
+                className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-caption font-bold text-white"
               >
                 {user.name.trim().charAt(0).toUpperCase()}
               </span>
+              <span className="min-w-0 flex-1 truncate">
+                <span className="block truncate font-semibold">{user.name}</span>
+                <span className="block truncate text-caption opacity-80">
+                  {t(ROL_CLAVE[user.role])}
+                </span>
+              </span>
             </NavLink>
-          </div>
-        </header>
 
-        {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila.
+            {/* El idioma, junto a la cuenta: es una preferencia de quien mira,
+              como su nombre y su rol, no una sección más del negocio. */}
+            <div className="flex items-center justify-between gap-2 px-1 pt-1">
+              <Button size="sm" variant="quiet" className="justify-start px-2" onClick={salir}>
+                {t('panel.salir')}
+              </Button>
+              <SelectorIdioma />
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+          {/* ── Cabecera (solo móvil) ──
+            Una sola línea: marca, dónde estás y tú. Todo lo demás vive en la
+            barra de abajo, que está a un dedo. */}
+          <header className="border-b border-line bg-cream md:hidden">
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <LogoMark size={22} />
+                <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">
+                  {esPlataforma ? t('panel.plataforma') : (negocioActual?.name ?? t('panel.panel'))}
+                </span>
+              </div>
+              {!esPlataforma && (
+                <div className="max-w-[46%] min-w-0">
+                  <SelectorLocal compacto />
+                </div>
+              )}
+              <NavLink
+                to={rutaPerfil}
+                onClick={(e) => {
+                  if (!hayCambios()) return
+                  e.preventDefault()
+                  siDescarta(() => navigate(rutaPerfil))
+                }}
+                aria-label={t('panel.tuPerfil')}
+                className={({ isActive }) =>
+                  cx(
+                    'inline-flex min-h-10 items-center rounded-full px-1',
+                    isActive ? 'bg-ink' : 'hover:bg-canvas',
+                  )
+                }
+              >
+                <span
+                  aria-hidden
+                  className="grid size-8 place-items-center rounded-full bg-brand text-caption font-bold text-white"
+                >
+                  {user.name.trim().charAt(0).toUpperCase()}
+                </span>
+              </NavLink>
+            </div>
+          </header>
+
+          {/* El hueco de abajo deja pasar la barra fija sin tapar la última fila.
 
             La key con la ruta monta un <main> nuevo en cada sección, y con él
             la animación vuelve a arrancar: sin ella el contenido se sustituye
             de golpe y cambiar de pestaña se siente como un parpadeo. */}
-        <main
-          key={location.pathname}
-          className="section-enter mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
-        >
-          <Outlet />
-        </main>
-      </div>
+          <main
+            key={location.pathname}
+            className="section-enter mx-auto max-w-[1100px] px-4 py-6 pb-28 sm:px-6 md:py-8 md:pb-10"
+          >
+            <Outlet />
+          </main>
+        </div>
 
-      <nav
-        aria-label={t('panel.navegacion')}
-        className={cx(
-          'fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream md:hidden',
-          'pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(46,33,25,.07)]',
-        )}
-      >
-        <div
-          className="mx-auto grid max-w-md items-center px-2 py-1"
-          style={{
-            gridTemplateColumns: `repeat(${enBarra.length + (conBotonCentral ? 2 : 1)}, 1fr)`,
-          }}
-        >
-          {/* El botón de apuntar va en el centro de verdad, no al final: es
-              donde lo pone cualquier app y donde llega el pulgar. */}
-          {(conBotonCentral ? enBarra.slice(0, Math.ceil(enBarra.length / 2)) : enBarra).map(
-            (s) => (
-              <BotonBarra key={s.to} seccion={s} />
-            ),
+        <nav
+          aria-label={t('panel.navegacion')}
+          className={cx(
+            'fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream md:hidden',
+            'pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(46,33,25,.07)]',
           )}
+        >
+          <div
+            className="mx-auto grid max-w-md items-center px-2 py-1"
+            style={{
+              gridTemplateColumns: `repeat(${enBarra.length + (conBotonCentral ? 2 : 1)}, 1fr)`,
+            }}
+          >
+            {/* El botón de apuntar va en el centro de verdad, no al final: es
+              donde lo pone cualquier app y donde llega el pulgar. */}
+            {(conBotonCentral ? enBarra.slice(0, Math.ceil(enBarra.length / 2)) : enBarra).map(
+              (s) => (
+                <BotonBarra key={s.to} seccion={s} />
+              ),
+            )}
 
-          {conBotonCentral && (
-            <div className="flex justify-center">
-              {/* Apuntar la cita del teléfono es lo que más se hace y estaba
+            {conBotonCentral && (
+              <div className="flex justify-center">
+                {/* Apuntar la cita del teléfono es lo que más se hace y estaba
                   a dos pantallas de distancia. La agenda lo recoge por la
                   URL, así que además es un enlace que se puede guardar. */}
-              <button
-                type="button"
-                onClick={() => siDescarta(() => navigate(`/panel/${slug}?nueva=1`))}
-                aria-label={t('panel.apuntarCita')}
-                className={cx(
-                  'grid size-14 place-items-center rounded-full bg-brand text-cream',
-                  'shadow-[0_5px_16px_rgba(169,106,62,.42)] transition-colors duration-200',
-                  'hover:bg-brand-dark active:scale-[.97] motion-reduce:transform-none',
-                )}
-              >
-                <Icono className="size-6">
-                  <path d="M12 5v14M5 12h14" />
-                </Icono>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => siDescarta(() => navigate(`/panel/${slug}?nueva=1`))}
+                  aria-label={t('panel.apuntarCita')}
+                  className={cx(
+                    'grid size-14 place-items-center rounded-full bg-brand text-cream',
+                    'shadow-[0_5px_16px_rgba(169,106,62,.42)] transition-colors duration-200',
+                    'hover:bg-brand-dark active:scale-[.97] motion-reduce:transform-none',
+                  )}
+                >
+                  <Icono className="size-6">
+                    <path d="M12 5v14M5 12h14" />
+                  </Icono>
+                </button>
+              </div>
+            )}
+
+            {conBotonCentral &&
+              enBarra
+                .slice(Math.ceil(enBarra.length / 2))
+                .map((s) => <BotonBarra key={s.to} seccion={s} />)}
+
+            <button
+              type="button"
+              onClick={() => setMasAbierto(true)}
+              aria-haspopup="dialog"
+              aria-expanded={masAbierto}
+              className={cx(
+                'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
+                'text-caption font-semibold transition-colors duration-200',
+                masActivo ? 'text-brand-text' : 'text-subtle',
+              )}
+            >
+              <Icono>{TRAZOS.mas}</Icono>
+              <span>{t('panel.mas')}</span>
+            </button>
+          </div>
+        </nav>
+
+        <DescartarCambios />
+
+        <Sheet
+          open={masAbierto}
+          onClose={() => setMasAbierto(false)}
+          title={t('panel.masSecciones')}
+        >
+          <h2 className="mb-1 font-display text-subheading font-semibold text-ink">
+            {t('panel.mas')}
+          </h2>
+          <p className="mb-4 text-meta text-muted">
+            {esPlataforma
+              ? t('panel.gestionPlataforma')
+              : (negocioActual?.name ?? t('panel.tuNegocio'))}
+          </p>
+
+          {!esPlataforma && (
+            <div className="mb-4 empty:hidden">
+              <SelectorLocal />
             </div>
           )}
 
-          {conBotonCentral &&
-            enBarra
-              .slice(Math.ceil(enBarra.length / 2))
-              .map((s) => <BotonBarra key={s.to} seccion={s} />)}
+          {selectorNegocio && (
+            <div className="mb-4 flex flex-col gap-1.5">
+              <span className="text-meta font-semibold text-body-2">
+                {t('panel.cambiarNegocio')}
+              </span>
+              {selectorNegocio}
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setMasAbierto(true)}
-            aria-haspopup="dialog"
-            aria-expanded={masAbierto}
-            className={cx(
-              'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1',
-              'text-caption font-semibold transition-colors duration-200',
-              masActivo ? 'text-brand-text' : 'text-subtle',
-            )}
-          >
-            <Icono>{TRAZOS.mas}</Icono>
-            <span>{t('panel.mas')}</span>
-          </button>
-        </div>
-      </nav>
-
-      <DescartarCambios />
-
-      <Sheet open={masAbierto} onClose={() => setMasAbierto(false)} title={t('panel.masSecciones')}>
-        <h2 className="mb-1 font-display text-subheading font-semibold text-ink">
-          {t('panel.mas')}
-        </h2>
-        <p className="mb-4 text-meta text-muted">
-          {esPlataforma
-            ? t('panel.gestionPlataforma')
-            : (negocioActual?.name ?? t('panel.tuNegocio'))}
-        </p>
-
-        {selectorNegocio && (
-          <div className="mb-4 flex flex-col gap-1.5">
-            <span className="text-meta font-semibold text-body-2">{t('panel.cambiarNegocio')}</span>
-            {selectorNegocio}
-          </div>
-        )}
-
-        {gruposMas.map((grupo) => (
-          <div key={grupo} className="mb-2">
-            <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
-              {t(grupo)}
-            </p>
-            <ul className="-mx-1 flex flex-col">
-              {enMas
-                .filter((s) => s.grupo === grupo)
-                .map((s) => {
-                  const activo = location.pathname === s.to
-                  return (
-                    <li key={s.to}>
-                      <button
-                        type="button"
-                        onClick={() => irA(s.to)}
-                        className={cx(
-                          'flex min-h-12 w-full items-center gap-3 rounded-xl px-3',
-                          'text-ui transition-colors duration-200 hover:bg-canvas',
-                          activo ? 'font-semibold text-ink' : 'text-body-2',
-                        )}
-                      >
-                        <Icono
+          {gruposMas.map((grupo) => (
+            <div key={grupo} className="mb-2">
+              <p className="px-1 pt-2 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
+                {t(grupo)}
+              </p>
+              <ul className="-mx-1 flex flex-col">
+                {enMas
+                  .filter((s) => s.grupo === grupo)
+                  .map((s) => {
+                    const activo = location.pathname === s.to
+                    return (
+                      <li key={s.to}>
+                        <button
+                          type="button"
+                          onClick={() => irA(s.to)}
                           className={cx(
-                            'size-[19px] shrink-0',
-                            activo ? 'text-brand' : 'text-subtle',
+                            'flex min-h-12 w-full items-center gap-3 rounded-xl px-3',
+                            'text-ui transition-colors duration-200 hover:bg-canvas',
+                            activo ? 'font-semibold text-ink' : 'text-body-2',
                           )}
                         >
-                          {TRAZOS[s.icono]}
-                        </Icono>
-                        <span className="flex-1 text-left">{t(s.clave)}</span>
-                        <span aria-hidden className="text-subtle">
-                          ›
-                        </span>
-                      </button>
-                    </li>
-                  )
-                })}
-            </ul>
-          </div>
-        ))}
+                          <Icono
+                            className={cx(
+                              'size-[19px] shrink-0',
+                              activo ? 'text-brand' : 'text-subtle',
+                            )}
+                          >
+                            {TRAZOS[s.icono]}
+                          </Icono>
+                          <span className="flex-1 text-left">{t(s.clave)}</span>
+                          <span aria-hidden className="text-subtle">
+                            ›
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+              </ul>
+            </div>
+          ))}
 
-        <div className="mt-4 flex flex-col gap-2 border-t border-line pt-4">
-          {esSuperadmin && (
-            <Button
-              variant="secondary"
-              block
-              onClick={() =>
-                irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
-              }
-            >
-              {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
+          <div className="mt-4 flex flex-col gap-2 border-t border-line pt-4">
+            {esSuperadmin && (
+              <Button
+                variant="secondary"
+                block
+                onClick={() =>
+                  irA(esPlataforma ? `/panel/${businesses?.[0]?.slug ?? ''}` : '/panel/admin')
+                }
+              >
+                {esPlataforma ? t('panel.irANegocio') : t('panel.gestionPlataforma')}
+              </Button>
+            )}
+            <Button variant="quiet" block onClick={salir}>
+              {t('panel.salir')}
             </Button>
-          )}
-          <Button variant="quiet" block onClick={salir}>
-            {t('panel.salir')}
-          </Button>
-          {/* En móvil el menú lateral no existe, así que el idioma vive aquí:
+            {/* En móvil el menú lateral no existe, así que el idioma vive aquí:
               es el único sitio de la app donde se puede cambiar sin salir. */}
-          <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
-            <span className="text-meta font-semibold text-body-2">{t('comun.idioma')}</span>
-            <SelectorIdioma />
+            <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+              <span className="text-meta font-semibold text-body-2">{t('comun.idioma')}</span>
+              <SelectorIdioma />
+            </div>
           </div>
-        </div>
-      </Sheet>
-    </div>
+        </Sheet>
+      </div>
+    </LocalProvider>
   )
 }
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, fromDateKey, toDateKey, weekdayShort } from '@veline/shared'
 import { api, type PanelBooking, type PanelNote } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import { BookingRow } from './FilaCita'
 import { CabeceraMes } from '../../components/CabeceraMes'
 import { Button, Card, EmptyState, IconButton, Input, Skeleton, cx } from '../../components/ui'
@@ -43,6 +44,7 @@ export function CalendarioAgenda({
   const hora = (iso: string) =>
     new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   const hoy = useMemo(() => new Date(), [])
+  const { actual: local } = useLocal()
   const [mes, setMes] = useState(() =>
     startOfMonth(diaSeleccionado ? fromDateKey(diaSeleccionado) : hoy),
   )
@@ -64,9 +66,9 @@ export function CalendarioAgenda({
   const queryClient = useQueryClient()
 
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes)],
+    queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes), local],
     queryFn: () =>
-      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)) }),
+      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)), local }),
   })
 
   const { data: notes } = useQuery({

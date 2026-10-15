@@ -10,6 +10,7 @@ import {
   TIMEZONE,
 } from '@veline/shared'
 import { api, type PanelCustomer } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import {
   Contador,
   ErrorNote,
@@ -64,7 +65,9 @@ export function ApuntarCita({
   const [paso, setPaso] = useState(0)
   const [serviceId, setServiceId] = useState('')
   const [cantidades, setCantidades] = useState<Record<string, number>>({})
-  const [localId, setLocalId] = useState('')
+  // Empieza en el local que se está mirando en el panel.
+  const { actual: localDelPanel } = useLocal()
+  const [localId, setLocalId] = useState(localDelPanel ?? '')
   const [staffId, setStaffId] = useState('')
   const [cuando, setCuando] = useState<string | null>(null)
   const [telefono, setTelefono] = useState(clienteInicial?.phone ?? '')
@@ -94,7 +97,8 @@ export function ApuntarCita({
     (servicio?.durationMin ?? 0) + extras.reduce((n, l) => n + l.extra.durationMin * l.cantidad, 0)
 
   const locales = carta?.locales ?? []
-  const local = locales.length > 1 ? localId || locales[0]!.id : undefined
+  const local =
+    locales.length > 1 ? (locales.find((l) => l.id === localId)?.id ?? locales[0]!.id) : undefined
   // Las de este local y las que atienden en cualquiera, como en la web.
   const personas = (carta?.personas ?? []).filter(
     (p) => !local || !p.locationId || p.locationId === local,

@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
 import { PrimerosPasos } from '../../components/PrimerosPasos'
 import { useAuth } from '../../lib/auth'
@@ -47,6 +48,8 @@ export function PanelAgenda() {
   const { t, idioma } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
+  // El local elegido en el menú; null = todos los que se pueden ver.
+  const { actual: local } = useLocal()
   const { user } = useAuth()
   const idBase = useId()
   const [params, setParams] = useSearchParams()
@@ -71,13 +74,13 @@ export function PanelAgenda() {
     )
 
   const { data: summary } = useQuery({
-    queryKey: ['panel', slug, 'summary'],
-    queryFn: () => api.panelSummary(slug),
+    queryKey: ['panel', slug, 'summary', local],
+    queryFn: () => api.panelSummary(slug, local),
   })
 
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'bookings'],
-    queryFn: () => api.panelBookings(slug),
+    queryKey: ['panel', slug, 'bookings', local],
+    queryFn: () => api.panelBookings(slug, { local }),
   })
 
   // «Nueva cita para…» desde la ficha de un cliente: sus datos, ya rellenos.

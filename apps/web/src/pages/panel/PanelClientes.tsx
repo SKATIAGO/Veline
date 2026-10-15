@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, TIMEZONE } from '@veline/shared'
 import { api, type PanelCustomer } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import {
   Badge,
   Button,
@@ -53,9 +54,10 @@ const ESTADO_CITA = {
 /** Sus citas en este negocio, de la más reciente a la más antigua. */
 function Historial({ slug, cliente }: { slug: string; cliente: PanelCustomer }) {
   const { t, idioma, locale } = useIdioma()
+  const { actual: local } = useLocal()
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['panel', slug, 'customers', cliente.id, 'citas'],
-    queryFn: () => api.customerBookings(slug, cliente.id),
+    queryKey: ['panel', slug, 'customers', cliente.id, 'citas', local],
+    queryFn: () => api.customerBookings(slug, cliente.id, local),
   })
 
   if (isLoading)
@@ -251,6 +253,7 @@ function FichaCliente({
 
 export function PanelClientes() {
   const { t, idioma, locale } = useIdioma()
+  const { actual: local } = useLocal()
   const plural = usePlural()
   const { slug = '' } = useParams()
 
@@ -262,8 +265,8 @@ export function PanelClientes() {
     iso ? new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : '—'
 
   const { data: clientes, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'customers'],
-    queryFn: () => api.panelCustomers(slug),
+    queryKey: ['panel', slug, 'customers', local],
+    queryFn: () => api.panelCustomers(slug, local),
   })
 
   const q = busqueda.trim().toLowerCase()

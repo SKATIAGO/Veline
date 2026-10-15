@@ -1917,4 +1917,13 @@ export const es = {
   'fotos.hacerPrincipal': 'Poner como principal',
   'fotos.anadir': 'Añadir',
   'fotos.pista': 'La principal es la que sale en la lista. Toca ★ en otra para cambiarla.',
+  'local.selector': 'Local que estás viendo',
+  'local.todos': 'Todos los locales',
+  'local.pendiente': '{nombre} (sin aprobar)',
+  'local.local': 'Local',
+  'local.cadaUnoTiene': 'Cada local tiene {que}. ¿De cuál?',
+  'local.deEste': 'Estás viendo {local}. Se cambia en el menú.',
+  'local.queHorario': 'su horario',
+  'local.queCierres': 'sus cierres',
+  'cierre.tituloEn': 'Cerrar días en {local}',
 } as const

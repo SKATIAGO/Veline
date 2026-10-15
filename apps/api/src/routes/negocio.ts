@@ -7,6 +7,8 @@ import { requireUser } from '../auth/sessions.js'
 import {
   authorizeBusiness as authorize,
   cambios,
+  citasDelLocal,
+  localDeLaPeticion,
   resolverLocalDelPanel,
 } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
@@ -786,13 +788,17 @@ export async function negocioRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
+    const local = localDeLaPeticion(auth.business, (req.query as { local?: string }).local)
+    if (local === false) return reply.code(403).send({ error: 'No tienes acceso a ese local' })
     const q = (req.query as { q?: string }).q?.trim().toLowerCase() ?? ''
     // El teléfono está guardado sin espacios: «612 34» tiene que encontrar a «612345678».
     const qTel = q.replace(/\D/g, '')
 
+    // Los clientes de un local son los que tienen citas en él.
     const citas = await prisma.booking.findMany({
       where: {
         businessId: auth.business.id,
+        ...citasDelLocal(auth.business, local),
         ...(q
           ? {
               customer: {
@@ -904,10 +910,10 @@ export async function negocioRoutes(app: FastifyInstance) {
       return reply.code(422).send({ error: 'Alguno de los extras ya no está en la carta' })
     }
 
-    if (input.locationId && !auth.business.locationIds.includes(input.locationId)) {
-      return reply.code(404).send({ error: 'Local no encontrado' })
-    }
-    const locationId = input.locationId ?? auth.business.locationId
+    // Un empleado de un local apunta en el suyo; los demás, en el que digan.
+    const local = localDeLaPeticion(auth.business, input.locationId)
+    if (local === false) return reply.code(403).send({ error: 'No tienes acceso a ese local' })
+    const locationId = local ?? auth.business.locationId
 
     const start = new Date(input.startsAt)
     // Con extras que alargan, la cita del mostrador ocupa lo mismo que la de
@@ -1017,8 +1023,13 @@ export async function negocioRoutes(app: FastifyInstance) {
     const parsed = rescheduleBody.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: 'Fecha inválida' })
 
+    // Solo las citas de los locales que se pueden ver: un empleado no toca las de otro.
     const existing = await prisma.booking.findFirst({
-      where: { id, businessId: auth.business.id },
+      where: {
+        id,
+        businessId: auth.business.id,
+        ...citasDelLocal(auth.business, localDeLaPeticion(auth.business) || null),
+      },
       include: { service: true, customer: true, extras: true },
     })
     if (!existing) return reply.code(404).send({ error: 'Cita no encontrada' })
@@ -1119,7 +1130,11 @@ export async function negocioRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ error: 'Estado inválido' })
 
     const existing = await prisma.booking.findFirst({
-      where: { id, businessId: auth.business.id },
+      where: {
+        id,
+        businessId: auth.business.id,
+        ...citasDelLocal(auth.business, localDeLaPeticion(auth.business) || null),
+      },
       include: { customer: true },
     })
     if (!existing) return reply.code(404).send({ error: 'Cita no encontrada' })

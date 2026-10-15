@@ -10,6 +10,8 @@ import { requireUser } from '../auth/sessions.js'
 import {
   authorizeBusiness as authorize,
   cambios,
+  citasDelLocal,
+  localDeLaPeticion,
   resolverLocalDelPanel,
 } from '../auth/business-scope.js'
 import { audit } from '../audit/log.js'
@@ -84,6 +86,8 @@ const rangeQuery = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  /** El local elegido en el panel. Sin él, todos los que se puedan ver. */
+  local: z.string().min(1).max(64).optional(),
 })
 
 const startOfDay = (key?: string) => {
@@ -112,16 +116,21 @@ export async function panelRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
+    const local = localDeLaPeticion(auth.business, (req.query as { local?: string }).local)
+    if (local === false) return reply.code(403).send({ error: 'No tienes acceso a ese local' })
+    const delLocal = citasDelLocal(auth.business, local)
+
     const today = startOfDay()
     const tomorrow = new Date(today.getTime() + 86_400_000)
     const in7 = new Date(today.getTime() + 7 * 86_400_000)
 
-    const [todayCount, weekBookings, staffCount, serviceCount] = await Promise.all([
+    const [todayCount, weekBookings, staffCount, staffTotal, serviceCount] = await Promise.all([
       prisma.booking.count({
         where: {
           businessId: auth.business.id,
           status: 'CONFIRMADA',
           startsAt: { gte: today, lt: tomorrow },
+          ...delLocal,
         },
       }),
       prisma.booking.findMany({
@@ -129,9 +138,19 @@ export async function panelRoutes(app: FastifyInstance) {
           businessId: auth.business.id,
           status: 'CONFIRMADA',
           startsAt: { gte: today, lt: in7 },
+          ...delLocal,
         },
         select: { priceCents: true, commissionCents: true, isFirstFromMarketplace: true },
       }),
+      // Las de ese local y las que atienden en todos.
+      prisma.staff.count({
+        where: {
+          businessId: auth.business.id,
+          active: true,
+          ...(local ? { OR: [{ locationId: local }, { locationId: null }] } : {}),
+        },
+      }),
+      // La cuota es del negocio entero: cuenta a todos, se mire el local que se mire.
       prisma.staff.count({ where: { businessId: auth.business.id, active: true } }),
       prisma.service.count({ where: { businessId: auth.business.id, active: true } }),
     ])
@@ -154,7 +173,7 @@ export async function panelRoutes(app: FastifyInstance) {
             status: negocio.subStatus,
             trialEndsAt: negocio.trialEndsAt?.toISOString() ?? null,
             accepting: aceptaReservas(negocio.subStatus, negocio.trialEndsAt),
-            monthlyCents: cuotaMensualCents(negocio.plan, plazasDelNegocio(staffCount)),
+            monthlyCents: cuotaMensualCents(negocio.plan, plazasDelNegocio(staffTotal)),
             messages: await resumenMensajes(auth.business.id, negocio.plan),
           }
         : null,
@@ -181,14 +200,20 @@ export async function panelRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'agenda')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
-    const { from, to } = rangeQuery.parse(req.query)
+    const { from, to, local: pedido } = rangeQuery.parse(req.query)
+    const local = localDeLaPeticion(auth.business, pedido)
+    if (local === false) return reply.code(403).send({ error: 'No tienes acceso a ese local' })
     const start = startOfDay(from)
     const end = to
       ? new Date(startOfDay(to).getTime() + 86_400_000)
       : new Date(start.getTime() + 14 * 86_400_000)
 
     const rows = await prisma.booking.findMany({
-      where: { businessId: auth.business.id, startsAt: { gte: start, lt: end } },
+      where: {
+        businessId: auth.business.id,
+        startsAt: { gte: start, lt: end },
+        ...citasDelLocal(auth.business, local),
+      },
       include: {
         service: { select: { id: true, name: true, durationMin: true } },
         staff: { select: { id: true, name: true } },

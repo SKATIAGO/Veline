@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { TIMEZONE, formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/shared'
 import { api, ApiError, type PanelBooking } from '../../lib/api'
+import { useLocal } from '../../lib/local'
 import { Button, ErrorNote, Field, Input, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural } from '../../i18n/idioma'
 import { aviso, textoDeError } from '../../components/Avisos'
@@ -63,9 +64,12 @@ export function CerrarDias({
     ? Math.round((fromDateKey(hasta).getTime() - fromDateKey(desde).getTime()) / 86_400_000) + 1
     : 0
 
+  // Se cierra el local que se está mirando: solo cuentan sus citas.
+  const { paraEditar: local, locales, varios } = useLocal()
+  const nombreLocal = locales.find((l) => l.id === local)?.name ?? ''
   const { data: todas, isLoading: cargando } = useQuery({
-    queryKey: ['panel', slug, 'bookings', 'cierre', desde, hasta],
-    queryFn: () => api.panelBookings(slug, { from: desde, to: hasta }),
+    queryKey: ['panel', slug, 'bookings', 'cierre', desde, hasta, local],
+    queryFn: () => api.panelBookings(slug, { from: desde, to: hasta, local }),
     enabled: open && fechasOk && paso >= 1,
   })
   const afectadas = (todas ?? []).filter((b) => b.status === 'CONFIRMADA')
@@ -127,7 +131,11 @@ export function CerrarDias({
         queryClient.invalidateQueries({ queryKey: ['panel', slug] })
         throw new ApiError(t('cierre.fallaron', { lista: fallos.join(' · ') }), 409)
       }
-      await api.createClosure(slug, { from: desde, to: hasta, reason: motivo.trim() || undefined })
+      await api.createClosure(
+        slug,
+        { from: desde, to: hasta, reason: motivo.trim() || undefined },
+        local,
+      )
       return { movidas, canceladas }
     },
     onSuccess: ({ movidas, canceladas }) => {
@@ -342,6 +350,12 @@ export function CerrarDias({
       contenido: (
         <>
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 rounded-xl bg-cream px-4 py-3 text-body">
+            {varios && (
+              <>
+                <dt className="text-muted">{t('local.local')}</dt>
+                <dd className="text-right font-semibold text-ink">{nombreLocal}</dd>
+              </>
+            )}
             <dt className="text-muted">{t('cierre.cerrado')}</dt>
             <dd className="text-right font-semibold text-ink first-letter:uppercase">
               {rangoTexto}
@@ -384,7 +398,7 @@ export function CerrarDias({
     <Wizard
       open={open}
       onClose={onClose}
-      title={t('cierre.titulo')}
+      title={varios ? t('cierre.tituloEn', { local: nombreLocal }) : t('cierre.titulo')}
       pasos={pasos}
       paso={paso}
       setPaso={(n) => {

@@ -108,10 +108,26 @@ export const api = {
       }[]
     >('/panel/businesses'),
 
-  panelSummary: (slug: string) => request<PanelSummary>(`/panel/${slug}/summary`),
+  /* `local`: el elegido en el selector del panel. Sin él, todos los que se
+     puedan ver (un empleado de un local, el suyo). */
+  panelSummary: (slug: string, local?: string | null) =>
+    request<PanelSummary>(`/panel/${slug}/summary${qs({ local: local ?? undefined })}`),
 
-  panelBookings: (slug: string, params: { from?: string; to?: string } = {}) =>
-    request<PanelBooking[]>(`/panel/${slug}/bookings${qs(params)}`),
+  /** Los locales que puede ver quien abre el panel, para el selector. */
+  misLocales: (slug: string) =>
+    request<{
+      locales: { id: string; name: string; approved: boolean }[]
+      verTodos: boolean
+      total: number
+    }>(`/panel/${slug}/mis-locales`),
+
+  panelBookings: (
+    slug: string,
+    params: { from?: string; to?: string; local?: string | null } = {},
+  ) =>
+    request<PanelBooking[]>(
+      `/panel/${slug}/bookings${qs({ ...params, local: params.local ?? undefined })}`,
+    ),
 
   panelServices: (slug: string) => request<PanelService[]>(`/panel/${slug}/services`),
 
@@ -367,16 +383,21 @@ export const api = {
     }),
 
   // ── Cierres (vacaciones y festivos) ────────────────────────
-  panelClosures: (slug: string) => request<PanelClosure[]>(`/panel/${slug}/closures`),
+  panelClosures: (slug: string, local?: string | null) =>
+    request<PanelClosure[]>(`/panel/${slug}/closures${qs({ local: local ?? undefined })}`),
 
-  createClosure: (slug: string, body: { from: string; to: string; reason?: string }) =>
+  createClosure: (
+    slug: string,
+    body: { from: string; to: string; reason?: string },
+    local?: string | null,
+  ) =>
     request<{ from: string; to: string; days: number; affectedBookings: number }>(
-      `/panel/${slug}/closures`,
+      `/panel/${slug}/closures${qs({ local: local ?? undefined })}`,
       { method: 'POST', body: JSON.stringify(body) },
     ),
 
-  deleteClosure: (slug: string, ids: string[]) =>
-    request<void>(`/panel/${slug}/closures`, {
+  deleteClosure: (slug: string, ids: string[], local?: string | null) =>
+    request<void>(`/panel/${slug}/closures${qs({ local: local ?? undefined })}`, {
       method: 'DELETE',
       body: JSON.stringify({ ids }),
     }),
@@ -455,11 +476,14 @@ export const api = {
     }),
 
   // ── Clientes ───────────────────────────────────────────────
-  panelCustomers: (slug: string) => request<PanelCustomer[]>(`/panel/${slug}/customers`),
+  panelCustomers: (slug: string, local?: string | null) =>
+    request<PanelCustomer[]>(`/panel/${slug}/customers${qs({ local: local ?? undefined })}`),
 
   /** El historial de un cliente en este negocio, lo último primero. */
-  customerBookings: (slug: string, id: string) =>
-    request<CitaDeCliente[]>(`/panel/${slug}/customers/${id}/bookings`),
+  customerBookings: (slug: string, id: string, local?: string | null) =>
+    request<CitaDeCliente[]>(
+      `/panel/${slug}/customers/${id}/bookings${qs({ local: local ?? undefined })}`,
+    ),
 
   /** Con qué se apunta una cita: servicios, extras, personas y locales. */
   agendaCarta: (slug: string) => request<CartaAgenda>(`/panel/${slug}/agenda/carta`),

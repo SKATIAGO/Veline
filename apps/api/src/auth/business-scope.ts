@@ -19,6 +19,14 @@ export interface BusinessScope {
   locationId: string | null
   /** Todos, por si hay que elegir. */
   locationIds: string[]
+  /**
+   * Los locales que puede ver QUIEN PREGUNTA. Un administrador, todos. Un
+   * empleado, el de su ficha en Equipo; si su ficha dice que atiende en
+   * todos (o no tiene ficha), todos.
+   */
+  localesVisibles: string[]
+  /** Si puede mirar todos los locales a la vez, sin elegir uno. */
+  verTodos: boolean
 }
 
 export type AuthorizeResult =
@@ -44,6 +52,20 @@ export async function authorizeBusiness(
     return { ok: false, status: 403, error: 'No tienes acceso a este negocio' }
   }
 
+  const locationIds = business.locations.map((l) => l.id)
+
+  /* El local de un empleado es el de su ficha de Equipo (la persona que
+     atiende enlazada a su cuenta). Así, quien trabaja en un local ve las citas
+     y los clientes de ese local, no los de todos. */
+  let localPropio: string | null = null
+  if (user.role === 'EMPLEADO' && locationIds.length > 1) {
+    const ficha = await prisma.staff.findFirst({
+      where: { userId: user.id, businessId: business.id },
+      select: { locationId: true },
+    })
+    if (ficha?.locationId && locationIds.includes(ficha.locationId)) localPropio = ficha.locationId
+  }
+
   return {
     ok: true,
     business: {
@@ -51,10 +73,37 @@ export async function authorizeBusiness(
       slug: business.slug,
       name: business.name,
       plan: business.plan,
-      locationId: business.locations[0]?.id ?? null,
-      locationIds: business.locations.map((l) => l.id),
+      locationId: locationIds[0] ?? null,
+      locationIds,
+      localesVisibles: localPropio ? [localPropio] : locationIds,
+      verTodos: !localPropio,
     },
   }
+}
+
+/**
+ * El local por el que filtrar lo que pide el panel (citas, clientes, resumen):
+ *
+ *  - el pedido, si quien pregunta lo puede ver;
+ *  - sin pedir ninguno: el suyo si solo puede ver uno, o null (= todos);
+ *  - false si pide uno que no puede ver o que no es de este negocio.
+ */
+export function localDeLaPeticion(b: BusinessScope, pedido?: string | null): string | null | false {
+  if (pedido) return b.localesVisibles.includes(pedido) ? pedido : false
+  if (!b.verTodos) return b.localesVisibles[0] ?? null
+  return null
+}
+
+/**
+ * Condición de Prisma para quedarse con las citas de un local. Las citas muy
+ * antiguas no guardaban el local: cuentan como del primero, que es el que
+ * existía entonces.
+ */
+export function citasDelLocal(b: BusinessScope, local: string | null) {
+  if (!local) return {}
+  return local === b.locationId
+    ? { OR: [{ locationId: local }, { locationId: null }] }
+    : { locationId: local }
 }
 
 /**
@@ -66,8 +115,9 @@ export async function authorizeBusiness(
  * para no dejar que se toque el local de otro pasando su id.
  */
 export function resolverLocalDelPanel(business: BusinessScope, pedido?: string): string | null {
-  if (!pedido) return business.locationId
-  return business.locationIds.includes(pedido) ? pedido : null
+  if (!pedido)
+    return business.verTodos ? business.locationId : (business.localesVisibles[0] ?? null)
+  return business.localesVisibles.includes(pedido) ? pedido : null
 }
 
 /**

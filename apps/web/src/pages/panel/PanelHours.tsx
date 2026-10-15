@@ -2,23 +2,17 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import {
-  Button,
-  Card,
-  ErrorNote,
-  PageHeader,
-  Select,
-  Skeleton,
-  BarraGuardar,
-} from '../../components/ui'
+import { Button, Card, ErrorNote, PageHeader, Skeleton, BarraGuardar } from '../../components/ui'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
+import { LocalDeLaPagina } from '../../components/SelectorLocal'
+import { useLocal } from '../../lib/local'
 import {
   FranjasSemanales,
   ORDEN_SEMANA as ORDER,
   type Franja as Range,
 } from '../../components/FranjasSemanales'
 import { useIdioma, usePlural } from '../../i18n/idioma'
-import { siDescarta, useCambiosSinGuardar } from '../../lib/cambios'
+import { useCambiosSinGuardar } from '../../lib/cambios'
 import { aviso } from '../../components/Avisos'
 
 export function PanelHours() {
@@ -29,16 +23,11 @@ export function PanelHours() {
   const [week, setWeek] = useState<Record<number, Range[]>>({})
   const [dirty, setDirty] = useState(false)
 
-  /* Cada local tiene su horario. Con uno solo no se pregunta nada; con
-     varios hay que elegir cuál se está editando, o se acabaría guardando el
-     horario de un local encima del de otro. */
-  const { data: locales } = useQuery({
-    queryKey: ['panel', slug, 'locales'],
-    queryFn: () => api.panelLocales(slug),
-  })
-  const [local, setLocal] = useState('')
-  const localActual = local || locales?.[0]?.id || ''
-  const varios = (locales?.length ?? 0) > 1
+  /* Cada local tiene su horario: el del local elegido en el menú. Si se están
+     mirando todos, se pide elegir uno arriba (LocalDeLaPagina), o se acabaría
+     guardando el horario de un local encima del de otro. */
+  const { paraEditar } = useLocal()
+  const localActual = paraEditar ?? ''
 
   const { data: hours, isLoading } = useQuery({
     queryKey: ['panel', slug, 'hours', localActual],
@@ -130,6 +119,7 @@ export function PanelHours() {
       />
 
       <PestanasSeccion seccion="horario" />
+      <LocalDeLaPagina que={t('local.queHorario')} />
 
       <BarraGuardar visible={dirty}>
         <span className="min-w-0 truncate text-meta text-muted">
@@ -142,29 +132,6 @@ export function PanelHours() {
 
       {invalid && <ErrorNote>{t('hor.franjaInvalida')}</ErrorNote>}
       {save.isError && <ErrorNote>{(save.error as Error).message}</ErrorNote>}
-
-      {varios && (
-        <label className="flex max-w-xs flex-col gap-1.5">
-          <span className="text-meta font-semibold text-body-2">{t('hor.local')}</span>
-          <Select
-            value={localActual}
-            onChange={(e) => {
-              // Cambiar de local también tiraba lo escrito sin preguntar.
-              const elegido = e.target.value
-              siDescarta(() => {
-                setLocal(elegido)
-                setDirty(false)
-              })
-            }}
-          >
-            {locales?.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </Select>
-        </label>
-      )}
 
       <FranjasSemanales week={week} onChange={mutate} onCopiarALaborables={copiarALaborables} />
 
