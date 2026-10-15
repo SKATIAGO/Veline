@@ -1,6 +1,15 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { formatLongDate, fromDateKey, toDateKey, weekdayShort } from '@veline/shared'
+import {
+  TIMEZONE,
+  addDaysKey,
+  formatLongDate,
+  fromDateKey,
+  hoyMadrid,
+  instanteAMadridLocal,
+  madridLocalAInstante,
+  weekdayShort,
+} from '@veline/shared'
 import { api } from '../lib/api'
 import { ErrorNote, Field, Input, Skeleton, cx } from './ui'
 import { useIdioma } from '../i18n/idioma'
@@ -9,17 +18,11 @@ import { textoDeError } from './Avisos'
 /** Días que se piden y se enseñan de una vez. */
 const VENTANA = 14
 
-const sumarDias = (key: string, n: number) => {
-  const d = fromDateKey(key)
-  d.setDate(d.getDate() + n)
-  return toDateKey(d)
-}
+const sumarDias = addDaysKey
 
-/** Fecha y hora en el formato de un <input type="datetime-local">. */
-const paraInput = (iso: string) => {
-  const d = new Date(iso)
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
-}
+/** Fecha y hora de Madrid en el formato de un <input type="datetime-local">.
+    Lo escrito ahí es hora de Madrid, esté el navegador donde esté. */
+const paraInput = instanteAMadridLocal
 
 /**
  * Los huecos libres de verdad, para apuntar o mover una cita desde el panel.
@@ -59,7 +62,7 @@ export function SlotPicker({
 }) {
   const { t, idioma, locale } = useIdioma()
   const id = useId()
-  const hoyReal = toDateKey(new Date())
+  const hoyReal = hoyMadrid()
   // Nada anterior a hoy, ni al primer día que se pueda elegir.
   const hoy = minimo && minimo > hoyReal ? minimo : hoyReal
   const [desde, setDesde] = useState(() => (diaInicial && diaInicial > hoy ? diaInicial : hoy))
@@ -126,7 +129,7 @@ export function SlotPicker({
             type="datetime-local"
             value={valor ? paraInput(valor) : ''}
             onChange={(e) =>
-              onElegir(e.target.value ? new Date(e.target.value).toISOString() : null)
+              onElegir(e.target.value ? madridLocalAInstante(e.target.value).toISOString() : null)
             }
           />
         </Field>
@@ -254,9 +257,11 @@ export function SlotPicker({
             setAMano(true)
             // Se parte de la hora elegida, o de ahora redondeada.
             if (!valor) {
-              const d = new Date()
-              d.setMinutes(d.getMinutes() < 30 ? 30 : 60, 0, 0)
-              onElegir(d.toISOString())
+              // La próxima media hora, contada en la hora de Madrid.
+              const ahora = new Date()
+              ahora.setSeconds(0, 0)
+              const resto = Number(instanteAMadridLocal(ahora).slice(-2)) % 30
+              onElegir(new Date(ahora.getTime() + (30 - resto) * 60_000).toISOString())
             }
           }}
           className="inline-flex min-h-8 items-center font-semibold text-brand-text hover:underline"
@@ -272,6 +277,7 @@ export function SlotPicker({
             month: 'long',
             hour: '2-digit',
             minute: '2-digit',
+            timeZone: TIMEZONE,
           })}
         </p>
       )}

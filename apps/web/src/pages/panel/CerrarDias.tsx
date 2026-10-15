@@ -1,6 +1,13 @@
 import { useId, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { TIMEZONE, formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/shared'
+import {
+  TIMEZONE,
+  formatLongDate,
+  formatPrice,
+  fromDateKey,
+  hoyMadrid,
+  toDateKey,
+} from '@veline/shared'
 import { api, ApiError, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { Button, ErrorNote, Field, Input, Skeleton, cx } from '../../components/ui'
@@ -49,7 +56,7 @@ export function CerrarDias({
   const plural = usePlural()
   const id = useId()
   const queryClient = useQueryClient()
-  const hoy = toDateKey(new Date())
+  const hoy = hoyMadrid()
 
   const [paso, setPaso] = useState(0)
   const [desde, setDesde] = useState(hoy)

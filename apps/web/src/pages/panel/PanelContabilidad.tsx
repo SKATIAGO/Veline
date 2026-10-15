@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatLongDate, formatPrice, fromDateKey, toDateKey } from '@veline/shared'
+import {
+  TIMEZONE,
+  formatLongDate,
+  formatPrice,
+  fromDateKey,
+  madridDateKey,
+  toDateKey,
+} from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { CabeceraMes } from '../../components/CabeceraMes'
@@ -56,7 +63,7 @@ export function PanelContabilidad() {
   const dias = useMemo(() => {
     const map = new Map<string, ResumenDia>()
     for (const b of bookings ?? []) {
-      const key = toDateKey(new Date(b.startsAt))
+      const key = madridDateKey(b.startsAt)
       const fila = map.get(key) ?? {
         fecha: key,
         facturadoCents: 0,
@@ -120,10 +127,11 @@ export function PanelContabilidad() {
     const lineas = filas.map((b) => {
       const inicio = new Date(b.startsAt)
       return [
-        toDateKey(inicio),
+        madridDateKey(inicio),
         inicio.toLocaleTimeString(idioma === 'en' ? 'en-GB' : 'es-ES', {
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: TIMEZONE,
         }),
         b.customer.name,
         b.service.name,

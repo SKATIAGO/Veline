@@ -1,7 +1,15 @@
 import { useId, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatLongDate, formatPrice, toDateKey } from '@veline/shared'
+import {
+  addDaysKey,
+  diffDaysKey,
+  formatLongDate,
+  formatPrice,
+  fromDateKey,
+  hoyMadrid,
+  madridDateKey,
+} from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
@@ -96,15 +104,13 @@ export function PanelAgenda() {
      de ida y vuelta para no traer nada nuevo. */
   const grupos = useMemo(() => {
     const dias = RANGOS.find((r) => r.key === rango)?.dias
-    const hoy = toDateKey(new Date())
-    const limite =
-      dias === null || dias === undefined
-        ? null
-        : toDateKey(new Date(Date.now() + dias * 86_400_000))
+    // Todo en días de Madrid: la agenda es la del negocio, no la del navegador.
+    const hoy = hoyMadrid()
+    const limite = dias === null || dias === undefined ? null : addDaysKey(hoy, dias)
 
     const map = new Map<string, PanelBooking[]>()
     for (const b of bookings ?? []) {
-      const key = toDateKey(new Date(b.startsAt))
+      const key = madridDateKey(b.startsAt)
       if (key < hoy) continue
       if (limite && key > limite) continue
       map.set(key, [...(map.get(key) ?? []), b])
@@ -118,10 +124,8 @@ export function PanelAgenda() {
 
   /** Adónde lleva el «Ver» del aviso de una cita recién apuntada. */
   const verCita = (fecha: Date) => {
-    const key = toDateKey(fecha)
-    const dias = Math.floor(
-      (new Date(fecha).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000,
-    )
+    const key = madridDateKey(fecha)
+    const dias = diffDaysKey(hoyMadrid(), key)
     if (vista === 'lista') {
       const seVe = rango === 'todo' ? dias <= 14 : rango === 'semana' ? dias <= 7 : dias === 0
       if (seVe) return undefined
@@ -242,7 +246,7 @@ export function PanelAgenda() {
                 {grupos.map(([key, filas]) => (
                   <section key={key}>
                     <h3 className="mb-2 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
-                      {formatLongDate(new Date(`${key}T00:00:00`), idioma)}
+                      {formatLongDate(fromDateKey(key), idioma)}
                     </h3>
                     <Card className="overflow-hidden">
                       <ul>

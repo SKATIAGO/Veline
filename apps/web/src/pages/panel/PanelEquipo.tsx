@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatLongDate, formatMinutes, weekdayLong } from '@veline/shared'
+import { formatLongDate, formatMinutes, madridDay, weekdayLong } from '@veline/shared'
 import { api, type PanelStaff, type PanelUser } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { generarPassword } from '../../lib/password'
@@ -265,7 +265,7 @@ function BajaPersona({
               >
                 <div className="text-meta">
                   <span className="font-semibold text-ink first-letter:uppercase">
-                    {formatLongDate(new Date(c.startsAt), idioma)} · {hora(c.startsAt)}
+                    {formatLongDate(madridDay(c.startsAt), idioma)} · {hora(c.startsAt)}
                   </span>
                   <span className="block text-muted">
                     {c.servicio} · {c.cliente}

@@ -374,6 +374,105 @@ export function formatLongDate(d: Date, idioma: Idioma = 'es') {
   return `${WEEKDAYS_LONG[d.getDay()]} ${d.getDate()} de ${MONTHS_LONG[d.getMonth()]}`
 }
 
+/* ── Hora de Madrid ─────────────────────────────────────────
+ *
+ * Los negocios de Veline abren en hora de Madrid, la ve quien la ve. Los
+ * getters de Date (getHours, getDate, toDateKey…) y toLocaleTimeString sin
+ * zona leen la del navegador: con el ordenador en Canarias, en un viaje o en
+ * un móvil con la zona mal puesta, una cita de las 23:30 caía en el día
+ * siguiente y todas las horas se corrían. Todo lo que mira un instante
+ * (startsAt, endsAt) pasa por aquí.
+ */
+
+const PARTES = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** Año, mes, día, hora y minuto en Madrid de un instante. */
+export function partesMadrid(d: Date | string | number) {
+  const o: Record<string, number> = {}
+  for (const p of PARTES.formatToParts(new Date(d))) {
+    if (p.type !== 'literal') o[p.type] = Number(p.value)
+  }
+  return { y: o.year!, m: o.month!, d: o.day!, hh: o.hour!, mm: o.minute! }
+}
+
+const dos = (n: number) => String(n).padStart(2, '0')
+
+/** El día de Madrid de un instante, como AAAA-MM-DD. */
+export function madridDateKey(d: Date | string | number) {
+  const p = partesMadrid(d)
+  return `${p.y}-${dos(p.m)}-${dos(p.d)}`
+}
+
+/** Hoy en Madrid, AAAA-MM-DD. */
+export const hoyMadrid = () => madridDateKey(Date.now())
+
+/**
+ * El día de Madrid de un instante, como Date a medianoche del navegador: es la
+ * forma en que el resto del código (formatLongDate, getDay, getDate) lo quiere.
+ */
+export function madridDay(d: Date | string | number) {
+  return fromDateKey(madridDateKey(d))
+}
+
+/** "08:30" o "8:30 a. m.", en hora de Madrid. */
+export function formatTimeMadrid(d: Date | string | number, locale = LOCALE) {
+  return new Date(d).toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: TIMEZONE,
+  })
+}
+
+/** "2026-10-16" + 3 → "2026-10-19". Aritmética de calendario, sin husos. */
+export function addDaysKey(key: string, n: number) {
+  const [y, m, d] = key.split('-').map(Number)
+  const t = new Date(Date.UTC(y!, m! - 1, d! + n))
+  return `${t.getUTCFullYear()}-${dos(t.getUTCMonth() + 1)}-${dos(t.getUTCDate())}`
+}
+
+/** Días de calendario entre dos AAAA-MM-DD (b − a). */
+export function diffDaysKey(a: string, b: string) {
+  const f = (k: string) => {
+    const [y, m, d] = k.split('-').map(Number)
+    return Date.UTC(y!, m! - 1, d!)
+  }
+  return Math.round((f(b) - f(a)) / 86_400_000)
+}
+
+/** Un instante como hora de pared de Madrid, para un <input type="datetime-local">. */
+export function instanteAMadridLocal(d: Date | string | number) {
+  const p = partesMadrid(d)
+  return `${p.y}-${dos(p.m)}-${dos(p.d)}T${dos(p.hh)}:${dos(p.mm)}`
+}
+
+/**
+ * La inversa: «2026-10-25T02:30» escrito por alguien en Madrid → el instante.
+ * Se busca el instante cuya hora en Madrid es esa; vale con el cambio de hora
+ * (la hora repetida de octubre toma la primera; la que no existe en marzo, la
+ * siguiente).
+ */
+export function madridLocalAInstante(local: string) {
+  const [f, h = '00:00'] = local.split('T')
+  const [y, m, d] = f!.split('-').map(Number)
+  const [hh, mm] = h.split(':').map(Number)
+  const pared = Date.UTC(y!, m! - 1, d!, hh!, mm!)
+  // Madrid va 1 o 2 h por delante de UTC: se prueban los dos desfases.
+  for (const horas of [2, 1]) {
+    const candidato = new Date(pared - horas * 3_600_000)
+    if (instanteAMadridLocal(candidato) === local) return candidato
+  }
+  // Hora que no existe (salto de marzo): la que sigue.
+  return new Date(pared - 3_600_000)
+}
+
 /* ── Contratos de la API ────────────────────────────────────── */
 
 export const BOOKING_SOURCES = ['MARKETPLACE', 'DIRECTO', 'INSTAGRAM', 'GOOGLE'] as const

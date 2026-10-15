@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { createBookingSchema, formatDuration, formatLongDate, formatPrice } from '@veline/shared'
+import {
+  createBookingSchema,
+  formatDuration,
+  formatLongDate,
+  formatPrice,
+  formatTimeMadrid,
+  madridDay,
+} from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { extrasDeUrl, tramoExtras } from '../lib/reserva'
 import { BackBar, Button, Card, ErrorNote, Spinner } from '../components/ui'
@@ -311,10 +318,7 @@ export function BookingConfirm() {
               {
                 clave: 'confirmar.fecha',
                 value: validStart
-                  ? `${formatLongDate(start, idioma)}, ${start.toLocaleTimeString(locale, {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}`
+                  ? `${formatLongDate(madridDay(start), idioma)}, ${formatTimeMadrid(start, locale)}`
                   : '—',
               },
               { clave: 'confirmar.duracion', value: formatDuration(duracion, idioma) },

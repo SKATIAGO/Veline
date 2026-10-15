@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatDuration, formatLongDate, formatPrice, toDateKey } from '@veline/shared'
+import {
+  formatDuration,
+  formatLongDate,
+  formatPrice,
+  formatTimeMadrid,
+  hoyMadrid,
+  madridDateKey,
+  madridDay,
+} from '@veline/shared'
 import { api, type PanelBooking } from '../../lib/api'
 import { Badge, Button, ErrorNote, Sheet, Textarea, cx } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
@@ -80,12 +88,12 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
       aviso.ok(
         otraPersona
           ? t(avisar ? 'mover.hechaConAvisada' : 'mover.hechaCon', {
-              fecha: formatLongDate(nueva, idioma),
+              fecha: formatLongDate(madridDay(nueva), idioma),
               hora: fmt(nueva),
               persona: otraPersona.name,
             })
           : t(avisar ? 'agenda.movidaAvisada' : 'agenda.movida', {
-              fecha: formatLongDate(nueva, idioma),
+              fecha: formatLongDate(madridDay(nueva), idioma),
               hora: fmt(nueva),
             }),
       )
@@ -122,7 +130,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
 
   const start = new Date(booking.startsAt)
   const end = new Date(booking.endsAt)
-  const fmt = (d: Date) => d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  const fmt = (d: Date) => formatTimeMadrid(d, locale)
   /* «Directo» es la única fuente que es una palabra y no un nombre propio. */
   const origen =
     SOURCE_LABEL[booking.source] ??
@@ -177,7 +185,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
       }}
       title={t('agenda.moverTitulo', { nombre: booking.customer.name })}
       hint={t('agenda.moverPista', {
-        fecha: formatLongDate(start, idioma),
+        fecha: formatLongDate(madridDay(start), idioma),
         hora: fmt(start),
         servicio: booking.service.name,
       })}
@@ -235,7 +243,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
           consulta={{ bookingId: booking.id, staffId: nuevaPersona || undefined }}
           valor={nuevaHora}
           onElegir={setNuevaHora}
-          diaInicial={toDateKey(start) >= toDateKey(new Date()) ? toDateKey(start) : undefined}
+          diaInicial={madridDateKey(start) >= hoyMadrid() ? madridDateKey(start) : undefined}
         />
       )}
       {!nuevaHora && cambiaPersona && (
@@ -265,7 +273,10 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
       }}
       title={t('agenda.cancelarTitulo', { nombre: booking.customer.name })}
       consecuencias={[
-        t('agenda.cancelarC1', { fecha: formatLongDate(start, idioma), hora: fmt(start) }),
+        t('agenda.cancelarC1', {
+          fecha: formatLongDate(madridDay(start), idioma),
+          hora: fmt(start),
+        }),
         // Una cita que ya ha pasado no avisa a nadie (ver avisarCancelacion).
         ...(yaPaso
           ? []

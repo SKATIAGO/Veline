@@ -5,9 +5,10 @@ import {
   formatDuration,
   formatLongDate,
   formatPrice,
+  formatTimeMadrid,
+  madridDay,
   normalizarTelefono,
   phoneES,
-  TIMEZONE,
 } from '@veline/shared'
 import { api, type PanelCustomer } from '../../lib/api'
 import { useLocal } from '../../lib/local'
@@ -131,12 +132,7 @@ export function ApuntarCita({
     setEmail(c.email ?? '')
   }
 
-  const hora = (iso: string) =>
-    new Date(iso).toLocaleTimeString(locale, {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: TIMEZONE,
-    })
+  const hora = (iso: string) => formatTimeMadrid(iso, locale)
 
   const apuntar = useMutation({
     mutationFn: () =>
@@ -160,7 +156,10 @@ export function ApuntarCita({
       const fecha = new Date(cuando!)
       const ver = alApuntar?.(fecha)
       aviso.ok(
-        t('agenda.apuntadaHecho', { fecha: formatLongDate(fecha, idioma), hora: hora(cuando!) }),
+        t('agenda.apuntadaHecho', {
+          fecha: formatLongDate(madridDay(fecha), idioma),
+          hora: hora(cuando!),
+        }),
         ver ? { texto: t('avisos.ver'), onClick: ver } : undefined,
       )
       onClose()
@@ -491,7 +490,7 @@ export function ApuntarCita({
             <dd className="text-right font-semibold text-ink first-letter:uppercase">
               {cuando &&
                 t('cita.fechaHora', {
-                  fecha: formatLongDate(new Date(cuando), idioma),
+                  fecha: formatLongDate(madridDay(cuando), idioma),
                   hora: hora(cuando),
                 })}
             </dd>

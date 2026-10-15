@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { formatLongDate, formatPrice, TIMEZONE } from '@veline/shared'
+import { formatLongDate, formatPrice, madridDay, TIMEZONE } from '@veline/shared'
 import { api, type PanelCustomer } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import {
@@ -83,7 +83,7 @@ function Historial({ slug, cliente }: { slug: string; cliente: PanelCustomer }) 
           >
             <div className="min-w-0">
               <p className="text-[14px] font-semibold text-ink first-letter:uppercase">
-                {formatLongDate(d, idioma)} ·{' '}
+                {formatLongDate(madridDay(d), idioma)} ·{' '}
                 {d.toLocaleTimeString(locale, {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -262,7 +262,13 @@ export function PanelClientes() {
   const [fichaId, setFichaId] = useState<string | null>(null)
 
   const fecha = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : '—'
+    iso
+      ? new Date(iso).toLocaleDateString(locale, {
+          day: 'numeric',
+          month: 'short',
+          timeZone: TIMEZONE,
+        })
+      : '—'
 
   const { data: clientes, isLoading } = useQuery({
     queryKey: ['panel', slug, 'customers', local],

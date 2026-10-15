@@ -1,6 +1,12 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatLongDate, formatPrice, type BookingDTO } from '@veline/shared'
+import {
+  formatLongDate,
+  formatPrice,
+  formatTimeMadrid,
+  madridDay,
+  type BookingDTO,
+} from '@veline/shared'
 import { api } from '../lib/api'
 import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
 import { MarbleWash } from '../components/Ornaments'
@@ -84,7 +90,7 @@ export function BookingDone() {
   const start = new Date(booking.startsAt)
   const cancelled = booking.status === 'CANCELADA'
   const pasada = !cancelled && (booking.status !== 'CONFIRMADA' || start.getTime() < Date.now())
-  const time = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  const time = formatTimeMadrid(start, locale)
 
   return (
     <div className="relative mx-auto flex max-w-[1440px] justify-center px-6 py-16 lg:px-16 lg:py-20">
@@ -140,7 +146,7 @@ export function BookingDone() {
             {cancelled
               ? t('hecha.canceladaTexto', { negocio: booking.business.name })
               : t(pasada ? 'hecha.yaPasoTexto' : 'hecha.confirmadaTexto', {
-                  fecha: formatLongDate(start, idioma),
+                  fecha: formatLongDate(madridDay(start), idioma),
                   hora: time,
                   negocio: booking.business.name,
                 })}
@@ -167,7 +173,7 @@ export function BookingDone() {
                       ] as const,
                     ]
                   : []),
-                ['confirmar.fecha', `${formatLongDate(start, idioma)}, ${time}`],
+                ['confirmar.fecha', `${formatLongDate(madridDay(start), idioma)}, ${time}`],
                 ...(booking.staff ? [['hecha.teAtiende', booking.staff.name] as const] : []),
                 ...(booking.location
                   ? [

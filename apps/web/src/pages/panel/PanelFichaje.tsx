@@ -1,7 +1,13 @@
 import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatDuration } from '@veline/shared'
+import {
+  TIMEZONE,
+  formatDuration,
+  hoyMadrid,
+  instanteAMadridLocal,
+  madridLocalAInstante,
+} from '@veline/shared'
 import { api, ApiError, type Fichaje } from '../../lib/api'
 import {
   Badge,
@@ -40,10 +46,19 @@ function useFormatos() {
   const { t, idioma, locale } = useIdioma()
 
   const hora = (iso: string) =>
-    new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+    new Date(iso).toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: TIMEZONE,
+    })
 
   const dia = (iso: string) =>
-    new Date(iso).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+    new Date(iso).toLocaleDateString(locale, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      timeZone: TIMEZONE,
+    })
 
   /* La duración la escribe formatDuration, la misma de los servicios: 485 →
      «8 h 5 min». Tenerla dos veces acabó con el panel diciendo «1 hr 30 min»
@@ -53,15 +68,13 @@ function useFormatos() {
   return { t, hora, dia, duracion }
 }
 
-/** Fecha y hora en el formato que espera un <input type="datetime-local">. */
-function paraInput(iso: string) {
-  const d = new Date(iso)
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60_000)
-  return local.toISOString().slice(0, 16)
-}
+/** Fecha y hora de Madrid en el formato que espera un <input type="datetime-local">.
+    Lo que se escribe ahí es hora de Madrid, esté donde esté el navegador. */
+const paraInput = instanteAMadridLocal
 
-/** El día de hoy en YYYY-MM-DD, para el filtro. */
-const hoy = () => new Date().toISOString().slice(0, 10)
+/** El día de hoy en Madrid (YYYY-MM-DD), para el filtro. Con toISOString salía
+    el de Greenwich: de 00:00 a 02:00 la mañana de Madrid era «ayer». */
+const hoy = hoyMadrid
 
 function Corregir({
   f,
@@ -84,8 +97,8 @@ function Corregir({
   const corregir = useMutation({
     mutationFn: () =>
       api.corregirFichaje(slug, f.id, {
-        entrada: new Date(entrada).toISOString(),
-        salida: salida ? new Date(salida).toISOString() : null,
+        entrada: madridLocalAInstante(entrada).toISOString(),
+        salida: salida ? madridLocalAInstante(salida).toISOString() : null,
         motivo: motivo.trim(),
       }),
     onSuccess: () => {
@@ -97,7 +110,7 @@ function Corregir({
   const problema =
     motivo.trim().length < 3
       ? t('fic.errMotivo')
-      : salida && new Date(salida) <= new Date(entrada)
+      : salida && madridLocalAInstante(salida) <= madridLocalAInstante(entrada)
         ? t('fic.errSalida')
         : null
 
@@ -195,8 +208,8 @@ function Anadir({
     mutationFn: () =>
       api.anadirFichaje(slug, {
         userId: elegida,
-        entrada: new Date(entrada).toISOString(),
-        salida: new Date(salida).toISOString(),
+        entrada: madridLocalAInstante(entrada).toISOString(),
+        salida: madridLocalAInstante(salida).toISOString(),
         motivo: motivo.trim(),
       }),
     onSuccess: () => {
@@ -209,9 +222,9 @@ function Anadir({
     ? t('fic.errPersona')
     : !entrada || !salida
       ? t('fic.errFechas')
-      : new Date(salida) <= new Date(entrada)
+      : madridLocalAInstante(salida) <= madridLocalAInstante(entrada)
         ? t('fic.errSalida')
-        : new Date(salida) > new Date()
+        : madridLocalAInstante(salida) > new Date()
           ? t('fic.errFuturo')
           : motivo.trim().length < 3
             ? t('fic.errMotivoAnadir')

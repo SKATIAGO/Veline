@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { formatLongDate, fromDateKey, toDateKey, weekdayShort } from '@veline/shared'
+import {
+  formatLongDate,
+  formatTimeMadrid,
+  fromDateKey,
+  hoyMadrid,
+  madridDateKey,
+  toDateKey,
+  weekdayShort,
+} from '@veline/shared'
 import { api, type PanelBooking, type PanelNote } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { BookingRow } from './FilaCita'
@@ -41,9 +49,9 @@ export function CalendarioAgenda({
 }) {
   const { t, idioma, locale } = useIdioma()
   const plural = usePlural()
-  const hora = (iso: string) =>
-    new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-  const hoy = useMemo(() => new Date(), [])
+  const hora = (iso: string) => formatTimeMadrid(iso, locale)
+  // «Hoy» es el de Madrid, como medianoche del navegador (lo que pide el resto).
+  const hoy = useMemo(() => fromDateKey(hoyMadrid()), [])
   const { actual: local } = useLocal()
   const [mes, setMes] = useState(() =>
     startOfMonth(diaSeleccionado ? fromDateKey(diaSeleccionado) : hoy),
@@ -111,7 +119,7 @@ export function CalendarioAgenda({
   const porDia = useMemo(() => {
     const map = new Map<string, PanelBooking[]>()
     for (const b of bookings ?? []) {
-      const key = toDateKey(new Date(b.startsAt))
+      const key = madridDateKey(b.startsAt)
       map.set(key, [...(map.get(key) ?? []), b])
     }
     return map

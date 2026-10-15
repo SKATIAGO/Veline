@@ -7,6 +7,7 @@ import {
   extrasParam,
   formatPrice,
   fromDateKey,
+  hoyMadrid,
   monthLong,
   toDateKey,
   weekdayShort,
@@ -43,11 +44,9 @@ export function BookingDate() {
   // suman al total, para que el precio de esta pantalla sea el de verdad.
   const pedidos = extrasDeUrl(params)
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
+  // «Hoy» es el de Madrid, que es donde está el negocio: un navegador en otra
+  // zona no puede ofrecer un día que allí ya pasó ni esconder el de hoy.
+  const today = useMemo(() => fromDateKey(hoyMadrid()), [])
 
   const [month, setMonth] = useState(() => startOfMonth(today))
   const [selectedKey, setSelectedKey] = useState<string | null>(null)

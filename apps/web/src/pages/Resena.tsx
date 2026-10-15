@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { formatLongDate } from '@veline/shared'
+import { formatLongDate, madridDay } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import {
   Button,
@@ -94,7 +94,7 @@ export function Resena() {
             }}
           >
             <p className="text-meta text-muted">
-              {formatLongDate(new Date(data.startsAt), idioma)}
+              {formatLongDate(madridDay(data.startsAt), idioma)}
             </p>
             <h1 className="mt-1 font-display text-heading-sm font-semibold text-ink">
               {t('resena.queTalFue', { negocio: data.businessName })}

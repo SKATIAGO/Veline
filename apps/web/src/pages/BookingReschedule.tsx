@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   formatLongDate,
+  formatTimeMadrid,
+  fromDateKey,
+  hoyMadrid,
+  madridDay,
   monthLong,
   toDateKey,
   weekdayShort,
@@ -35,11 +39,9 @@ export function BookingReschedule() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
+  // «Hoy» es el de Madrid, que es donde está el negocio: un navegador en otra
+  // zona no puede ofrecer un día que allí ya pasó ni esconder el de hoy.
+  const today = useMemo(() => fromDateKey(hoyMadrid()), [])
 
   const [month, setMonth] = useState(() => startOfMonth(today))
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
@@ -127,7 +129,7 @@ export function BookingReschedule() {
   }
 
   const start = new Date(booking.startsAt)
-  const time = start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  const time = formatTimeMadrid(start, locale)
 
   const nextDays = Array.from({ length: 14 }, (_, i) => addDays(today, i))
 
@@ -157,7 +159,7 @@ export function BookingReschedule() {
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
           <h1 className="mb-2 text-[24px] font-semibold text-ink">{t('reprog.titulo')}</h1>
           <p className="mb-6 text-sm text-muted">
-            {t('reprog.ahora', { fecha: formatLongDate(start, idioma), hora: time })}
+            {t('reprog.ahora', { fecha: formatLongDate(madridDay(start), idioma), hora: time })}
           </p>
 
           {/* Carrusel de días — móvil */}
