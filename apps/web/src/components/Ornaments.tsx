@@ -193,12 +193,12 @@ export function SectorMarquee({ items }: { items: readonly string[] }) {
       className="marquee relative overflow-hidden border-y border-line bg-cream py-4 select-none"
     >
       {/* Difuminado en los bordes para que no se corte en seco */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-cream to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-cream to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-elevado w-16 bg-gradient-to-r from-cream to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-elevado w-16 bg-gradient-to-l from-cream to-transparent" />
       <div className="marquee-track">
         {fila.map((item, i) => (
           <span key={`${item}-${i}`} className="flex items-center whitespace-nowrap">
-            <span className="px-6 font-display text-[17px] font-medium text-body-2 sm:text-[19px]">
+            <span className="px-6 font-display text-lead font-medium text-body-2 sm:text-subheading">
               {item}
             </span>
             <span className="size-1.5 rounded-full bg-accent" />

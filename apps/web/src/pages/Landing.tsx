@@ -58,13 +58,13 @@ export function Landing() {
               {t(ESLOGAN)}
             </p>
             <h1
-              className="rise text-[34px] leading-[1.12] font-semibold text-ondark sm:text-[44px] lg:text-[52px]"
+              className="rise text-display-sm leading-[1.12] font-semibold text-ondark sm:text-display lg:text-display-lg"
               style={{ animationDelay: '80ms' }}
             >
               {t(ESLOGAN_NEGOCIO)}
             </h1>
             <p
-              className="rise mt-5 mb-8 max-w-[500px] text-[17px] leading-relaxed text-ondark-muted-2"
+              className="rise mt-5 mb-8 max-w-[500px] text-lead leading-relaxed text-ondark-muted-2"
               style={{ animationDelay: '160ms' }}
             >
               {t('home.entradilla')}
@@ -137,7 +137,7 @@ export function Landing() {
         />
         <Reveal>
           <Eyebrow>{t('home.todoLoQueNecesitas')}</Eyebrow>
-          <h2 className="quill mb-10 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          <h2 className="quill mb-10 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('home.citasNoProblema')}
           </h2>
         </Reveal>
@@ -178,7 +178,7 @@ export function Landing() {
         />
         <div className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16">
           <Reveal>
-            <h2 className="mb-14 text-center text-[26px] font-semibold text-ink sm:text-[32px]">
+            <h2 className="mb-14 text-center text-heading font-semibold text-ink sm:text-display-sm">
               {t('home.comoFunciona')}
             </h2>
           </Reveal>
@@ -224,7 +224,7 @@ export function Landing() {
         />
         <Reveal>
           <Eyebrow>{t('pie.serviciosEmpresas')}</Eyebrow>
-          <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          <h2 className="quill mb-6 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('home.desdeLaAgenda')}
           </h2>
           <p className="mb-10 max-w-[560px] text-ui leading-relaxed text-body">
@@ -268,7 +268,7 @@ export function Landing() {
               tono oscuro. */}
           <div className="lift flex flex-col items-start justify-between gap-6 rounded-xl bg-ink p-8 sm:flex-row sm:items-center">
             <div className="min-w-0">
-              <h2 className="font-display text-[22px] font-semibold text-ondark sm:text-[26px]">
+              <h2 className="font-display text-heading-sm font-semibold text-ondark sm:text-heading">
                 {t('home.impulsarTitulo')}
               </h2>
               <p className="mt-2 max-w-[460px] text-ui leading-relaxed text-ondark-muted-2">
@@ -291,7 +291,7 @@ export function Landing() {
         />
         <div className="relative mx-auto max-w-[1440px] px-6 py-24 text-center lg:px-16">
           <Reveal variant="zoom">
-            <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[34px]">
+            <p className="font-display text-heading leading-tight font-semibold text-ink sm:text-display-sm">
               {t(ESLOGAN)}
             </p>
             <p className="mx-auto mt-4 mb-8 max-w-[460px] text-ui leading-relaxed text-muted">

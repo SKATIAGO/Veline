@@ -233,7 +233,7 @@ export function SlotPicker({
                         aria-pressed={valor === s.startsAt}
                         onClick={() => onElegir(s.startsAt)}
                         className={cx(
-                          'inline-flex min-h-11 items-center justify-center rounded-full border text-[14px] font-semibold tabular-nums',
+                          'inline-flex min-h-11 items-center justify-center rounded-full border text-body font-semibold tabular-nums',
                           'transition-colors duration-200',
                           valor === s.startsAt
                             ? 'border-brand bg-brand text-white'

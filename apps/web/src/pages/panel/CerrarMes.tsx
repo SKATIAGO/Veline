@@ -81,7 +81,7 @@ export function CerrarMes({ open, onClose }: { open: boolean; onClose: () => voi
                   : 'border-line bg-surface hover:border-line-strong',
               )}
             >
-              <span className="text-[14px] font-semibold text-ink first-letter:uppercase">
+              <span className="text-body font-semibold text-ink first-letter:uppercase">
                 {mesLargo(m)}
               </span>
               <span className="text-meta text-muted">
@@ -126,7 +126,7 @@ export function CerrarMes({ open, onClose }: { open: boolean; onClose: () => voi
                 className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line py-2.5 last:border-b-0"
               >
                 <div className="min-w-0">
-                  <p className="text-[14px] font-semibold text-ink">{f.name}</p>
+                  <p className="text-body font-semibold text-ink">{f.name}</p>
                   <p className="text-meta text-muted">
                     {f.estado === 'YA_CERRADO' || !f.desglose
                       ? t('cmes.sinCalculo')
@@ -134,7 +134,7 @@ export function CerrarMes({ open, onClose }: { open: boolean; onClose: () => voi
                   </p>
                 </div>
                 {f.estado === 'NUEVO' && f.desglose ? (
-                  <span className="text-[14px] font-semibold text-ink tabular-nums">
+                  <span className="text-body font-semibold text-ink tabular-nums">
                     {formatPrice(f.desglose.totalCents, idioma)}
                   </span>
                 ) : (

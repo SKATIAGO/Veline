@@ -278,7 +278,7 @@ function Marco({
 }) {
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 py-12">
-      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 z-elevado sm:top-6 sm:right-6">
         <SelectorIdioma />
       </div>
 
@@ -299,7 +299,7 @@ function Marco({
         <div className="mb-7 flex justify-center">
           <Logo size={24} />
         </div>
-        <h1 className="text-center font-display text-[26px] font-semibold text-ink">{titulo}</h1>
+        <h1 className="text-center font-display text-heading font-semibold text-ink">{titulo}</h1>
         <p className="mt-2 mb-7 text-center text-body text-muted">{subtitulo}</p>
         {children}
       </div>

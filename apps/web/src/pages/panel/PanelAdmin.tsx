@@ -307,7 +307,7 @@ export function PanelAdmin() {
                     ))}
                   </dl>
                 </div>
-                <div className="relative z-10 pr-3">
+                <div className="relative z-elevado pr-3">
                   <RowMenu
                     label={b.name}
                     acciones={[

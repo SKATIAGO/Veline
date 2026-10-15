@@ -133,7 +133,7 @@ export function BookingDone() {
             )}
           </div>
 
-          <h1 className="text-[24px] font-semibold text-ink">
+          <h1 className="text-title font-semibold text-ink">
             {cancelled
               ? t('hecha.cancelada')
               : recien

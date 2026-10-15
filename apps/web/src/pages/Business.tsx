@@ -215,7 +215,9 @@ export function Business() {
             )}
           </Reveal>
 
-          <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">{business.name}</h1>
+          <h1 className="text-heading font-semibold text-ink sm:text-display-sm">
+            {business.name}
+          </h1>
           <div className="mt-1.5 text-sm font-medium text-subtle">
             {categoryLabel(business.category, idioma)} ·{' '}
             <Stars rating={business.rating} count={business.reviewCount} />
@@ -397,7 +399,7 @@ export function Business() {
               cuidada como la portada. Anclado a la tarjeta y no a la columna
               entera, que cambia de alto en cada negocio. */}
           <Card className="p-6 shadow-pop lg:sticky lg:top-24">
-            <div className="mb-4 font-display text-[17px] font-semibold text-ink">
+            <div className="mb-4 font-display text-lead font-semibold text-ink">
               {t('ficha.reservarCita')}
             </div>
             {location && (

@@ -70,7 +70,7 @@ export function Legal() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-14 lg:px-16">
       <div className="max-w-[820px]">
-        <h1 className="font-display text-[32px] leading-tight font-semibold text-ink sm:text-[40px]">
+        <h1 className="font-display text-display-sm leading-tight font-semibold text-ink sm:text-display">
           {enCookies ? t('leg.cookies') : t('leg.privacidad')}
         </h1>
         <p className="mt-3 text-meta text-subtle">{t('leg.ultimaRevision', { fecha: revisado })}</p>

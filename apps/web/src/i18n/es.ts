@@ -1939,4 +1939,11 @@ export const es = {
   'hecha.tuReserva': 'Tu reserva',
   'hecha.yaPaso': 'Esta reserva ya pasó',
   'hecha.yaPasoTexto': 'Fue el {fecha} a las {hora} en {negocio}.',
+  'panel.deBaja': 'de baja',
+  'pieMin.label': 'Ayuda y legal',
+  'pieMin.ayuda': '¿Necesitas ayuda?',
+  'pieMin.privacidad': 'Privacidad',
+  'pieMin.cookies': 'Cookies',
+  'cal.cerrado': 'cerrado',
+  'cal.completo': 'completo',
 } as const

@@ -136,7 +136,7 @@ export function RowMenu({ acciones, label }: { acciones: AccionFila[]; label: st
               visibility: pos ? 'visible' : 'hidden',
             }}
             className={cx(
-              'fixed z-[55] flex min-w-[200px] flex-col rounded-xl border border-line bg-surface p-1.5 shadow-raised',
+              'fixed z-emergente flex min-w-[200px] flex-col rounded-xl border border-line bg-surface p-1.5 shadow-raised',
               'motion-safe:animate-[veline-fade_120ms_ease-out]',
             )}
           >
@@ -151,7 +151,7 @@ export function RowMenu({ acciones, label }: { acciones: AccionFila[]; label: st
                   a.onClick()
                 }}
                 className={cx(
-                  'flex min-h-11 items-center rounded-lg px-3 text-left text-[14px] font-medium',
+                  'flex min-h-11 items-center rounded-lg px-3 text-left text-body font-medium',
                   'transition-colors duration-150 focus:outline-none focus-visible:bg-canvas',
                   'disabled:opacity-45',
                   a.peligro ? 'text-brand-text hover:bg-brand/10' : 'text-ink hover:bg-canvas',

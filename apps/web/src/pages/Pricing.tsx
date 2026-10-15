@@ -81,7 +81,7 @@ export function Pricing() {
 
       {/* HERO */}
       <Reveal className="relative text-center">
-        <h1 className="text-[32px] leading-tight font-semibold text-ink sm:text-[42px]">
+        <h1 className="text-display-sm leading-tight font-semibold text-ink sm:text-display">
           {t('pre.titulo')}
         </h1>
         <p className="mx-auto mt-4 max-w-[560px] text-base leading-relaxed text-body">
@@ -112,7 +112,7 @@ export function Pricing() {
               <div className="font-display text-lg font-semibold text-ink">{t(plan.nombre)}</div>
               <div className="mt-1.5 mb-6 text-body text-subtle">{t(plan.tagline)}</div>
               <div className="mb-6 flex items-baseline gap-1.5">
-                <span className="font-display text-[40px] font-semibold text-ink">
+                <span className="font-display text-display font-semibold text-ink">
                   {plan.priceCents !== undefined
                     ? `${plan.pricePrefix ?? ''}${formatPrice(plan.priceCents, idioma)}`
                     : plan.precio
@@ -179,7 +179,7 @@ export function Pricing() {
       <section id="extras" className="relative mt-24 scroll-mt-24">
         <Reveal>
           <Eyebrow>{t('pre.serviciosAparte')}</Eyebrow>
-          <h2 className="quill mb-6 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          <h2 className="quill mb-6 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('pre.siQuieresMas')}
           </h2>
           <p className="mb-10 max-w-[560px] text-ui leading-relaxed text-body">
@@ -235,7 +235,7 @@ export function Pricing() {
       <section className="mt-24">
         <Reveal>
           <Eyebrow>{t('pre.preguntas')}</Eyebrow>
-          <h2 className="quill mb-10 max-w-[620px] text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+          <h2 className="quill mb-10 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('pre.loQuePreguntan')}
           </h2>
         </Reveal>
@@ -268,7 +268,7 @@ export function Pricing() {
 
       {/* CIERRE */}
       <Reveal variant="zoom" as="section" className="mt-24 text-center">
-        <p className="font-display text-[26px] leading-tight font-semibold text-ink sm:text-[32px]">
+        <p className="font-display text-heading leading-tight font-semibold text-ink sm:text-display-sm">
           {t('pre.pruebaloSinCompromiso', { n: PRUEBA_DIAS })}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">

@@ -157,7 +157,7 @@ export function BookingReschedule() {
           seed={6}
         />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-2 text-[24px] font-semibold text-ink">{t('reprog.titulo')}</h1>
+          <h1 className="mb-2 text-title font-semibold text-ink">{t('reprog.titulo')}</h1>
           <p className="mb-6 text-sm text-muted">
             {t('reprog.ahora', { fecha: formatLongDate(madridDay(start), idioma), hora: time })}
           </p>
@@ -184,7 +184,7 @@ export function BookingReschedule() {
                           : 'bg-cream text-disabled',
                     )}
                   >
-                    <span className="text-caption font-medium opacity-80">
+                    <span className="text-caption font-medium">
                       {weekdayShort(d.getDay(), idioma)}
                     </span>
                     <span className="text-ui font-semibold">{d.getDate()}</span>

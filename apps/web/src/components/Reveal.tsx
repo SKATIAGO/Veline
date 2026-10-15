@@ -66,7 +66,12 @@ export function Reveal({
   id,
 }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null)
-  const [visible, setVisible] = useState(false)
+  // Quien pide menos movimiento no quiere ver aparecer nada: se enseña ya.
+  const [visible, setVisible] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
 
   useEffect(() => {
     const node = ref.current

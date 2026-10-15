@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LocalProvider, useLocal } from '../../lib/local'
 import { CentroCabeceraMovil, SelectorLocal } from '../../components/SelectorLocal'
@@ -12,6 +12,7 @@ import {
   Input,
   Logo,
   LogoMark,
+  Select,
   Sheet,
   Skeleton,
   cx,
@@ -146,7 +147,7 @@ function MarcoCargando() {
 
       <nav
         aria-hidden
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-cabecera border-t border-line-strong bg-cream pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -399,15 +400,16 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
 
 /**
  * El selector de negocio, para el superadmin: entrar en cualquiera sin salir
- * del panel. Con pocos negocios de verdad no hacía falta más que un
- * desplegable, pero entre los reales y los de prueba ya son demasiados para
- * encontrar uno a golpe de vista.
+ * del panel.
  *
- * Es un buscador con sugerencias, no un buscador MÁS un desplegable aparte:
- * escribir filtra la lista que aparece flotando debajo, y pinchar una
- * sugerencia la escribe en el propio hueco y cierra la lista — no se queda
- * ahí abierta enseñando el resto. Cerrado y sin escribir, el hueco enseña el
- * negocio actual como marca de agua, así que nunca deja de decir dónde estás.
+ * Es un <select> nativo a propósito. El combobox a mano de antes abría la
+ * lista al enfocar y la cerraba al perder el foco, fiándose de que el
+ * `mousedown` de la opción llegara antes que el `blur`: en iOS y en Samsung
+ * Internet no siempre llega, y la opción no se elegía. El desplegable del
+ * sistema no tiene ese problema, trae la rueda de iOS, el teclado y el lector
+ * de pantalla gratis, y con un filtro de texto encima sirve igual para muchos
+ * negocios. Lo que se estiliza es la caja y la flecha; el menú es el del
+ * navegador.
  */
 function SelectorNegocio({
   businesses,
@@ -420,121 +422,59 @@ function SelectorNegocio({
 }) {
   const { t, idioma } = useIdioma()
   const id = useId()
-  const inputRef = useRef<HTMLInputElement>(null)
   const [busqueda, setBusqueda] = useState('')
-  const [abierto, setAbierto] = useState(false)
-  const [resaltado, setResaltado] = useState(0)
   // Los dados de baja no molestan mientras se trabaja: son sitio en la lista
   // que ya no hace falta atender. Se recuperan con la casilla, no
   // desaparecen del todo — se puede seguir entrando a mirar el histórico.
   const [verBaja, setVerBaja] = useState(false)
 
-  const actual = businesses.find((b) => b.slug === slug)
-
-  // El negocio activo no desaparece por su estado: si se está mirando su
-  // panel es porque hace falta, dado de baja o no.
-  const base = businesses.filter((b) => verBaja || b.slug === slug || b.subStatus !== 'CANCELADA')
-  const ordenados = useMemo(
-    () => [...base].sort((a, b) => a.name.localeCompare(b.name, idioma)),
-    [base, idioma],
-  )
-
+  // El negocio activo no desaparece por su estado ni por el filtro: si se
+  // está mirando su panel es porque hace falta.
   const q = busqueda.trim().toLowerCase()
-  const visibles = q ? ordenados.filter((b) => b.name.toLowerCase().includes(q)) : ordenados
-
+  const visibles = useMemo(
+    () =>
+      businesses
+        .filter((b) => b.slug === slug || verBaja || b.subStatus !== 'CANCELADA')
+        .filter((b) => b.slug === slug || !q || b.name.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name, idioma)),
+    [businesses, slug, verBaja, q, idioma],
+  )
   const hayBaja = businesses.some((b) => b.subStatus === 'CANCELADA')
-
-  const elegir = (b: { slug: string }) => {
-    onCambiar(b.slug)
-    setBusqueda('')
-    setAbierto(false)
-    inputRef.current?.blur()
-  }
+  const muchos = businesses.length > 8
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="relative">
+      {muchos && (
         <Input
-          ref={inputRef}
           type="search"
-          role="combobox"
-          aria-expanded={abierto}
-          aria-controls={`${id}-listbox`}
-          aria-activedescendant={
-            abierto && visibles[resaltado] ? `${id}-opt-${resaltado}` : undefined
-          }
-          aria-autocomplete="list"
           aria-label={t('panel.buscarNegocio')}
-          placeholder={actual?.name}
+          placeholder={t('panel.buscarNegocio')}
           value={busqueda}
-          onFocus={() => setAbierto(true)}
-          onBlur={() => {
-            setAbierto(false)
-            setBusqueda('')
-          }}
-          onChange={(e) => {
-            setBusqueda(e.target.value)
-            setAbierto(true)
-            setResaltado(0)
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown') {
-              e.preventDefault()
-              setAbierto(true)
-              setResaltado((i) => Math.min(i + 1, visibles.length - 1))
-            } else if (e.key === 'ArrowUp') {
-              e.preventDefault()
-              setResaltado((i) => Math.max(i - 1, 0))
-            } else if (e.key === 'Enter' && abierto && visibles[resaltado]) {
-              e.preventDefault()
-              elegir(visibles[resaltado])
-            } else if (e.key === 'Escape') {
-              setAbierto(false)
-              inputRef.current?.blur()
-            }
-          }}
-          className="h-9 text-meta"
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="h-10 text-meta"
         />
-        {abierto && (
-          <ul
-            id={`${id}-listbox`}
-            role="listbox"
-            aria-label={t('panel.cambiarNegocio')}
-            className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-overlay"
-          >
-            {visibles.length === 0 ? (
-              <li className="px-3 py-2 text-meta text-subtle">
-                {t('panel.ningunNegocioCoincide')}
-              </li>
-            ) : (
-              visibles.map((b, i) => (
-                <li
-                  key={b.id}
-                  id={`${id}-opt-${i}`}
-                  role="option"
-                  aria-selected={b.slug === slug}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => elegir(b)}
-                  className={cx(
-                    'cursor-pointer px-3 py-2 text-meta',
-                    i === resaltado ? 'bg-cream' : 'hover:bg-cream',
-                    b.slug === slug && 'font-semibold text-brand',
-                  )}
-                >
-                  {b.name}
-                </li>
-              ))
-            )}
-          </ul>
-        )}
-      </div>
+      )}
+      <Select
+        id={`${id}-negocio`}
+        aria-label={t('panel.cambiarNegocio')}
+        value={slug}
+        onChange={(e) => onCambiar(e.target.value)}
+        className="h-10 text-meta font-semibold"
+      >
+        {visibles.map((b) => (
+          <option key={b.id} value={b.slug}>
+            {b.name}
+            {b.subStatus === 'CANCELADA' ? ` · ${t('panel.deBaja')}` : ''}
+          </option>
+        ))}
+      </Select>
       {hayBaja && (
-        <label className="flex items-center gap-1.5 text-caption text-subtle">
+        <label className="flex min-h-9 items-center gap-1.5 text-caption text-subtle">
           <input
             type="checkbox"
             checked={verBaja}
             onChange={(e) => setVerBaja(e.target.checked)}
-            className="size-3.5 accent-brand"
+            className="size-4 accent-brand"
           />
           {t('panel.verDadosDeBaja')}
         </label>
@@ -928,7 +868,7 @@ export function PanelLayout() {
         <nav
           aria-label={t('panel.navegacion')}
           className={cx(
-            'fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-cream md:hidden',
+            'fixed inset-x-0 bottom-0 z-cabecera border-t border-line-strong bg-cream md:hidden',
             'pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_16px_rgba(46,33,25,.07)]',
           )}
         >

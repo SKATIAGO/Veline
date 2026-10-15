@@ -64,7 +64,7 @@ export function Tabs<T extends string>({
             tabIndex={elegida ? 0 : -1}
             onClick={() => onCambiar(t.id)}
             className={cx(
-              '-mb-px inline-flex min-h-11 shrink-0 items-center gap-1.5 border-b-2 px-2.5 text-[14px] whitespace-nowrap',
+              '-mb-px inline-flex min-h-11 shrink-0 items-center gap-1.5 border-b-2 px-2.5 text-body whitespace-nowrap',
               'transition-colors duration-200',
               elegida
                 ? 'border-brand font-semibold text-ink'

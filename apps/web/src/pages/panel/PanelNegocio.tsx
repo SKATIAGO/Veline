@@ -143,6 +143,7 @@ function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
           type="file"
           accept="image/*"
           tabIndex={-1}
+          aria-label={t('neg.subirFoto')}
           className="sr-only"
           onChange={(e) => {
             const archivo = e.target.files?.[0]

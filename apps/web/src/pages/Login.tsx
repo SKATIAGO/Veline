@@ -45,7 +45,7 @@ export function Login() {
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
       {/* Aquí no hay cabecera, así que el idioma vive en una esquina: quien
           llega desde un correo en inglés no tiene otro sitio donde cambiarlo. */}
-      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 z-elevado sm:top-6 sm:right-6">
         <SelectorIdioma />
       </div>
 
@@ -70,7 +70,7 @@ export function Login() {
         <div className="mb-8 flex justify-center">
           <Logo size={24} />
         </div>
-        <h1 className="text-center text-[24px] font-semibold text-ink">{t('acc.panelGestion')}</h1>
+        <h1 className="text-center text-title font-semibold text-ink">{t('acc.panelGestion')}</h1>
         <p className="mt-2 mb-8 text-center text-sm text-muted">{t('acc.entraConTuCuenta')}</p>
 
         {recienRestablecida && (

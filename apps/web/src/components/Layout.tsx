@@ -40,7 +40,7 @@ function Header() {
     <>
       <header
         className={cx(
-          'sticky top-0 z-20 border-b bg-cream/90 backdrop-blur transition-[box-shadow,background-color,border-color] duration-300',
+          'sticky top-0 z-cabecera border-b bg-cream/90 backdrop-blur transition-[box-shadow,background-color,border-color] duration-300',
           scrolled ? 'border-line-strong shadow-[0_6px_20px_rgba(46,33,25,.07)]' : 'border-line',
         )}
       >

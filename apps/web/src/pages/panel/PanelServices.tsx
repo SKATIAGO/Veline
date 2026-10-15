@@ -330,9 +330,18 @@ export function PanelServices() {
                       )}
                     </span>
                   )}
-                  <span className={cx('min-w-[180px] flex-1', !s.active && 'opacity-55')}>
+                  {/* Sin publicar: la miniatura se atenúa y el nombre pasa a gris, pero el
+                      texto sigue legible (AA): atenuar la fila entera lo dejaba en 3:1. */}
+                  <span className="min-w-[180px] flex-1">
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-ui font-semibold text-ink">{s.name}</span>
+                      <span
+                        className={cx(
+                          'text-ui font-semibold',
+                          s.active ? 'text-ink' : 'text-muted',
+                        )}
+                      >
+                        {s.name}
+                      </span>
                       {!s.active && <Badge tone="off">{t('serv.sinPublicar')}</Badge>}
                     </span>
                     <span className="mt-0.5 block text-meta text-muted">
@@ -347,8 +356,8 @@ export function PanelServices() {
                   </span>
                   <span
                     className={cx(
-                      'text-ui font-semibold text-ink tabular-nums',
-                      !s.active && 'opacity-55',
+                      'text-ui font-semibold tabular-nums',
+                      s.active ? 'text-ink' : 'text-muted',
                     )}
                   >
                     {formatPrice(s.priceCents, idioma)}

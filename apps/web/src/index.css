@@ -8,8 +8,8 @@
 @theme {
   /* El Canela de la marca (#a96a3e) con texto blanco da 4,36:1, y WCAG AA pide
      4,5:1 para texto normal. En pantalla se usa un punto más oscuro, 4,63:1:
-     no se distingue a simple vista pero los botones ya cumplen. El logo y
-     brand/tokens.css conservan el original. */
+     no se distingue a simple vista pero los botones ya cumplen. El logo (SVG)
+     conserva el original; brand/tokens.css se regenera desde aquí. */
   --color-brand: #a46639;
   --color-brand-dark: #935a33;
   /* El marrón de marca sobre fondo claro da 3,37:1: vale para un relleno con
@@ -48,10 +48,30 @@
 
   --color-ph-bg: #e4d5be;
   --color-ph-border: #b79a76;
-  --color-ph-text: #7a664d;
+  --color-ph-text: #665238; /* 5,15:1 sobre ph-bg */
 
   --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Capas ───────────────────────────────────────────────
+     Una sola escala para todo lo que flota. Antes cada sitio ponía su número
+     y cookies y modales coincidían en 50: ganaba el que se montara después.
+       elevado   lo que sobresale dentro de una página (cabecera pegada de una
+                 ficha, el idioma sobre el fondo oscuro)
+       flotante  desplegables y calendarios emergentes, pegados a su control
+       cabecera  barras fijas de la página: cabecera pública, barra inferior
+                 y cabecera del panel, barra de acciones pegada abajo
+       aviso     avisos a pie de página (cookies, suscripción): tapan la barra
+       capa      fichas y modales: tapan todo lo anterior
+       emergente menús que se abren DENTRO de una ficha y tienen que salir de ella
+       toast     avisos de resultado: por encima de todo, siempre se leen */
+  --z-index-elevado: 10;
+  --z-index-flotante: 20;
+  --z-index-cabecera: 30;
+  --z-index-aviso: 40;
+  --z-index-capa: 50;
+  --z-index-emergente: 60;
+  --z-index-toast: 70;
 
   /* ── Escala tipográfica ───────────────────────────────────
    * Una escala con nombre en vez de tamaños sueltos escritos a mano. Antes
@@ -59,6 +79,7 @@
    * y el panel se había quedado en 12,5 px: demasiado pequeño para leer una
    * agenda a diario. El cuerpo sube a 14 px y 11 px queda solo para etiquetas.
    * El tracking se cierra al crecer, que es lo propio de una grotesca. */
+
   --text-caption: 12px;
   --text-caption--line-height: 1.2;
   --text-meta: 13px;
@@ -76,6 +97,22 @@
   --text-heading: 28px;
   --text-heading--line-height: 1.2;
   --text-heading--letter-spacing: -0.02em;
+  /* La web pública necesitaba tamaños que el panel no tiene. Antes iban a
+     mano (text-[42px], text-[17px]…): 72 veces, 17 valores distintos. */
+  --text-lead: 17px;
+  --text-lead--line-height: 1.55;
+  --text-title: 24px;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.01em;
+  --text-display-sm: 32px;
+  --text-display-sm--line-height: 1.15;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display: 42px;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.025em;
+  --text-display-lg: 52px;
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.03em;
 
   --shadow-pop: 0 8px 28px rgba(169, 106, 62, 0.14);
   /* Elevación solo para lo que flota: menús, diálogos, la barra de búsqueda.

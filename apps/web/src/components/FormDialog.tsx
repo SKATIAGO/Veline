@@ -56,9 +56,14 @@ export function FormDialog({
   const titulo = useId()
   const [preguntando, setPreguntando] = useState(false)
 
-  const pedirCierre = () => {
-    if (dirty && !loading) setPreguntando(true)
-    else onClose()
+  /* La ficha pregunta antes de cerrarse. Con cambios, aquí se abre la
+     confirmación y se le dice que no se mueva: ver `puedeCerrar` en Sheet. */
+  const puedeCerrar = () => {
+    if (dirty && !loading) {
+      setPreguntando(true)
+      return false
+    }
+    return true
   }
 
   const enviar = (e: FormEvent) => {
@@ -68,7 +73,7 @@ export function FormDialog({
 
   return (
     <>
-      <Sheet open={open} onClose={pedirCierre} title={title}>
+      <Sheet open={open} onClose={onClose} puedeCerrar={puedeCerrar} title={title}>
         <form onSubmit={enviar} noValidate aria-labelledby={titulo} className="flex flex-col">
           <div className="flex flex-col gap-1 pr-10">
             <h2 id={titulo} className="font-display text-subheading font-semibold text-ink">
@@ -92,7 +97,7 @@ export function FormDialog({
               className={
                 // La ficha tiene relleno abajo, y algo pegado se queda por encima del
                 // relleno: se baja lo mismo que mide, para que el pie toque el borde.
-                'sticky bottom-[calc(-1*max(1.5rem,env(safe-area-inset-bottom)))] z-10 -mx-5 mt-6 ' +
+                'sticky bottom-[calc(-1*max(1.5rem,env(safe-area-inset-bottom)))] z-elevado -mx-5 mt-6 ' +
                 '-mb-[max(1.5rem,env(safe-area-inset-bottom))] sm:-bottom-6 ' +
                 'flex flex-col-reverse gap-2 border-t border-line bg-surface px-5 pt-3 ' +
                 'pb-[max(1rem,env(safe-area-inset-bottom))] ' +
@@ -110,7 +115,12 @@ export function FormDialog({
                   {borrar.label}
                 </Button>
               )}
-              <Button type="button" variant="secondary" onClick={pedirCierre} disabled={loading}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => puedeCerrar() && onClose()}
+                disabled={loading}
+              >
                 {t('conf.cancelar')}
               </Button>
               <Button type="submit" loading={loading}>

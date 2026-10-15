@@ -55,7 +55,7 @@ export function CabeceraMes({
             </button>
 
             {selectorAbierto && (
-              <div className="absolute z-20 mt-2 w-60 rounded-lg border border-line bg-surface p-3 shadow-overlay">
+              <div className="absolute z-flotante mt-2 w-60 rounded-lg border border-line bg-surface p-3 shadow-overlay">
                 <div className="mb-2 flex items-center justify-between">
                   <button
                     type="button"

@@ -197,7 +197,7 @@ export function BookingDate() {
           seed={6}
         />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-6 text-[24px] font-semibold text-ink lg:sr-only lg:mb-0">
+          <h1 className="mb-6 text-title font-semibold text-ink lg:sr-only lg:mb-0">
             {t('fecha.titulo')}
           </h1>
 
@@ -310,7 +310,7 @@ export function BookingDate() {
                           : 'bg-cream text-disabled',
                     )}
                   >
-                    <span className="text-caption font-medium opacity-80">
+                    <span className="text-caption font-medium">
                       {weekdayShort(d.getDay(), idioma)}
                     </span>
                     <span className="text-ui font-semibold">{d.getDate()}</span>

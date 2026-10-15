@@ -48,7 +48,7 @@ export function Verificar() {
 
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
-      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 z-elevado sm:top-6 sm:right-6">
         <SelectorIdioma />
       </div>
 
@@ -70,7 +70,7 @@ export function Verificar() {
 
         {estado === 'ok' && (
           <>
-            <h1 className="font-display text-[26px] font-semibold text-ink">
+            <h1 className="font-display text-heading font-semibold text-ink">
               {t('acc.correoConfirmado')}
             </h1>
             <p className="mt-3 text-body leading-relaxed text-muted">
@@ -87,7 +87,7 @@ export function Verificar() {
 
         {estado === 'error' && (
           <>
-            <h1 className="font-display text-[26px] font-semibold text-ink">
+            <h1 className="font-display text-heading font-semibold text-ink">
               {t('acc.noConfirmado')}
             </h1>
             <p className="mt-3 text-body leading-relaxed text-muted">{mensaje}</p>

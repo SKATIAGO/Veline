@@ -102,7 +102,7 @@ export function AltaNegocio({ open, onClose }: { open: boolean; onClose: () => v
         activa ? 'border-brand bg-brand/5' : 'border-line bg-surface hover:border-line-strong',
       )}
     >
-      <span className="text-[14px] font-semibold text-ink">{titulo}</span>
+      <span className="text-body font-semibold text-ink">{titulo}</span>
       <span className="text-meta text-muted">{texto}</span>
     </button>
   )
@@ -304,7 +304,7 @@ export function AltaNegocio({ open, onClose }: { open: boolean; onClose: () => v
                   aria-pressed={dias === d}
                   onClick={() => setDias(d)}
                   className={cx(
-                    'min-h-11 rounded-xl border px-3 text-[14px] font-semibold transition-colors duration-200',
+                    'min-h-11 rounded-xl border px-3 text-body font-semibold transition-colors duration-200',
                     dias === d
                       ? 'border-brand bg-brand/5 text-ink'
                       : 'border-line bg-surface text-body-2 hover:border-line-strong',

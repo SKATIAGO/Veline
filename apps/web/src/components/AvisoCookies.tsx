@@ -57,7 +57,7 @@ export function AvisoCookies() {
     <div
       role="region"
       aria-label={t('pie.cookies')}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-line-strong bg-cream/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-aviso border-t border-line-strong bg-cream/95 backdrop-blur"
     >
       <div className="mx-auto flex max-w-[1100px] flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
         <p className="flex-1 text-body leading-relaxed text-body-2">

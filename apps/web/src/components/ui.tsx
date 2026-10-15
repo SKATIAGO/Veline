@@ -342,7 +342,7 @@ export function useALaVista<T extends HTMLElement>(abierto: unknown) {
 export function BarraGuardar({ visible, children }: { visible: boolean; children: ReactNode }) {
   if (!visible) return null
   return (
-    <div className="fixed inset-x-0 bottom-[calc(65px+env(safe-area-inset-bottom))] z-30 border-t border-line bg-cream/95 px-4 py-2.5 shadow-[0_-2px_12px_rgba(46,33,25,.06)] backdrop-blur md:hidden">
+    <div className="fixed inset-x-0 bottom-[calc(65px+env(safe-area-inset-bottom))] z-cabecera border-t border-line bg-cream/95 px-4 py-2.5 shadow-[0_-2px_12px_rgba(46,33,25,.06)] backdrop-blur md:hidden">
       <div className="mx-auto flex max-w-md items-center justify-between gap-3">{children}</div>
     </div>
   )
@@ -889,10 +889,20 @@ export function Sheet({
   historial = true,
   lado = 'abajo',
   completa = false,
+  puedeCerrar,
 }: {
   open: boolean
   onClose: () => void
   title: string
+  /**
+   * Se consulta ANTES de cerrar (X, fondo, Esc, arrastre, «atrás»). Si devuelve
+   * false, la ficha no se mueve: el padre se encarga de preguntar («¿Descartar
+   * los cambios?») y de llamar a onClose cuando toque. Antes la ficha se
+   * animaba fuera de pantalla y luego avisaba al padre; si el padre no
+   * cerraba, se quedaba montada, invisible y con el velo puesto: la interfaz
+   * entera bloqueada.
+   */
+  puedeCerrar?: () => boolean
   children: ReactNode
   /** Dónde empieza el foco. Sin esto, en la ficha entera. Una confirmación lo
       pone en «Cancelar»: así un Intro de más no borra nada. */
@@ -927,13 +937,16 @@ export function Sheet({
      deshacían y rehacían en cada render: robaban el foco y, ahora que la ficha
      toca el historial, meterían y sacarían entradas sin parar. */
   const alCerrar = useRef(onClose)
+  const puedeCerrarRef = useRef(puedeCerrar)
   useEffect(() => {
     alCerrar.current = onClose
+    puedeCerrarRef.current = puedeCerrar
   })
 
   /** Cierra acompañando el gesto: la ficha baja por donde subió. */
   const cerrar = useCallback(() => {
     if (cerrando.current) return
+    if (puedeCerrarRef.current && !puedeCerrarRef.current()) return
     const el = caja.current
     if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       alCerrar.current()
@@ -1004,6 +1017,12 @@ export function Sheet({
          deja a la vista la de debajo: esa sigue siendo la entrada actual y no
          se toca. Solo se cierra la ficha cuya entrada ya no está. */
       if (window.history.state?.velineFicha === marca) return
+      /* El navegador ya ha quitado la entrada. Si el padre no deja cerrar
+         (cambios sin guardar), se vuelve a poner y se queda como estaba. */
+      if (puedeCerrarRef.current && !puedeCerrarRef.current()) {
+        window.history.pushState({ ...window.history.state, velineFicha: marca }, '')
+        return
+      }
       cerradaConAtras = true
       // El navegador ya la ha quitado: deja de contarse como nuestra.
       const i = entradas.indexOf(marca)
@@ -1128,7 +1147,7 @@ export function Sheet({
   return createPortal(
     <div
       className={cx(
-        'fixed inset-0 z-50 flex',
+        'fixed inset-0 z-capa flex',
         lado === 'derecha'
           ? 'items-stretch justify-end'
           : 'items-end justify-center sm:items-center',
@@ -1172,7 +1191,7 @@ export function Sheet({
         {/* Cabecera pegada arriba: el asa, que ahora sí se arrastra, y un
             botón de cerrar a la vista. Sin él, en el móvil —donde no hay
             tecla Escape— la única salida era tocar una de las opciones. */}
-        <div className="sticky top-0 z-10 -mx-5 flex h-12 items-center justify-center bg-surface sm:-mx-6">
+        <div className="sticky top-0 z-elevado -mx-5 flex h-12 items-center justify-center bg-surface sm:-mx-6">
           {lado === 'abajo' && !completa && (
             <span aria-hidden className="h-1 w-10 rounded-full bg-line-strong sm:hidden" />
           )}

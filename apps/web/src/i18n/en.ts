@@ -1941,4 +1941,11 @@ export const en: Record<keyof typeof es, string> = {
   'hecha.tuReserva': 'Your booking',
   'hecha.yaPaso': 'This booking has already passed',
   'hecha.yaPasoTexto': 'It was on {fecha} at {hora} at {negocio}.',
+  'panel.deBaja': 'closed',
+  'pieMin.label': 'Help and legal',
+  'pieMin.ayuda': 'Need help?',
+  'pieMin.privacidad': 'Privacy',
+  'pieMin.cookies': 'Cookies',
+  'cal.cerrado': 'closed',
+  'cal.completo': 'full',
 }

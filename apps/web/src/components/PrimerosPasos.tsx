@@ -88,10 +88,7 @@ export function PrimerosPasos({
             </span>
             <span className="min-w-0 flex-1">
               <span
-                className={cx(
-                  'block text-[14px] font-semibold',
-                  p.hecho ? 'text-muted' : 'text-ink',
-                )}
+                className={cx('block text-body font-semibold', p.hecho ? 'text-muted' : 'text-ink')}
               >
                 {p.titulo}
                 {p.hecho && <span className="sr-only"> — {t('pp.hecho')}</span>}

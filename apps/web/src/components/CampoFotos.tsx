@@ -71,7 +71,7 @@ export function CampoFotos({
                   onClick={() => onChange([url, ...fotos.filter((f) => f !== url)])}
                   aria-label={t('fotos.hacerPrincipal')}
                   title={t('fotos.hacerPrincipal')}
-                  className="grid size-7 place-items-center rounded-full bg-surface/90 text-[13px] text-ink hover:bg-surface"
+                  className="grid size-7 place-items-center rounded-full bg-surface/90 text-meta text-ink hover:bg-surface"
                 >
                   ★
                 </button>
@@ -83,7 +83,7 @@ export function CampoFotos({
                 onClick={() => onChange(fotos.filter((f) => f !== url))}
                 aria-label={t('ext.quitarFoto')}
                 title={t('ext.quitarFoto')}
-                className="grid size-7 place-items-center rounded-full bg-surface/90 text-[15px] leading-none text-ink hover:bg-surface"
+                className="grid size-7 place-items-center rounded-full bg-surface/90 text-ui leading-none text-ink hover:bg-surface"
               >
                 ×
               </button>

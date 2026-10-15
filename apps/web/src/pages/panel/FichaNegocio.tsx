@@ -501,7 +501,7 @@ function Cuentas({ b, onCrearCuenta }: { b: AdminBusiness; onCrearCuenta: () => 
             >
               <div className={cx('min-w-0 flex-1', !u.active && 'opacity-60')}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[14px] font-semibold text-ink">{u.name}</span>
+                  <span className="text-body font-semibold text-ink">{u.name}</span>
                   {!u.active && <Badge tone="off">{t('ctas.sinAcceso')}</Badge>}
                 </div>
                 <p className="text-meta break-all text-muted">
@@ -596,13 +596,13 @@ function Cobros({ b }: { b: AdminBusiness }) {
             className="flex items-center justify-between gap-3 border-b border-line py-3 last:border-b-0"
           >
             <div className="min-w-0">
-              <p className="text-[14px] font-semibold text-ink first-letter:uppercase">
+              <p className="text-body font-semibold text-ink first-letter:uppercase">
                 {mes(c.period)}
               </p>
               <p className="text-meta text-muted">{planLabel(c.plan, idioma)}</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-semibold text-ink tabular-nums">
+              <span className="text-body font-semibold text-ink tabular-nums">
                 {formatPrice(c.totalCents, idioma)}
               </span>
               <Badge tone={COBRO_TONO[c.status]}>{t(COBRO_CLAVE[c.status])}</Badge>

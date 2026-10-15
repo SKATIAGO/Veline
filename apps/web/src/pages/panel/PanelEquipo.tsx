@@ -837,7 +837,7 @@ function Incorporar({
         activa ? 'border-brand bg-brand/5' : 'border-line bg-surface hover:border-line-strong',
       )}
     >
-      <span className="text-[14px] font-semibold text-ink">{titulo}</span>
+      <span className="text-body font-semibold text-ink">{titulo}</span>
       <span className="text-meta text-muted">{texto}</span>
     </button>
   )
@@ -1331,7 +1331,7 @@ export function PanelEquipo() {
                       )}
                     </div>
                   </div>
-                  <div className="relative z-10">
+                  <div className="relative z-elevado">
                     <RowMenu
                       label={p.nombre}
                       acciones={[

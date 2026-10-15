@@ -222,7 +222,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
                   setNuevaHora(null)
                 }}
                 className={cx(
-                  'inline-flex min-h-10 items-center rounded-xl border px-3.5 text-[14px] font-semibold transition-colors duration-200',
+                  'inline-flex min-h-10 items-center rounded-xl border px-3.5 text-body font-semibold transition-colors duration-200',
                   nuevaPersona === p.id
                     ? 'border-brand bg-brand/5 text-ink'
                     : 'border-line bg-surface text-body-2 hover:border-line-strong',

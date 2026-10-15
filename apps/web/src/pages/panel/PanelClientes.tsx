@@ -82,7 +82,7 @@ function Historial({ slug, cliente }: { slug: string; cliente: PanelCustomer }) 
             className="flex items-start justify-between gap-3 border-b border-line py-3 last:border-b-0"
           >
             <div className="min-w-0">
-              <p className="text-[14px] font-semibold text-ink first-letter:uppercase">
+              <p className="text-body font-semibold text-ink first-letter:uppercase">
                 {formatLongDate(madridDay(d), idioma)} ·{' '}
                 {d.toLocaleTimeString(locale, {
                   hour: '2-digit',
@@ -98,7 +98,7 @@ function Historial({ slug, cliente }: { slug: string; cliente: PanelCustomer }) 
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
-              <span className="text-[14px] font-semibold text-ink tabular-nums">
+              <span className="text-body font-semibold text-ink tabular-nums">
                 {formatPrice(c.priceCents, idioma)}
               </span>
               <Badge tone={estado.tono}>{t(estado.clave)}</Badge>
@@ -365,7 +365,7 @@ export function PanelClientes() {
                   <p className="mt-0.5 text-meta text-muted">
                     <a
                       href={`tel:${c.phone}`}
-                      className="relative z-10 -my-3 inline-flex min-h-11 items-center rounded-lg px-1 hover:text-brand hover:underline"
+                      className="relative z-elevado -my-3 inline-flex min-h-11 items-center rounded-lg px-1 hover:text-brand hover:underline"
                     >
                       {c.phone}
                     </a>

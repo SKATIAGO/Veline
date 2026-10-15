@@ -93,9 +93,9 @@ function Tarjeta({ a }: { a: Aviso }) {
       onMouseEnter={parar}
       onMouseLeave={arrancar}
       className={cx(
-        /* text-[14px] y no text-body: en este tema «body» es a la vez un tamaño y
+        /* text-body y no text-body: en este tema «body» es a la vez un tamaño y
            un color, y el color marrón ganaba al crema sobre el fondo oscuro. */
-        'pointer-events-auto flex items-center gap-3 rounded-xl bg-ink py-2.5 pr-2 pl-3.5 text-[14px] leading-snug text-cream shadow-overlay',
+        'pointer-events-auto flex items-center gap-3 rounded-xl bg-ink py-2.5 pr-2 pl-3.5 text-body leading-snug text-cream shadow-overlay',
         'motion-safe:animate-[veline-rise_220ms_cubic-bezier(.22,1,.36,1)]',
       )}
     >
@@ -117,7 +117,7 @@ function Tarjeta({ a }: { a: Aviso }) {
             a.accion!.onClick()
             quitar(a.id)
           }}
-          className="min-h-9 max-sm:min-h-11 shrink-0 rounded-full px-3 text-[14px] font-bold text-accent transition-colors duration-200 hover:bg-ink-2"
+          className="min-h-9 max-sm:min-h-11 shrink-0 rounded-full px-3 text-body font-bold text-accent transition-colors duration-200 hover:bg-ink-2"
         >
           {a.accion.texto}
         </button>
@@ -147,7 +147,7 @@ export function Avisos() {
     <section
       aria-label={t('avisos.region')}
       className={cx(
-        'pointer-events-none fixed inset-x-4 z-[60] flex flex-col gap-2',
+        'pointer-events-none fixed inset-x-4 z-toast flex flex-col gap-2',
         // En pantalla grande, sobre el contenido y no sobre el menú lateral
         // (248 px), que tiene abajo el perfil y «Salir».
         'bottom-[calc(5rem+env(safe-area-inset-bottom))] md:right-auto md:bottom-6 md:left-[272px] md:w-[400px]',

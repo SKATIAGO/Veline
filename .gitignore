@@ -16,3 +16,8 @@ backups/
 
 # Último commit que scripts/deploy.sh desplegó con éxito en este servidor.
 .ultimo-desplegado
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/

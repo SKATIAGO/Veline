@@ -244,7 +244,7 @@ export function BookingConfirm() {
           seed={8}
         />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="mb-7 text-[24px] font-semibold text-ink">{t('confirmar.titulo')}</h1>
+          <h1 className="mb-7 text-title font-semibold text-ink">{t('confirmar.titulo')}</h1>
 
           <div className="flex max-w-[440px] flex-col gap-5">
             <Field

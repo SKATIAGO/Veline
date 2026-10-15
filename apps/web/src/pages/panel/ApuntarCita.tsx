@@ -25,6 +25,7 @@ import {
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { Wizard } from '../../components/Wizard'
+import { SelectorProfesional } from '../../components/SelectorProfesional'
 import { SlotPicker } from '../../components/SlotPicker'
 
 /** Para comparar con los teléfonos guardados, que van siempre normalizados. */
@@ -183,11 +184,11 @@ export function ApuntarCita({
       )}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[14px] font-semibold text-ink">{titulo}</span>
+        <span className="text-body font-semibold text-ink">{titulo}</span>
         {texto && <span className="text-meta text-muted">{texto}</span>}
       </span>
       {derecha && (
-        <span className="shrink-0 text-[14px] font-semibold text-ink tabular-nums">{derecha}</span>
+        <span className="shrink-0 text-body font-semibold text-ink tabular-nums">{derecha}</span>
       )}
     </button>
   )
@@ -246,7 +247,7 @@ export function ApuntarCita({
                     )}
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[14px] font-semibold text-ink">{e.name}</span>
+                      <span className="block text-body font-semibold text-ink">{e.name}</span>
                       <span className="block text-meta text-muted tabular-nums">
                         +{formatPrice(e.priceCents, idioma)}
                         {e.durationMin > 0 && ` · +${formatDuration(e.durationMin, idioma)}`}
@@ -310,29 +311,13 @@ export function ApuntarCita({
 
           {/* Con una sola persona no hay nada que elegir. */}
           {personas.length > 1 && (
-            <fieldset>
-              <legend className="mb-2 text-meta font-semibold text-body-2">
-                {t('agenda.conQuien')}
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {[{ id: '', name: t('agenda.sinPreferencia') }, ...personas].map((p) => (
-                  <button
-                    key={p.id || 'cualquiera'}
-                    type="button"
-                    aria-pressed={staffId === p.id}
-                    onClick={() => setStaffId(p.id)}
-                    className={cx(
-                      'inline-flex min-h-10 items-center rounded-xl border px-3.5 text-[14px] font-semibold transition-colors duration-200',
-                      staffId === p.id
-                        ? 'border-brand bg-brand/5 text-ink'
-                        : 'border-line bg-surface text-body-2 hover:border-line-strong',
-                    )}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <SelectorProfesional
+              personas={personas}
+              valor={staffId}
+              onCambiar={setStaffId}
+              etiqueta={t('agenda.conQuien')}
+              sinPreferencia={t('agenda.sinPreferencia')}
+            />
           )}
 
           {serviceId && (
@@ -419,7 +404,7 @@ export function ApuntarCita({
                   className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-2.5 text-left transition-colors duration-200 hover:border-brand"
                 >
                   <span className="min-w-0">
-                    <span className="block text-[14px] font-semibold text-ink">{c.name}</span>
+                    <span className="block text-body font-semibold text-ink">{c.name}</span>
                     <span className="block text-meta text-muted tabular-nums">{c.phone}</span>
                   </span>
                   <span className="shrink-0 text-meta text-muted">

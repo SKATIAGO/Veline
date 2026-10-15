@@ -324,9 +324,16 @@ export function PanelExtras() {
                     cuantas={e.photos.length}
                     className={cx(!e.active && 'opacity-55')}
                   />
-                  <span className={cx('min-w-[160px] flex-1', !e.active && 'opacity-55')}>
+                  <span className="min-w-[160px] flex-1">
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-ui font-semibold text-ink">{e.name}</span>
+                      <span
+                        className={cx(
+                          'text-ui font-semibold',
+                          e.active ? 'text-ink' : 'text-muted',
+                        )}
+                      >
+                        {e.name}
+                      </span>
                       {!e.active && <Badge tone="off">{t('ext.oculto')}</Badge>}
                     </span>
                     {e.description && (
@@ -337,8 +344,8 @@ export function PanelExtras() {
                   </span>
                   <span
                     className={cx(
-                      'text-ui font-semibold text-ink tabular-nums',
-                      !e.active && 'opacity-55',
+                      'text-ui font-semibold tabular-nums',
+                      e.active ? 'text-ink' : 'text-muted',
                     )}
                   >
                     +{formatPrice(e.priceCents, idioma)}

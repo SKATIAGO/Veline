@@ -49,7 +49,7 @@ export function FranjasSemanales({ week, onChange, onCopiarALaborables }: Franja
                 <span className="text-ui font-semibold text-ink capitalize">
                   {weekdayLong(wd, idioma)}
                 </span>
-                {cerrado && <span className="text-meta text-disabled">{t('comun.cerrado')}</span>}
+                {cerrado && <span className="text-meta text-subtle">{t('comun.cerrado')}</span>}
               </div>
 
               <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-2">

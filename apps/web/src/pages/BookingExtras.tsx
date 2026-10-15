@@ -98,7 +98,7 @@ export function BookingExtras() {
           seed={5}
         />
         <Reveal variant="left" className="min-w-0 flex-[1.4]">
-          <h1 className="text-[24px] font-semibold text-ink">{t('extras.titulo')}</h1>
+          <h1 className="text-title font-semibold text-ink">{t('extras.titulo')}</h1>
           <p className="mt-1.5 max-w-[600px] text-meta text-muted">{t('extras.pista')}</p>
 
           <ul className="mt-6 flex max-w-[600px] flex-col gap-3">

@@ -64,9 +64,51 @@ jobs:
         # sí quedar a la vista en cada ejecución.
         run: npm audit --audit-level=high || true
 
+  interfaz:
+    name: Probar la interfaz
+    runs-on: ubuntu-latest
+    # La API de verdad contra un Postgres del propio job, y un navegador que
+    # recorre las pantallas en los cinco anchos (ver apps/web/playwright.config.ts).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: veline
+          POSTGRES_PASSWORD: veline
+          POSTGRES_DB: veline
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U veline -d veline"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      CI: 'true'
+      TZ: Europe/Madrid
+      DATABASE_URL: postgresql://veline:veline@localhost:5432/veline?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Navegadores de Playwright
+        run: npx playwright install --with-deps chromium webkit
+        working-directory: apps/web
+      - name: Pruebas de interfaz
+        run: npx playwright test
+        working-directory: apps/web
+      - name: Guardar las trazas de los fallos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright
+          path: apps/web/test-results
+          retention-days: 7
+
   desplegar:
     name: Desplegar en el VPS
-    needs: verificar
+    needs: [verificar, interfaz]
     runs-on: ubuntu-latest
     # Doble cinturón: aunque alguien cambie los disparadores, esto solo
     # despliega desde main del repositorio original.

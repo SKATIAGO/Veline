@@ -269,7 +269,7 @@ export function CerrarDias({
                 <li key={b.id} className="rounded-xl border border-line bg-surface px-4 py-3">
                   <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                     <div className="min-w-0">
-                      <p className="text-[14px] font-semibold text-ink">
+                      <p className="text-body font-semibold text-ink">
                         <span className="first-letter:uppercase">{dia(b.startsAt)}</span> ·{' '}
                         {hora(b.startsAt)} · {b.customer.name}
                       </p>

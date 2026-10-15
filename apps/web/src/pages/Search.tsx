@@ -96,7 +96,7 @@ export function Search() {
         ))}
       </div>
 
-      <h1 className="mt-10 mb-6 text-[26px] font-semibold text-ink">
+      <h1 className="mt-10 mb-6 text-heading font-semibold text-ink">
         {isLoading
           ? t('buscar.buscando')
           : plural(data?.length ?? 0, 'buscar.unNegocio', 'buscar.variosNegocios')}

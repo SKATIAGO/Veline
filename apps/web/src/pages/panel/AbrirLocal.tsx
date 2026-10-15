@@ -125,7 +125,7 @@ export function AbrirLocal({
         activa ? 'border-brand bg-brand/5' : 'border-line bg-surface hover:border-line-strong',
       )}
     >
-      <span className="text-[14px] font-semibold text-ink">{titulo}</span>
+      <span className="text-body font-semibold text-ink">{titulo}</span>
       <span className="text-meta text-muted">{texto}</span>
     </button>
   )
@@ -262,7 +262,7 @@ export function AbrirLocal({
                       onChange={() => alternar(p.id)}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[14px] font-semibold text-ink">{p.name}</span>
+                      <span className="block text-body font-semibold text-ink">{p.name}</span>
                       <span className="block text-meta text-muted">
                         {enTodos
                           ? t('alocal.yaEnTodos')

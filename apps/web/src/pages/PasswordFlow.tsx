@@ -19,7 +19,7 @@ function AuthCard({
   return (
     <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6">
       {/* Igual que en el login: sin cabecera, el idioma vive en la esquina. */}
-      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+      <div className="absolute top-4 right-4 z-elevado sm:top-6 sm:right-6">
         <SelectorIdioma />
       </div>
 
@@ -36,7 +36,7 @@ function AuthCard({
         <div className="mb-8 flex justify-center">
           <Logo size={24} />
         </div>
-        <h1 className="text-center text-[24px] font-semibold text-ink">{title}</h1>
+        <h1 className="text-center text-title font-semibold text-ink">{title}</h1>
         <p className="mt-2 mb-8 text-center text-sm text-muted">{subtitle}</p>
         {children}
       </div>
