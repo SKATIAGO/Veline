@@ -305,6 +305,11 @@ export const api = {
   ficharSalida: (slug: string) =>
     request<Fichaje>(`/panel/${slug}/fichajes/salida`, { method: 'POST' }),
 
+  ficharPausa: (slug: string) =>
+    request<Fichaje>(`/panel/${slug}/fichajes/pausa`, { method: 'POST' }),
+  ficharReanudar: (slug: string) =>
+    request<Fichaje>(`/panel/${slug}/fichajes/reanudar`, { method: 'POST' }),
+
   fichajes: (slug: string, params: { desde?: string; hasta?: string } = {}) =>
     request<{ puedeVerTodos: boolean; fichajes: Fichaje[] }>(
       `/panel/${slug}/fichajes${qs(params)}`,
@@ -746,6 +751,17 @@ export interface PanelLocal {
   approved: boolean
 }
 
+export interface CorreccionFichaje {
+  por: string
+  cuando: string
+  motivo: string
+  /** Null en un fichaje añadido a mano: no hubo «antes». */
+  entradaAntes: string | null
+  salidaAntes: string | null
+  entradaDespues: string
+  salidaDespues: string | null
+}
+
 export interface Fichaje {
   id: string
   userId: string
@@ -753,8 +769,14 @@ export interface Fichaje {
   email: string
   entrada: string
   salida: string | null
-  /** Minutos trabajados. Null mientras la jornada sigue abierta. */
+  /** Minutos trabajados, con las pausas descontadas. Null mientras la jornada sigue abierta. */
   minutos: number | null
+  minutosPausa: number
+  enPausa: boolean
+  pausas: { inicio: string; fin: string | null }[]
+  /** Todas las correcciones, en orden. */
+  correcciones: CorreccionFichaje[]
+  /** La última, como antes. */
   correccion: {
     por: string
     cuando: string

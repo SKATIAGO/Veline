@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom'
 import { categoryLabel, formatPrice } from '@veline/shared'
-import { ButtonLink, Card, Stars } from './ui'
+import { Card, Stars } from './ui'
 import { Photo } from './Photo'
 import { useIdioma } from '../i18n/idioma'
 
@@ -18,7 +19,10 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
   const { t, idioma } = useIdioma()
 
   return (
-    <Card className="lift group flex h-full flex-col overflow-hidden">
+    /* Toda la tarjeta lleva a la ficha: el enlace estirado la cubre entera y
+       el foco con teclado dibuja el aro en la tarjeta. «Reservar» se queda
+       como acción visible, pero ya no es la única zona que responde. */
+    <Card className="lift group relative flex h-full flex-col overflow-hidden focus-within:ring-2 focus-within:ring-brand/50">
       <div className="h-[140px] shrink-0 overflow-hidden">
         <Photo
           src={business.photo}
@@ -44,14 +48,19 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
             </span>
           </div>
         )}
-        <ButtonLink
+        <Link
           to={`/${business.slug}`}
-          variant="secondary"
-          size="sm"
-          className="mt-auto w-full"
+          aria-label={business.name}
+          className="absolute inset-0 rounded-xl outline-none after:absolute after:inset-0"
+        />
+        {/* Parece el botón de antes, pero el que responde es el enlace que cubre
+            la tarjeta: así no hay dos destinos iguales en el orden de tabulación. */}
+        <span
+          aria-hidden
+          className="relative mt-auto inline-flex min-h-9 w-full items-center justify-center rounded-full border border-line bg-surface text-meta font-semibold text-ink transition-colors duration-200 group-hover:border-line-strong max-sm:min-h-11"
         >
           {t('ficha.reservar')}
-        </ButtonLink>
+        </span>
       </div>
     </Card>
   )

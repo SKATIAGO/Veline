@@ -326,6 +326,11 @@ async function main() {
         // Dominio .test: reservado por la RFC, nunca entregable. El envío real
         // se prueba con MAIL_OVERRIDE_TO.
         email: `reservas@${b.slug}.test`,
+        // Un negocio de demostración nace aprobado y activo: la ficha pública y
+        // la reserva tienen que funcionar en una base recién creada (las
+        // pruebas de interfaz en CI arrancan de cero).
+        approvedAt: new Date(),
+        subStatus: 'ACTIVA',
         // Sin nota ni reseñas: un negocio empieza en cero y la estrella sale
         // de las reseñas reales de sus clientes, no de un número escrito aquí.
         plan: b.plan,

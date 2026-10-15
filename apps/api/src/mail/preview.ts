@@ -12,6 +12,14 @@ import {
   bookingCancelled,
   bookingConfirmedToCustomer,
   bookingCreatedToBusiness,
+  bookingReminderMail,
+  bookingRescheduled,
+  newLocationNotifyTeamMail,
+  panelUserCreatedMail,
+  passwordResetMail,
+  reviewRequestMail,
+  signupNotifyTeamMail,
+  signupVerifyMail,
   type BookingMailData,
 } from './templates.js'
 
@@ -26,6 +34,7 @@ const enTresDias = () => {
 
 const EJEMPLO: BookingMailData = {
   idiomaCliente: 'es',
+  extras: [{ name: 'Revisión de frenos', priceCents: 1500, quantity: 1 }],
   code: 'VL-7F3K2',
   startsAt: enTresDias(),
   priceCents: 5900,
@@ -60,6 +69,76 @@ async function main() {
         EJEMPLO,
         { email: 'reservas@taller.es', name: 'Taller Mecánico Rivas' },
         'negocio',
+        'El mecánico está de baja esta semana.',
+      ),
+    ],
+    [
+      'cambio-de-hora',
+      bookingRescheduled(EJEMPLO, new Date(EJEMPLO.startsAt.getTime() - 86_400_000)),
+    ],
+    ['recordatorio', bookingReminderMail(EJEMPLO)],
+    [
+      'resena',
+      reviewRequestMail(
+        { email: 'marina.lopez@mail.com', name: 'Marina López' },
+        {
+          businessName: EJEMPLO.businessName,
+          serviceName: EJEMPLO.serviceName,
+          url: 'http://localhost:5173/resena/abc',
+          idiomaCliente: 'es',
+        },
+      ),
+    ],
+    [
+      'restablecer-contrasena',
+      passwordResetMail(
+        { email: 'andres@taller.es', name: 'Andrés Rivas' },
+        'http://localhost:5173/restablecer?token=abc',
+      ),
+    ],
+    [
+      'alta-usuario-panel',
+      panelUserCreatedMail(
+        { email: 'marta@taller.es', name: 'Marta Gil' },
+        { businessName: EJEMPLO.businessName, password: 'ejemplo-1234', role: 'EMPLEADO' },
+      ),
+    ],
+    [
+      'alta-verificar',
+      signupVerifyMail(
+        { email: 'andres@taller.es', name: 'Andrés Rivas' },
+        { businessName: EJEMPLO.businessName, url: 'http://localhost:5173/verificar?token=abc' },
+      ),
+    ],
+    [
+      'alta-aviso-interno',
+      signupNotifyTeamMail(
+        { email: 'equipo@veline.es' },
+        {
+          businessName: EJEMPLO.businessName,
+          category: 'talleres',
+          street: 'Calle de San Bernardo 42',
+          city: 'Madrid',
+          postalCode: '28015',
+          responsable: 'Andrés Rivas',
+          email: 'andres@taller.es',
+          phone: '612 34 56 78',
+          slug: EJEMPLO.businessSlug,
+        },
+      ),
+    ],
+    [
+      'local-aviso-interno',
+      newLocationNotifyTeamMail(
+        { email: 'equipo@veline.es' },
+        {
+          businessName: EJEMPLO.businessName,
+          locationName: 'Rivas Centro',
+          street: 'Avenida de Covibar 10',
+          city: 'Rivas-Vaciamadrid',
+          postalCode: '28523',
+          slug: EJEMPLO.businessSlug,
+        },
       ),
     ],
   ] as const

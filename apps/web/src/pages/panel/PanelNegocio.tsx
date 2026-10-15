@@ -1,9 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { GestorFotos } from '../../components/GestorFotos'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CATEGORIES } from '@veline/shared'
 import { api, ApiError, type PanelProfile } from '../../lib/api'
-import { prepararFoto } from '../../lib/imagen'
 import {
   BarraGuardar,
   Button,
@@ -14,11 +14,9 @@ import {
   PageHeader,
   Select,
   Skeleton,
-  Spinner,
   Textarea,
 } from '../../components/ui'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
-import { Photo } from '../../components/Photo'
 import { Texto, useIdioma } from '../../i18n/idioma'
 import { useCambiosSinGuardar } from '../../lib/cambios'
 import { aviso, textoDeError } from '../../components/Avisos'
@@ -48,7 +46,6 @@ const MAX_FOTOS = 10
 function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
   const { t } = useIdioma()
   const queryClient = useQueryClient()
-  const selector = useRef<HTMLInputElement>(null)
 
   const invalidar = () => {
     queryClient.invalidateQueries({ queryKey: ['panel', slug, 'profile'] })
@@ -59,101 +56,34 @@ function FotosDelNegocio({ slug, fotos }: { slug: string; fotos: string[] }) {
   const guardar = useMutation({
     mutationFn: (nuevas: string[]) => api.savePhotos(slug, nuevas),
     onSuccess: invalidar,
+    onError: (e) => aviso.error(textoDeError(e, t('neg.errFoto'))),
   })
-
-  const subir = useMutation({
-    mutationFn: async (archivo: File) => {
-      const { url } = await api.subirImagen(slug, await prepararFoto(archivo))
-      return url
-    },
-    onSuccess: (url) =>
-      guardar.mutate([...fotos, url], { onSuccess: () => aviso.ok(t('neg.fotoAnadida')) }),
-  })
-
-  /* Quitar una foto va directo —antes también—, pero ahora se puede deshacer:
-     con un toque de más en la ✕ se perdía la portada sin remedio. */
-  const quitar = (url: string) => {
-    const antes = fotos
-    guardar.mutate(
-      fotos.filter((f) => f !== url),
-      {
-        onSuccess: () =>
-          aviso.ok(t('neg.fotoQuitada'), {
-            texto: t('avisos.deshacer'),
-            onClick: () =>
-              api
-                .savePhotos(slug, antes)
-                .then(invalidar)
-                .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
-          }),
-      },
-    )
-  }
-
-  const enBusca = subir.isPending || guardar.isPending
 
   return (
-    <div>
-      <Card padded>
-        <div className="flex flex-wrap gap-3">
-          {fotos.map((url) => (
-            <div key={url} className="group relative size-28 shrink-0">
-              <Photo src={url} alt="" width={224} height={224} className="size-full rounded-xl" />
-              <button
-                type="button"
-                onClick={() => quitar(url)}
-                disabled={enBusca}
-                aria-label={t('neg.quitarFoto')}
-                className="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full after:absolute after:-inset-2 after:content-[''] bg-ink/70 text-body-2 text-white backdrop-blur transition-colors duration-200 hover:bg-ink disabled:pointer-events-none disabled:opacity-50"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-
-          {fotos.length < MAX_FOTOS && (
-            <button
-              type="button"
-              onClick={() => selector.current?.click()}
-              disabled={enBusca}
-              aria-label={t('neg.subirFoto')}
-              className="relative grid size-28 shrink-0 place-items-center rounded-xl border border-dashed border-line-strong bg-canvas text-meta font-semibold text-muted transition-colors duration-200 hover:border-brand hover:text-brand-text disabled:pointer-events-none disabled:opacity-60"
-            >
-              {subir.isPending ? (
-                <Spinner />
-              ) : (
-                <span className="px-3 text-center">+ {t('neg.subirFoto')}</span>
-              )}
-            </button>
-          )}
-        </div>
-
-        <p className="mt-3 text-meta text-subtle">
-          {t('neg.fotosContador', { n: fotos.length, max: MAX_FOTOS })}
-        </p>
-
-        {(subir.isError || guardar.isError) && (
-          <ErrorNote>
-            {guardar.error instanceof ApiError ? guardar.error.message : t('neg.errFoto')}
-          </ErrorNote>
-        )}
-
-        <input
-          ref={selector}
-          type="file"
-          accept="image/*"
-          tabIndex={-1}
-          aria-label={t('neg.subirFoto')}
-          className="sr-only"
-          onChange={(e) => {
-            const archivo = e.target.files?.[0]
-            // Se vacía: si no, elegir la misma foto otra vez no hace nada.
-            e.target.value = ''
-            if (archivo) subir.mutate(archivo)
-          }}
-        />
-      </Card>
-    </div>
+    <Card padded>
+      <GestorFotos
+        slug={slug}
+        fotos={fotos}
+        max={MAX_FOTOS}
+        titulo={t('secc.fotos')}
+        onChange={async (nuevas) => {
+          const quitada = fotos.find((f) => !nuevas.includes(f))
+          await guardar.mutateAsync(nuevas)
+          if (quitada) {
+            aviso.ok(t('neg.fotoQuitada'), {
+              texto: t('avisos.deshacer'),
+              onClick: () =>
+                api
+                  .savePhotos(slug, fotos)
+                  .then(invalidar)
+                  .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+            })
+          } else if (nuevas.length > fotos.length) {
+            aviso.ok(t('neg.fotoAnadida'))
+          }
+        }}
+      />
+    </Card>
   )
 }
 

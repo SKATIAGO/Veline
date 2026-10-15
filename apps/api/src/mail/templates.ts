@@ -17,13 +17,22 @@ import { idiomaParaCliente, idiomaParaNegocio } from './idioma.js'
 export const IDIOMA_DEL_NEGOCIO: Idioma = 'es'
 
 /* Paleta de marca. En correo se escriben literales: los clientes de email no
-   entienden variables CSS ni hojas externas. */
+   entienden variables CSS ni hojas externas. Son los mismos valores que la
+   app (brand/tokens.css); el marrón del botón es el de pantalla, que cumple
+   AA con texto blanco. */
 const INK = '#2E2119'
-const BRAND = '#A96A3E'
+const INK_2 = '#3B2A1F'
+const BRAND = '#A46639'
 const ACCENT = '#D9A441'
 const CREAM = '#F2E7D6'
 const LINE = '#E4D5BE'
-const MUTED = '#8A7255'
+const BODY = '#5C4A34'
+const MUTED = '#6A5741'
+const ONDARK = '#F2E7D6'
+const ONDARK_MUTED = '#C9B698'
+/** Public Sans no está en ningún cliente de correo: es la primera de la pila
+    por si algún día se embebe, y Helvetica/Arial son las que de verdad se ven. */
+const FUENTE = "'Public Sans',Helvetica,Arial,sans-serif"
 
 const webUrl = () => (process.env.PUBLIC_WEB_URL ?? 'http://localhost:5173').replace(/\/$/, '')
 
@@ -68,7 +77,39 @@ export interface BookingMailData {
 const esc = (v: string) =>
   v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-/** Marco común: cabecera con el logotipo, cuerpo y pie. */
+/**
+ * El botón «a prueba de Outlook»: las versiones de escritorio de Outlook no
+ * pintan el relleno ni el radio de un <a>, así que para ellas va un
+ * <v:roundrect> entre comentarios condicionales y el <a> normal para el
+ * resto. El ancho fijo es lo que hace que el VML se vea igual que el enlace.
+ */
+function boton(label: string, url: string) {
+  const texto = esc(label)
+  const href = esc(url)
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="${BRAND}" fillcolor="${BRAND}">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">${texto}</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="${href}" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:${BRAND};border-radius:999px;font-family:${FUENTE};font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">${texto}</a>
+<!--<![endif]-->
+</td></tr></table>`
+}
+
+/**
+ * Marco común: cabecera con la marca, cuerpo y pie.
+ *
+ * Maquetación en tablas, estilos en línea, 600 px de ancho máximo (el ancho
+ * seguro en Outlook y Gmail), un bloque condicional para que Outlook respete
+ * el ancho, y un <style> solo para lo que los clientes modernos sí leen: el
+ * modo oscuro (`prefers-color-scheme`) y el móvil. Cada color que importa va
+ * también con `!important` en la clase oscura, porque Gmail y Apple Mail
+ * reescriben los colores en línea si no se les dice lo contrario.
+ */
 function layout(opts: {
   /** Va en <html lang>: es lo que usa el lector de pantalla para elegir voz y
       el cliente de correo para ofrecer traducir. */
@@ -79,47 +120,85 @@ function layout(opts: {
   body: string
   cta?: { label: string; url: string }
 }) {
+  // El preheader se rellena con espacios invisibles para que el cliente de
+  // correo no siga leyendo el cuerpo en la vista previa.
+  const relleno = '&#847;&zwnj;&nbsp;'.repeat(40)
   return `<!doctype html>
-<html lang="${opts.idioma}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:${CREAM};">
-<span style="display:none;font-size:1px;color:${CREAM};">${esc(opts.preheader)}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid ${LINE};border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:${INK};padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:${CREAM};letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:${ACCENT};padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="${opts.idioma}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>${esc(opts.heading)}</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:${INK} !important; }
+    .card { background:${INK_2} !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:${ONDARK} !important; }
+    .texto { color:${ONDARK_MUTED} !important; }
+    .muted { color:${ONDARK_MUTED} !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:${INK} !important; color:${ONDARK} !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:${CREAM};word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:${CREAM};opacity:0;">${esc(opts.preheader)}${relleno}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:${CREAM};">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid ${LINE};border-radius:16px;font-family:${FUENTE};">
+    <tr><td style="background:${INK};border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:${FUENTE};font-size:20px;line-height:24px;font-weight:700;color:${CREAM};letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:${ACCENT};border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:${FUENTE};font-size:12px;line-height:16px;color:${ACCENT};">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:${INK};font-weight:600;">${opts.heading}</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;">${opts.intro}</p>
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:${FUENTE};font-size:24px;line-height:30px;color:${INK};font-weight:700;">${opts.heading}</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:${FUENTE};font-size:16px;line-height:24px;color:${BODY};">${opts.intro}</p>
       ${opts.body}
-      ${
-        opts.cta
-          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:${BRAND};border-radius:8px;">
-              <a href="${opts.cta.url}" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">${opts.cta.label}</a>
-            </td></tr></table>`
-          : ''
-      }
+      ${opts.cta ? boton(opts.cta.label, opts.cta.url) : ''}
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid ${LINE};">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:${MUTED};">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid ${LINE};">
+      <p class="muted" style="margin:0;font-family:${FUENTE};font-size:13px;line-height:20px;color:${MUTED};">
+        Este correo se ha enviado automáticamente desde <a href="${webUrl()}" style="color:${MUTED};text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>`
 }
 
 /** Filas de detalle reutilizadas por todas las plantillas. */
 function detalles(rows: [string, string][]) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid ${LINE};margin-top:4px;">
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid ${LINE};margin-top:4px;">
     ${rows
       .map(
         ([label, value]) => `<tr>
-      <td style="padding:11px 0 0;font-size:13px;color:${MUTED};">${esc(label)}</td>
-      <td style="padding:11px 0 0;font-size:13px;color:${INK};font-weight:600;text-align:right;">${esc(value)}</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:${FUENTE};font-size:14px;line-height:20px;color:${MUTED};vertical-align:top;">${esc(label)}</td>
+      <td class="valor" style="padding:12px 0 0;font-family:${FUENTE};font-size:14px;line-height:20px;color:${INK};font-weight:600;text-align:right;vertical-align:top;">${esc(value)}</td>
     </tr>`,
       )
       .join('')}
@@ -177,7 +256,7 @@ export function bookingConfirmedToCustomer(b: BookingMailData): MailMessage {
       idioma,
       preheader: `${cuando} en ${b.businessName}`,
       heading: '¡Reserva confirmada!',
-      intro: `Hola ${esc(b.customerName.split(' ')[0])}, te esperan en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, te esperan en <strong class="ink" style="color:${INK};">${esc(b.businessName)}</strong>.`,
       body: detalles(rows),
       cta: { label: 'Ver o cancelar mi reserva', url: `${webUrl()}/reserva/${b.code}` },
     }),
@@ -225,16 +304,16 @@ export function bookingCreatedToBusiness(b: BookingMailData, businessEmail: stri
       idioma,
       preheader: `${b.customerName} ha reservado para el ${cuando}`,
       heading: 'Tienes una cita nueva',
-      intro: `<strong style="color:${INK};">${esc(b.customerName)}</strong> acaba de reservar en ${esc(b.businessName)}.`,
+      intro: `<strong class="ink" style="color:${INK};">${esc(b.customerName)}</strong> acaba de reservar en ${esc(b.businessName)}.`,
       body:
         detalles(rows) +
         (b.notes
-          ? `<p style="margin:20px 0 0;padding:14px 16px;background:${CREAM};border-radius:10px;font-size:13.5px;line-height:1.6;color:#4A3826;"><strong>Nota del cliente:</strong> ${esc(b.notes)}</p>`
+          ? `<p class="nota" style="margin:20px 0 0;padding:14px 16px;background:${CREAM};border-radius:10px;font-family:${FUENTE};font-size:14px;line-height:21px;color:#4A3826;"><strong>Nota del cliente:</strong> ${esc(b.notes)}</p>`
           : '') +
         // Enlaces directos al cliente. Antes bastaba con darle a «Responder»
         // porque el correo llevaba su dirección en Reply-To; Acumbamail no
         // tiene ese campo, así que se ponen a la vista.
-        `<p style="margin:18px 0 0;font-size:13px;color:${MUTED};">
+        `<p class="muted" style="margin:18px 0 0;font-family:${FUENTE};font-size:14px;line-height:21px;color:${MUTED};">
           ${
             b.customerEmail
               ? `Escríbele a <a href="mailto:${encodeURI(b.customerEmail)}" style="color:${BRAND};font-weight:600;">${esc(b.customerEmail)}</a> o llámale`
@@ -294,7 +373,7 @@ export function bookingCancelled(
       heading: 'Cita cancelada',
       intro:
         audience === 'cliente'
-          ? `Tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.`
+          ? `Tu cita en <strong class="ink" style="color:${INK};">${esc(b.businessName)}</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.`
           : `Se ha cancelado una cita en ${esc(b.businessName)}. El hueco ya vuelve a ofrecerse.`,
       body: detalles(rows),
       cta:
@@ -342,7 +421,7 @@ export function bookingRescheduled(b: BookingMailData, antes: Date): MailMessage
       idioma,
       preheader: `Ahora es el ${cuandoDespues}`,
       heading: 'Hemos cambiado tu cita',
-      intro: `Hola ${esc(b.customerName.split(' ')[0])}, tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong> ha cambiado de hora.`,
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, tu cita en <strong class="ink" style="color:${INK};">${esc(b.businessName)}</strong> ha cambiado de hora.`,
       body: detalles(rows),
       cta: { label: 'Ver o cancelar mi reserva', url: `${webUrl()}/reserva/${b.code}` },
     }),
@@ -380,7 +459,7 @@ export function bookingReminderMail(b: BookingMailData): MailMessage {
       idioma,
       preheader: `${cuando} en ${b.businessName}`,
       heading: 'Te esperamos mañana',
-      intro: `Hola ${esc(b.customerName.split(' ')[0])}, un recordatorio de tu cita en <strong style="color:${INK};">${esc(b.businessName)}</strong>.`,
+      intro: `Hola ${esc(b.customerName.split(' ')[0])}, un recordatorio de tu cita en <strong class="ink" style="color:${INK};">${esc(b.businessName)}</strong>.`,
       body: detalles(rows),
       cta: { label: 'Ver o cancelar mi cita', url: `${webUrl()}/reserva/${b.code}` },
     }),
@@ -413,8 +492,8 @@ export function reviewRequestMail(
       idioma,
       preheader: `Cuéntanos cómo fue tu ${ctx.serviceName}`,
       heading: '¿Cómo fue?',
-      intro: `Hola ${esc(to.name.split(' ')[0])}, estuviste en <strong style="color:${INK};">${esc(ctx.businessName)}</strong>. Si te apetece, cuéntalo en medio minuto.`,
-      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
+      intro: `Hola ${esc(to.name.split(' ')[0])}, estuviste en <strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong>. Si te apetece, cuéntalo en medio minuto.`,
+      body: `<p class="texto" style="margin:0;font-family:${FUENTE};font-size:15px;line-height:23px;color:${BODY};">
         Tu opinión es lo que ayuda a otra gente del barrio a decidir. Puedes
         puntuar sin escribir nada si vas con prisa.
       </p>`,
@@ -444,8 +523,8 @@ export function passwordResetMail(to: { email: string; name: string }, url: stri
       preheader: 'Enlace para elegir una contraseña nueva',
       heading: 'Restablecer tu contraseña',
       intro: `Hola ${esc(to.name.split(' ')[0])}, hemos recibido una petición para cambiar la contraseña de tu panel.`,
-      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
-        El enlace caduca en <strong style="color:${INK};">1 hora</strong> y solo sirve una vez.
+      body: `<p class="texto" style="margin:0;font-family:${FUENTE};font-size:15px;line-height:23px;color:${BODY};">
+        El enlace caduca en <strong class="ink" style="color:${INK};">1 hora</strong> y solo sirve una vez.
         Si no has sido tú, puedes ignorar este correo: tu contraseña no cambia.
       </p>`,
       cta: { label: 'Elegir contraseña nueva', url },
@@ -479,8 +558,8 @@ export function panelUserCreatedMail(
   ]
   const paraQueHtml =
     ctx.role === 'EMPLEADO'
-      ? `podrás entrar a tu agenda de <strong style="color:${INK};">${esc(ctx.businessName)}</strong>`
-      : `podrás administrar <strong style="color:${INK};">${esc(ctx.businessName)}</strong>`
+      ? `podrás entrar a tu agenda de <strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong>`
+      : `podrás administrar <strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong>`
   const paraQueTexto =
     ctx.role === 'EMPLEADO'
       ? `podrás entrar a tu agenda de ${ctx.businessName}`
@@ -497,7 +576,7 @@ export function panelUserCreatedMail(
       heading: 'Ya tienes acceso',
       intro: `Hola ${esc(to.name.split(' ')[0])}, te han dado de alta en Veline: ${paraQueHtml}.`,
       body: `${detalles(rows)}
-      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:#5C4A34;">
+      <p class="texto" style="margin:14px 0 0;font-family:${FUENTE};font-size:15px;line-height:23px;color:${BODY};">
         Una vez dentro puedes cambiar la contraseña desde tu cuenta.
       </p>`,
       cta: { label: 'Entrar en Veline', url: `${webUrl()}/login` },
@@ -535,14 +614,14 @@ export function signupVerifyMail(
       idioma: idiomaParaNegocio(),
       preheader: `Un clic y ya puedes preparar la ficha de ${ctx.businessName}`,
       heading: 'Confirma tu correo',
-      intro: `Hola ${esc(to.name.split(' ')[0])}, ya casi está. Has dado de alta <strong style="color:${INK};">${esc(ctx.businessName)}</strong> en Veline.`,
-      body: `<p style="margin:0;font-size:14px;line-height:1.6;color:#5C4A34;">
+      intro: `Hola ${esc(to.name.split(' ')[0])}, ya casi está. Has dado de alta <strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong> en Veline.`,
+      body: `<p class="texto" style="margin:0;font-family:${FUENTE};font-size:15px;line-height:23px;color:${BODY};">
         Confirma que esta dirección es tuya y podrás entrar al panel a poner tus
         servicios y tu horario. Es importante que sea correcta: aquí es donde te
         avisaremos de cada cita nueva.
       </p>
-      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:#5C4A34;">
-        El enlace vale <strong style="color:${INK};">48 horas</strong>. Después
+      <p class="texto" style="margin:14px 0 0;font-family:${FUENTE};font-size:15px;line-height:23px;color:${BODY};">
+        El enlace vale <strong class="ink" style="color:${INK};">48 horas</strong>. Después
         revisaremos tu ficha antes de publicarla en el marketplace — te
         escribiremos en cuanto esté.
       </p>`,
@@ -599,7 +678,7 @@ export function signupNotifyTeamMail(
       idioma,
       preheader: `${ctx.businessName} se ha dado de alta y espera revisión`,
       heading: 'Alta nueva por revisar',
-      intro: `<strong style="color:${INK};">${esc(ctx.businessName)}</strong> se acaba de dar de alta por su cuenta. No sale en el marketplace hasta que se revise y se apruebe.`,
+      intro: `<strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong> se acaba de dar de alta por su cuenta. No sale en el marketplace hasta que se revise y se apruebe.`,
       body: detalles(rows),
       cta: { label: 'Revisar en la plataforma', url: `${webUrl()}/panel/admin` },
     }),
@@ -646,7 +725,7 @@ export function newLocationNotifyTeamMail(
       idioma,
       preheader: `${ctx.businessName} ha abierto un local y espera aprobación`,
       heading: 'Local nuevo por aprobar',
-      intro: `<strong style="color:${INK};">${esc(ctx.businessName)}</strong> ha abierto un local nuevo. No acepta reservas del público hasta que lo apruebes.`,
+      intro: `<strong class="ink" style="color:${INK};">${esc(ctx.businessName)}</strong> ha abierto un local nuevo. No acepta reservas del público hasta que lo apruebes.`,
       body: detalles(rows),
       cta: { label: 'Revisar en la plataforma', url: `${webUrl()}/panel/admin` },
     }),

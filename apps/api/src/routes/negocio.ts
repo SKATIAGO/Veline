@@ -745,15 +745,27 @@ export async function negocioRoutes(app: FastifyInstance) {
     // Sin duplicados: no hay motivo para enseñar la misma foto dos veces en
     // la ficha, y un duplicado colado inflaría la cuenta de más abajo.
     const fotos = [...new Set(parsed.data.photos)]
-    const ids = fotos.map(idDeImagen)
+    /* Las fotos que YA tenía el negocio se aceptan tal cual: las de fábrica de
+       los negocios de demostración son direcciones externas, y exigir que
+       fueran nuestras impedía añadir ninguna foto nueva a esos negocios (el
+       guardado rechazaba la lista entera). Solo lo nuevo tiene que ser nuestro
+       y de este negocio: si no, se podría enseñar en la ficha una foto subida
+       por otro. */
+    const actual = await prisma.business.findUnique({
+      where: { id: auth.business.id },
+      select: { photos: true },
+    })
+    const yaEstaban = new Set(actual?.photos ?? [])
+    const nuevas = fotos.filter((f) => !yaEstaban.has(f))
+    const ids = nuevas.map(idDeImagen)
     if (ids.some((id) => id === null)) {
       return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
     }
-    // Cada foto tiene que ser nuestra y de este negocio: si no, se podría
-    // enseñar en la ficha una foto subida por otro negocio.
-    const validas = await prisma.imagen.count({
-      where: { id: { in: ids as string[] }, businessId: auth.business.id },
-    })
+    const validas = ids.length
+      ? await prisma.imagen.count({
+          where: { id: { in: ids as string[] }, businessId: auth.business.id },
+        })
+      : 0
     if (validas !== ids.length) {
       return reply.code(400).send({ error: 'Alguna foto no es válida. Súbela de nuevo.' })
     }

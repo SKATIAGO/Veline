@@ -434,6 +434,7 @@ model User {
   /// Si además atiende citas: su ficha de Staff.
   staff              Staff?
   correcciones       Fichaje[]           @relation("FichajesCorregidos")
+  correccionesHechas FichajeCorreccion[] @relation("CorreccionesHechas")
   sessions           Session[]
   passwordResets     PasswordReset[]
   emailVerifications EmailVerification[]
@@ -753,7 +754,44 @@ model Fichaje {
   user         User     @relation("FichajesPropios", fields: [userId], references: [id], onDelete: Cascade)
   corregidoPor User?    @relation("FichajesCorregidos", fields: [corregidoPorId], references: [id], onDelete: SetNull)
   business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  pausas       FichajePausa[]
+  correcciones FichajeCorreccion[]
 
   @@index([businessId, entrada])
   @@index([userId, entrada])
+}
+
+/// Una pausa dentro de la jornada (comida, descanso). El registro de jornada
+/// que pide la normativa lleva inicio, fin y pausas; los minutos trabajados
+/// las descuentan.
+model FichajePausa {
+  id        String    @id @default(cuid())
+  fichajeId String
+  inicio    DateTime
+  /// Null mientras la pausa sigue abierta.
+  fin       DateTime?
+
+  fichaje Fichaje @relation(fields: [fichajeId], references: [id], onDelete: Cascade)
+
+  @@index([fichajeId])
+}
+
+/// Cada corrección, una fila: lo que decía antes y lo que dice después, quién
+/// y por qué. Las columnas *Original de Fichaje guardaban solo la primera; un
+/// registro inalterable necesita todas, en orden.
+model FichajeCorreccion {
+  id            String    @id @default(cuid())
+  fichajeId     String
+  porId         String?
+  en            DateTime  @default(now())
+  motivo        String
+  entradaAntes  DateTime?
+  salidaAntes   DateTime?
+  entradaDespues DateTime
+  salidaDespues  DateTime?
+
+  fichaje Fichaje @relation(fields: [fichajeId], references: [id], onDelete: Cascade)
+  por     User?   @relation("CorreccionesHechas", fields: [porId], references: [id], onDelete: SetNull)
+
+  @@index([fichajeId, en])
 }

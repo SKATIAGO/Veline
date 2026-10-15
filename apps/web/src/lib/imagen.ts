@@ -1,3 +1,5 @@
+import { ApiError } from './api'
+
 /**
  * Deja lista para subir una foto hecha con el móvil.
  *
@@ -59,4 +61,36 @@ export async function prepararFoto(archivo: File): Promise<string> {
   } finally {
     bitmap.close()
   }
+}
+
+/**
+ * Sube una foto ya preparada y va diciendo cuánto lleva. Con fetch no hay
+ * progreso de subida; con XMLHttpRequest sí, y es lo que permite enseñar una
+ * barra por archivo en vez de un spinner mudo.
+ */
+export function subirImagenConProgreso(
+  slug: string,
+  datos: string,
+  onProgreso: (porcentaje: number) => void,
+): Promise<string> {
+  return new Promise((ok, mal) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `/api/panel/${slug}/imagenes`)
+    xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgreso(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      let cuerpo: { url?: string; error?: string } = {}
+      try {
+        cuerpo = JSON.parse(xhr.responseText) as typeof cuerpo
+      } catch {
+        /* sin cuerpo */
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && cuerpo.url) ok(cuerpo.url)
+      else mal(new ApiError(cuerpo.error ?? 'No se pudo subir la foto', xhr.status))
+    }
+    xhr.onerror = () => mal(new Error('sin-red'))
+    xhr.send(JSON.stringify({ datos }))
+  })
 }

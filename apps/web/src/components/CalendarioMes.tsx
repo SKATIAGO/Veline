@@ -67,7 +67,9 @@ export function CalendarioMes({
   const puedeAdelante = !maximo || mesSiguiente <= maximo
 
   const dias = Array.from({ length: diasEnMes }, (_, i) => addDaysKey(primero, i))
-  const elegible = (d: string) => estado(d) !== 'fuera'
+  // Un día cerrado no se elige: no tiene horas que ofrecer. Como deshabilitado,
+  // además, su gris no cuenta para el contraste (WCAG lo exime).
+  const elegible = (d: string) => estado(d) !== 'fuera' && estado(d) !== 'cerrado'
   // El que lleva el foco: el elegido si está en este mes, si no el primero disponible.
   const conFoco =
     dia && dia >= primero && dia <= ultimoDelMes

@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -14,15 +14,16 @@ import { api, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
 import { PrimerosPasos } from '../../components/PrimerosPasos'
+import { Segmentado } from '../../components/Segmentado'
 import { useAuth } from '../../lib/auth'
 import { Button, Card, EmptyState, FilterChip, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
-import { Tabs, panelProps } from '../../components/Tabs'
 import { BookingRow } from './FilaCita'
 import { CalendarioAgenda } from './CalendarioAgenda'
 import { ApuntarCita } from './ApuntarCita'
+import { TarjetasAgenda } from './TarjetasAgenda'
 
-/** Rangos que de verdad se miran: lo de hoy, la semana, y todo. */
+/** Rangos que de verdad se miran en la lista: lo de hoy, la semana, y todo. */
 const RANGOS = [
   { key: 'hoy', clave: 'agenda.hoy', dias: 0 },
   { key: 'semana', clave: 'agenda.proximos7', dias: 7 },
@@ -41,16 +42,16 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   )
 }
 
-type Vista = 'lista' | 'calendario'
+type Vista = 'hoy' | 'lista' | 'calendario'
 
 /**
- * La agenda: la lista de las próximas citas y, en otra pestaña, el calendario
- * del mes con sus notas. Eran dos entradas del menú —el calendario, agrupado
- * con la configuración— para mirar las mismas citas.
+ * La agenda, en tres vistas: Hoy (las tarjetas con lo esencial del día), la
+ * Lista completa de citas con filtros y cifras, y el Calendario del mes.
  *
  * Lo que se está haciendo vive en la dirección, para que el botón «+» de la
  * barra del móvil, el «Ver» de un aviso o la ficha de un cliente lleven justo
- * ahí: ?vista=calendario&dia=AAAA-MM-DD, ?nueva=1 (apuntar) y ?para=<cliente>.
+ * ahí: ?vista=lista|calendario&dia=AAAA-MM-DD, ?nueva=1 (apuntar) y
+ * ?para=<cliente>.
  */
 export function PanelAgenda() {
   const { t, idioma } = useIdioma()
@@ -59,11 +60,12 @@ export function PanelAgenda() {
   // El local elegido en el menú; null = todos los que se pueden ver.
   const { actual: local } = useLocal()
   const { user } = useAuth()
-  const idBase = useId()
   const [params, setParams] = useSearchParams()
   const [rango, setRango] = useState<RangoKey>('hoy')
 
-  const vista: Vista = params.get('vista') === 'calendario' ? 'calendario' : 'lista'
+  const vistaParam = params.get('vista')
+  const vista: Vista =
+    vistaParam === 'calendario' ? 'calendario' : vistaParam === 'lista' ? 'lista' : 'hoy'
   const dia = params.get('dia')
   const apuntando = params.get('nueva') === '1'
   const paraCliente = params.get('para')
@@ -86,9 +88,13 @@ export function PanelAgenda() {
     queryFn: () => api.panelSummary(slug, local),
   })
 
+  // De hace una semana a dentro de dos: lo que necesitan las tarjetas (hoy,
+  // próximos, incidencias) y la lista (próximos 14 días).
+  const hoy = hoyMadrid()
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['panel', slug, 'bookings', local],
-    queryFn: () => api.panelBookings(slug, { local }),
+    queryKey: ['panel', slug, 'bookings', 'agenda', hoy, local],
+    queryFn: () =>
+      api.panelBookings(slug, { from: addDaysKey(hoy, -7), to: addDaysKey(hoy, 14), local }),
   })
 
   // «Nueva cita para…» desde la ficha de un cliente: sus datos, ya rellenos.
@@ -99,24 +105,21 @@ export function PanelAgenda() {
   })
   const cliente = paraCliente ? clientes?.find((c) => c.id === paraCliente) : null
 
-  /* El filtro se aplica en el cliente porque la consulta ya trae los próximos
-     14 días: pedir de nuevo al servidor para acortar la lista sería un viaje
-     de ida y vuelta para no traer nada nuevo. */
+  /* El filtro se aplica en el cliente porque la consulta ya trae los días
+     que hacen falta: pedir de nuevo al servidor sería un viaje para nada. */
   const grupos = useMemo(() => {
     const dias = RANGOS.find((r) => r.key === rango)?.dias
-    // Todo en días de Madrid: la agenda es la del negocio, no la del navegador.
-    const hoy = hoyMadrid()
     const limite = dias === null || dias === undefined ? null : addDaysKey(hoy, dias)
-
     const map = new Map<string, PanelBooking[]>()
     for (const b of bookings ?? []) {
+      if (b.status === 'CANCELADA') continue
       const key = madridDateKey(b.startsAt)
       if (key < hoy) continue
       if (limite && key > limite) continue
       map.set(key, [...(map.get(key) ?? []), b])
     }
     return [...map.entries()]
-  }, [bookings, rango])
+  }, [bookings, rango, hoy])
 
   const total = grupos.reduce((n, [, filas]) => n + filas.length, 0)
   // El servidor no se los manda al empleado: ve la agenda, no la caja.
@@ -126,10 +129,11 @@ export function PanelAgenda() {
   const verCita = (fecha: Date) => {
     const key = madridDateKey(fecha)
     const dias = diffDaysKey(hoyMadrid(), key)
-    if (vista === 'lista') {
+    if (vista === 'hoy') {
+      if (dias <= 7) return undefined
+    } else if (vista === 'lista') {
       const seVe = rango === 'todo' ? dias <= 14 : rango === 'semana' ? dias <= 7 : dias === 0
       if (seVe) return undefined
-      // «Todo» son 14 días: más allá, el calendario de ese mes.
       if (dias <= 14) return () => setRango(dias <= 7 ? 'semana' : 'todo')
     } else if (dia === key) {
       return undefined
@@ -139,14 +143,9 @@ export function PanelAgenda() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* El marco ya dice en qué negocio estás —en el menú lateral y en la
-          cabecera del móvil—, así que repetirlo aquí gastaba una línea para
-          no decir nada. El título es la pantalla, no el negocio. */}
       <PageHeader
         title={t('panel.agenda')}
         hint={
-          // Dos plurales sueltos y no una frase con dos huecos: «1 personas»
-          // era lo que salía antes, y en inglés «1 people» sería lo mismo.
           summary
             ? [
                 plural(summary.serviceCount, 'agenda.unServicio', 'agenda.variosServicios'),
@@ -165,103 +164,115 @@ export function PanelAgenda() {
         puedeConfigurar={user?.role === 'ADMIN' || user?.role === 'SUPERADMIN'}
       />
 
-      <Tabs
-        idBase={idBase}
-        tabs={[
-          { id: 'lista', label: t('agenda.vistaLista') },
-          { id: 'calendario', label: t('panel.calendario') },
-        ]}
-        activa={vista}
-        onCambiar={(v) => cambiar({ vista: v === 'lista' ? null : v, dia: null })}
+      <Segmentado
         label={t('agenda.vistas')}
+        className="sm:max-w-md"
+        opciones={[
+          { id: 'hoy' as Vista, label: t('agenda.vistaHoy') },
+          { id: 'lista' as Vista, label: t('agenda.vistaLista2') },
+          { id: 'calendario' as Vista, label: t('panel.calendario') },
+        ]}
+        valor={vista}
+        onCambiar={(v) => cambiar({ vista: v === 'hoy' ? null : v, dia: null })}
       />
 
-      <div {...panelProps(idBase, vista)} className="flex flex-col gap-6 outline-none">
-        {vista === 'calendario' ? (
-          <CalendarioAgenda slug={slug} dia={dia} onDia={(d) => cambiar({ dia: d })} />
-        ) : (
-          <>
-            <div
-              className={cx(
-                'grid gap-4 sm:grid-cols-2',
-                verIngresos ? 'lg:grid-cols-4' : 'lg:grid-cols-3',
-              )}
-            >
-              <Stat label={t('agenda.citasHoy')} value={String(summary?.todayCount ?? 0)} />
-              <Stat label={t('agenda.proximos7')} value={String(summary?.weekCount ?? 0)} />
-              {verIngresos && (
-                <Stat
-                  label={t('agenda.ingresos7')}
-                  value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
-                  hint={
-                    summary?.weekCommissionCents
-                      ? t('agenda.comision', {
-                          importe: formatPrice(summary.weekCommissionCents, idioma),
-                        })
-                      : t('agenda.sinComision')
-                  }
-                />
-              )}
+      {vista === 'hoy' && (
+        <TarjetasAgenda
+          slug={slug}
+          bookings={bookings ?? []}
+          cargando={isLoading}
+          staffCount={summary?.staffCount ?? 0}
+          onApuntar={() => cambiar({ nueva: '1' })}
+          onVerDia={(d) => cambiar({ vista: 'calendario', dia: d })}
+        />
+      )}
+
+      {vista === 'calendario' && (
+        <CalendarioAgenda slug={slug} dia={dia} onDia={(d) => cambiar({ dia: d })} />
+      )}
+
+      {vista === 'lista' && (
+        <>
+          <div
+            className={cx(
+              'grid gap-4 sm:grid-cols-2',
+              verIngresos ? 'lg:grid-cols-4' : 'lg:grid-cols-3',
+            )}
+          >
+            <Stat label={t('agenda.citasHoy')} value={String(summary?.todayCount ?? 0)} />
+            <Stat label={t('agenda.proximos7')} value={String(summary?.weekCount ?? 0)} />
+            {verIngresos && (
               <Stat
-                label={t('agenda.clientesNuevos')}
-                value={String(summary?.newFromMarketplace ?? 0)}
-                hint={t('agenda.viaMarketplace')}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-subheading font-semibold text-ink">
-                {t('agenda.proximasCitas')}
-                {!isLoading && total > 0 && (
-                  <span className="ml-2 text-body font-normal text-muted">({total})</span>
-                )}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {RANGOS.map((r) => (
-                  <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
-                    {t(r.clave)}
-                  </FilterChip>
-                ))}
-              </div>
-            </div>
-
-            {isLoading ? (
-              <Card className="flex flex-col gap-3 p-5">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16" />
-                ))}
-              </Card>
-            ) : grupos.length === 0 ? (
-              <EmptyState
-                title={rango === 'hoy' ? t('agenda.hoySinCitas') : t('agenda.sinCitasPeriodo')}
-                hint={rango === 'todo' ? t('agenda.apareceránSolas') : t('agenda.ampliaPeriodo')}
-                action={
-                  <Button variant="secondary" onClick={() => cambiar({ nueva: '1' })}>
-                    {t('agenda.apuntarUna')}
-                  </Button>
+                label={t('agenda.ingresos7')}
+                value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
+                hint={
+                  summary?.weekCommissionCents
+                    ? t('agenda.comision', {
+                        importe: formatPrice(summary.weekCommissionCents, idioma),
+                      })
+                    : t('agenda.sinComision')
                 }
               />
-            ) : (
-              <div className="flex flex-col gap-6">
-                {grupos.map(([key, filas]) => (
-                  <section key={key}>
-                    <h3 className="mb-2 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
-                      {formatLongDate(fromDateKey(key), idioma)}
-                    </h3>
-                    <Card className="overflow-hidden">
-                      <ul>
-                        {filas.map((b) => (
-                          <BookingRow key={b.id} booking={b} slug={slug} />
-                        ))}
-                      </ul>
-                    </Card>
-                  </section>
-                ))}
-              </div>
             )}
-          </>
-        )}
-      </div>
+            <Stat
+              label={t('agenda.clientesNuevos')}
+              value={String(summary?.newFromMarketplace ?? 0)}
+              hint={t('agenda.viaMarketplace')}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-subheading font-semibold text-ink">
+              {t('agenda.proximasCitas')}
+              {!isLoading && total > 0 && (
+                <span className="ml-2 text-body font-normal text-muted">({total})</span>
+              )}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {RANGOS.map((r) => (
+                <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
+                  {t(r.clave)}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+
+          {isLoading ? (
+            <Card className="flex flex-col gap-3 p-5" aria-busy="true">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
+            </Card>
+          ) : grupos.length === 0 ? (
+            <EmptyState
+              title={rango === 'hoy' ? t('agenda.hoySinCitas') : t('agenda.sinCitasPeriodo')}
+              hint={rango === 'todo' ? t('agenda.apareceránSolas') : t('agenda.ampliaPeriodo')}
+              action={
+                <Button variant="secondary" onClick={() => cambiar({ nueva: '1' })}>
+                  {t('agenda.apuntarUna')}
+                </Button>
+              }
+            />
+          ) : (
+            <div className="flex flex-col gap-6">
+              {grupos.map(([key, filas]) => (
+                <section key={key}>
+                  <h3 className="mb-2 text-meta font-semibold tracking-[0.04em] text-muted uppercase">
+                    {formatLongDate(fromDateKey(key), idioma)}
+                  </h3>
+                  <Card className="overflow-hidden">
+                    <ul>
+                      {filas.map((b) => (
+                        <BookingRow key={b.id} booking={b} slug={slug} />
+                      ))}
+                    </ul>
+                  </Card>
+                </section>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Montado solo mientras se apunta: cada vez empieza en limpio. Con
           «Nueva cita para…», espera a tener los datos del cliente. */}

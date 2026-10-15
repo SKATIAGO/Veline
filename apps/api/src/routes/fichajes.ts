@@ -15,8 +15,12 @@ import { requireUser } from '../auth/sessions.js'
  *
  * El administrador sí puede CORREGIR un fichaje ajeno (alguien se olvidó de
  * salir, entró antes de que le diera tiempo a abrir el panel), pero corregir
- * no es lo mismo que fichar: se guarda lo que decía antes, quién lo tocó y por
- * qué, y queda en el registro de actividad.
+ * no es lo mismo que fichar: cada corrección es una fila aparte con lo que
+ * decía antes, lo que dice después, quién la hizo y por qué, y queda en el
+ * registro de actividad. Nada se reescribe sin dejar rastro.
+ *
+ * Las pausas (comida, descanso) se registran dentro de la jornada y se
+ * descuentan de los minutos: es lo que pide el registro digital de jornada.
  */
 
 const correccionSchema = z
@@ -58,8 +62,7 @@ const rangoSchema = z.object({
     .optional(),
 })
 
-/** Lo que se devuelve al panel de un fichaje. */
-const aDTO = (f: {
+type FichajeConTodo = {
   id: string
   userId: string
   entrada: Date
@@ -70,30 +73,85 @@ const aDTO = (f: {
   motivo: string | null
   user: { name: string; email: string }
   corregidoPor: { name: string } | null
-}) => ({
-  id: f.id,
-  userId: f.userId,
-  persona: f.user.name,
-  email: f.user.email,
-  entrada: f.entrada.toISOString(),
-  salida: f.salida?.toISOString() ?? null,
-  /** Minutos trabajados. Null mientras la jornada sigue abierta. */
-  minutos: f.salida ? Math.round((f.salida.getTime() - f.entrada.getTime()) / 60000) : null,
-  correccion: f.corregidoEn
-    ? {
-        por: f.corregidoPor?.name ?? 'Cuenta eliminada',
-        cuando: f.corregidoEn.toISOString(),
-        motivo: f.motivo,
-        entradaOriginal: f.entradaOriginal?.toISOString() ?? null,
-        salidaOriginal: f.salidaOriginal?.toISOString() ?? null,
-      }
-    : null,
-})
+  pausas: { id: string; inicio: Date; fin: Date | null }[]
+  correcciones: {
+    id: string
+    en: Date
+    motivo: string
+    entradaAntes: Date | null
+    salidaAntes: Date | null
+    entradaDespues: Date
+    salidaDespues: Date | null
+    por: { name: string } | null
+  }[]
+}
+
+/** Minutos de pausa de una jornada; una pausa abierta cuenta hasta `hasta`. */
+const minutosDePausa = (pausas: { inicio: Date; fin: Date | null }[], hasta: Date) =>
+  pausas.reduce((suma, p) => {
+    const fin = p.fin ?? hasta
+    return suma + Math.max(0, Math.round((fin.getTime() - p.inicio.getTime()) / 60000))
+  }, 0)
+
+/** Lo que se devuelve al panel de un fichaje. */
+const aDTO = (f: FichajeConTodo) => {
+  const pausaMin = minutosDePausa(f.pausas, f.salida ?? new Date())
+  const ultima = f.correcciones[f.correcciones.length - 1]
+  return {
+    id: f.id,
+    userId: f.userId,
+    persona: f.user.name,
+    email: f.user.email,
+    entrada: f.entrada.toISOString(),
+    salida: f.salida?.toISOString() ?? null,
+    /** Minutos trabajados (pausas descontadas). Null mientras la jornada sigue abierta. */
+    minutos: f.salida
+      ? Math.round((f.salida.getTime() - f.entrada.getTime()) / 60000) - pausaMin
+      : null,
+    minutosPausa: pausaMin,
+    enPausa: f.pausas.some((p) => !p.fin),
+    pausas: f.pausas.map((p) => ({
+      inicio: p.inicio.toISOString(),
+      fin: p.fin?.toISOString() ?? null,
+    })),
+    correcciones: f.correcciones.map((c) => ({
+      por: c.por?.name ?? 'Cuenta eliminada',
+      cuando: c.en.toISOString(),
+      motivo: c.motivo,
+      entradaAntes: c.entradaAntes?.toISOString() ?? null,
+      salidaAntes: c.salidaAntes?.toISOString() ?? null,
+      entradaDespues: c.entradaDespues.toISOString(),
+      salidaDespues: c.salidaDespues?.toISOString() ?? null,
+    })),
+    /** La última corrección, como antes: quien aún lea este campo sigue viendo lo mismo. */
+    correccion: ultima
+      ? {
+          por: ultima.por?.name ?? 'Cuenta eliminada',
+          cuando: ultima.en.toISOString(),
+          motivo: ultima.motivo,
+          entradaOriginal: f.entradaOriginal?.toISOString() ?? null,
+          salidaOriginal: f.salidaOriginal?.toISOString() ?? null,
+        }
+      : null,
+  }
+}
 
 const incluir = {
   user: { select: { name: true, email: true } },
   corregidoPor: { select: { name: true } },
+  pausas: { orderBy: { inicio: 'asc' as const } },
+  correcciones: { orderBy: { en: 'asc' as const }, include: { por: { select: { name: true } } } },
 }
+
+const rangoWhere = (desde?: string, hasta?: string) =>
+  desde || hasta
+    ? {
+        entrada: {
+          ...(desde ? { gte: new Date(`${desde}T00:00:00`) } : {}),
+          ...(hasta ? { lte: new Date(`${hasta}T23:59:59.999`) } : {}),
+        },
+      }
+    : {}
 
 export async function fichajeRoutes(app: FastifyInstance) {
   /** Mi jornada abierta ahora mismo, si la hay. */
@@ -136,7 +194,7 @@ export async function fichajeRoutes(app: FastifyInstance) {
     return reply.code(201).send(aDTO(f))
   })
 
-  /** Salir. */
+  /** Salir. Una pausa que siguiera abierta se cierra a la misma hora. */
   app.post('/api/panel/:slug/fichajes/salida', async (req, reply) => {
     const user = await requireUser(req, reply)
     if (!user) return
@@ -152,9 +210,63 @@ export async function fichajeRoutes(app: FastifyInstance) {
       return reply.code(409).send({ error: 'No tienes ninguna jornada abierta.' })
     }
 
+    const ahora = new Date()
+    await prisma.fichajePausa.updateMany({
+      where: { fichajeId: abierto.id, fin: null },
+      data: { fin: ahora },
+    })
     const f = await prisma.fichaje.update({
       where: { id: abierto.id },
-      data: { salida: new Date() },
+      data: { salida: ahora },
+      include: incluir,
+    })
+    return aDTO(f)
+  })
+
+  /** Pausa: comer, un descanso. Solo con la jornada abierta y sin otra pausa abierta. */
+  app.post('/api/panel/:slug/fichajes/pausa', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug } = req.params as { slug: string }
+    const scope = await authorizeBusiness(user, slug, 'agenda')
+    if (!scope.ok) return reply.code(scope.status).send({ error: scope.error })
+
+    const abierto = await prisma.fichaje.findFirst({
+      where: { userId: user.id, businessId: scope.business.id, salida: null },
+      orderBy: { entrada: 'desc' },
+      include: { pausas: { where: { fin: null } } },
+    })
+    if (!abierto) return reply.code(409).send({ error: 'No tienes ninguna jornada abierta.' })
+    if (abierto.pausas.length) return reply.code(409).send({ error: 'Ya estás en pausa.' })
+
+    await prisma.fichajePausa.create({ data: { fichajeId: abierto.id, inicio: new Date() } })
+    const f = await prisma.fichaje.findUniqueOrThrow({
+      where: { id: abierto.id },
+      include: incluir,
+    })
+    return aDTO(f)
+  })
+
+  /** Reanudar tras la pausa. */
+  app.post('/api/panel/:slug/fichajes/reanudar', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug } = req.params as { slug: string }
+    const scope = await authorizeBusiness(user, slug, 'agenda')
+    if (!scope.ok) return reply.code(scope.status).send({ error: scope.error })
+
+    const abierto = await prisma.fichaje.findFirst({
+      where: { userId: user.id, businessId: scope.business.id, salida: null },
+      orderBy: { entrada: 'desc' },
+      include: { pausas: { where: { fin: null } } },
+    })
+    if (!abierto) return reply.code(409).send({ error: 'No tienes ninguna jornada abierta.' })
+    const pausa = abierto.pausas[0]
+    if (!pausa) return reply.code(409).send({ error: 'No estás en pausa.' })
+
+    await prisma.fichajePausa.update({ where: { id: pausa.id }, data: { fin: new Date() } })
+    const f = await prisma.fichaje.findUniqueOrThrow({
+      where: { id: abierto.id },
       include: incluir,
     })
     return aDTO(f)
@@ -182,14 +294,7 @@ export async function fichajeRoutes(app: FastifyInstance) {
       where: {
         businessId: scope.business.id,
         ...(todos ? {} : { userId: user.id }),
-        ...(desde || hasta
-          ? {
-              entrada: {
-                ...(desde ? { gte: new Date(`${desde}T00:00:00`) } : {}),
-                ...(hasta ? { lte: new Date(`${hasta}T23:59:59.999`) } : {}),
-              },
-            }
-          : {}),
+        ...rangoWhere(desde, hasta),
       },
       orderBy: { entrada: 'desc' },
       take: 500,
@@ -202,8 +307,10 @@ export async function fichajeRoutes(app: FastifyInstance) {
   /**
    * Corregir un fichaje. Solo administrador, y el motivo es obligatorio.
    *
-   * Guarda lo que decía antes: un registro que se puede reescribir sin dejar
-   * rastro no prueba nada, y lo que prueba es justo para lo que existe.
+   * Cada corrección es una fila del historial con lo de antes y lo de
+   * después: un registro que se pudiera reescribir sin dejar rastro no
+   * probaría nada, y probar es justo para lo que existe. Las columnas
+   * *Original se siguen rellenando por compatibilidad (la primera vez).
    */
   app.patch('/api/panel/:slug/fichajes/:id', async (req, reply) => {
     const user = await requireUser(req, reply)
@@ -222,21 +329,34 @@ export async function fichajeRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: 'Fichaje no encontrado' })
     }
 
-    const f = await prisma.fichaje.update({
-      where: { id },
-      data: {
-        entrada: new Date(parsed.data.entrada),
-        salida: parsed.data.salida ? new Date(parsed.data.salida) : null,
-        // Solo la primera corrección guarda el original: si se corrigiera dos
-        // veces, lo que interesa conservar sigue siendo lo que se fichó.
-        entradaOriginal: antes.entradaOriginal ?? antes.entrada,
-        salidaOriginal: antes.salidaOriginal ?? antes.salida,
-        corregidoPorId: user.id,
-        corregidoEn: new Date(),
-        motivo: parsed.data.motivo,
-      },
-      include: incluir,
-    })
+    const entrada = new Date(parsed.data.entrada)
+    const salida = parsed.data.salida ? new Date(parsed.data.salida) : null
+    const [, f] = await prisma.$transaction([
+      prisma.fichajeCorreccion.create({
+        data: {
+          fichajeId: id,
+          porId: user.id,
+          motivo: parsed.data.motivo,
+          entradaAntes: antes.entrada,
+          salidaAntes: antes.salida,
+          entradaDespues: entrada,
+          salidaDespues: salida,
+        },
+      }),
+      prisma.fichaje.update({
+        where: { id },
+        data: {
+          entrada,
+          salida,
+          entradaOriginal: antes.entradaOriginal ?? antes.entrada,
+          salidaOriginal: antes.salidaOriginal ?? antes.salida,
+          corregidoPorId: user.id,
+          corregidoEn: new Date(),
+          motivo: parsed.data.motivo,
+        },
+        include: incluir,
+      }),
+    ])
 
     audit(req, {
       action: 'FICHAJE_CORREGIDO',
@@ -264,9 +384,8 @@ export async function fichajeRoutes(app: FastifyInstance) {
    * Corregir solo sirve si hay un fichaje que corregir: quien no fichó en todo
    * el día no tenía nada que tocar, y el administrador no tenía cómo dejarlo
    * reflejado. Se añade como se corrige —con quién, cuándo y por qué— y se
-   * distingue de uno fichado: no tiene «original», porque no lo hubo.
-   * Tampoco se deja añadir sobre otra jornada de la misma persona ni hacia el
-   * futuro: eso no es olvidar fichar.
+   * distingue de uno fichado: no tiene «antes», porque no lo hubo. Tampoco se
+   * deja añadir sobre otra jornada de la misma persona ni hacia el futuro.
    */
   app.post('/api/panel/:slug/fichajes', async (req, reply) => {
     const user = await requireUser(req, reply)
@@ -314,6 +433,16 @@ export async function fichajeRoutes(app: FastifyInstance) {
         corregidoPorId: user.id,
         corregidoEn: new Date(),
         motivo: parsed.data.motivo,
+        correcciones: {
+          create: {
+            porId: user.id,
+            motivo: parsed.data.motivo,
+            entradaAntes: null,
+            salidaAntes: null,
+            entradaDespues: entrada,
+            salidaDespues: salida,
+          },
+        },
       },
       include: incluir,
     })
@@ -337,38 +466,34 @@ export async function fichajeRoutes(app: FastifyInstance) {
   })
 
   /**
-   * El registro en un archivo, para la Inspección o para la gestoría.
+   * El registro en un archivo, para la Inspección, para la gestoría o para
+   * uno mismo: cada trabajador puede descargar el suyo (y solo el suyo); quien
+   * administra, el de todos.
    *
    * CSV con punto y coma y BOM: es lo que abre Excel en español sin pelearse
-   * con los acentos ni meter todo en una columna. Un PDF se vería mejor, pero
-   * lo que piden es poder leer los datos, no mirarlos.
+   * con los acentos ni meter todo en una columna.
    *
-   * La columna del original va SIEMPRE, aunque esté vacía: un registro donde
-   * las correcciones no se distinguen de lo fichado no sirve para lo que se
-   * pide.
+   * Las columnas de pausas y correcciones van SIEMPRE, aunque estén vacías:
+   * un registro donde no se distingue lo fichado de lo corregido no sirve
+   * para lo que se pide.
    */
   app.get('/api/panel/:slug/fichajes/export', async (req, reply) => {
     const user = await requireUser(req, reply)
     if (!user) return
     const { slug } = req.params as { slug: string }
-    const scope = await authorizeBusiness(user, slug, 'configuracion')
+    const scope = await authorizeBusiness(user, slug, 'agenda')
     if (!scope.ok) return reply.code(scope.status).send({ error: scope.error })
 
     const parsed = rangoSchema.safeParse(req.query)
     if (!parsed.success) return reply.code(400).send({ error: 'Fechas inválidas' })
     const { desde, hasta } = parsed.data
+    const todos = canConfigureBusiness(user, scope.business.id)
 
     const filas = await prisma.fichaje.findMany({
       where: {
         businessId: scope.business.id,
-        ...(desde || hasta
-          ? {
-              entrada: {
-                ...(desde ? { gte: new Date(`${desde}T00:00:00`) } : {}),
-                ...(hasta ? { lte: new Date(`${hasta}T23:59:59.999`) } : {}),
-              },
-            }
-          : {}),
+        ...(todos ? {} : { userId: user.id }),
+        ...rangoWhere(desde, hasta),
       },
       orderBy: [{ entrada: 'asc' }],
       include: incluir,
@@ -376,6 +501,7 @@ export async function fichajeRoutes(app: FastifyInstance) {
 
     const fecha = (d: Date | null) =>
       d ? d.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : ''
+    const hhmm = (min: number) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`
     // Las comillas dentro de un campo se escapan doblándolas, o el CSV se
     // rompe en cuanto alguien escriba una en el motivo.
     const campo = (v: string) => `"${v.replace(/"/g, '""')}"`
@@ -385,32 +511,42 @@ export async function fichajeRoutes(app: FastifyInstance) {
       'Email',
       'Entrada',
       'Salida',
-      'Horas',
-      'Corregido',
+      'Pausas (h:mm)',
+      'Horas trabajadas',
+      'Correcciones',
+      'Última corrección por',
+      'Última corrección el',
+      'Motivo',
       'Entrada original',
       'Salida original',
-      'Corregido por',
-      'Motivo',
     ]
 
     const lineas = filas.map((f) => {
-      const min = f.salida ? Math.round((f.salida.getTime() - f.entrada.getTime()) / 60000) : null
+      const dto = aDTO(f)
+      const ultima = f.correcciones[f.correcciones.length - 1]
       return [
         campo(f.user.name),
         campo(f.user.email),
         campo(fecha(f.entrada)),
         campo(fecha(f.salida)),
-        campo(min === null ? '' : `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`),
-        // Sin original porque no se fichó: lo añadió el administrador.
-        campo(f.corregidoEn ? (f.entradaOriginal ? 'Sí' : 'Añadido a mano') : 'No'),
-        campo(fecha(f.entradaOriginal)),
-        campo(fecha(f.salidaOriginal)),
-        campo(f.corregidoPor?.name ?? ''),
-        campo(f.motivo ?? ''),
+        campo(hhmm(dto.minutosPausa)),
+        campo(dto.minutos === null ? '' : hhmm(dto.minutos)),
+        campo(
+          f.correcciones.length === 0
+            ? 'No'
+            : f.correcciones[0]?.entradaAntes
+              ? String(f.correcciones.length)
+              : `Añadido a mano (${f.correcciones.length})`,
+        ),
+        campo(ultima?.por?.name ?? ''),
+        campo(fecha(ultima?.en ?? null)),
+        campo(ultima?.motivo ?? ''),
+        campo(fecha(f.correcciones[0]?.entradaAntes ?? null)),
+        campo(fecha(f.correcciones[0]?.salidaAntes ?? null)),
       ].join(';')
     })
 
-    const csv = '\ufeff' + [cabecera.map(campo).join(';'), ...lineas].join('\r\n')
+    const csv = '﻿' + [cabecera.map(campo).join(';'), ...lineas].join('\r\n')
     const nombre = `fichajes-${slug}${desde ? `-${desde}` : ''}${hasta ? `-${hasta}` : ''}.csv`
 
     return reply

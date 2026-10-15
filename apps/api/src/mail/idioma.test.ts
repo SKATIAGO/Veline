@@ -49,10 +49,10 @@ describe('de dónde sale el idioma de cada correo', () => {
     expect(idiomaParaNegocio()).toBe('es')
 
     const aviso = bookingCreatedToBusiness(enIngles, 'negocio@ejemplo.es')
-    expect(aviso.html).toContain('<html lang="es">')
+    expect(aviso.html).toContain('<html lang="es"')
 
     const cancelacion = bookingCancelled(enIngles, persona, 'negocio')
-    expect(cancelacion.html).toContain('<html lang="es">')
+    expect(cancelacion.html).toContain('<html lang="es"')
   })
 
   /**

@@ -3,59 +3,109 @@
 exports[`los correos en castellano no cambian solos > aviso al negocio 1`] = `
 {
   "html": "<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#F2E7D6;">
-<span style="display:none;font-size:1px;color:#F2E7D6;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina ha reservado para el Martes 15 de septiembre a las 12:00</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2E7D6;padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:#2E2119;padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:#F2E7D6;letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:#D9A441;padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Tienes una cita nueva</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#2E2119 !important; }
+    .card { background:#3B2A1F !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:#F2E7D6 !important; }
+    .texto { color:#C9B698 !important; }
+    .muted { color:#C9B698 !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:#2E2119 !important; color:#F2E7D6 !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2E7D6;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F2E7D6;opacity:0;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina ha reservado para el Martes 15 de septiembre a las 12:00&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2E7D6;">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
+    <tr><td style="background:#2E2119;border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:20px;line-height:24px;font-weight:700;color:#F2E7D6;letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:#D9A441;border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;color:#D9A441;">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:#2E2119;font-weight:600;">Tienes una cita nueva</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;"><strong style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</strong> acaba de reservar en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería.</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4D5BE;margin-top:4px;">
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:30px;color:#2E2119;font-weight:700;">Tienes una cita nueva</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#5C4A34;"><strong class="ink" style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</strong> acaba de reservar en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #E4D5BE;margin-top:4px;">
     <tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Servicio</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Servicio</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Cuándo</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">Martes 15 de septiembre a las 12:00</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Cuándo</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">Martes 15 de septiembre a las 12:00</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Asignada a</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Asignada a</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Cliente</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Cliente</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Teléfono</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">612345678</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Teléfono</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">612345678</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Email</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">marina@ejemplo.es</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Email</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">marina@ejemplo.es</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Importe</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">25,00 €</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Importe</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">25,00 €</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Código</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">VL-TEST</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Código</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">VL-TEST</td>
     </tr>
-  </table><p style="margin:20px 0 0;padding:14px 16px;background:#F2E7D6;border-radius:10px;font-size:13.5px;line-height:1.6;color:#4A3826;"><strong>Nota del cliente:</strong> &lt;script&gt;robar()&lt;/script&gt;</p><p style="margin:18px 0 0;font-size:13px;color:#8A7255;">
-          Escríbele a <a href="mailto:marina@ejemplo.es" style="color:#A96A3E;font-weight:600;">marina@ejemplo.es</a> o llámale
-          al <a href="tel:612345678" style="color:#A96A3E;font-weight:600;">612345678</a>.
+  </table><p class="nota" style="margin:20px 0 0;padding:14px 16px;background:#F2E7D6;border-radius:10px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#4A3826;"><strong>Nota del cliente:</strong> &lt;script&gt;robar()&lt;/script&gt;</p><p class="muted" style="margin:18px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#6A5741;">
+          Escríbele a <a href="mailto:marina@ejemplo.es" style="color:#A46639;font-weight:600;">marina@ejemplo.es</a> o llámale
+          al <a href="tel:612345678" style="color:#A46639;font-weight:600;">612345678</a>.
         </p>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:#A96A3E;border-radius:8px;">
-              <a href="http://localhost:5173/panel/x" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">Abrir la agenda</a>
-            </td></tr></table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:5173/panel/x" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="#A46639" fillcolor="#A46639">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">Abrir la agenda</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="http://localhost:5173/panel/x" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:#A46639;border-radius:999px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">Abrir la agenda</a>
+<!--<![endif]-->
+</td></tr></table>
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:#8A7255;">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
+      <p class="muted" style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6A5741;">
+        Este correo se ha enviado automáticamente desde <a href="http://localhost:5173" style="color:#6A5741;text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>",
   "subject": "Nueva cita: <img src=x onerror="alert(1)">Corte — Martes 15 de septiembre a las 12:00",
@@ -81,41 +131,91 @@ Abrir la agenda: http://localhost:5173/panel/x",
 exports[`los correos en castellano no cambian solos > cancelación (cliente) 1`] = `
 {
   "html": "<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#F2E7D6;">
-<span style="display:none;font-size:1px;color:#F2E7D6;">La cita del Martes 15 de septiembre a las 12:00 se ha cancelado</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2E7D6;padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:#2E2119;padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:#F2E7D6;letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:#D9A441;padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Cita cancelada</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#2E2119 !important; }
+    .card { background:#3B2A1F !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:#F2E7D6 !important; }
+    .texto { color:#C9B698 !important; }
+    .muted { color:#C9B698 !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:#2E2119 !important; color:#F2E7D6 !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2E7D6;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F2E7D6;opacity:0;">La cita del Martes 15 de septiembre a las 12:00 se ha cancelado&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2E7D6;">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
+    <tr><td style="background:#2E2119;border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:20px;line-height:24px;font-weight:700;color:#F2E7D6;letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:#D9A441;border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;color:#D9A441;">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:#2E2119;font-weight:600;">Cita cancelada</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;">Tu cita en <strong style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4D5BE;margin-top:4px;">
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:30px;color:#2E2119;font-weight:700;">Cita cancelada</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#5C4A34;">Tu cita en <strong class="ink" style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong> se ha cancelado. El hueco vuelve a estar libre por si quieres otro día.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #E4D5BE;margin-top:4px;">
     <tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Servicio</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Servicio</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Era el</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">Martes 15 de septiembre a las 12:00</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Era el</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">Martes 15 de septiembre a las 12:00</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Código</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">VL-TEST</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Código</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">VL-TEST</td>
     </tr>
   </table>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:#A96A3E;border-radius:8px;">
-              <a href="http://localhost:5173/x" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">Reservar otra hora</a>
-            </td></tr></table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:5173/x" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="#A46639" fillcolor="#A46639">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">Reservar otra hora</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="http://localhost:5173/x" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:#A46639;border-radius:999px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">Reservar otra hora</a>
+<!--<![endif]-->
+</td></tr></table>
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:#8A7255;">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
+      <p class="muted" style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6A5741;">
+        Este correo se ha enviado automáticamente desde <a href="http://localhost:5173" style="color:#6A5741;text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>",
   "subject": "Cita cancelada: <img src=x onerror="alert(1)">Corte — Martes 15 de septiembre a las 12:00",
@@ -134,47 +234,97 @@ Reservar otra hora: http://localhost:5173/x",
 exports[`los correos en castellano no cambian solos > cancelación (negocio) 1`] = `
 {
   "html": "<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#F2E7D6;">
-<span style="display:none;font-size:1px;color:#F2E7D6;">La cita del Martes 15 de septiembre a las 12:00 se ha cancelado</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2E7D6;padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:#2E2119;padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:#F2E7D6;letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:#D9A441;padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Cita cancelada</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#2E2119 !important; }
+    .card { background:#3B2A1F !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:#F2E7D6 !important; }
+    .texto { color:#C9B698 !important; }
+    .muted { color:#C9B698 !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:#2E2119 !important; color:#F2E7D6 !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2E7D6;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F2E7D6;opacity:0;">La cita del Martes 15 de septiembre a las 12:00 se ha cancelado&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2E7D6;">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
+    <tr><td style="background:#2E2119;border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:20px;line-height:24px;font-weight:700;color:#F2E7D6;letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:#D9A441;border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;color:#D9A441;">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:#2E2119;font-weight:600;">Cita cancelada</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;">Se ha cancelado una cita en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería. El hueco ya vuelve a ofrecerse.</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4D5BE;margin-top:4px;">
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:30px;color:#2E2119;font-weight:700;">Cita cancelada</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#5C4A34;">Se ha cancelado una cita en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería. El hueco ya vuelve a ofrecerse.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #E4D5BE;margin-top:4px;">
     <tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Servicio</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Servicio</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Era el</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">Martes 15 de septiembre a las 12:00</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Era el</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">Martes 15 de septiembre a las 12:00</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Código</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">VL-TEST</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Código</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">VL-TEST</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Cliente</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Cliente</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marina</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Teléfono</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">612345678</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Teléfono</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">612345678</td>
     </tr>
   </table>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:#A96A3E;border-radius:8px;">
-              <a href="http://localhost:5173/panel/x" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">Abrir la agenda</a>
-            </td></tr></table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:5173/panel/x" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="#A46639" fillcolor="#A46639">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">Abrir la agenda</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="http://localhost:5173/panel/x" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:#A46639;border-radius:999px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">Abrir la agenda</a>
+<!--<![endif]-->
+</td></tr></table>
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:#8A7255;">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
+      <p class="muted" style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6A5741;">
+        Este correo se ha enviado automáticamente desde <a href="http://localhost:5173" style="color:#6A5741;text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>",
   "subject": "Cita cancelada: <img src=x onerror="alert(1)">Corte — Martes 15 de septiembre a las 12:00",
@@ -195,50 +345,100 @@ Abrir la agenda: http://localhost:5173/panel/x",
 exports[`los correos en castellano no cambian solos > confirmación al cliente 1`] = `
 {
   "html": "<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#F2E7D6;">
-<span style="display:none;font-size:1px;color:#F2E7D6;">Martes 15 de septiembre a las 12:00 en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2E7D6;padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:#2E2119;padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:#F2E7D6;letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:#D9A441;padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>¡Reserva confirmada!</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#2E2119 !important; }
+    .card { background:#3B2A1F !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:#F2E7D6 !important; }
+    .texto { color:#C9B698 !important; }
+    .muted { color:#C9B698 !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:#2E2119 !important; color:#F2E7D6 !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2E7D6;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F2E7D6;opacity:0;">Martes 15 de septiembre a las 12:00 en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2E7D6;">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
+    <tr><td style="background:#2E2119;border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:20px;line-height:24px;font-weight:700;color:#F2E7D6;letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:#D9A441;border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;color:#D9A441;">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:#2E2119;font-weight:600;">¡Reserva confirmada!</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;">Hola &lt;img, te esperan en <strong style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong>.</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4D5BE;margin-top:4px;">
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:30px;color:#2E2119;font-weight:700;">¡Reserva confirmada!</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#5C4A34;">Hola &lt;img, te esperan en <strong class="ink" style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong>.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #E4D5BE;margin-top:4px;">
     <tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Servicio</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Servicio</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Cuándo</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">Martes 15 de septiembre a las 12:00</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Cuándo</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">Martes 15 de septiembre a las 12:00</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Te atiende</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Te atiende</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Dónde</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Calle Mayor</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Dónde</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Calle Mayor</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Código</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">VL-TEST</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Código</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">VL-TEST</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Total</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">25,00 €</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Total</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">25,00 €</td>
     </tr>
   </table>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:#A96A3E;border-radius:8px;">
-              <a href="http://localhost:5173/reserva/VL-TEST" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">Ver o cancelar mi reserva</a>
-            </td></tr></table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:5173/reserva/VL-TEST" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="#A46639" fillcolor="#A46639">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">Ver o cancelar mi reserva</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="http://localhost:5173/reserva/VL-TEST" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:#A46639;border-radius:999px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">Ver o cancelar mi reserva</a>
+<!--<![endif]-->
+</td></tr></table>
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:#8A7255;">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
+      <p class="muted" style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6A5741;">
+        Este correo se ha enviado automáticamente desde <a href="http://localhost:5173" style="color:#6A5741;text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>",
   "subject": "Tu cita en <img src=x onerror="alert(1)">Peluquería — Martes 15 de septiembre a las 12:00",
@@ -260,47 +460,97 @@ Ver o cancelar tu reserva: http://localhost:5173/reserva/VL-TEST",
 exports[`los correos en castellano no cambian solos > recordatorio 1`] = `
 {
   "html": "<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#F2E7D6;">
-<span style="display:none;font-size:1px;color:#F2E7D6;">Martes 15 de septiembre a las 12:00 en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2E7D6;padding:32px 16px;">
-<tr><td align="center">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;overflow:hidden;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
-    <tr><td style="background:#2E2119;padding:22px 28px;">
-      <span style="font-size:20px;font-weight:600;color:#F2E7D6;letter-spacing:-.01em;">Veline</span>
-      <span style="font-size:12px;color:#D9A441;padding-left:10px;">Donde cada cita encuentra su lugar</span>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Te esperamos mañana</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<style>table,td{font-family:Helvetica,Arial,sans-serif;}</style>
+<![endif]-->
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+  body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a.btn:hover { background:#935A33 !important; }
+  @media only screen and (max-width: 620px) {
+    .wrap { padding:16px 8px !important; }
+    .card { border-radius:12px !important; }
+    .pad { padding-left:20px !important; padding-right:20px !important; }
+    .h1 { font-size:22px !important; }
+    .btn { display:block !important; width:100% !important; box-sizing:border-box !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .bg { background:#2E2119 !important; }
+    .card { background:#3B2A1F !important; border-color:#4A3826 !important; }
+    .h1, .ink, .valor { color:#F2E7D6 !important; }
+    .texto { color:#C9B698 !important; }
+    .muted { color:#C9B698 !important; }
+    .linea { border-color:#4A3826 !important; }
+    .nota { background:#2E2119 !important; color:#F2E7D6 !important; }
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2E7D6;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F2E7D6;opacity:0;">Martes 15 de septiembre a las 12:00 en &lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2E7D6;">
+<tr><td align="center" class="wrap" style="padding:32px 16px;">
+<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="card" style="max-width:600px;background:#ffffff;border:1px solid #E4D5BE;border-radius:16px;font-family:'Public Sans',Helvetica,Arial,sans-serif;">
+    <tr><td style="background:#2E2119;border-radius:16px 16px 0 0;padding:20px 28px;" class="pad">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:20px;line-height:24px;font-weight:700;color:#F2E7D6;letter-spacing:-.01em;">
+          <span aria-hidden="true" style="display:inline-block;width:12px;height:22px;margin-right:6px;background:#D9A441;border-radius:3px;vertical-align:middle;"></span>Veline
+        </td>
+        <td align="right" style="font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;color:#D9A441;">Donde cada cita encuentra su lugar</td>
+      </tr></table>
     </td></tr>
-    <tr><td style="padding:32px 28px 8px;">
-      <h1 style="margin:0 0 12px;font-size:23px;line-height:1.25;color:#2E2119;font-weight:600;">Te esperamos mañana</h1>
-      <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#5C4A34;">Hola &lt;img, un recordatorio de tu cita en <strong style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong>.</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4D5BE;margin-top:4px;">
+    <tr><td class="pad" style="padding:32px 28px 8px;">
+      <h1 class="h1" style="margin:0 0 12px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:24px;line-height:30px;color:#2E2119;font-weight:700;">Te esperamos mañana</h1>
+      <p class="texto" style="margin:0 0 20px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#5C4A34;">Hola &lt;img, un recordatorio de tu cita en <strong class="ink" style="color:#2E2119;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Peluquería</strong>.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #E4D5BE;margin-top:4px;">
     <tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Servicio</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Servicio</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Corte</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Cuándo</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">Martes 15 de septiembre a las 12:00</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Cuándo</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">Martes 15 de septiembre a las 12:00</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Te atiende</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Te atiende</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Marta</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Dónde</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Calle Mayor</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Dónde</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Calle Mayor</td>
     </tr><tr>
-      <td style="padding:11px 0 0;font-size:13px;color:#8A7255;">Código</td>
-      <td style="padding:11px 0 0;font-size:13px;color:#2E2119;font-weight:600;text-align:right;">VL-TEST</td>
+      <td class="muted" style="padding:12px 12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#6A5741;vertical-align:top;">Código</td>
+      <td class="valor" style="padding:12px 0 0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#2E2119;font-weight:600;text-align:right;vertical-align:top;">VL-TEST</td>
     </tr>
   </table>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;"><tr><td style="background:#A96A3E;border-radius:8px;">
-              <a href="http://localhost:5173/reserva/VL-TEST" style="display:inline-block;padding:13px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">Ver o cancelar mi cita</a>
-            </td></tr></table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 6px;">
+<tr><td align="left">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:5173/reserva/VL-TEST" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%" strokecolor="#A46639" fillcolor="#A46639">
+<w:anchorlock/>
+<center style="color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;">Ver o cancelar mi cita</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="http://localhost:5173/reserva/VL-TEST" class="btn" style="display:inline-block;min-width:200px;padding:14px 28px;background:#A46639;border-radius:999px;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;mso-hide:all;">Ver o cancelar mi cita</a>
+<!--<![endif]-->
+</td></tr></table>
     </td></tr>
-    <tr><td style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
-      <p style="margin:0;font-size:12px;line-height:1.6;color:#8A7255;">
-        Este correo se ha enviado automáticamente desde Veline. Si no esperabas recibirlo, puedes ignorarlo.
+    <tr><td class="pad linea" style="padding:20px 28px 28px;border-top:1px solid #E4D5BE;">
+      <p class="muted" style="margin:0;font-family:'Public Sans',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#6A5741;">
+        Este correo se ha enviado automáticamente desde <a href="http://localhost:5173" style="color:#6A5741;text-decoration:underline;">Veline</a>. Si no esperabas recibirlo, puedes ignorarlo.
       </p>
     </td></tr>
   </table>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 </body></html>",
   "subject": "Mañana tienes cita en <img src=x onerror="alert(1)">Peluquería",

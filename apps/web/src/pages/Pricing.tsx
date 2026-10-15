@@ -1,10 +1,35 @@
 import { useState } from 'react'
-import { CONTACT_EMAIL, formatPrice } from '@veline/shared'
+import { CONTACT_EMAIL, PLAN_INFO, formatPrice } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { Texto, useIdioma, type Clave } from '../i18n/idioma'
-import { EXTRAS, FAQ, PLANES, PRUEBA_DIAS } from '../content/precios'
+import { EXTRAS, FAQ, PRUEBA_DIAS } from '../content/precios'
+
+/**
+ * Precios, para que no quede ninguna duda de qué se paga y qué se lleva.
+ *
+ * Había tres tarjetas y dos de ellas (Negocio y Equipo) costaban lo mismo
+ * con las mismas plazas: la diferencia estaba en letra pequeña. Ahora:
+ *
+ *   1. Dos planes de verdad: la prueba gratis y Negocio. Equipo no es otro
+ *      precio, es el mismo plan con más gente o más locales, y se cierra
+ *      hablando: va en una franja aparte, no en una tarjeta que compita.
+ *   2. Una calculadora: cuántas personas atienden → cuánto es al mes. Es la
+ *      única cuenta que hace alguien antes de contratar.
+ *   3. «Qué incluye» como lista única y «Qué va aparte» con los servicios
+ *      que se contratan por separado. Nada escondido.
+ */
+
+const NEGOCIO_INCLUYE: Clave[] = [
+  'pre.negocioF1',
+  'pre.negocioF2',
+  'pre.negocioF3',
+  'pre.negocioF4',
+  'pre.negocioF5',
+  'pre.negocioFichaje',
+  'pre.negocioF6',
+]
 
 function Feature({ children }: { children: string }) {
   return (
@@ -16,10 +41,8 @@ function Feature({ children }: { children: string }) {
 }
 
 /**
- * Pregunta desplegable. Antes era un <details> nativo: correcto, pero el
- * contenido aparecía de golpe porque los navegadores no animan su apertura.
- * Con la fila controlada a mano, un grid de 0fr a 1fr hace que el texto
- * se despliegue como una cortina en vez de aparecer con un salto.
+ * Pregunta desplegable. Un grid de 0fr a 1fr hace que el texto se despliegue
+ * como una cortina en vez de aparecer con un salto.
  */
 function FaqRow({ q, a }: { q: Clave; a: Clave }) {
   const { t } = useIdioma()
@@ -30,13 +53,13 @@ function FaqRow({ q, a }: { q: Clave; a: Clave }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left text-ui font-semibold text-ink transition-colors duration-200 hover:bg-cream/60"
+        className="flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 px-6 py-4 text-left text-ui font-semibold text-ink transition-colors duration-200 hover:bg-cream/60"
       >
         {t(q, { n: PRUEBA_DIAS })}
         <span
           aria-hidden="true"
           className={cx(
-            'shrink-0 text-xl leading-none text-brand-text transition-transform duration-300',
+            'shrink-0 text-subheading leading-none text-brand-text transition-transform duration-300',
             open && 'rotate-45',
           )}
         >
@@ -55,14 +78,55 @@ function FaqRow({ q, a }: { q: Clave; a: Clave }) {
   )
 }
 
-export function Pricing() {
+/** Cuántas personas atienden → cuánto es al mes. */
+function Calculadora() {
   const { t, idioma } = useIdioma()
+  const { priceCents, seatsIncluded, extraSeatCents } = PLAN_INFO.NEGOCIO
+  const [personas, setPersonas] = useState<number>(seatsIncluded)
+  const total = priceCents + Math.max(0, personas - seatsIncluded) * extraSeatCents
+  const precioExtra = formatPrice(extraSeatCents, idioma)
 
   return (
-    // overflow-x-clip: el halo decorativo mide 620 px y va centrado, así que en
-    // un móvil de 375 asomaba 122 px por cada lado y la página entera se movía
-    // de lado. Se recorta en vez de ocultarse («clip» y no «hidden») para no
-    // convertir esto en un contenedor de scroll.
+    <Card className="flex flex-col gap-4 p-6 sm:p-8">
+      <div>
+        <h3 className="font-display text-subheading font-semibold text-ink">
+          {t('pre.calcTitulo')}
+        </h3>
+        <p className="mt-1 text-meta text-muted">{t('pre.calcPista', { extra: precioExtra })}</p>
+      </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <label className="flex min-w-0 flex-1 flex-col gap-2">
+          <span className="text-body font-semibold text-ink tabular-nums">
+            {personas === 1 ? t('pre.calcUnaPersona') : t('pre.calcPersonas', { n: personas })}
+          </span>
+          <input
+            type="range"
+            min={1}
+            max={12}
+            value={personas}
+            onChange={(e) => setPersonas(Number(e.target.value))}
+            aria-valuetext={
+              personas === 1 ? t('pre.calcUnaPersona') : t('pre.calcPersonas', { n: personas })
+            }
+            className="h-11 w-full accent-brand"
+          />
+        </label>
+        <p className="shrink-0 text-right">
+          <span className="font-display text-display-sm font-semibold text-ink tabular-nums">
+            {formatPrice(total, idioma)}
+          </span>{' '}
+          <span className="text-body text-muted">{t('pre.calcTotal')}</span>
+        </p>
+      </div>
+    </Card>
+  )
+}
+
+export function Pricing() {
+  const { t, idioma } = useIdioma()
+  const negocio = PLAN_INFO.NEGOCIO
+
+  return (
     <div className="relative mx-auto max-w-[1440px] overflow-x-clip px-6 py-16 lg:px-16">
       <Glow className="-top-32 left-1/2 -translate-x-1/2" color="rgba(217,164,65,.2)" size={620} />
       <DoorMotif
@@ -71,97 +135,106 @@ export function Pricing() {
         opacity={0.05}
         tilt={-12}
       />
-      <DoorMotif
-        className="top-[52%] right-[-2%] hidden xl:block"
-        size={140}
-        opacity={0.05}
-        tilt={10}
-        delay={900}
-      />
 
       {/* HERO */}
       <Reveal className="relative text-center">
         <h1 className="text-display-sm leading-tight font-semibold text-ink sm:text-display">
           {t('pre.titulo')}
         </h1>
-        <p className="mx-auto mt-4 max-w-[560px] text-base leading-relaxed text-body">
+        <p className="mx-auto mt-4 max-w-[560px] text-ui leading-relaxed text-body">
           {t('pre.entradilla', { n: PRUEBA_DIAS })}
         </p>
       </Reveal>
 
-      {/* PLANES */}
-      <div className="relative mt-14 flex flex-col items-stretch gap-6 lg:flex-row">
-        {PLANES.map((plan, i) => (
-          <Reveal
-            key={plan.nombre}
-            delay={i * 110}
-            variant="zoom"
-            className={cx('flex-1', plan.popular && 'lg:-mt-3 lg:-mb-3')}
-          >
-            <Card
-              className={cx(
-                'lift relative flex h-full flex-col p-8',
-                plan.popular && 'border-2 border-brand shadow-pop',
-              )}
-            >
-              {plan.popular && (
-                <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-caption font-semibold text-white">
-                  {t('pre.masElegido')}
-                </span>
-              )}
-              <div className="font-display text-lg font-semibold text-ink">{t(plan.nombre)}</div>
-              <div className="mt-1.5 mb-6 text-body text-subtle">{t(plan.tagline)}</div>
-              <div className="mb-6 flex items-baseline gap-1.5">
-                <span className="font-display text-display font-semibold text-ink">
-                  {plan.priceCents !== undefined
-                    ? `${plan.pricePrefix ?? ''}${formatPrice(plan.priceCents, idioma)}`
-                    : plan.precio
-                      ? t(plan.precio)
-                      : ''}
-                </span>
-                <span className="text-sm font-medium text-subtle">
-                  {t(plan.periodo, { n: PRUEBA_DIAS })}
-                </span>
-              </div>
-              {plan.explicacion && (
-                <p className="-mt-2 mb-6 rounded-lg bg-cream px-4 py-3 text-meta leading-relaxed text-body-2">
-                  {t(plan.explicacion)}
-                </p>
-              )}
-              {/* `to` para las pantallas de Veline y `href` para salir fuera
-                  (el mailto de Equipo). Con href a una ruta interna el
-                  navegador recargaría la aplicación entera. */}
-              {/* `to` para las pantallas de Veline y `href` para salir fuera
-                  (el mailto de Equipo). El asunto del correo se traduce: quien
-                  escribe en inglés escribe en inglés. */}
-              <ButtonLink
-                to={plan.to}
-                href={
-                  plan.asunto
-                    ? `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t(plan.asunto))}`
-                    : undefined
-                }
-                variant={plan.variant}
-                size="lg"
-                block
-                className={cx('mb-7', plan.popular && 'sheen')}
-              >
-                {t(plan.cta)}
-              </ButtonLink>
-              <ul className="flex flex-col gap-3">
-                {plan.features.map((f) => (
-                  <Feature key={f}>{t(f)}</Feature>
-                ))}
-              </ul>
-            </Card>
-          </Reveal>
-        ))}
+      {/* DOS PLANES */}
+      <div className="relative mx-auto mt-12 grid max-w-[920px] gap-6 md:grid-cols-2">
+        <Reveal variant="zoom">
+          <Card className="flex h-full flex-col p-7 sm:p-8">
+            <div className="font-display text-subheading font-semibold text-ink">
+              {t('pre.pruebaNombre')}
+            </div>
+            <div className="mt-1 mb-6 text-body text-muted">{t('pre.pruebaTagline')}</div>
+            <div className="mb-6 flex items-baseline gap-1.5">
+              <span className="font-display text-display font-semibold text-ink">
+                {t('pre.gratis')}
+              </span>
+              <span className="text-body font-medium text-muted">
+                {t('pre.pruebaPeriodo', { n: PRUEBA_DIAS })}
+              </span>
+            </div>
+            <ButtonLink to="/alta" variant="secondary" size="lg" block className="mb-6">
+              {t('pre.empezarPrueba')}
+            </ButtonLink>
+            <ul className="flex flex-col gap-2.5">
+              <Feature>{t('pre.pruebaIncluye', { n: PRUEBA_DIAS })}</Feature>
+              <Feature>{t('pre.pruebaF2')}</Feature>
+              <Feature>{t('pre.pruebaF3')}</Feature>
+              <Feature>{t('pre.pruebaF4')}</Feature>
+            </ul>
+          </Card>
+        </Reveal>
+
+        <Reveal variant="zoom" delay={100}>
+          <Card className="relative flex h-full flex-col border-2 border-brand p-7 shadow-pop sm:p-8">
+            <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-caption font-semibold text-white">
+              {t('pre.masElegido')}
+            </span>
+            <div className="font-display text-subheading font-semibold text-ink">
+              {t('pre.negocioNombre')}
+            </div>
+            <div className="mt-1 mb-6 text-body text-muted">{t('pre.negocioTagline')}</div>
+            <div className="mb-1 flex items-baseline gap-1.5">
+              <span className="font-display text-display font-semibold text-ink">
+                {formatPrice(negocio.priceCents, idioma)}
+              </span>
+              <span className="text-body font-medium text-muted">{t('pre.alMes')}</span>
+            </div>
+            <p className="mb-6 text-meta text-muted">
+              {t('pre.calcPista', { extra: formatPrice(negocio.extraSeatCents, idioma) })}
+            </p>
+            <ButtonLink to="/alta" size="lg" block className="sheen mb-6">
+              {t('pre.contratar')}
+            </ButtonLink>
+            <ul className="flex flex-col gap-2.5">
+              {NEGOCIO_INCLUYE.map((f) => (
+                <Feature key={f}>{t(f)}</Feature>
+              ))}
+            </ul>
+          </Card>
+        </Reveal>
       </div>
 
+      {/* CALCULADORA */}
+      <Reveal delay={80} className="mx-auto mt-6 max-w-[920px]">
+        <Calculadora />
+      </Reveal>
+
+      {/* EQUIPO: el mismo plan, más gente o más locales, se cierra hablando. */}
+      <Reveal delay={80} className="mx-auto mt-6 max-w-[920px]">
+        <div className="flex flex-col items-start justify-between gap-5 rounded-xl bg-ink p-7 sm:flex-row sm:items-center sm:p-8">
+          <div className="min-w-0">
+            <h2 className="font-display text-subheading font-semibold text-ondark">
+              {t('pre.equipoStrip')}
+            </h2>
+            <p className="mt-1.5 max-w-[520px] text-body leading-relaxed text-ondark-muted-2">
+              {t('pre.equipoStripTexto')}
+            </p>
+          </div>
+          <ButtonLink
+            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t('pre.equipoAsunto'))}`}
+            variant="accent"
+            size="lg"
+            className="shrink-0"
+          >
+            {t('pre.hablarVentas')}
+          </ButtonLink>
+        </div>
+      </Reveal>
+
       {/* COMISIÓN */}
-      <Reveal delay={80} className="mx-auto mt-8 max-w-[1000px]">
-        <Card className="lift flex items-center gap-6 p-8">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-xl font-semibold text-accent">
+      <Reveal delay={80} className="mx-auto mt-6 max-w-[920px]">
+        <Card className="flex items-center gap-5 p-6 sm:p-8">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-subheading font-semibold text-accent">
             %
           </div>
           <p className="text-body leading-relaxed text-body-2">
@@ -175,28 +248,26 @@ export function Pricing() {
         </Card>
       </Reveal>
 
-      {/* EXTRAS */}
-      <section id="extras" className="relative mt-24 scroll-mt-24">
+      {/* QUÉ VA APARTE */}
+      <section id="extras" className="relative mt-20 scroll-mt-24">
         <Reveal>
-          <Eyebrow>{t('pre.serviciosAparte')}</Eyebrow>
-          <h2 className="quill mb-6 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
+          <Eyebrow>{t('pre.noIncluye')}</Eyebrow>
+          <h2 className="quill mb-3 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('pre.siQuieresMas')}
           </h2>
-          <p className="mb-10 max-w-[560px] text-ui leading-relaxed text-body">
-            {t('pre.extrasTexto')}
+          <p className="mb-8 max-w-[560px] text-ui leading-relaxed text-body">
+            {t('pre.noIncluyeTexto')}
           </p>
         </Reveal>
 
         <div className="grid gap-5 sm:grid-cols-2">
           {EXTRAS.map((extra, i) => (
             <Reveal key={extra.nombre} delay={i * 90} variant={i % 2 === 0 ? 'left' : 'right'}>
-              <Card className="lift flex h-full flex-col p-7">
+              <Card className="flex h-full flex-col p-6 sm:p-7">
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-display text-lg font-semibold text-ink">
+                  <span className="font-display text-subheading font-semibold text-ink">
                     {t(extra.nombre)}
                   </span>
-                  {/* Sin tarifa fija, el precio se sustituye por un enlace de
-                      correo: no hay número que dar hasta hablarlo. */}
                   {'contacto' in extra && extra.contacto ? (
                     <a
                       href={`mailto:${CONTACT_EMAIL}${
@@ -232,14 +303,13 @@ export function Pricing() {
       </section>
 
       {/* PREGUNTAS */}
-      <section className="mt-24">
+      <section className="mt-20">
         <Reveal>
           <Eyebrow>{t('pre.preguntas')}</Eyebrow>
-          <h2 className="quill mb-10 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
+          <h2 className="quill mb-8 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('pre.loQuePreguntan')}
           </h2>
         </Reveal>
-
         <Reveal
           delay={80}
           className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface"
@@ -248,7 +318,6 @@ export function Pricing() {
             <FaqRow key={item.q} q={item.q} a={item.a} />
           ))}
         </Reveal>
-
         <p className="mt-6 text-center text-body text-muted">
           <Texto
             clave="pre.algunaDuda"
@@ -267,7 +336,7 @@ export function Pricing() {
       </section>
 
       {/* CIERRE */}
-      <Reveal variant="zoom" as="section" className="mt-24 text-center">
+      <Reveal variant="zoom" as="section" className="mt-20 text-center">
         <p className="font-display text-heading leading-tight font-semibold text-ink sm:text-display-sm">
           {t('pre.pruebaloSinCompromiso', { n: PRUEBA_DIAS })}
         </p>
@@ -275,8 +344,8 @@ export function Pricing() {
           <ButtonLink to="/alta" size="lg" className="sheen">
             {t('pre.empezarPrueba')}
           </ButtonLink>
-          <ButtonLink to="/" variant="secondary" size="lg">
-            {t('pre.verTodoIncluye')}
+          <ButtonLink to="/#como-funciona" variant="secondary" size="lg">
+            {t('home.verComoFunciona')}
           </ButtonLink>
         </div>
       </Reveal>

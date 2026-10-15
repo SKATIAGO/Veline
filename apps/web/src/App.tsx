@@ -75,6 +75,10 @@ const PanelCierres = perezoso(() => import('./pages/panel/PanelCierres'), 'Panel
 const PanelExtras = perezoso(() => import('./pages/panel/PanelExtras'), 'PanelExtras')
 const PanelClientes = perezoso(() => import('./pages/panel/PanelClientes'), 'PanelClientes')
 const PanelFichaje = perezoso(() => import('./pages/panel/PanelFichaje'), 'PanelFichaje')
+const FichajeHistorial = perezoso(
+  () => import('./pages/panel/FichajeHistorial'),
+  'FichajeHistorial',
+)
 const PanelLocales = perezoso(() => import('./pages/panel/PanelLocales'), 'PanelLocales')
 const PanelActividad = perezoso(() => import('./pages/panel/PanelActividad'), 'PanelActividad')
 const Legal = perezoso(() => import('./pages/Legal'), 'Legal')
@@ -175,6 +179,7 @@ function AppRoutes() {
           <Route path="personas" element={<Navigate to="../equipo" replace />} />
           <Route path="clientes" element={<PanelClientes />} />
           <Route path="fichaje" element={<PanelFichaje />} />
+          <Route path="fichaje/historial" element={<FichajeHistorial />} />
           <Route path="cuenta" element={<PanelCuenta />} />
           <Route path="*" element={<PanelNoExiste />} />
         </Route>

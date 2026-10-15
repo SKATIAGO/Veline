@@ -61,9 +61,9 @@ test.describe('Descartar cambios en un asistente', () => {
       await expect(asistente).toBeHidden()
       await expect(page.locator('[role="presentation"]')).toHaveCount(0)
       await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden')
-      await page.getByRole('tab', { name: /calendario/i }).click()
-      await expect(page.getByRole('tab', { name: /calendario/i })).toHaveAttribute(
-        'aria-selected',
+      await page.getByRole('radio', { name: /calendario/i }).click()
+      await expect(page.getByRole('radio', { name: /calendario/i })).toHaveAttribute(
+        'aria-checked',
         'true',
       )
     })
