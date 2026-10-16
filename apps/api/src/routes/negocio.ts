@@ -1061,9 +1061,12 @@ export async function negocioRoutes(app: FastifyInstance) {
       auth.business.id,
       start,
       duracion + existing.service.bufferMin,
+      existing.locationId ?? undefined,
     )
     if (!dentro) {
-      return reply.code(409).send({ error: 'Esa hora cae fuera del horario o en un día cerrado' })
+      return reply.code(409).send({
+        error: 'Esa hora no cabe en el horario del local o ese día está cerrado. Elige otra hora.',
+      })
     }
 
     try {
@@ -1078,6 +1081,7 @@ export async function negocioRoutes(app: FastifyInstance) {
             start,
             end: blockedTo,
             preferredStaffId: parsed.data.staffId ?? existing.staffId ?? undefined,
+            locationId: existing.locationId ?? undefined,
           })
           if (!staff) {
             throw Object.assign(new Error('No queda nadie libre a esa hora'), { statusCode: 409 })
