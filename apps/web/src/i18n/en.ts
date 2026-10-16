@@ -1972,6 +1972,7 @@ export const en: Record<keyof typeof es, string> = {
   'fic.reanudar': 'Resume',
   'fic.enPausaDesde': 'On a break since {hora}',
   'fic.dentroDesde': 'Clocked in since {hora}',
+  'fic.pausaLlevas': "You've been on break for",
   'fic.hoyLlevas': "Today you've worked",
   'fic.enPausaTotal': '{tiempo} on break',
   'fic.pausaHecha': 'Break started at {hora}',

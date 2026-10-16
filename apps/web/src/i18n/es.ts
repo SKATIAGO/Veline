@@ -1970,6 +1970,7 @@ export const es = {
   'fic.reanudar': 'Reanudar',
   'fic.enPausaDesde': 'En pausa desde las {hora}',
   'fic.dentroDesde': 'Dentro desde las {hora}',
+  'fic.pausaLlevas': 'Llevas en pausa',
   'fic.hoyLlevas': 'Hoy llevas',
   'fic.enPausaTotal': '{tiempo} de pausa',
   'fic.pausaHecha': 'Pausa a las {hora}',

@@ -138,7 +138,19 @@ export function PanelFichaje() {
                 {estado}
               </p>
               <p className="text-body text-muted">
-                {dentro || acumulado.trabajado > 0 ? (
+                {enPausa && pausaAbierta ? (
+                  <>
+                    {t('fic.pausaLlevas')}{' '}
+                    <span className="font-semibold text-ink tabular-nums">
+                      {duracion(
+                        Math.max(
+                          0,
+                          Math.round((ahora - new Date(pausaAbierta.inicio).getTime()) / 60000),
+                        ),
+                      )}
+                    </span>
+                  </>
+                ) : dentro || acumulado.trabajado > 0 ? (
                   <>
                     {t('fic.hoyLlevas')}{' '}
                     <span className="font-semibold text-ink tabular-nums">
@@ -158,20 +170,23 @@ export function PanelFichaje() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                variant={dentro ? 'secondary' : 'primary'}
-                loading={
-                  fichar.isPending &&
-                  fichar.variables !== 'pausa' &&
-                  fichar.variables !== 'reanudar'
-                }
-                disabled={fichar.isPending}
-                onClick={() => fichar.mutate(dentro ? 'salida' : 'entrada')}
-                className="sm:min-w-56"
-              >
-                {dentro ? t('fic.ficharSalida') : t('fic.ficharEntrada')}
-              </Button>
+              {/* En pausa solo se puede reanudar: la salida aparece al volver. */}
+              {!enPausa && (
+                <Button
+                  size="lg"
+                  variant={dentro ? 'secondary' : 'primary'}
+                  loading={
+                    fichar.isPending &&
+                    fichar.variables !== 'pausa' &&
+                    fichar.variables !== 'reanudar'
+                  }
+                  disabled={fichar.isPending}
+                  onClick={() => fichar.mutate(dentro ? 'salida' : 'entrada')}
+                  className="sm:min-w-56"
+                >
+                  {dentro ? t('fic.ficharSalida') : t('fic.ficharEntrada')}
+                </Button>
+              )}
               {dentro && (
                 <Button
                   size="lg"
