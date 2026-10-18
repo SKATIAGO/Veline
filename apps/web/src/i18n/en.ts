@@ -255,6 +255,7 @@ export const en: Record<keyof typeof es, string> = {
   'panel.cobros': 'Billing',
 
   // ── Dashboard · diary ─────────────────────────────────────
+  'agenda.bienvenida': 'Hi, {nombre}! Welcome to your agenda.',
   'agenda.unServicio': '{n} service',
   'agenda.variosServicios': '{n} services',
   'agenda.unaPersona': '{n} employee',

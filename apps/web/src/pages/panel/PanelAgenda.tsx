@@ -143,6 +143,11 @@ export function PanelAgenda() {
 
   return (
     <div className="flex flex-col gap-6">
+      {user?.role === 'EMPLEADO' && (
+        <p className="font-display text-heading-sm font-semibold text-brand-text">
+          {t('agenda.bienvenida', { nombre: user.name.trim().split(/\s+/)[0] ?? '' })}
+        </p>
+      )}
       <PageHeader
         title={t('panel.agenda')}
         hint={

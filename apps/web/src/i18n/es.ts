@@ -255,6 +255,7 @@ export const es = {
   'panel.cobros': 'Cobros',
 
   // ── Panel · agenda ────────────────────────────────────────
+  'agenda.bienvenida': '¡Hola, {nombre}! Te damos la bienvenida a tu agenda.',
   'agenda.unServicio': '{n} servicio',
   'agenda.variosServicios': '{n} servicios',
   'agenda.unaPersona': '{n} empleado',
