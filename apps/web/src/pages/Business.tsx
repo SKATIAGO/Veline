@@ -87,7 +87,7 @@ function GalleryTile({
         fallback={fallback}
       />
       {extra > 0 && (
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/45 text-lg font-semibold text-cream">
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/45 text-subheading font-semibold text-cream">
           +{extra}
         </span>
       )}
@@ -216,7 +216,7 @@ export function Business() {
           <h1 className="text-heading font-semibold text-ink sm:text-display-sm">
             {business.name}
           </h1>
-          <div className="mt-1.5 text-sm font-medium text-subtle">
+          <div className="mt-1.5 text-body font-medium text-subtle">
             {categoryLabel(business.category, idioma)} ·{' '}
             <Stars rating={business.rating} count={business.reviewCount} />
             {location && ` · ${location.street}, ${location.city}`}
@@ -279,7 +279,7 @@ export function Business() {
                 </div>
               ))}
               {business.services.length === 0 && (
-                <p className="py-8 text-sm text-muted">{t('ficha.sinServicios')}</p>
+                <p className="py-8 text-body text-muted">{t('ficha.sinServicios')}</p>
               )}
 
               {/* La carta de extras, para que se sepa antes de reservar. Se
@@ -336,7 +336,7 @@ export function Business() {
           )}
 
           {tab === 'info' && (
-            <div key="info" className="rise py-8 text-sm leading-relaxed text-body">
+            <div key="info" className="rise py-8 text-body leading-relaxed text-body">
               {business.description && <p className="mb-6 max-w-[560px]">{business.description}</p>}
               <div className="grid max-w-[560px] gap-6 sm:grid-cols-2">
                 <div>

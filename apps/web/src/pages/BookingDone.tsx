@@ -145,7 +145,7 @@ export function BookingDone() {
                   ? t('hecha.yaPaso')
                   : t('hecha.tuReserva')}
           </h1>
-          <p className="mt-2.5 max-w-[320px] text-sm leading-relaxed text-muted first-letter:uppercase">
+          <p className="mt-2.5 max-w-[320px] text-body leading-relaxed text-muted first-letter:uppercase">
             {cancelled
               ? t('hecha.canceladaTexto', { negocio: booking.business.name })
               : t(pasada ? 'hecha.yaPasoTexto' : 'hecha.confirmadaTexto', {

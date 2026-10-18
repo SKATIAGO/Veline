@@ -71,10 +71,10 @@ export function Login() {
           <Logo size={24} />
         </div>
         <h1 className="text-center text-title font-semibold text-ink">{t('acc.panelGestion')}</h1>
-        <p className="mt-2 mb-8 text-center text-sm text-muted">{t('acc.entraConTuCuenta')}</p>
+        <p className="mt-2 mb-8 text-center text-body text-muted">{t('acc.entraConTuCuenta')}</p>
 
         {recienRestablecida && (
-          <p className="mb-5 rounded-lg border border-brand/40 bg-brand/8 px-4 py-3 text-center text-sm text-body-2">
+          <p className="mb-5 rounded-lg border border-brand/40 bg-brand/8 px-4 py-3 text-center text-body text-body-2">
             {t('acc.restablecida')}
           </p>
         )}
@@ -88,7 +88,7 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
-              className="w-full rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-brand"
+              className="w-full rounded-lg border border-line bg-surface px-4 py-3 text-body text-ink outline-none placeholder:text-subtle focus:border-brand"
               placeholder={t('acc.emailEjemplo')}
             />
           </label>

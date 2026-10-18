@@ -254,7 +254,7 @@ function Footer() {
     <footer className="relative border-t border-line">
       <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
-          <div className="mb-2.5 font-display text-xl font-semibold text-ink">Veline</div>
+          <div className="mb-2.5 font-display text-subheading font-semibold text-ink">Veline</div>
           <p className="text-body leading-relaxed text-subtle">{t('pie.eslogan')}</p>
           <div className="-ml-1.5 mt-4 flex items-center gap-1">
             <IconoSocial href={SOCIAL.instagram.url} label={t('pie.red', { red: 'Instagram' })}>

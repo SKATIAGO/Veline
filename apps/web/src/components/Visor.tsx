@@ -61,7 +61,7 @@ export default function Visor({
         // botones, y un título largo no se pisa con ellos.
         description: (
           <>
-            <span className="block text-base font-semibold">{f.titulo}</span>
+            <span className="block text-ui font-semibold">{f.titulo}</span>
             {f.detalle && <span className="block opacity-85">{f.detalle}</span>}
           </>
         ),

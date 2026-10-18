@@ -37,7 +37,7 @@ function AuthCard({
           <Logo size={24} />
         </div>
         <h1 className="text-center text-title font-semibold text-ink">{title}</h1>
-        <p className="mt-2 mb-8 text-center text-sm text-muted">{subtitle}</p>
+        <p className="mt-2 mb-8 text-center text-body text-muted">{subtitle}</p>
         {children}
       </div>
     </div>
@@ -45,7 +45,7 @@ function AuthCard({
 }
 
 const inputClass =
-  'w-full rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink outline-none placeholder:text-subtle focus:border-brand'
+  'w-full rounded-lg border border-line bg-surface px-4 py-3 text-body text-ink outline-none placeholder:text-subtle focus:border-brand'
 
 /** Paso 1: pedir el enlace por email. */
 export function ForgotPassword() {
