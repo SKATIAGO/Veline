@@ -70,7 +70,11 @@ export function Segmentado<T extends string>({
   }
 
   const base = cx(
-    'relative flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 text-center font-semibold whitespace-nowrap',
+    /* Con tres o más, cada una ocupa lo que pide su texto y, si no cabe, se parte
+       en dos líneas: con anchos iguales, un nombre largo se salía de su hueco y
+       tocaba al vecino. */
+    'relative flex min-w-0 items-center justify-center gap-1.5 rounded-full px-3 text-center leading-tight font-semibold',
+    opciones.length > 2 ? 'flex-auto py-1' : 'flex-1 whitespace-nowrap',
     'transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
     tamano === 'md' ? 'min-h-10 text-body' : 'min-h-8 text-meta',
   )
