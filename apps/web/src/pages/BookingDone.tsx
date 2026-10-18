@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -8,7 +9,8 @@ import {
   type BookingDTO,
 } from '@veline/shared'
 import { api } from '../lib/api'
-import { Button, ButtonLink, Card, ConfirmAction, EmptyState, Spinner } from '../components/ui'
+import { Button, ButtonLink, Card, EmptyState, Spinner } from '../components/ui'
+import { ConfirmDialog } from '../components/Confirmar'
 import { MarbleWash } from '../components/Ornaments'
 import { Reveal } from '../components/Reveal'
 import { useIdioma, type Clave } from '../i18n/idioma'
@@ -52,6 +54,7 @@ export function BookingDone() {
   // abre el enlace del SMS días después no necesita que le feliciten otra vez.
   const recien = !!(useLocation().state as { recien?: boolean } | null)?.recien
   const queryClient = useQueryClient()
+  const [cancelando, setCancelando] = useState(false)
 
   const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', code],
@@ -221,13 +224,21 @@ export function BookingDone() {
               <ButtonLink to={`/reserva/${booking.code}/reprogramar`} variant="secondary" size="md">
                 {t('hecha.reprogramar')}
               </ButtonLink>
-              <ConfirmAction
-                label={t('hecha.cancelar')}
-                question={t('hecha.seguro')}
+              <Button variant="quiet" onClick={() => setCancelando(true)}>
+                {t('hecha.cancelar')}
+              </Button>
+              <ConfirmDialog
+                open={cancelando}
+                onClose={() => setCancelando(false)}
+                title={t('hecha.seguro')}
+                consecuencias={[t('hecha.cancelarConsecuencia')]}
                 confirmLabel={t('hecha.siCancelar')}
-                size="md"
+                cancelLabel={t('hecha.mantener')}
+                tono="destruir"
                 loading={cancel.isPending}
-                onConfirm={() => cancel.mutate()}
+                onConfirm={() =>
+                  cancel.mutate(undefined, { onSuccess: () => setCancelando(false) })
+                }
               />
             </div>
           )}

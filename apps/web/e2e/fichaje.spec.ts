@@ -31,7 +31,7 @@ test('fichar entrada, pausa, reanudar y salida', async ({ page }) => {
   await expect(page.getByText(/estás fuera/i)).toBeVisible()
 
   // El historial tiene la jornada de hoy.
-  await page.getByRole('link', { name: /historial/i }).click()
+  await page.getByRole('link', { name: /^historial$/i }).click()
   await expect(page).toHaveURL(/fichaje\/historial/)
   await cargada(page)
   await expect(page.getByRole('button', { name: /descargar mis fichajes/i })).toBeVisible()

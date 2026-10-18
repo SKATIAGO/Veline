@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Segmentado } from '../../components/Segmentado'
 import { Link, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type AdminUser } from '../../lib/api'
@@ -9,7 +10,6 @@ import {
   Card,
   EmptyState,
   Field,
-  FilterChip,
   Input,
   PageHeader,
   Select,
@@ -171,13 +171,14 @@ export function PanelAdminUsers() {
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-2">
-          {FILTROS.map((f) => (
-            <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-              {t(f.clave)}
-            </FilterChip>
-          ))}
-        </div>
+        <Segmentado
+          label={t('ctas.titulo')}
+          tamano="sm"
+          className="sm:max-w-md"
+          opciones={FILTROS.map((f) => ({ id: f.key, label: t(f.clave) }))}
+          valor={filtro}
+          onCambiar={setFiltro}
+        />
         <Input
           type="search"
           aria-label={t('ctas.buscarEtiqueta')}

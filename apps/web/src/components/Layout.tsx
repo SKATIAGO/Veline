@@ -300,10 +300,14 @@ export function Layout() {
   /* Mientras alguien reserva, el pie completo es una salida en cada paso y
      empuja el botón de continuar hacia abajo: queda solo ayuda y legal. */
   const reservando =
-    /\/reservar\//.test(pathname) || /^\/reserva\/[^/]+\/reprogramar/.test(pathname)
+    /\/reservar(\/|$)/.test(pathname) || /^\/reserva\/[^/]+\/reprogramar/.test(pathname)
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      {/* Durante la reserva, en el móvil manda la barra del propio asistente
+          (atrás · dónde estás · salir): la cabecera pública solo en escritorio. */}
+      <div className={reservando ? 'hidden lg:block' : undefined}>
+        <Header />
+      </div>
       <main key={pathname} className="page-enter flex-1">
         <Outlet />
       </main>

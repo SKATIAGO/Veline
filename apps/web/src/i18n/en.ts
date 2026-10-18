@@ -2068,4 +2068,12 @@ export const en: Record<keyof typeof es, string> = {
   'alta.resumenDonde': 'Address',
   'alta.resumenCuenta': 'Account',
   'alta.sinTelefono': 'No phone',
+  'reserva.eligeServicio': 'What would you like to book?',
+  'reserva.eligeServicioPista': 'Tap a service to continue. Extras, if any, come in the next step.',
+  'reserva.salir': 'Leave the booking',
+  'reserva.verFicha': 'See the business page',
+  'reserva.empezar': 'Book an appointment',
+  'ficha.serviciosPista': 'Tap a service to book it.',
+  'hecha.cancelarConsecuencia': 'The slot becomes free again and the business is notified.',
+  'hecha.mantener': 'Keep the appointment',
 }

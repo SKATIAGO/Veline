@@ -683,7 +683,7 @@ export function Chip({ children, active }: { children: ReactNode; active?: boole
   return (
     <span
       className={cx(
-        'inline-flex items-center rounded-full border px-4 py-2 text-meta font-semibold whitespace-nowrap',
+        'inline-flex min-h-9 max-sm:min-h-11 items-center rounded-full border px-4 text-meta font-semibold whitespace-nowrap',
         active
           ? 'border-brand bg-brand text-white'
           : 'border-line-strong bg-surface text-body-2 hover:border-brand hover:text-brand',

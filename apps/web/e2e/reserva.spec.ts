@@ -12,10 +12,17 @@ test.describe('Reserva del cliente', () => {
     await cargada(page)
     await sinCookies(page)
 
-    // Paso 1: la ficha dice que es el paso 1 y se elige un servicio.
-    await expect(page.getByText(/paso 1 de \d/i)).toBeVisible()
+    // La ficha lleva al asistente; el paso 1 es elegir el servicio.
     await page
-      .getByRole('button', { name: /reservar/i })
+      .getByRole('link', { name: /^reservar cita$/i })
+      .first()
+      .click()
+    await expect(page).toHaveURL(/\/reservar$/)
+    await expect(
+      page.locator('[aria-current="step"]:visible, [role="progressbar"]:visible').first(),
+    ).toBeVisible()
+    await page
+      .getByRole('button', { name: /cambio de aceite/i })
       .first()
       .click()
 

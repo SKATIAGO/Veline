@@ -186,6 +186,7 @@ export function BookingDate() {
       pasos={pasos.map((p) => t(CLAVES_PASO[p]))}
       paso={pasos.indexOf('fecha')}
       volverA={volverA}
+      salirA={`/${slug}`}
       resumenCorto={resumenCorto}
       total={total}
       fotos={{ fotosDe, visor }}

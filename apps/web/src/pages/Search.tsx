@@ -68,7 +68,7 @@ export function Search() {
           onChange={(e) => setDraftQ(e.target.value)}
           placeholder={t('buscar.queBuscas')}
           aria-label={t('buscar.queBuscas')}
-          className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-sm outline-none placeholder:text-subtle"
+          className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-ui outline-none placeholder:text-subtle sm:text-body"
         />
         <div className="hidden w-px self-stretch bg-line sm:block" />
         <input
@@ -76,7 +76,7 @@ export function Search() {
           onChange={(e) => setDraftCity(e.target.value)}
           placeholder={t('buscar.donde')}
           aria-label={t('buscar.dondeEtiqueta')}
-          className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-sm outline-none placeholder:text-subtle"
+          className="min-w-0 flex-1 rounded-lg px-3.5 py-2.5 text-ui outline-none placeholder:text-subtle sm:text-body"
         />
         <Button type="submit" size="sm" className="shrink-0">
           {t('comun.buscar')}
@@ -88,6 +88,7 @@ export function Search() {
           <button
             key={c.slug}
             type="button"
+            aria-pressed={c.slug === category}
             onClick={() => setCategory(c.slug)}
             className="transition-transform duration-150 active:scale-95"
           >

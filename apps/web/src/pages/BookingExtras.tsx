@@ -81,6 +81,7 @@ export function BookingExtras() {
       pasos={pasos.map((p) => t(CLAVES_PASO[p]))}
       paso={pasos.indexOf('extras')}
       volverA={`/${slug}`}
+      salirA={`/${slug}`}
       resumenCorto={`${service.name} · ${formatDuration(duracion, idioma)}`}
       total={total}
       fotos={{ fotosDe, visor }}

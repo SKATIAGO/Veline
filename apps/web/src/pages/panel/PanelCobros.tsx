@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Segmentado } from '../../components/Segmentado'
 import { Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatPrice, planLabel } from '@veline/shared'
@@ -9,7 +10,6 @@ import {
   Button,
   Card,
   EmptyState,
-  FilterChip,
   Field,
   Input,
   PageHeader,
@@ -308,19 +308,20 @@ export function PanelCobros() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {(
+      <Segmentado
+        label={t('panel.cobros')}
+        tamano="sm"
+        className="sm:max-w-md"
+        opciones={(
           [
             ['todos', 'cob.todos'],
             ['PENDIENTE', 'cob.pendientes'],
             ['COBRADO', 'cob.cobrados'],
           ] as const satisfies readonly (readonly [string, Clave])[]
-        ).map(([key, clave]) => (
-          <FilterChip key={key} active={filtro === key} onClick={() => setFiltro(key)}>
-            {t(clave)}
-          </FilterChip>
-        ))}
-      </div>
+        ).map(([key, clave]) => ({ id: key, label: t(clave) }))}
+        valor={filtro}
+        onCambiar={setFiltro}
+      />
 
       {isLoading ? (
         <Card className="flex flex-col gap-3 p-5">

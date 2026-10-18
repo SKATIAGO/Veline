@@ -216,6 +216,7 @@ export function BookingConfirm() {
       pasos={pasos.map((p) => t(CLAVES_PASO[p]))}
       paso={pasos.indexOf('datos')}
       volverA={urlFecha}
+      salirA={`/${slug}`}
       resumenCorto={resumenCorto}
       total={total}
       fotos={{ fotosDe, visor }}

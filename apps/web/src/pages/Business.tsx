@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   categoryLabel,
@@ -16,7 +16,7 @@ import { MarbleWash } from '../components/Ornaments'
 import { FotoAmpliable, Galeria } from '../components/Galeria'
 import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { recordarOrigen } from '../lib/origen'
-import { pasosReserva } from '../lib/reserva'
+import { Segmentado } from '../components/Segmentado'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
 /** La pestaña se identifica por su nombre interno, no por lo que pone en
@@ -98,7 +98,6 @@ function GalleryTile({
 export function Business() {
   const { t, idioma, locale } = useIdioma()
   const { slug = '' } = useParams()
-  const navigate = useNavigate()
   const { search } = useLocation()
 
   // Si el cliente llega por el enlace que el negocio comparte en Instagram o
@@ -151,13 +150,11 @@ export function Business() {
       ? `/${business.slug}/reservar/extras?servicio=${serviceId}`
       : `/${business.slug}/reservar/fecha?servicio=${serviceId}`
 
-  const goBook = (serviceId: string) => navigate(urlReserva(serviceId))
-
   return (
     <>
       <BackBar to="/buscar">{business.name}</BackBar>
 
-      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-8 lg:flex-row lg:px-16 lg:py-10">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-10 overflow-x-clip px-6 py-8 pb-28 lg:flex-row lg:px-16 lg:py-10">
         {/* Mismo halo que ya usan Precios y Alta: 620 px es lo que hace falta
             para que se note contra un fondo claro; algo más pequeño se disuelve
             en el desenfoque. overflow-x-clip dentro de la fila (no aquí, en el
@@ -225,38 +222,23 @@ export function Business() {
             {location && ` · ${location.street}, ${location.city}`}
           </div>
 
-          <div className="mt-6 flex gap-1 border-b border-line">
-            {TABS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                aria-pressed={p.id === tab}
-                onClick={() => setTab(p.id)}
-                className={cx(
-                  'inline-flex min-h-11 items-center border-b-2 px-3 text-body transition-[color,border-color,transform] duration-200 active:scale-95',
-                  p.id === tab
-                    ? 'border-brand font-semibold text-ink'
-                    : 'border-transparent font-medium text-subtle hover:border-line-strong hover:text-ink',
-                )}
-              >
-                {t(p.clave)}
-              </button>
-            ))}
-          </div>
+          <Segmentado
+            label={t('ficha.servicios')}
+            className="mt-6 sm:max-w-md"
+            opciones={TABS.map((p) => ({ id: p.id, label: t(p.clave) }))}
+            valor={tab}
+            onCambiar={setTab}
+          />
 
           {tab === 'servicios' && (
             <div key="servicios" className="rise">
-              {/* La reserva empieza aquí: es el paso 1 del asistente, y se dice
-                  para que al elegir un servicio el «Paso 2 de N» no sorprenda. */}
-              <p className="mb-3 text-meta font-semibold text-body-2">
-                {t('reserva.pasoUnoPista', {
-                  total: pasosReserva(business.extras.length > 0).length,
-                })}
-              </p>
+              {/* Tocar un servicio arranca la reserva con él ya elegido: la
+                  lista informa y, a la vez, es el atajo al asistente. */}
+              <p className="mt-4 mb-1 text-meta text-muted">{t('ficha.serviciosPista')}</p>
               {business.services.map((s) => (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between gap-4 border-b border-line px-2 py-5 transition-colors duration-200 hover:bg-canvas/60"
+                  className="relative flex items-center justify-between gap-4 border-b border-line px-2 py-4 transition-colors duration-200 hover:bg-canvas/60"
                 >
                   <div className="flex min-w-0 items-center gap-3.5">
                     {s.photos[0] ? (
@@ -283,12 +265,16 @@ export function Business() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
-                    <span className="font-semibold text-ink">
+                    <span className="font-semibold text-ink tabular-nums">
                       {formatPrice(s.priceCents, idioma)}
                     </span>
-                    <Button variant="secondary" size="sm" onClick={() => goBook(s.id)}>
+                    <Link
+                      to={urlReserva(s.id)}
+                      aria-label={`${t('ficha.reservar')}: ${s.name}`}
+                      className="inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-meta font-semibold text-ink after:absolute after:inset-0 hover:border-brand"
+                    >
                       {t('ficha.reservar')}
-                    </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -400,8 +386,17 @@ export function Business() {
           )}
         </div>
 
+        {/* El botón de reservar, siempre a mano en el móvil. */}
+        {business.services[0] && (
+          <div className="fixed inset-x-0 bottom-0 z-cabecera border-t border-line bg-surface/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+            <ButtonLink to={`/${business.slug}/reservar`} size="lg" className="w-full">
+              {t('reserva.empezar')}
+            </ButtonLink>
+          </div>
+        )}
+
         {/* Widget de reserva — fijo a la derecha en desktop */}
-        <aside className="relative w-full shrink-0 lg:w-[340px]">
+        <aside className="relative hidden w-full shrink-0 lg:block lg:w-[340px]">
           {/* Ambiente cálido pegado a la tarjeta: el mismo lenguaje del hero,
               en dosis pequeña, para que la decisión de reservar se sienta tan
               cuidada como la portada. Anclado a la tarjeta y no a la columna
@@ -427,8 +422,8 @@ export function Business() {
                 : t('comun.cerrado')}
             </div>
             {business.services[0] ? (
-              <ButtonLink to={urlReserva(business.services[0].id)} size="lg" className="w-full">
-                {t('ficha.verHuecos')}
+              <ButtonLink to={`/${business.slug}/reservar`} size="lg" className="w-full">
+                {t('reserva.empezar')}
               </ButtonLink>
             ) : (
               <Button disabled size="lg" className="w-full">

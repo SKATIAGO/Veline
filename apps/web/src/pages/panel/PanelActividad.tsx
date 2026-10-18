@@ -10,12 +10,12 @@ import {
   Card,
   EmptyState,
   ErrorNote,
-  FilterChip,
   PageHeader,
   Skeleton,
 } from '../../components/ui'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 import { Tabs, panelProps } from '../../components/Tabs'
+import { Segmentado } from '../../components/Segmentado'
 
 /**
  * Registro de actividad: quién hizo qué y cuándo.
@@ -394,13 +394,14 @@ export function PanelActividad() {
           {...(conEnvios ? panelProps(idBase, vista) : {})}
           className="flex flex-col gap-5 outline-none"
         >
-          <div className="flex flex-wrap gap-2">
-            {FILTROS.map((f) => (
-              <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-                {t(f.clave)}
-              </FilterChip>
-            ))}
-          </div>
+          <Segmentado
+            label={t('act.titulo')}
+            tamano="sm"
+            className="sm:max-w-lg"
+            opciones={FILTROS.map((f) => ({ id: f.key, label: t(f.clave) }))}
+            valor={filtro}
+            onCambiar={setFiltro}
+          />
 
           {error && <ErrorNote>{t('act.noSePudoCargar')}</ErrorNote>}
 

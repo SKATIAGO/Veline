@@ -2067,4 +2067,13 @@ export const es = {
   'alta.resumenDonde': 'Dirección',
   'alta.resumenCuenta': 'Cuenta',
   'alta.sinTelefono': 'Sin teléfono',
+  'reserva.eligeServicio': '¿Qué quieres reservar?',
+  'reserva.eligeServicioPista':
+    'Toca un servicio para seguir. Los extras, si los hay, se eligen en el paso siguiente.',
+  'reserva.salir': 'Salir de la reserva',
+  'reserva.verFicha': 'Ver la ficha del negocio',
+  'reserva.empezar': 'Reservar cita',
+  'ficha.serviciosPista': 'Toca un servicio para reservarlo.',
+  'hecha.cancelarConsecuencia': 'El hueco vuelve a quedar libre y el negocio recibe un aviso.',
+  'hecha.mantener': 'Mantener la cita',
 } as const

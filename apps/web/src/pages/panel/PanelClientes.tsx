@@ -10,7 +10,6 @@ import {
   Card,
   EmptyState,
   ErrorNote,
-  FilterChip,
   Input,
   PageHeader,
   Sheet,
@@ -19,6 +18,7 @@ import {
 } from '../../components/ui'
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { Tabs, panelProps } from '../../components/Tabs'
+import { Segmentado } from '../../components/Segmentado'
 
 /**
  * Los clientes del negocio y su historial.
@@ -297,13 +297,14 @@ export function PanelClientes() {
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-2">
-          {FILTROS.map((f) => (
-            <FilterChip key={f.key} active={filtro === f.key} onClick={() => setFiltro(f.key)}>
-              {t(f.clave)}
-            </FilterChip>
-          ))}
-        </div>
+        <Segmentado
+          label={t('panel.clientes')}
+          tamano="sm"
+          className="sm:max-w-lg"
+          opciones={FILTROS.map((f) => ({ id: f.key, label: t(f.clave) }))}
+          valor={filtro}
+          onCambiar={setFiltro}
+        />
         <Input
           type="search"
           aria-label={t('clientes.buscarEtiqueta')}

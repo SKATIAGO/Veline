@@ -22,6 +22,7 @@ const PUBLICAS = (servicio: string) => [
   '/alta',
   '/login',
   `/${NEGOCIO}`,
+  `/${NEGOCIO}/reservar`,
   `/${NEGOCIO}/reservar/fecha?servicio=${servicio}`,
   `/${NEGOCIO}/reservar/confirmar?servicio=${servicio}&hora=2030-01-15T09:00:00.000Z`,
 ]

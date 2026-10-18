@@ -16,7 +16,7 @@ import { AvisoSuscripcion } from '../../components/AvisoSuscripcion'
 import { PrimerosPasos } from '../../components/PrimerosPasos'
 import { Segmentado } from '../../components/Segmentado'
 import { useAuth } from '../../lib/auth'
-import { Button, Card, EmptyState, FilterChip, PageHeader, Skeleton, cx } from '../../components/ui'
+import { Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { BookingRow } from './FilaCita'
 import { CalendarioAgenda } from './CalendarioAgenda'
@@ -233,13 +233,14 @@ export function PanelAgenda() {
                 <span className="ml-2 text-body font-normal text-muted">({total})</span>
               )}
             </h2>
-            <div className="flex flex-wrap gap-2">
-              {RANGOS.map((r) => (
-                <FilterChip key={r.key} active={rango === r.key} onClick={() => setRango(r.key)}>
-                  {t(r.clave)}
-                </FilterChip>
-              ))}
-            </div>
+            <Segmentado
+              label={t('agenda.proximasCitas')}
+              tamano="sm"
+              className="sm:max-w-xs"
+              opciones={RANGOS.map((r) => ({ id: r.key, label: t(r.clave) }))}
+              valor={rango}
+              onCambiar={setRango}
+            />
           </div>
 
           {isLoading ? (
