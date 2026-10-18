@@ -321,7 +321,7 @@ export function FichajeHistorial() {
       <PestanasSeccion seccion="fichaje" />
 
       <div className="flex flex-wrap items-end gap-3">
-        <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+        <div className="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-2">
           <label className="flex min-w-0 flex-col gap-1.5">
             <span className="text-meta font-semibold text-body-2">{t('fic.desde')}</span>
             <Input
