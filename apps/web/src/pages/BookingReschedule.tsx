@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addDaysKey,
   formatLongDate,
@@ -12,7 +12,7 @@ import {
   type SlotDTO,
 } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
-import { Button, EmptyState, ErrorNote, Skeleton, Spinner } from '../components/ui'
+import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui'
 import { CalendarioMes, type EstadoDia } from '../components/CalendarioMes'
 import { HuecosDelDia } from '../components/reserva/HuecosDelDia'
 import { MarcoReserva } from '../components/reserva/MarcoReserva'
@@ -53,15 +53,19 @@ export function BookingReschedule() {
   const hasta = ultimoDiaDelMes(mes) < maximo ? ultimoDiaDelMes(mes) : maximo
 
   const {
-    data: availability,
-    isLoading: cargandoHuecos,
+    data: datosHuecos,
+    isFetching,
+    isPlaceholderData,
     isError,
     error,
   } = useQuery({
     queryKey: ['reschedule-availability', code, desde, hasta],
     queryFn: () => api.getRescheduleAvailability(code, { from: desde, to: hasta }),
     enabled: Boolean(puedeMover) && desde <= hasta,
+    placeholderData: keepPreviousData,
   })
+  const availability = isPlaceholderData ? undefined : datosHuecos
+  const cargandoMes = isFetching && !availability
 
   const porDia = useMemo(() => {
     const map = new Map<string, DayAvailabilityDTO>()
@@ -107,6 +111,7 @@ export function BookingReschedule() {
 
   const estado = (key: string): EstadoDia => {
     if (key < hoy || key > maximo) return 'fuera'
+    if (cargandoMes) return 'cargando'
     const d = porDia.get(key)
     if (!d) return 'sinHueco'
     if (d.closed) return 'cerrado'
@@ -174,13 +179,7 @@ export function BookingReschedule() {
       </p>
 
       <div className="max-w-[640px]">
-        {cargandoHuecos && !availability ? (
-          <div aria-busy="true" className="grid grid-cols-7 gap-1">
-            {Array.from({ length: 35 }, (_, i) => (
-              <Skeleton key={i} className="h-11 rounded-xl" />
-            ))}
-          </div>
-        ) : (
+        {
           <CalendarioMes
             mes={mes}
             onMes={(m) => {
@@ -197,13 +196,13 @@ export function BookingReschedule() {
             minimo={hoy}
             maximo={maximo}
           />
-        )}
+        }
         <HuecosDelDia
           dia={dia}
           slots={huecos}
           valor={slot}
           onElegir={setSlot}
-          cargando={cargandoHuecos && !!availability}
+          cargando={cargandoMes}
           error={isError ? (error as Error).message : null}
         />
       </div>

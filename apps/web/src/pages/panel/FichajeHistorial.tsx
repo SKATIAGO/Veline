@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { hoyMadrid, madridLocalAInstante } from '@veline/shared'
 import { api, type Fichaje } from '../../lib/api'
 import {
@@ -274,9 +274,12 @@ export function FichajeHistorial() {
   const [corrigiendo, setCorrigiendo] = useState<Fichaje | null>(null)
   const [anadiendo, setAnadiendo] = useState(false)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isPlaceholderData } = useQuery({
     queryKey: ['fichaje', slug, 'lista', desde, hasta],
     queryFn: () => api.fichajes(slug, { desde: desde || undefined, hasta: hasta || undefined }),
+    // Al cambiar de mes o de filtro se queda lo anterior, atenuado, hasta que
+    // llega lo nuevo: la pantalla no se vacía ni cambia de alto.
+    placeholderData: keepPreviousData,
   })
 
   const refrescar = () => {
@@ -368,7 +371,10 @@ export function FichajeHistorial() {
       ) : !data?.fichajes.length ? (
         <EmptyState title={t('fic.todaviaNoHay')} hint={t('fic.todaviaNoHayPista')} />
       ) : (
-        <>
+        <div
+          aria-busy={isPlaceholderData || undefined}
+          className={cx('transition-opacity duration-150', isPlaceholderData && 'opacity-60')}
+        >
           {/* Escritorio: tabla. */}
           <Card className="hidden overflow-hidden md:block">
             <table className="w-full text-body">
@@ -477,7 +483,7 @@ export function FichajeHistorial() {
               ))}
             </ul>
           </Card>
-        </>
+        </div>
       )}
 
       {anadiendo && (

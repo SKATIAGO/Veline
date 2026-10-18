@@ -1,5 +1,6 @@
 import { useAuth } from './lib/auth'
-import { lazy, Suspense, type ComponentType } from 'react'
+import { Suspense } from 'react'
+import { perezoso } from './lib/perezoso'
 import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Landing } from './pages/Landing'
@@ -19,35 +20,6 @@ import { useIdioma } from './i18n/idioma'
    paquete principal; el panel, la plataforma y las pantallas que casi nadie
    abre (legal, alta, precios, login) se piden al entrar en ellas. En 3G, el
    primer arranque de una reserva dejaba de cargar un panel que no iba a usar. */
-const perezoso = <K extends string>(carga: () => Promise<Record<K, ComponentType>>, nombre: K) =>
-  lazy(() =>
-    carga()
-      .then((m) => {
-        try {
-          sessionStorage.removeItem('veline:recarga-paquete')
-        } catch {
-          /* da igual */
-        }
-        return { default: m[nombre] }
-      })
-      .catch((err) => {
-        /* Tras un despliegue, una pestaña abierta pide paquetes con un nombre
-           que ya no existe. Se recarga una vez para coger los nuevos; si vuelve
-           a fallar, es la red y el error sigue su camino. */
-        const clave = 'veline:recarga-paquete'
-        try {
-          if (!sessionStorage.getItem(clave)) {
-            sessionStorage.setItem(clave, '1')
-            window.location.reload()
-            return new Promise<never>(() => {})
-          }
-        } catch {
-          /* sin almacenamiento: no se recarga, se propaga */
-        }
-        throw err
-      }),
-  )
-
 const Pricing = perezoso(() => import('./pages/Pricing'), 'Pricing')
 const Resena = perezoso(() => import('./pages/Resena'), 'Resena')
 const Login = perezoso(() => import('./pages/Login'), 'Login')

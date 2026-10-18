@@ -35,6 +35,7 @@ export function Segmentado<T extends string>({
   className,
   tamano = 'md',
   onAntesDeNavegar,
+  onIntencion,
 }: {
   opciones: Opcion<T>[]
   /** El elegido (solo para el sabor de botones). */
@@ -47,6 +48,8 @@ export function Segmentado<T extends string>({
   tamano?: 'sm' | 'md'
   /** Para los enlaces: si devuelve false, no se navega (cambios sin guardar). */
   onAntesDeNavegar?: (to: string) => boolean
+  /** Para los enlaces: el ratón o el dedo se acercan (para precargar). */
+  onIntencion?: (to: string) => void
 }) {
   const grupo = useRef<HTMLDivElement>(null)
   const sonEnlaces = opciones.some((o) => o.to)
@@ -110,6 +113,9 @@ export function Segmentado<T extends string>({
               onClick={(e) => {
                 if (onAntesDeNavegar && !onAntesDeNavegar(o.to!)) e.preventDefault()
               }}
+              onPointerEnter={() => onIntencion?.(o.to!)}
+              onFocus={() => onIntencion?.(o.to!)}
+              onTouchStart={() => onIntencion?.(o.to!)}
               className={({ isActive }) => cx(base, isActive ? activoCls : inactivoCls)}
             >
               {o.label}

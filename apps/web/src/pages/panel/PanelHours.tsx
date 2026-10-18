@@ -15,12 +15,20 @@ import { useIdioma, usePlural } from '../../i18n/idioma'
 import { useCambiosSinGuardar } from '../../lib/cambios'
 import { aviso } from '../../components/Avisos'
 
+/** El horario del servidor, por día de la semana. */
+function aSemana(hours: { weekday: number; startMin: number; endMin: number }[]) {
+  const next: Record<number, Range[]> = {}
+  for (const wd of ORDER) next[wd] = []
+  for (const h of hours)
+    next[h.weekday] = [...(next[h.weekday] ?? []), { startMin: h.startMin, endMin: h.endMin }]
+  return next
+}
+
 export function PanelHours() {
   const { t } = useIdioma()
   const plural = usePlural()
   const { slug = '' } = useParams()
   const queryClient = useQueryClient()
-  const [week, setWeek] = useState<Record<number, Range[]>>({})
   const [dirty, setDirty] = useState(false)
 
   /* Cada local tiene su horario: el del local elegido en el menú. Si se están
@@ -34,14 +42,13 @@ export function PanelHours() {
     queryFn: () => api.panelHours(slug, localActual || undefined),
     enabled: !!localActual,
   })
+  // Con el horario ya en caché (precargado), la semana nace rellena: el primer
+  // pintado no es una semana vacía que luego crece.
+  const [week, setWeek] = useState<Record<number, Range[]>>(() => (hours ? aSemana(hours) : {}))
 
   useEffect(() => {
     if (!hours) return
-    const next: Record<number, Range[]> = {}
-    for (const wd of ORDER) next[wd] = []
-    for (const h of hours)
-      next[h.weekday] = [...(next[h.weekday] ?? []), { startMin: h.startMin, endMin: h.endMin }]
-    setWeek(next)
+    setWeek(aSemana(hours))
     setDirty(false)
   }, [hours])
 

@@ -1,6 +1,7 @@
-import { useId, useMemo, useState } from 'react'
+import { Suspense, useEffect, useId, useMemo, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LocalProvider, useLocal } from '../../lib/local'
+import { precargarCodigoPanel, usePrecargaPanel } from '../../lib/precarga'
 import { CentroCabeceraMovil, SelectorLocal } from '../../components/SelectorLocal'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -163,17 +164,36 @@ function MarcoCargando() {
  * El contenido de la sección. Espera a saber qué locales ve quien mira: si no,
  * cada pantalla pediría sus datos sin local y los repetiría al saberlo.
  */
+/** El sitio de una sección mientras carga: la cabecera de página (título y
+    pista) y bloques con la altura de una pantalla normal del panel. */
+function EsqueletoSeccion() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+      <Skeleton className="h-12 w-full max-w-md rounded-full" />
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-16" />
+        <Skeleton className="h-16" />
+        <Skeleton className="h-16" />
+        <Skeleton className="h-16" />
+      </div>
+    </div>
+  )
+}
+
 function ContenidoPanel() {
   const { listo } = useLocal()
-  if (!listo) {
-    return (
-      <div className="flex flex-col gap-4" aria-busy="true">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-40" />
-      </div>
-    )
-  }
-  return <Outlet />
+  if (!listo) return <EsqueletoSeccion />
+  /* Suspense aquí y no solo arriba del todo: si una sección tarda en cargar
+     su código, el menú y la cabecera se quedan; solo el centro espera. */
+  return (
+    <Suspense fallback={<EsqueletoSeccion />}>
+      <Outlet />
+    </Suspense>
+  )
 }
 
 /** /panel sin más: cada rol aterriza donde le corresponde. */
@@ -327,16 +347,28 @@ const estaEn = (seccion: Seccion, pathname: string) =>
     (r) => pathname === r || (!seccion.end && pathname.startsWith(`${r}/`)),
   )
 
+/** Lo que va tras /panel/:slug/ en un destino del menú, para precargarlo. */
+function useIntencion(to: string) {
+  const { slug = '' } = useParams()
+  const precargar = usePrecargaPanel(slug)
+  const ruta = to.replace(`/panel/${slug}`, '').replace(/^\//, '')
+  const hacer = () => precargar(ruta)
+  // Ratón encima, foco con teclado o el dedo al tocar: lo que llegue antes.
+  return { onPointerEnter: hacer, onFocus: hacer, onTouchStart: hacer }
+}
+
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
 function BotonBarra({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const intencion = useIntencion(seccion.to)
 
   return (
     <NavLink
       to={seccion.to}
       end={seccion.end}
+      {...intencion}
       onClick={(e) => {
         if (!hayCambios()) return
         e.preventDefault()
@@ -361,11 +393,13 @@ function ItemLateral({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const intencion = useIntencion(seccion.to)
 
   return (
     <NavLink
       to={seccion.to}
       end={seccion.end}
+      {...intencion}
       onClick={(e) => {
         if (!hayCambios()) return
         e.preventDefault()
@@ -495,6 +529,12 @@ export function PanelLayout() {
   const puedeConfigurar = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN'
   // Sin slug en la URL estamos en /panel/admin: el ámbito es la plataforma.
   const esPlataforma = !slug
+
+  // Con la sesión dentro, el código de todas las secciones se baja en segundo
+  // plano: cambiar de pantalla no tiene que esperar a ningún archivo.
+  useEffect(() => {
+    if (user) precargarCodigoPanel()
+  }, [user])
 
   const { data: businesses } = useQuery({
     queryKey: ['panel', 'businesses'],

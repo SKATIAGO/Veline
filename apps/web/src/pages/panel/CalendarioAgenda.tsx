@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   formatLongDate,
   formatTimeMadrid,
@@ -73,10 +73,17 @@ export function CalendarioAgenda({
 
   const queryClient = useQueryClient()
 
-  const { data: bookings, isLoading } = useQuery({
+  const {
+    data: bookings,
+    isLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes), local],
     queryFn: () =>
       api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)), local }),
+    // Al cambiar de mes o de filtro se queda lo anterior, atenuado, hasta que
+    // llega lo nuevo: la pantalla no se vacía ni cambia de alto.
+    placeholderData: keepPreviousData,
   })
 
   const { data: notes } = useQuery({
@@ -167,9 +174,19 @@ export function CalendarioAgenda({
             </div>
 
             {isLoading ? (
-              <Skeleton className="h-64" />
+              <div aria-busy="true" className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                {Array.from({ length: 35 }, (_, i) => (
+                  <Skeleton key={i} className="min-h-[60px] rounded-lg sm:min-h-[92px]" />
+                ))}
+              </div>
             ) : (
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              <div
+                aria-busy={isPlaceholderData || undefined}
+                className={cx(
+                  'grid grid-cols-7 gap-1.5 transition-opacity duration-150 sm:gap-2',
+                  isPlaceholderData && 'opacity-50',
+                )}
+              >
                 {cells.map((d, i) => {
                   if (!d) return <div key={`vacio-${i}`} />
                   const key = toDateKey(d)
@@ -227,7 +244,7 @@ export function CalendarioAgenda({
                               key={b.id}
                               className={cx(
                                 'truncate rounded px-1 py-0.5 text-caption leading-tight font-medium',
-                                marcado ? 'bg-white/15 text-white' : 'bg-cream text-brand-text',
+                                marcado ? 'bg-ink/30 text-white' : 'bg-cream text-brand-text',
                               )}
                             >
                               {hora(b.startsAt)}
@@ -237,7 +254,7 @@ export function CalendarioAgenda({
                             <span
                               className={cx(
                                 'px-1 text-caption',
-                                marcado ? 'text-white/80' : 'text-subtle',
+                                marcado ? 'text-white' : 'text-subtle',
                               )}
                             >
                               +{citas.length - CITAS_POR_HUECO}

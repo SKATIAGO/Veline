@@ -18,7 +18,9 @@ import { useIdioma } from '../i18n/idioma'
  * cuadrícula de ARIA.
  */
 
-export type EstadoDia = 'disponible' | 'sinHueco' | 'cerrado' | 'fuera'
+/** `cargando`: aún no se sabe (se están pidiendo los huecos del mes). El día
+    se pinta en su sitio, quieto, para que nada cambie de tamaño al llegar. */
+export type EstadoDia = 'disponible' | 'sinHueco' | 'cerrado' | 'fuera' | 'cargando'
 
 export function CalendarioMes({
   mes,
@@ -69,7 +71,7 @@ export function CalendarioMes({
   const dias = Array.from({ length: diasEnMes }, (_, i) => addDaysKey(primero, i))
   // Un día cerrado no se elige: no tiene horas que ofrecer. Como deshabilitado,
   // además, su gris no cuenta para el contraste (WCAG lo exime).
-  const elegible = (d: string) => estado(d) !== 'fuera' && estado(d) !== 'cerrado'
+  const elegible = (d: string) => estado(d) === 'disponible' || estado(d) === 'sinHueco'
   // El que lleva el foco: el elegido si está en este mes, si no el primero disponible.
   const conFoco =
     dia && dia >= primero && dia <= ultimoDelMes
@@ -139,6 +141,7 @@ export function CalendarioMes({
         ref={cuadricula}
         role="grid"
         aria-labelledby={`${id}-mes`}
+        aria-busy={dias.some((d) => estado(d) === 'cargando') || undefined}
         className="flex flex-col gap-1"
       >
         <div role="row" className="grid grid-cols-7 gap-1">
@@ -183,7 +186,9 @@ export function CalendarioMes({
                           ? 'border-line bg-surface text-ink hover:border-brand hover:text-brand'
                           : estado(d) === 'sinHueco'
                             ? 'border-line bg-canvas text-subtle line-through decoration-line-strong'
-                            : 'border-transparent bg-transparent text-disabled',
+                            : estado(d) === 'cargando'
+                              ? 'animate-pulse border-line bg-surface/60 text-disabled'
+                              : 'border-transparent bg-transparent text-disabled',
                     )}
                   >
                     <span>{fromDateKey(d).getDate()}</span>

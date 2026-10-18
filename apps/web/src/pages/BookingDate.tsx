@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   addDaysKey,
   extrasParam,
@@ -12,7 +12,7 @@ import {
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { CLAVES_PASO, extrasDeUrl, pasosReserva, tramoExtras } from '../lib/reserva'
-import { Button, Select, Skeleton } from '../components/ui'
+import { Button, Select } from '../components/ui'
 import { CalendarioMes, type EstadoDia } from '../components/CalendarioMes'
 import { SelectorProfesional } from '../components/SelectorProfesional'
 import { HuecosDelDia } from '../components/reserva/HuecosDelDia'
@@ -84,8 +84,9 @@ export function BookingDate() {
   const hasta = ultimoDiaDelMes(mes) < maximo ? ultimoDiaDelMes(mes) : maximo
 
   const {
-    data: availability,
-    isLoading,
+    data: datosHuecos,
+    isFetching,
+    isPlaceholderData,
     isError,
     error,
   } = useQuery({
@@ -109,7 +110,13 @@ export function BookingDate() {
         ...(pedidos.length ? { extras: extrasParam(pedidos) } : {}),
       }),
     enabled: Boolean(service) && desde <= hasta,
+    // Al cambiar de mes se queda lo anterior hasta que llega lo nuevo: el
+    // calendario no se va de la pantalla mientras tanto.
+    placeholderData: keepPreviousData,
   })
+  // Lo de otro mes no vale para este: mientras llega, el mes está «cargando».
+  const availability = isPlaceholderData ? undefined : datosHuecos
+  const cargandoMes = isFetching && !availability
 
   const fotosDe = useFotosNegocio()
   const visor = useVisor()
@@ -139,6 +146,7 @@ export function BookingDate() {
 
   const estado = (key: string): EstadoDia => {
     if (key < hoy || key > maximo) return 'fuera'
+    if (cargandoMes) return 'cargando'
     const d = porDia.get(key)
     if (!d) return 'sinHueco'
     if (d.closed) return 'cerrado'
@@ -251,13 +259,7 @@ export function BookingDate() {
             {t('fecha.eligeDia')}
           </h2>
           <p className="mb-3 text-meta text-muted">{t('fecha.eligeDiaPista')}</p>
-          {isLoading && !availability ? (
-            <div aria-busy="true" className="grid grid-cols-7 gap-1">
-              {Array.from({ length: 35 }, (_, i) => (
-                <Skeleton key={i} className="h-11 rounded-xl" />
-              ))}
-            </div>
-          ) : (
+          {
             <CalendarioMes
               mes={mes}
               onMes={(m) => {
@@ -274,13 +276,13 @@ export function BookingDate() {
               minimo={hoy}
               maximo={maximo}
             />
-          )}
+          }
           <HuecosDelDia
             dia={dia}
             slots={huecos}
             valor={slot}
             onElegir={setSlot}
-            cargando={isLoading && !!availability}
+            cargando={cargandoMes}
             error={isError ? (error as Error).message : null}
           />
         </section>

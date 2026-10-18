@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   TIMEZONE,
   formatLongDate,
@@ -56,10 +56,17 @@ export function PanelContabilidad() {
   const { t, idioma } = useIdioma()
   const [mes, setMes] = useState(() => startOfMonth(new Date()))
 
-  const { data: bookings, isLoading } = useQuery({
+  const {
+    data: bookings,
+    isLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes), local],
     queryFn: () =>
       api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)), local }),
+    // Al cambiar de mes o de filtro se queda lo anterior, atenuado, hasta que
+    // llega lo nuevo: la pantalla no se vacía ni cambia de alto.
+    placeholderData: keepPreviousData,
   })
 
   const dias = useMemo(() => {
@@ -196,7 +203,13 @@ export function PanelContabilidad() {
             ))}
           </Card>
         ) : (
-          <>
+          <div
+            aria-busy={isPlaceholderData || undefined}
+            className={cx(
+              'flex flex-col gap-4 transition-opacity duration-150',
+              isPlaceholderData && 'opacity-60',
+            )}
+          >
             <Card padded className="flex items-baseline justify-between gap-4">
               <span className="text-ui font-semibold text-ink">{t('cont.totalMes')}</span>
               <span className="font-display text-heading font-semibold text-ink tabular-nums">
@@ -265,7 +278,7 @@ export function PanelContabilidad() {
                 </ul>
               </Card>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

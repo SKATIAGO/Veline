@@ -99,7 +99,9 @@ export function PanelNegocio() {
     queryFn: () => api.panelProfile(slug),
   })
 
-  const [form, setForm] = useState<PanelProfile | null>(null)
+  // Si los datos ya están (precargados), el formulario nace con ellos: así el
+  // primer pintado no es un esqueleto que luego se sustituye.
+  const [form, setForm] = useState<PanelProfile | null>(() => perfil ?? null)
   const [tocado, setTocado] = useState(false)
   // Antes no avisaba nunca: ni al cambiar de sección ni al cerrar la pestaña.
   useCambiosSinGuardar(tocado)

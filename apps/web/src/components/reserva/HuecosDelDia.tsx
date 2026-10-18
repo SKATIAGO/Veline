@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { formatLongDate, fromDateKey, type SlotDTO } from '@veline/shared'
 import { ErrorNote, Skeleton, cx } from '../ui'
 import { useIdioma } from '../../i18n/idioma'
@@ -23,27 +24,55 @@ export function HuecosDelDia({
   error?: string | null
 }) {
   const { t, idioma } = useIdioma()
+  /* La altura que tenían las horas la última vez que se vieron: mientras
+     llegan las del mes o el día nuevo, el esqueleto ocupa exactamente eso y
+     nada de debajo se mueve. */
+  const caja = useRef<HTMLDivElement>(null)
+  const ultimaAltura = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    if (!cargando && caja.current) ultimaAltura.current = caja.current.offsetHeight
+  })
   const manana = slots.filter((s) => Number(s.label.slice(0, 2)) < 14)
   const tarde = slots.filter((s) => Number(s.label.slice(0, 2)) >= 14)
   const libres = slots.some((s) => s.available)
 
+  /* Mientras llegan los huecos se reserva el sitio con la misma forma que
+     tendrá (título, Mañana con dos filas, Tarde con una): antes aparecía una
+     frase de una línea y, al llegar las horas, la página crecía de golpe. */
   if (cargando) {
     return (
-      <div aria-busy="true" className="mt-6 flex flex-col gap-3">
-        <Skeleton className="h-5 w-48" />
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-11 rounded-full" />
-          ))}
-        </div>
+      <div
+        aria-busy="true"
+        className="mt-6 overflow-hidden"
+        style={ultimaAltura.current ? { height: ultimaAltura.current } : undefined}
+      >
+        <Skeleton className="mb-3 h-6 w-52" />
+        {[2, 1].map((filas, g) => (
+          <div key={g} className="mb-5">
+            <Skeleton className="mb-2.5 h-3.5 w-16" />
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+              {Array.from({ length: filas * 5 }, (_, i) => (
+                <Skeleton
+                  key={i}
+                  className={cx('h-11 rounded-full', i >= filas * 3 && 'max-sm:hidden')}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     )
   }
   if (error) return <ErrorNote>{error}</ErrorNote>
-  if (!dia) return <p className="mt-6 text-body text-muted">{t('fecha.sinHuecosPista')}</p>
+  if (!dia)
+    return (
+      <p ref={caja} className="mt-6 text-body text-muted">
+        {t('fecha.sinHuecosPista')}
+      </p>
+    )
 
   return (
-    <div className="mt-6" aria-live="polite">
+    <div ref={caja} className="mt-6" aria-live="polite">
       <h2 className="mb-3 font-display text-ui font-semibold text-ink first-letter:uppercase">
         {formatLongDate(fromDateKey(dia), idioma)}
       </h2>

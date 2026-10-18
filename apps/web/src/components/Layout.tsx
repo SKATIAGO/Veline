@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Button, ButtonLink, Logo, Sheet, cx } from './ui'
+import { Button, ButtonLink, Logo, Sheet, Skeleton, cx } from './ui'
 import { CONTACT_EMAIL, SOCIAL } from '@veline/shared'
 import { AvisoCookies } from './AvisoCookies'
 import { PieMinimo } from './PieMinimo'
@@ -292,6 +293,20 @@ function Footer() {
   )
 }
 
+/** Mientras llega el código de una página pública: su sitio, con forma de página. */
+function EsqueletoPagina() {
+  return (
+    <div
+      aria-busy="true"
+      className="mx-auto flex max-w-[1440px] flex-col gap-4 px-6 py-10 lg:px-16"
+    >
+      <Skeleton className="h-9 w-2/3 max-w-md" />
+      <Skeleton className="h-5 w-1/2 max-w-sm" />
+      <Skeleton className="mt-4 h-64" />
+    </div>
+  )
+}
+
 export function Layout() {
   // La key con la ruta hace que React monte un <main> nuevo en cada
   // navegación, y con él la animación de entrada vuelve a arrancar desde
@@ -308,8 +323,18 @@ export function Layout() {
       <div className={reservando ? 'hidden lg:block' : undefined}>
         <Header />
       </div>
-      <main key={pathname} className="page-enter flex-1">
-        <Outlet />
+      {/* En la reserva los pasos son una misma app: sin animación de entrada
+          entre uno y otro (la barra del asistente no se mueve). Fuera, una
+          entrada corta que no parte de transparente. Suspense aquí y no solo
+          arriba: si una pantalla tarda en cargar su código, la cabecera y el
+          pie se quedan; solo el centro espera. */}
+      <main
+        key={reservando ? 'reserva' : pathname}
+        className={reservando ? 'flex-1' : 'page-enter flex-1'}
+      >
+        <Suspense fallback={<EsqueletoPagina />}>
+          <Outlet />
+        </Suspense>
       </main>
       {reservando ? <PieMinimo /> : <Footer />}
       <AvisoCookies />

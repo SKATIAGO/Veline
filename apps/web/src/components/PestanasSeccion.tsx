@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Segmentado } from './Segmentado'
 import { useIdioma, type Clave } from '../i18n/idioma'
 import { siDescarta } from '../lib/cambios'
+import { usePrecargaPanel } from '../lib/precarga'
 
 /**
  * Las partes de una sección del menú: «Horario · Cierres y vacaciones ·
@@ -44,6 +45,7 @@ export function PestanasSeccion({ seccion }: { seccion: SeccionConPestanas }) {
   const { t } = useIdioma()
   const { slug = '' } = useParams()
   const navigate = useNavigate()
+  const precargar = usePrecargaPanel(slug)
 
   return (
     <Segmentado
@@ -56,6 +58,7 @@ export function PestanasSeccion({ seccion }: { seccion: SeccionConPestanas }) {
       }))}
       // Con cambios a medias (el horario, la ficha), se pregunta antes.
       onAntesDeNavegar={(to) => siDescarta(() => navigate(to))}
+      onIntencion={(to) => precargar(to.replace(`/panel/${slug}/`, ''))}
     />
   )
 }

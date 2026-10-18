@@ -228,9 +228,12 @@
 
 /* Flotación lenta para los adornos */
 @keyframes veline-page-enter {
+  /* Nunca desde transparente: entrar desde 0 se veía como un parpadeo en
+     cada cambio de página (un instante en blanco y luego el contenido). Se
+     parte casi opaco y solo se asienta. */
   from {
-    opacity: 0;
-    transform: translateY(10px);
+    opacity: 0.85;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -243,12 +246,10 @@
    de sentirse cuidada y empieza a estorbar. */
 @keyframes veline-section-enter {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    opacity: 0.9;
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -321,14 +322,14 @@
      a otra es un corte seco; con esto se nota como un pase de diapositivas
      cuidado, que es justo la diferencia entre "funciona" y "se siente cuidado". */
   .page-enter {
-    animation: veline-page-enter 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: veline-page-enter 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
 
   /* Entrada de cada sección del panel. Existe aparte de .page-enter porque
      el panel es una herramienta, no una visita: 0,42 s se hacen largos cuando
      cambias de pestaña veinte veces seguidas. */
   .section-enter {
-    animation: veline-section-enter 0.24s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: veline-section-enter 0.14s ease-out both;
   }
 
   .rise {
