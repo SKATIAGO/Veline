@@ -40,7 +40,6 @@ test.describe('Reserva del cliente', () => {
     await expect(page.getByRole('grid')).toBeVisible()
     const hora = page
       .getByRole('group', { name: /mañana|tarde/i })
-      .first()
       .locator('button:not([disabled])')
       .first()
     await expect(hora).toBeVisible()
