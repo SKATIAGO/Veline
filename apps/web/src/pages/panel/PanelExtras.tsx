@@ -23,6 +23,8 @@ import { aviso, textoDeError } from '../../components/Avisos'
 import { FormDialog } from '../../components/FormDialog'
 import { RowMenu } from '../../components/RowMenu'
 import { CampoFotos } from '../../components/CampoFotos'
+import { CampoDuracion } from '../../components/SelectorDuracion'
+import { MAX_DURACION, MIN_DURACION } from './PanelServices'
 import { PestanasSeccion } from '../../components/PestanasSeccion'
 
 /** "12,50" o "12.50" → 1250 céntimos */
@@ -99,8 +101,8 @@ function DialogoExtra({
   const id = useId()
   const [nombre, setNombre] = useState(inicial.name)
   const [precio, setPrecio] = useState(inicial.name ? aTexto(inicial.priceCents) : '')
-  /* Arranca en 0 y no vacío: casi ningún extra alarga la cita, y un 0 a la
-     vista explica el campo mejor que un hueco con una pista debajo. */
+  /* Obligatorio, como en los servicios: sin tiempo no se puede guardar. Un
+     extra nuevo arranca en 0 («sin poner») y el aviso sale al intentar guardar. */
   const [minutos, setMinutos] = useState(String(inicial.durationMin))
   const [descripcion, setDescripcion] = useState(inicial.description ?? '')
   const [fotos, setFotos] = useState<string[]>(inicial.photos)
@@ -114,7 +116,7 @@ function DialogoExtra({
       ? 'ext.errNombre'
       : precio.trim() === '' || !Number.isFinite(cents) || cents < 0
         ? 'ext.errPrecio'
-        : !Number.isInteger(mins) || mins < 0 || mins > 480
+        : !Number.isInteger(mins) || mins < MIN_DURACION || mins > MAX_DURACION
           ? 'ext.errDuracion'
           : null
 
@@ -178,18 +180,16 @@ function DialogoExtra({
               onChange={(e) => setPrecio(e.target.value)}
             />
           </Field>
-          <Field label={t('ext.duracion')} htmlFor={`${id}-minutos`} hint={t('ext.duracionPista')}>
-            <Input
-              id={`${id}-minutos`}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={480}
-              step={5}
-              value={minutos}
-              onChange={(e) => setMinutos(e.target.value)}
-            />
-          </Field>
+          <CampoDuracion
+            label={t('ext.duracion')}
+            required
+            minutos={mins || 0}
+            min={MIN_DURACION}
+            max={MAX_DURACION}
+            etiquetaHoras={t('serv.horas')}
+            etiquetaMinutos={t('serv.minutos')}
+            onCambiar={(m) => setMinutos(String(m))}
+          />
           <Field label={t('ext.descripcion')} htmlFor={`${id}-desc`} className="sm:col-span-2">
             <Textarea
               id={`${id}-desc`}
