@@ -183,6 +183,9 @@ export function Pricing() {
               {t('pre.negocioNombre')}
             </div>
             <div className="mt-1 mb-6 text-body text-muted">{t('pre.negocioTagline')}</div>
+            <p className="mb-1 text-caption font-semibold tracking-[0.08em] text-brand-text uppercase">
+              {t('pre.precioFuturo')} · {t('pre.ahoraGratis')}
+            </p>
             <div className="mb-1 flex items-baseline gap-1.5">
               <span className="font-display text-display font-semibold text-ink">
                 {formatPrice(negocio.priceCents, idioma)}

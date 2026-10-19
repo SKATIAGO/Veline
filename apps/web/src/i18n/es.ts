@@ -1005,8 +1005,11 @@ export const es = {
   'home.esloganNegocio': 'Gestiona tu negocio de forma inteligente',
   'home.entradilla':
     'Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.',
+  'home.preBadge': 'Pre-lanzamiento · Gratis',
+  'home.preIntro':
+    'Tu próxima herramienta favorita empieza aquí. Estamos en pre-lanzamiento: úsala gratis, con 200 mensajes al mes incluidos, y cuéntanos qué mejorarías.',
   'home.verPanel': 'Ver el panel',
-  'home.pruebaDias': '{n} días de prueba sin permanencia',
+  'home.pruebaDias': 'Gratis durante el pre-lanzamiento · 200 mensajes al mes incluidos',
   'home.videoAlt': 'Vista previa del panel de Veline',
 
   // Destacados
@@ -1070,7 +1073,8 @@ export const es = {
   // El marketplace
 
   // Cierre
-  'home.pruebaloYDecide': 'Pruébalo {n} días y decide después.',
+  'home.pruebaloYDecide':
+    'Durante el pre-lanzamiento Veline es gratis. Entra ahora y ayúdanos a hacerlo mejor.',
   'home.verPlanes': 'Ver planes y precios',
 
   // La pestaña del navegador y lo que sale en Google.
@@ -1079,26 +1083,28 @@ export const es = {
     'Reservas 24/7, recordatorios automáticos y gestión de clientes, empleados y métricas para tu negocio. Sin conocimientos técnicos y sin comisiones ocultas.',
 
   // ── Precios ───────────────────────────────────────────────
-  'pre.titulo': 'Un precio simple, sin sorpresas',
+  'pre.titulo': 'Gratis durante el pre-lanzamiento',
   'pre.entradilla':
-    'Pruébalo {n} días sin compromiso. Después, una cuota mes a mes que entiendes de una lectura — nunca por adelantado, nunca letra pequeña.',
+    'Ahora mismo Veline es totalmente gratis. Estos son los precios que se pagarían una vez se lance Veline, para que sepas de antemano qué te esperará, sin letra pequeña.',
   'pre.masElegido': 'Más elegido',
+  'pre.precioFuturo': 'Precio tras el lanzamiento',
+  'pre.ahoraGratis': 'Ahora gratis',
 
   // Planes
-  'pre.pruebaNombre': 'Prueba gratis',
-  'pre.pruebaTagline': 'Sin compromiso',
+  'pre.pruebaNombre': 'Pre-lanzamiento',
+  'pre.pruebaTagline': 'Todo gratis mientras dure',
   'pre.gratis': 'Gratis',
-  'pre.pruebaPeriodo': '{n} días',
-  'pre.empezarPrueba': 'Empezar la prueba',
+  'pre.pruebaPeriodo': 'durante el pre-lanzamiento',
+  'pre.empezarPrueba': 'Unirme al pre-lanzamiento',
   'pre.pruebaF1': 'Todo lo del plan Negocio',
-  'pre.pruebaF2': 'Sin permanencia',
+  'pre.pruebaF2': 'Sin permanencia ni tarjeta',
   'pre.pruebaF3': 'Tu perfil en el marketplace desde el primer día',
-  'pre.pruebaF4': 'Al acabar decides si sigues',
+  'pre.pruebaF4': 'Incluye 200 mensajes al mes',
 
   'pre.negocioNombre': 'Negocio',
   'pre.negocioTagline': 'Para el día a día de tu local',
   'pre.alMes': '/mes',
-  'pre.contratar': 'Contratar',
+  'pre.contratar': 'Unirme gratis ahora',
   'pre.negocioF1':
     'Incluye al administrador —que también puede atender citas— y 1 empleado más en el calendario',
   'pre.negocioF2': 'Reservas ilimitadas desde tu web, Instagram o Google',
@@ -1165,9 +1171,9 @@ export const es = {
   'pre.q1': '¿Necesito saber de informática?',
   'pre.a1':
     'No. Creas el perfil, pones tus servicios y tus horarios, y ya puedes recibir reservas.',
-  'pre.q2': '¿Qué pasa cuando acaban los {n} días de prueba?',
+  'pre.q2': '¿Qué pasa cuando termine el pre-lanzamiento?',
   'pre.a2':
-    'Nada automático: no se te cobra nada sin que tú lo decidas. Si sigues, pasas al plan Negocio; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
+    'Te avisaremos con tiempo. No se te cobrará nada sin que tú lo decidas: si sigues, pasas al plan Negocio con los precios que ves aquí; si no, tu perfil deja de aceptar reservas nuevas y tus datos siguen ahí por si vuelves.',
   'pre.q3': '¿Hay permanencia?',
   'pre.a3': 'No. Es mes a mes y puedes darte de baja cuando quieras desde el panel.',
   'pre.q4': '¿Cuántos empleados entran en el precio?',
@@ -1178,7 +1184,7 @@ export const es = {
     'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
   'pre.q6': '¿Los recordatorios por SMS tienen coste extra?',
   'pre.a6':
-    'Los primeros 200 mensajes de cada mes están incluidos en el plan, sean SMS o email, y los que no gastes se acumulan para el mes siguiente. A partir de ahí, cada mensaje adicional cuesta 0,06 €.',
+    'Los primeros 200 mensajes de cada mes están incluidos, sean SMS o email, y los que no gastes se acumulan para el mes siguiente. Durante el pre-lanzamiento no pagas nada; tras el lanzamiento, cada mensaje adicional costará 0,06 €.',
   'pre.q7': '¿Puedo usar Veline sin salir en el marketplace?',
   'pre.a7':
     'Sí. Puedes usarlo solo como motor de reservas en tu web y tus redes. En ese caso no hay comisión, porque los clientes no llegan por nosotros.',
@@ -1189,7 +1195,7 @@ export const es = {
   'pre.algunaDuda': '¿Te queda alguna duda? {escribenos} y te contestamos.',
 
   // Cierre
-  'pre.pruebaloSinCompromiso': 'Pruébalo {n} días. Sin compromiso.',
+  'pre.pruebaloSinCompromiso': 'Gratis durante el pre-lanzamiento. Sin compromiso.',
   'pre.verTodoIncluye': 'Ver todo lo que incluye',
 
   'comun.paginaNoExiste': 'Esta página no existe',
@@ -2030,13 +2036,13 @@ export const es = {
   'agenda.semanaResumen': 'Esta semana, {n} citas',
   'agenda.hoyNada': 'Hoy no hay citas',
   'agenda.hoyNadaPista': 'Apunta una o espera a que reserven.',
-  'home.empezarGratis': 'Empezar {n} días gratis',
+  'home.empezarGratis': 'Unirme al pre-lanzamiento',
   'home.verComoFunciona': 'Ver cómo funciona',
   'home.tresCosas': 'Tres cosas que cambian desde el primer día',
-  'home.precioEyebrow': 'Un precio, sin sorpresas',
+  'home.precioEyebrow': 'Precios tras el lanzamiento',
   'home.precioLinea':
-    '{precio} al mes con dos personas incluidas. {n} días gratis para probarlo, sin permanencia.',
-  'home.precioBoton': 'Ver planes y precios',
+    'Ahora es gratis. Cuando Veline se lance, el plan costará {precio} al mes con dos personas incluidas y 200 mensajes al mes.',
+  'home.precioBoton': 'Ver los precios del lanzamiento',
   'home.masServicios': '¿Web propia, gestión de redes o un equipo grande?',
   'home.verServicios': 'Ver los servicios aparte',
   'pre.compara': 'Qué incluye',
@@ -2050,7 +2056,7 @@ export const es = {
   'pre.equipoStrip': '¿Varios locales o un equipo grande?',
   'pre.equipoStripTexto':
     'Agenda y horario propios por persona, panel multi-sucursal y soporte dedicado. Lo cerramos hablando.',
-  'pre.pruebaIncluye': 'Todo lo del plan Negocio durante {n} días',
+  'pre.pruebaIncluye': 'Todo lo del plan Negocio, gratis durante el pre-lanzamiento',
   'alta.pasoNegocio': 'Tu negocio',
   'alta.pasoDonde': 'Dónde está',
   'alta.pasoCuenta': 'Tu cuenta',

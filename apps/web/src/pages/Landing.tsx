@@ -54,11 +54,20 @@ export function Landing() {
               {t(ESLOGAN_NEGOCIO)}
             </h1>
             <p
-              className="rise mt-5 mb-8 max-w-[500px] text-lead leading-relaxed text-ondark-muted-2"
+              className="rise mt-5 mb-6 max-w-[500px] text-lead leading-relaxed text-ondark-muted-2"
               style={{ animationDelay: '160ms' }}
             >
               {t('home.entradilla')}
             </p>
+            <div
+              className="rise mb-8 max-w-[500px] rounded-xl border border-accent/40 bg-white/5 p-4"
+              style={{ animationDelay: '200ms' }}
+            >
+              <p className="mb-1 text-caption font-semibold tracking-[0.08em] text-accent uppercase">
+                {t('home.preBadge')}
+              </p>
+              <p className="text-body leading-relaxed text-ondark">{t('home.preIntro')}</p>
+            </div>
             <div
               className="rise flex flex-wrap items-center gap-3"
               style={{ animationDelay: '240ms' }}

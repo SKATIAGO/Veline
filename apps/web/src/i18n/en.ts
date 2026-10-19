@@ -1004,8 +1004,11 @@ export const en: Record<keyof typeof es, string> = {
   'home.esloganNegocio': 'Run your business the easy way',
   'home.entradilla':
     'Veline handles the bookings, the reminders and the numbers so you can get on with the work. No technical know-how, no hidden fees.',
+  'home.preBadge': 'Pre-launch · Free',
+  'home.preIntro':
+    'Your next favourite tool starts here. We are in pre-launch: use it for free, with 200 messages a month included, and tell us what you would improve.',
   'home.verPanel': 'See the dashboard',
-  'home.pruebaDias': '{n} days free, no tie-in',
+  'home.pruebaDias': 'Free during the pre-launch · 200 messages a month included',
   'home.videoAlt': 'A preview of the Veline dashboard',
 
   // Highlights
@@ -1068,7 +1071,8 @@ export const en: Record<keyof typeof es, string> = {
   // The marketplace
 
   // Closing
-  'home.pruebaloYDecide': 'Try it for {n} days and decide after that.',
+  'home.pruebaloYDecide':
+    'Veline is free during the pre-launch. Join now and help us make it better.',
   'home.verPlanes': 'See plans and pricing',
 
   // The browser tab and what shows up in Google.
@@ -1077,26 +1081,28 @@ export const en: Record<keyof typeof es, string> = {
     'Round-the-clock bookings, automatic reminders and one place for customers, staff and figures. No technical know-how, no hidden fees.',
 
   // ── Pricing ───────────────────────────────────────────────
-  'pre.titulo': 'One simple price, no surprises',
+  'pre.titulo': 'Free during the pre-launch',
   'pre.entradilla':
-    'Try it for {n} days, no strings. After that, a month-by-month fee you understand in one read — never in advance, never any small print.',
+    'Right now Veline is completely free. These are the prices you would pay once Veline launches, so you know what to expect up front, no small print.',
   'pre.masElegido': 'Most popular',
+  'pre.precioFuturo': 'Price after launch',
+  'pre.ahoraGratis': 'Free for now',
 
   // Plans
-  'pre.pruebaNombre': 'Free trial',
-  'pre.pruebaTagline': 'No strings',
+  'pre.pruebaNombre': 'Pre-launch',
+  'pre.pruebaTagline': 'Everything free while it lasts',
   'pre.gratis': 'Free',
-  'pre.pruebaPeriodo': '{n} days',
-  'pre.empezarPrueba': 'Start the trial',
+  'pre.pruebaPeriodo': 'during the pre-launch',
+  'pre.empezarPrueba': 'Join the pre-launch',
   'pre.pruebaF1': 'Everything in the Business plan',
-  'pre.pruebaF2': 'No tie-in',
+  'pre.pruebaF2': 'No tie-in, no card',
   'pre.pruebaF3': 'Your page on the marketplace from day one',
-  'pre.pruebaF4': 'You decide whether to carry on at the end',
+  'pre.pruebaF4': 'Includes 200 messages a month',
 
   'pre.negocioNombre': 'Business',
   'pre.negocioTagline': 'For the day-to-day of your place',
   'pre.alMes': '/month',
-  'pre.contratar': 'Sign up',
+  'pre.contratar': 'Join free now',
   'pre.negocioF1':
     'Includes the admin —who can take appointments too— and 1 more employee in the diary',
   'pre.negocioF2': 'Unlimited bookings from your website, Instagram or Google',
@@ -1162,9 +1168,9 @@ export const en: Record<keyof typeof es, string> = {
   'pre.loQuePreguntan': 'What people usually ask us',
   'pre.q1': 'Do I need to be good with computers?',
   'pre.a1': 'No. You set up the page, add your services and your hours, and you can take bookings.',
-  'pre.q2': 'What happens when the {n}-day trial ends?',
+  'pre.q2': 'What happens when the pre-launch ends?',
   'pre.a2':
-    'Nothing automatic: you are never charged without deciding to be. If you carry on, you move to the Business plan; if not, your page stops taking new bookings and your data stays there in case you come back.',
+    'We will let you know well in advance. You are never charged without deciding to be: if you carry on, you move to the Business plan at the prices shown here; if not, your page stops taking new bookings and your data stays there in case you come back.',
   'pre.q3': 'Is there a tie-in?',
   'pre.a3': 'No. It is month by month and you can cancel whenever you like from the dashboard.',
   'pre.q4': 'How many employees does the price cover?',
@@ -1175,7 +1181,7 @@ export const en: Record<keyof typeof es, string> = {
     'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',
   'pre.q6': 'Do SMS reminders cost extra?',
   'pre.a6':
-    'The first 200 messages each month are included in the plan, whether SMS or email, and whatever you don’t use rolls over to next month. After that, each extra message costs €0.06.',
+    'The first 200 messages each month are included, whether SMS or email, and whatever you don’t use rolls over to next month. You pay nothing during the pre-launch; after launch, each extra message will cost €0.06.',
   'pre.q7': 'Can I use Veline without appearing on the marketplace?',
   'pre.a7':
     'Yes. You can use it purely as a booking engine on your website and your social media. In that case there is no commission, because the customers do not come through us.',
@@ -1186,7 +1192,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.algunaDuda': 'Still not sure about something? {escribenos} and we will answer.',
 
   // Closing
-  'pre.pruebaloSinCompromiso': 'Try it for {n} days. No strings.',
+  'pre.pruebaloSinCompromiso': 'Free during the pre-launch. No strings.',
   'pre.verTodoIncluye': 'See everything it includes',
 
   'comun.paginaNoExiste': 'This page doesn’t exist',
@@ -2032,13 +2038,13 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.semanaResumen': 'This week, {n} appointments',
   'agenda.hoyNada': 'No appointments today',
   'agenda.hoyNadaPista': 'Add one or wait for bookings to come in.',
-  'home.empezarGratis': 'Start {n} days free',
+  'home.empezarGratis': 'Join the pre-launch',
   'home.verComoFunciona': 'See how it works',
   'home.tresCosas': 'Three things that change from day one',
-  'home.precioEyebrow': 'One price, no surprises',
+  'home.precioEyebrow': 'Pricing after launch',
   'home.precioLinea':
-    '{precio} a month with two people included. {n} days free to try it, no lock-in.',
-  'home.precioBoton': 'See plans and pricing',
+    'It is free for now. Once Veline launches, the plan will cost {precio} a month with two people and 200 messages a month included.',
+  'home.precioBoton': 'See the launch pricing',
   'home.masServicios': 'Your own website, social media management or a big team?',
   'home.verServicios': 'See the add-on services',
   'pre.compara': "What's included",
@@ -2052,7 +2058,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.equipoStrip': 'Several locations or a big team?',
   'pre.equipoStripTexto':
     'Own agenda and hours per person, multi-location panel and dedicated support. We close it by talking.',
-  'pre.pruebaIncluye': 'Everything in the Business plan for {n} days',
+  'pre.pruebaIncluye': 'Everything in the Business plan, free during the pre-launch',
   'alta.pasoNegocio': 'Your business',
   'alta.pasoDonde': 'Where it is',
   'alta.pasoCuenta': 'Your account',
