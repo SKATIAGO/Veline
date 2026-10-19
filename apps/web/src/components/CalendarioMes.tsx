@@ -105,7 +105,11 @@ export function CalendarioMes({
     }
   }
 
+  /* Siempre seis semanas, aunque el mes quepa en cinco: si no, al pasar de
+     octubre (cinco) a noviembre (seis) la cuadrícula crecía 48 px y todo lo de
+     debajo saltaba. Las semanas de relleno quedan vacías. */
   const celdas: (string | null)[] = [...Array<null>(huecoInicial).fill(null), ...dias]
+  while (celdas.length < 42) celdas.push(null)
   const semanas: (string | null)[][] = []
   for (let i = 0; i < celdas.length; i += 7) semanas.push(celdas.slice(i, i + 7))
 
@@ -155,50 +159,55 @@ export function CalendarioMes({
             </div>
           ))}
         </div>
-        {semanas.map((semana, i) => (
-          <div key={i} role="row" className="grid grid-cols-7 gap-1">
-            {semana.map((d, j) =>
-              d === null ? (
-                <div key={`v${j}`} role="gridcell" aria-hidden />
-              ) : (
-                <div key={d} role="gridcell" className="min-w-0">
-                  <button
-                    type="button"
-                    data-dia={d}
-                    tabIndex={d === conFoco ? 0 : -1}
-                    disabled={!elegible(d)}
-                    aria-pressed={d === dia}
-                    aria-label={`${fromDateKey(d).getDate()} ${monthLong(numMes, idioma)}${
-                      estado(d) === 'cerrado'
-                        ? ` · ${t('cal.cerrado')}`
-                        : estado(d) === 'sinHueco'
-                          ? ` · ${t('cal.completo')}`
-                          : ''
-                    }`}
-                    onClick={() => onDia(d)}
-                    onKeyDown={(e) => alTeclear(e, d)}
-                    className={cx(
-                      'flex min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-xl border text-body font-semibold tabular-nums transition-colors duration-150',
-                      'outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
-                      d === dia
-                        ? 'border-brand bg-brand text-white'
-                        : estado(d) === 'disponible'
-                          ? 'border-line bg-surface text-ink hover:border-brand hover:text-brand'
+        {semanas.map((semana, i) =>
+          // La semana de relleno solo guarda el sitio: fuera del árbol de accesibilidad.
+          semana.every((d) => d === null) ? (
+            <div key={i} aria-hidden className="h-11" />
+          ) : (
+            <div key={i} role="row" className="grid grid-cols-7 gap-1">
+              {semana.map((d, j) =>
+                d === null ? (
+                  <div key={`v${j}`} role="gridcell" aria-hidden className="min-h-11" />
+                ) : (
+                  <div key={d} role="gridcell" className="min-w-0">
+                    <button
+                      type="button"
+                      data-dia={d}
+                      tabIndex={d === conFoco ? 0 : -1}
+                      disabled={!elegible(d)}
+                      aria-pressed={d === dia}
+                      aria-label={`${fromDateKey(d).getDate()} ${monthLong(numMes, idioma)}${
+                        estado(d) === 'cerrado'
+                          ? ` · ${t('cal.cerrado')}`
                           : estado(d) === 'sinHueco'
-                            ? 'border-line bg-canvas text-subtle line-through decoration-line-strong'
-                            : estado(d) === 'cargando'
-                              ? 'animate-pulse border-line bg-surface/60 text-disabled'
-                              : 'border-transparent bg-transparent text-disabled',
-                    )}
-                  >
-                    <span>{fromDateKey(d).getDate()}</span>
-                    {extra?.(d)}
-                  </button>
-                </div>
-              ),
-            )}
-          </div>
-        ))}
+                            ? ` · ${t('cal.completo')}`
+                            : ''
+                      }`}
+                      onClick={() => onDia(d)}
+                      onKeyDown={(e) => alTeclear(e, d)}
+                      className={cx(
+                        'flex min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-xl border text-body font-semibold tabular-nums transition-colors duration-150',
+                        'outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+                        d === dia
+                          ? 'border-brand bg-brand text-white'
+                          : estado(d) === 'disponible'
+                            ? 'border-line bg-surface text-ink hover:border-brand hover:text-brand'
+                            : estado(d) === 'sinHueco'
+                              ? 'border-line bg-canvas text-subtle line-through decoration-line-strong'
+                              : estado(d) === 'cargando'
+                                ? 'animate-pulse border-line bg-surface/60 text-disabled'
+                                : 'border-transparent bg-transparent text-disabled',
+                      )}
+                    >
+                      <span>{fromDateKey(d).getDate()}</span>
+                      {extra?.(d)}
+                    </button>
+                  </div>
+                ),
+              )}
+            </div>
+          ),
+        )}
       </div>
     </div>
   )

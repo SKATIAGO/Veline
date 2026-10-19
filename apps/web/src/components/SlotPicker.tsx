@@ -1,24 +1,26 @@
-import { useEffect, useId, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   TIMEZONE,
-  addDaysKey,
   formatLongDate,
   fromDateKey,
   hoyMadrid,
   instanteAMadridLocal,
+  madridDateKey,
   madridLocalAInstante,
-  weekdayShort,
+  toDateKey,
 } from '@veline/shared'
 import { api } from '../lib/api'
 import { ErrorNote, Field, Input, Skeleton, cx } from './ui'
+import { CalendarioMes, type EstadoDia } from './CalendarioMes'
 import { useIdioma } from '../i18n/idioma'
 import { textoDeError } from './Avisos'
 
-/** Días que se piden y se enseñan de una vez. */
-const VENTANA = 14
-
-const sumarDias = addDaysKey
+const primerDiaDelMes = (key: string) => `${key.slice(0, 7)}-01`
+const ultimoDiaDelMes = (key: string) => {
+  const d = fromDateKey(primerDiaDelMes(key))
+  return toDateKey(new Date(d.getFullYear(), d.getMonth() + 1, 0))
+}
 
 /** Fecha y hora de Madrid en el formato de un <input type="datetime-local">.
     Lo escrito ahí es hora de Madrid, esté el navegador donde esté. */
@@ -33,6 +35,10 @@ const paraInput = instanteAMadridLocal
  * servicio con sus extras, o la duración de la cita que se mueve). La hora a
  * mano sigue ahí para lo excepcional —un cliente que entra por la puerta
  * fuera de horario—, y el servidor comprueba igual que haya alguien.
+ *
+ * Los días van en el mismo calendario de mes que la reserva del cliente. Antes
+ * eran una tira de catorce días con scroll horizontal: no se sabía en qué mes
+ * se estaba y mucha gente no descubría que la tira se desplazaba.
  */
 export function SlotPicker({
   slug,
@@ -65,21 +71,36 @@ export function SlotPicker({
   const hoyReal = hoyMadrid()
   // Nada anterior a hoy, ni al primer día que se pueda elegir.
   const hoy = minimo && minimo > hoyReal ? minimo : hoyReal
-  const [desde, setDesde] = useState(() => (diaInicial && diaInicial > hoy ? diaInicial : hoy))
+  const [mes, setMes] = useState(() =>
+    primerDiaDelMes(diaInicial && diaInicial > hoy ? diaInicial : hoy),
+  )
   const [dia, setDia] = useState<string | null>(diaInicial ?? null)
   const [aMano, setAMano] = useState(false)
-  const hasta = sumarDias(desde, VENTANA - 1)
+  // Se pide el mes a la vista, sin lo que ya ha pasado.
+  const desde = mes > hoy ? mes : hoy
+  const hasta = ultimoDiaDelMes(mes)
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['panel', slug, 'disponibilidad', consulta, desde],
+  const {
+    data: datosMes,
+    isFetching,
+    isPlaceholderData,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['panel', slug, 'disponibilidad', consulta, desde, hasta],
     queryFn: () => api.panelDisponibilidad(slug, { ...consulta, from: desde, to: hasta }),
-    enabled: !aMano && !!(consulta.serviceId || consulta.bookingId),
+    enabled: !aMano && !!(consulta.serviceId || consulta.bookingId) && desde <= hasta,
+    // Al cambiar de mes el calendario se queda quieto mientras llega el nuevo.
+    placeholderData: keepPreviousData,
   })
+  // Lo de otro mes no vale para este: mientras llega, los días «cargando».
+  const data = isPlaceholderData ? undefined : datosMes
+  const cargando = isFetching && !data
 
   const porDia = useMemo(() => new Map((data ?? []).map((d) => [d.date, d])), [data])
   const libre = (key: string) => porDia.get(key)?.slots.some((s) => s.available) ?? false
 
-  /* Al abrir, y al pasar de semana, se coloca en el primer día con sitio.
+  /* Al abrir, y al pasar de mes, se coloca en el primer día con sitio.
      Un día elegido a propósito (el del calendario) no se cambia aunque esté
      lleno: se dice que lo está, que saltar a otro sin avisar despista. */
   useEffect(() => {
@@ -87,33 +108,36 @@ export function SlotPicker({
     setDia(data.find((d) => d.slots.some((s) => s.available))?.date ?? null)
   }, [data])
 
-  // La hora elegida deja de valer si ya no está libre con lo nuevo.
+  // La hora elegida deja de valer si ya no está libre con lo nuevo. Solo se
+  // puede saber con su mes a la vista.
   useEffect(() => {
     if (!data || !valor || aMano) return
+    const suDia = madridDateKey(valor)
+    if (suDia < desde || suDia > hasta) return
     const sigue = data.some((d) => d.slots.some((s) => s.startsAt === valor && s.available))
     if (!sigue) onElegir(null)
   }, [data])
 
-  const dias = Array.from({ length: VENTANA }, (_, i) => sumarDias(desde, i))
+  /* La altura que tenían las horas: mientras llegan las del mes nuevo, el
+     esqueleto ocupa eso mismo y el diálogo no da un salto. */
+  const cajaHoras = useRef<HTMLDivElement>(null)
+  const ultimaAltura = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    if (!cargando && cajaHoras.current) ultimaAltura.current = cajaHoras.current.offsetHeight
+  })
+
+  const estado = (key: string): EstadoDia => {
+    if (key < hoy) return 'fuera'
+    if (cargando) return 'cargando'
+    const d = porDia.get(key)
+    if (d?.closed) return 'cerrado'
+    return libre(key) ? 'disponible' : 'sinHueco'
+  }
+
   const huecos = (dia && porDia.get(dia)?.slots) || []
   const manana = huecos.filter((s) => Number(s.label.slice(0, 2)) < 14)
   const tarde = huecos.filter((s) => Number(s.label.slice(0, 2)) >= 14)
   const cerrado = dia ? porDia.get(dia)?.closed : false
-
-  const flecha = (direccion: -1 | 1) => (
-    <button
-      type="button"
-      aria-label={direccion < 0 ? t('slots.anteriores') : t('slots.siguientes')}
-      disabled={direccion < 0 && desde <= hoy}
-      onClick={() => {
-        const nuevo = sumarDias(desde, direccion * VENTANA)
-        setDesde(nuevo < hoy ? hoy : nuevo)
-      }}
-      className="grid size-10 shrink-0 place-items-center rounded-full border border-line bg-surface text-subheading leading-none text-ink transition-colors duration-200 hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line disabled:hover:text-ink"
-    >
-      <span aria-hidden>{direccion < 0 ? '‹' : '›'}</span>
-    </button>
-  )
 
   if (aMano) {
     return (
@@ -151,103 +175,81 @@ export function SlotPicker({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        {flecha(-1)}
-        <div
-          role="group"
-          aria-label={t('slots.dias')}
-          className="flex min-w-0 flex-1 gap-2 overflow-x-auto py-1"
-        >
-          {dias.map((key) => {
-            const d = fromDateKey(key)
-            const hay = libre(key)
-            const activo = key === dia
-            return (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={activo}
-                aria-label={formatLongDate(d, idioma)}
-                disabled={isLoading || !hay}
-                onClick={() => setDia(key)}
-                className={cx(
-                  'flex h-[60px] w-[50px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl',
-                  'transition-colors duration-150',
-                  activo
-                    ? 'bg-brand text-white'
-                    : hay
-                      ? 'border border-line bg-surface text-ink hover:border-brand'
-                      : 'bg-cream text-disabled',
-                )}
-              >
-                <span className="text-caption font-medium opacity-80">
-                  {weekdayShort(d.getDay(), idioma)}
-                </span>
-                <span className="text-ui font-semibold tabular-nums">{d.getDate()}</span>
-              </button>
-            )
-          })}
-        </div>
-        {flecha(1)}
-      </div>
+      <CalendarioMes
+        mes={mes}
+        onMes={(m) => {
+          setMes(m)
+          setDia(null)
+        }}
+        dia={dia}
+        onDia={setDia}
+        estado={estado}
+        minimo={hoy}
+      />
 
-      {isError ? (
-        <ErrorNote>{textoDeError(error, t('slots.noSeCargaron'))}</ErrorNote>
-      ) : isLoading ? (
-        <div className="grid grid-cols-4 gap-2">
-          {Array.from({ length: 8 }, (_, i) => (
-            <Skeleton key={i} className="h-11 rounded-full" />
-          ))}
-        </div>
-      ) : !dia || !libre(dia) ? (
-        <p className="rounded-xl bg-cream px-4 py-3 text-body text-body-2">
-          {!data?.some((d) => d.slots.some((s) => s.available))
-            ? t('slots.sinHuecosVentana')
-            : dia
-              ? t('slots.diaLleno', { fecha: formatLongDate(fromDateKey(dia), idioma) })
-              : t('slots.eligeDia')}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-4">
-          <p className="text-meta font-semibold text-body-2 first-letter:uppercase">
-            {formatLongDate(fromDateKey(dia), idioma)}
-            {cerrado && ` · ${t('slots.cerrado')}`}
-          </p>
-          {[
-            { id: 'manana', titulo: t('fecha.manana'), lista: manana },
-            { id: 'tarde', titulo: t('fecha.tarde'), lista: tarde },
-          ]
-            .filter((g) => g.lista.some((s) => s.available))
-            .map((g) => (
-              <div key={g.id} role="group" aria-label={g.titulo}>
-                <p className="mb-2 text-caption font-semibold tracking-[0.04em] text-muted uppercase">
-                  {g.titulo}
-                </p>
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-                  {g.lista
-                    .filter((s) => s.available)
-                    .map((s) => (
-                      <button
-                        key={s.startsAt}
-                        type="button"
-                        aria-pressed={valor === s.startsAt}
-                        onClick={() => onElegir(s.startsAt)}
-                        className={cx(
-                          'inline-flex min-h-11 items-center justify-center rounded-full border text-body font-semibold tabular-nums',
-                          'transition-colors duration-200',
-                          valor === s.startsAt
-                            ? 'border-brand bg-brand text-white'
-                            : 'border-line bg-surface text-ink hover:border-brand',
-                        )}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                </div>
-              </div>
+      <div
+        ref={cajaHoras}
+        className="overflow-hidden"
+        style={cargando && ultimaAltura.current ? { height: ultimaAltura.current } : undefined}
+      >
+        {isError ? (
+          <ErrorNote>{textoDeError(error, t('slots.noSeCargaron'))}</ErrorNote>
+        ) : cargando ? (
+          <div className="grid grid-cols-4 gap-2" aria-busy="true">
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} className="h-11 rounded-full" />
             ))}
-        </div>
-      )}
+          </div>
+        ) : !dia || !libre(dia) ? (
+          <p className="rounded-xl bg-cream px-4 py-3 text-body text-body-2">
+            {!data?.some((d) => d.slots.some((s) => s.available))
+              ? t('slots.sinHuecosVentana')
+              : dia
+                ? t('slots.diaLleno', { fecha: formatLongDate(fromDateKey(dia), idioma) })
+                : t('slots.eligeDia')}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <p className="text-meta font-semibold text-body-2 first-letter:uppercase">
+              {formatLongDate(fromDateKey(dia), idioma)}
+              {cerrado && ` · ${t('slots.cerrado')}`}
+            </p>
+            {[
+              { id: 'manana', titulo: t('fecha.manana'), lista: manana },
+              { id: 'tarde', titulo: t('fecha.tarde'), lista: tarde },
+            ]
+              .filter((g) => g.lista.some((s) => s.available))
+              .map((g) => (
+                <div key={g.id} role="group" aria-label={g.titulo}>
+                  <p className="mb-2 text-caption font-semibold tracking-[0.04em] text-muted uppercase">
+                    {g.titulo}
+                  </p>
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                    {g.lista
+                      .filter((s) => s.available)
+                      .map((s) => (
+                        <button
+                          key={s.startsAt}
+                          type="button"
+                          aria-pressed={valor === s.startsAt}
+                          onClick={() => onElegir(s.startsAt)}
+                          className={cx(
+                            'inline-flex min-h-11 items-center justify-center rounded-full border text-body font-semibold tabular-nums',
+                            'transition-colors duration-200',
+                            valor === s.startsAt
+                              ? 'border-brand bg-brand text-white'
+                              : 'border-line bg-surface text-ink hover:border-brand',
+                          )}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
 
       <p className="text-meta text-muted">
         {t('slots.soloCaben')}{' '}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   formatDuration,
@@ -34,7 +34,16 @@ const ESTADO: Record<string, { clave: Clave; tone: 'off' | 'ok' | 'warn' } | und
 
 /** La fila de una cita, con su ficha, mover y cancelar. La usan la lista de
     Agenda y el día elegido en el calendario. */
-export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: string }) {
+export function BookingRow({
+  booking,
+  slug,
+  etiqueta,
+}: {
+  booking: PanelBooking
+  slug: string
+  /** Una marca junto al servicio, como «En curso» o «Siguiente» en la vista Hoy. */
+  etiqueta?: ReactNode
+}) {
   const { t, idioma, locale } = useIdioma()
   const queryClient = useQueryClient()
   const [ficha, setFicha] = useState(false)
@@ -351,6 +360,8 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
         </span>
         {estado ? (
           <Badge tone={estado.tone}>{t(estado.clave)}</Badge>
+        ) : etiqueta ? (
+          etiqueta
         ) : (
           <span aria-hidden className="text-ui text-subtle">
             ›
@@ -386,6 +397,7 @@ export function BookingRow({ booking, slug }: { booking: PanelBooking; slug: str
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-ui font-semibold text-ink">{booking.service.name}</span>
             {estado && <Badge tone={estado.tone}>{t(estado.clave)}</Badge>}
+            {!estado && etiqueta}
             {!estado && booking.isFirstFromMarketplace && (
               <Badge tone="ok">{t('agenda.clienteNuevo')}</Badge>
             )}

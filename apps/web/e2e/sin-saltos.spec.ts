@@ -61,3 +61,42 @@ test('el panel cambia de sección sin pasar por un esqueleto', async ({ page }) 
     ).toBe(true)
   }
 })
+
+test('apuntar una cita: el calendario dice el mes y no cambia de alto', async ({ page }) => {
+  test.skip(test.info().project.name !== 'escritorio', 'una vez basta')
+  await entrar(page, 'admin')
+  await page.goto(`/panel/${NEGOCIO}?nueva=1`)
+  const dialogo = page.getByRole('dialog')
+  await dialogo.getByRole('button').filter({ hasText: /€/ }).first().click()
+  await dialogo.getByRole('button', { name: /^siguiente$/i }).click()
+
+  const cuadricula = dialogo.getByRole('grid')
+  await expect(cuadricula).toBeVisible()
+  await expect(dialogo.getByRole('heading', { name: /\d{4}/ })).toBeVisible()
+  const alto = async () => (await cuadricula.boundingBox())!.height
+  const antes = await alto()
+  for (let i = 0; i < 2; i++) {
+    await dialogo.getByRole('button', { name: /mes siguiente/i }).click()
+    const vistos = await muestrear(page, 600, () =>
+      Math.round(
+        document.querySelector('[role=dialog] [role=grid]')!.getBoundingClientRect().height,
+      ),
+    )
+    expect(vistos.every((h) => Math.abs((h as number) - antes) <= 1)).toBe(true)
+  }
+})
+
+test('nuevo extra: los campos tienen su ancho en escritorio', async ({ page }) => {
+  test.skip(test.info().project.name !== 'escritorio', 'el fallo era de escritorio')
+  await entrar(page, 'admin')
+  await page.goto(`/panel/${NEGOCIO}/servicios/extras`)
+  await cargada(page)
+  await page
+    .getByRole('button', { name: /añadir extra/i })
+    .first()
+    .click()
+  const nombre = page.getByRole('dialog').getByLabel(/nombre/i)
+  await expect(nombre).toBeVisible()
+  // Antes se quedaba en unos 110 px, con las etiquetas una palabra por línea.
+  expect((await nombre.boundingBox())!.width).toBeGreaterThan(300)
+})

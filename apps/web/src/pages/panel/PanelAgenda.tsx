@@ -17,7 +17,7 @@ import { PrimerosPasos } from '../../components/PrimerosPasos'
 import { Segmentado } from '../../components/Segmentado'
 import { useAuth } from '../../lib/auth'
 import { Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
-import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
+import { useIdioma, type Clave } from '../../i18n/idioma'
 import { BookingRow } from './FilaCita'
 import { CalendarioAgenda } from './CalendarioAgenda'
 import { ApuntarCita } from './ApuntarCita'
@@ -55,7 +55,6 @@ type Vista = 'hoy' | 'lista' | 'calendario'
  */
 export function PanelAgenda() {
   const { t, idioma } = useIdioma()
-  const plural = usePlural()
   const { slug = '' } = useParams()
   // El local elegido en el menú; null = todos los que se pueden ver.
   const { actual: local } = useLocal()
@@ -121,6 +120,7 @@ export function PanelAgenda() {
     return [...map.entries()]
   }, [bookings, rango, hoy])
 
+  const fechaHoy = formatLongDate(fromDateKey(hoy), idioma)
   const total = grupos.reduce((n, [, filas]) => n + filas.length, 0)
   // El servidor no se los manda al empleado: ve la agenda, no la caja.
   const verIngresos = summary ? summary.weekRevenueCents !== null : false
@@ -150,14 +150,9 @@ export function PanelAgenda() {
       )}
       <PageHeader
         title={t('panel.agenda')}
-        hint={
-          summary
-            ? [
-                plural(summary.serviceCount, 'agenda.unServicio', 'agenda.variosServicios'),
-                plural(summary.staffCount, 'agenda.unaPersona', 'agenda.variasPersonas'),
-              ].join(' · ')
-            : undefined
-        }
+        /* La fecha de hoy y no «3 servicios · 2 empleados», que no cambia
+           nunca y no ayuda a saber qué toca. */
+        hint={fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1)}
         actions={<Button onClick={() => cambiar({ nueva: '1' })}>{t('agenda.apuntarUna')}</Button>}
       />
 
