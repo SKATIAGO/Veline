@@ -29,13 +29,25 @@ export function ResenasNegocio({
     enabled: count > 0,
   })
 
-  if (count === 0) {
+  const reparto = consulta.data?.pages[0]?.distribution
+  /* La verdad es lo que hay en las reseñas, no la cifra guardada en el
+     negocio: algún negocio de ejemplo la tiene escrita a mano sin ninguna
+     reseña detrás, y la pestaña enseñaba «312 reseñas» con la lista vacía. */
+  const real = reparto
+    ? Object.entries(reparto).reduce(
+        (acc, [nota, n]) => ({ total: acc.total + n, suma: acc.suma + Number(nota) * n }),
+        { total: 0, suma: 0 },
+      )
+    : null
+  const total = real ? real.total : count
+  const media = real && real.total ? real.suma / real.total : rating
+
+  if (total === 0) {
     return <EmptyState title={t('ficha.sinResenas')} hint={t('ficha.sinResenasPista')} />
   }
 
-  const reparto = consulta.data?.pages[0]?.distribution
   const resenas = consulta.data?.pages.flatMap((p) => p.reviews) ?? []
-  const nota = rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  const nota = media.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
   const fecha = (iso: string) =>
     new Date(iso).toLocaleDateString(locale, { month: 'long', year: 'numeric', timeZone: TIMEZONE })
 
@@ -46,15 +58,15 @@ export function ResenasNegocio({
         <p className="font-display text-display leading-none font-semibold text-ink tabular-nums">
           {nota}
         </p>
-        <Estrellas valor={rating} className="mt-2 text-subheading" />
+        <Estrellas valor={media} className="mt-2 text-subheading" />
         <p className="mt-1 text-meta text-muted">
-          {count === 1 ? t('ficha.unaResena') : t('ficha.nResenas', { n: count })}
+          {total === 1 ? t('ficha.unaResena') : t('ficha.nResenas', { n: total })}
         </p>
 
         <ul aria-label={t('ficha.repartoNotas')} className="mt-5 flex flex-col gap-1.5">
           {[5, 4, 3, 2, 1].map((n) => {
             const cuantas = reparto?.[String(n) as '1'] ?? 0
-            const ancho = reparto && count ? Math.round((cuantas / count) * 100) : 0
+            const ancho = reparto && total ? Math.round((cuantas / total) * 100) : 0
             return (
               <li
                 key={n}
@@ -83,7 +95,7 @@ export function ResenasNegocio({
           <ErrorNote>{t('ficha.resenasNoCargan')}</ErrorNote>
         ) : consulta.isLoading ? (
           <ul aria-busy="true" className="flex flex-col divide-y divide-line">
-            {Array.from({ length: Math.min(count, 3) }, (_, i) => (
+            {Array.from({ length: Math.min(total, 3) }, (_, i) => (
               <li key={i} className="flex flex-col gap-2 py-5 first:pt-0">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-28" />
