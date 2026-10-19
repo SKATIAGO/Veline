@@ -822,7 +822,8 @@ export const en: Record<keyof typeof es, string> = {
 
   // ── Signing a business up ─────────────────────────────────
   'alta.titulo': 'List your business',
-  'alta.subtitulo': '{dias} days free, no tie-in. Takes a minute.',
+  'alta.subtitulo':
+    'Free during the pre-launch, with 200 messages a month included. Takes a minute.',
   'alta.nombreNegocio': 'Business name',
   'alta.nombreEjemplo': 'Peluquería Lola',
   'alta.aQueTeDedicas': 'What you do',

@@ -823,7 +823,8 @@ export const es = {
 
   // ── Alta de un negocio ────────────────────────────────────
   'alta.titulo': 'Da de alta tu negocio',
-  'alta.subtitulo': '{dias} días de prueba, sin permanencia. Se tarda un minuto.',
+  'alta.subtitulo':
+    'Gratis durante el pre-lanzamiento, con 200 mensajes al mes incluidos. Se tarda un minuto.',
   'alta.nombreNegocio': 'Nombre del negocio',
   'alta.nombreEjemplo': 'Peluquería Lola',
   'alta.aQueTeDedicas': 'A qué te dedicas',
