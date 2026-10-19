@@ -149,7 +149,7 @@ function DialogoExtra({
       dirty={cambiado}
       borrar={onQuitar && { label: t('ext.quitar'), onClick: onQuitar }}
     >
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex flex-col gap-4">
         <CampoFotos slug={slug} fotos={fotos} onChange={setFotos} />
 
         <div className="grid flex-1 content-start gap-4 sm:grid-cols-2">
