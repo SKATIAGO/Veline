@@ -62,16 +62,12 @@ describe('elegirExtras', () => {
     expect(elegirExtras([], carta)).toEqual([])
   })
 
-  it('guarda cuántas veces se pidió cada uno', () => {
-    expect(elegirExtras([pedir('a', 3)], carta)).toEqual([{ ...carta[0], quantity: 3 }])
+  it('cada extra cuenta una sola vez, pida las que pida', () => {
+    expect(elegirExtras([pedir('a', 3)], carta)).toEqual([{ ...carta[0], quantity: 1 }])
   })
 
-  /* Repetir la misma línea es un fallo del cliente, no una petición de dos
-     cosas distintas: se suma en una sola, que es lo que quiso decir. */
-  it('el mismo extra en dos líneas se suma en una', () => {
-    expect(elegirExtras([pedir('a', 2), pedir('a', 1)], carta)).toEqual([
-      { ...carta[0], quantity: 3 },
-    ])
+  it('el mismo extra en dos líneas cuenta como uno', () => {
+    expect(elegirExtras([pedir('a'), pedir('a')], carta)).toEqual([{ ...carta[0], quantity: 1 }])
   })
 
   it('si uno ya no está en la carta, no reserva sin él en silencio', () => {

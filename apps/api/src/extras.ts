@@ -1,3 +1,5 @@
+import { MAX_POR_EXTRA } from '@veline/shared'
+
 /**
  * Piezas sueltas de la carta de extras y de las fotos que se suben desde el
  * panel. Van aparte de las rutas para poder probarlas sin base de datos.
@@ -62,10 +64,9 @@ export function elegirExtras<T extends ExtraConPrecio>(
   carta: T[],
 ): ExtraElegido<T>[] | null {
   /* El mismo extra repetido en la misma petición es un cliente con un fallo.
-     Se suman las cantidades, que es lo que quiso decir: ni cobrarlo dos veces
-     como dos líneas ni tirar la reserva entera por un descuido suyo. */
+     Cuenta como uno: cada extra se cobra una sola vez por cita. */
   const porId = new Map<string, number>()
-  for (const p of pedidos) porId.set(p.extraId, (porId.get(p.extraId) ?? 0) + p.quantity)
+  for (const p of pedidos) porId.set(p.extraId, Math.min(MAX_POR_EXTRA, p.quantity))
 
   const elegidos: ExtraElegido<T>[] = []
   for (const [extraId, quantity] of porId) {

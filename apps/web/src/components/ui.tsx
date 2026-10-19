@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from 'react-router-dom'
+import { MAX_POR_EXTRA } from '@veline/shared'
 import { useIdioma } from '../i18n/idioma'
 
 export const cx = (...parts: (string | false | null | undefined)[]) =>
@@ -458,9 +459,6 @@ export function Select({ className, children, ...props }: ComponentPropsWithoutR
     </select>
   )
 }
-
-/** Tope por extra. El mismo que acepta el servidor; aquí evita llegar y rebotar. */
-export const MAX_POR_EXTRA = 20
 
 /**
  * Cuántas veces se añade algo: − 0 +.

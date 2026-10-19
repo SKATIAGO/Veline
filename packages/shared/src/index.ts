@@ -514,9 +514,12 @@ export const phoneES = z
  * número y no repitiendo el id: así el precio y los minutos se multiplican en
  * un solo sitio y no dependen de que el cliente mande la lista bien.
  */
+/** Cada extra se elige una sola vez por cita: no se pueden añadir tres cortes. */
+export const MAX_POR_EXTRA = 1
+
 export const extraPedidoSchema = z.object({
   extraId: z.string().min(1),
-  quantity: z.number().int().min(1).max(20),
+  quantity: z.number().int().min(1).max(MAX_POR_EXTRA),
 })
 
 export type ExtraPedido = z.infer<typeof extraPedidoSchema>
@@ -542,7 +545,7 @@ export function parseExtrasParam(valor: string | null | undefined): ExtraPedido[
     // eligió, y perderlo por un enlace mal copiado sería peor.
     pedidos.push({
       extraId,
-      quantity: Number.isInteger(quantity) && quantity >= 1 ? Math.min(quantity, 20) : 1,
+      quantity: Number.isInteger(quantity) && quantity >= 1 ? Math.min(quantity, MAX_POR_EXTRA) : 1,
     })
   }
   return pedidos

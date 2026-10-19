@@ -7,21 +7,13 @@ import {
   formatPrice,
   formatTimeMadrid,
   madridDay,
+  MAX_POR_EXTRA,
   normalizarTelefono,
   phoneES,
 } from '@veline/shared'
 import { api, type PanelCustomer } from '../../lib/api'
 import { useLocal } from '../../lib/local'
-import {
-  Contador,
-  ErrorNote,
-  Field,
-  Input,
-  MAX_POR_EXTRA,
-  Select,
-  Skeleton,
-  cx,
-} from '../../components/ui'
+import { Contador, ErrorNote, Field, Input, Select, Skeleton, cx } from '../../components/ui'
 import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { Wizard } from '../../components/Wizard'

@@ -26,7 +26,7 @@ describe('extras que viajan en la URL', () => {
   it('lo elegido llega igual a la pantalla siguiente', () => {
     const pedidos = [
       { extraId: 'ext_uno', quantity: 1 },
-      { extraId: 'ext_dos', quantity: 3 },
+      { extraId: 'ext_dos', quantity: 1 },
     ]
     const url = new URL(`https://veline.es/karo/reservar/fecha?servicio=abc${tramoExtras(pedidos)}`)
     expect(extrasDeUrl(url.searchParams)).toEqual(pedidos)
@@ -36,7 +36,7 @@ describe('extras que viajan en la URL', () => {
      reserva, y cada vuelta pasa la lista por los dos lados. */
   it('aguanta ir y venir entre pantallas', () => {
     const pedidos = [
-      { extraId: 'ext_uno', quantity: 2 },
+      { extraId: 'ext_uno', quantity: 1 },
       { extraId: 'ext_dos', quantity: 1 },
     ]
     let params = new URLSearchParams(`servicio=abc${tramoExtras(pedidos)}`)
