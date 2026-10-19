@@ -1574,6 +1574,11 @@ export const es = {
   'equipo.pestanaAcceso': 'Acceso al panel',
   'equipo.pestanaFicha': 'Ficha',
   'equipo.pestanaHorario': 'Horario',
+  'equipo.sinHorarioTitulo': 'Faltan por poner el horario de {n} personas',
+  'equipo.sinHorarioTituloUna': 'Falta por poner el horario de 1 persona',
+  'equipo.sinHorarioTexto':
+    'Ahora mismo atienden en el horario general del negocio. Si trabajan menos horas o solo algunos días, ponles su horario para que los clientes solo puedan reservar cuando de verdad están.',
+  'equipo.ponerHorario': 'Poner su horario',
   'equipo.pestanas': 'Secciones de la ficha',
   'equipo.proximasCitas': 'Citas por delante',
   'equipo.puedeEntrar': 'Puede entrar',

@@ -1262,6 +1262,11 @@ export function PanelEquipo() {
 
   const cargando = cargandoStaff || cargandoUsers
 
+  /* Quien atiende y no tiene horario propio sigue el del negocio. Con una sola
+     persona es lo normal; con equipo suele ser un olvido, así que el aviso se
+     queda a la vista hasta que cada uno tenga el suyo. */
+  const sinHorario = atienden >= 2 ? (staff ?? []).filter((s) => s.active && !s.hasHours) : []
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -1279,6 +1284,30 @@ export function PanelEquipo() {
           </Button>
         }
       />
+
+      {sinHorario.length > 0 && (
+        <Card className="border-amber-300 bg-amber-50 p-5">
+          <p className="text-ui font-semibold text-amber-900">
+            {t(sinHorario.length === 1 ? 'equipo.sinHorarioTituloUna' : 'equipo.sinHorarioTitulo', {
+              n: sinHorario.length,
+            })}
+          </p>
+          <p className="mt-1 text-body text-amber-900/90">{t('equipo.sinHorarioTexto')}</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {sinHorario.map((s) => (
+              <li
+                key={s.id}
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-amber-200 bg-surface px-4 py-2.5"
+              >
+                <span className="text-body font-semibold text-ink">{s.name}</span>
+                <Button variant="secondary" onClick={() => acciones.horario(s)}>
+                  {t('equipo.ponerHorario')}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {cargando ? (
         <Card className="flex flex-col gap-3 p-5">

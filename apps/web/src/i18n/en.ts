@@ -1571,6 +1571,11 @@ export const en: Record<keyof typeof es, string> = {
   'equipo.pestanaAcceso': 'Panel access',
   'equipo.pestanaFicha': 'Profile',
   'equipo.pestanaHorario': 'Schedule',
+  'equipo.sinHorarioTitulo': '{n} people still need their schedule',
+  'equipo.sinHorarioTituloUna': '1 person still needs their schedule',
+  'equipo.sinHorarioTexto':
+    'Right now they work the business’s general hours. If they work fewer hours or only some days, set their schedule so clients can only book when they are really in.',
+  'equipo.ponerHorario': 'Set their schedule',
   'equipo.pestanas': 'Profile sections',
   'equipo.proximasCitas': 'Upcoming appointments',
   'equipo.puedeEntrar': 'Can sign in',
