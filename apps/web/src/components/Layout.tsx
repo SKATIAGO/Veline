@@ -10,7 +10,6 @@ import { useIdioma, type Clave } from '../i18n/idioma'
 
 const NAV: { to: string; clave: Clave }[] = [
   { to: '/#como-funciona', clave: 'nav.comoFunciona' },
-  { to: '/precios#extras', clave: 'nav.servicios' },
   { to: '/precios', clave: 'nav.precios' },
   { to: '/buscar', clave: 'nav.marketplace' },
 ]
@@ -226,7 +225,6 @@ function Footer() {
       title: 'pie.negocios',
       links: [
         { label: 'nav.comoFunciona', to: '/#como-funciona' },
-        { label: 'pie.serviciosEmpresas', to: '/precios#extras' },
         { label: 'nav.precios', to: '/precios' },
         { label: 'pie.panel', to: '/panel' },
       ],

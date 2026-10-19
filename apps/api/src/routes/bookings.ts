@@ -29,9 +29,6 @@ import {
   type BookingMailData,
 } from '../mail/templates.js'
 
-/** Comisión de marketplace: 15% y solo en la primera reserva del cliente. */
-const COMMISSION_RATE = 0.15
-
 const bookingInclude = {
   business: { select: { id: true, slug: true, name: true, email: true } },
   location: { select: { name: true, street: true, city: true } },
@@ -199,8 +196,11 @@ export async function bookingRoutes(app: FastifyInstance) {
             },
           })
 
-          // Atribución: la comisión solo se cobra la primera vez que este
-          // cliente reserva en este negocio a través del marketplace.
+          /* Atribución: si es la primera vez que este cliente reserva aquí y
+             llega por el marketplace. Sirve para el «Cliente nuevo» de la
+             agenda y para contar quién llega por Veline. Ya no se cobra
+             comisión por ello (desde el 19 oct 2026): commissionCents queda
+             a 0 en las citas nuevas y la columna se guarda por las de antes. */
           const previous = await tx.booking.count({
             where: {
               businessId: business.id,
@@ -209,9 +209,6 @@ export async function bookingRoutes(app: FastifyInstance) {
             },
           })
           const isFirstFromMarketplace = input.source === 'MARKETPLACE' && previous === 0
-          const commissionCents = isFirstFromMarketplace
-            ? Math.round(totalCents * COMMISSION_RATE)
-            : 0
 
           return tx.booking.create({
             data: {
@@ -232,7 +229,7 @@ export async function bookingRoutes(app: FastifyInstance) {
               // saldrán SUS avisos, no los del negocio.
               idioma: input.idioma === 'en' ? 'EN' : 'ES',
               isFirstFromMarketplace,
-              commissionCents,
+              commissionCents: 0,
               extras: {
                 create: extras.map((e) => ({
                   extraId: e.id,

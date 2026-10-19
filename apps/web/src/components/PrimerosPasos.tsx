@@ -59,7 +59,7 @@ export function PrimerosPasos({
   if (hechos === pasos.length) return null
 
   return (
-    <Card padded className="border-brand/40">
+    <Card padded className="border-brand/40!">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-subheading font-semibold text-ink">{t('pp.titulo')}</h2>
         <p className="text-meta font-semibold text-muted tabular-nums">

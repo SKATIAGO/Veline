@@ -14,7 +14,7 @@ import {
 import { api, type PanelCustomer } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { Contador, ErrorNote, Field, Input, Select, Skeleton, cx } from '../../components/ui'
-import { Texto, useIdioma, usePlural } from '../../i18n/idioma'
+import { useIdioma, usePlural } from '../../i18n/idioma'
 import { aviso, textoDeError } from '../../components/Avisos'
 import { Wizard } from '../../components/Wizard'
 import { SelectorProfesional } from '../../components/SelectorProfesional'
@@ -484,16 +484,6 @@ export function ApuntarCita({
             {t(email.trim() ? 'cita.recibiraConCorreo' : 'cita.recibira', {
               nombre: nombre.trim().split(' ')[0] ?? '',
             })}
-          </p>
-          <p className="text-meta text-subtle">
-            <Texto
-              clave="agenda.avisoDirecta"
-              partes={{
-                directa: (
-                  <strong className="font-semibold text-body-2">{t('agenda.esDirecta')}</strong>
-                ),
-              }}
-            />
           </p>
           {apuntar.isError && (
             <ErrorNote>{textoDeError(apuntar.error, t('avisos.error'))}</ErrorNote>

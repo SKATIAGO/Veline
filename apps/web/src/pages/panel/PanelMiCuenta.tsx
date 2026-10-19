@@ -5,8 +5,8 @@ import { api } from '../../lib/api'
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
-/** Lo que el negocio paga cada mes y por qué. Los enlaces que evitan la
-    comisión tienen pantalla propia: «Enlaces», en el mismo grupo del menú. */
+/** Lo que el negocio paga cada mes y por qué: la cuota y los mensajes de más.
+    Sin comisión de marketplace desde el 19 oct 2026. */
 
 const TONO: Record<string, 'ok' | 'warn' | 'off'> = {
   COBRADO: 'ok',
@@ -118,11 +118,6 @@ export function PanelMiCuenta() {
                     }),
                   ].join(' · ')}
                   cents={cuenta.current.subscriptionCents}
-                />
-                <Linea
-                  label={t('fac.comision')}
-                  hint={t('fac.comisionPista')}
-                  cents={cuenta.current.commissionCents}
                 />
                 <Linea
                   label={t('fac.mensajesDeMas')}

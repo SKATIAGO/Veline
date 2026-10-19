@@ -34,6 +34,7 @@ const PANTALLA: Record<string, string> = {
   locales: 'PanelLocales',
   negocio: 'PanelNegocio',
   'negocio/fotos': 'PanelFotos',
+  'negocio/resenas': 'PanelResenas',
   contabilidad: 'PanelContabilidad',
   enlaces: 'PanelEnlaces',
   facturacion: 'PanelMiCuenta',
@@ -119,6 +120,9 @@ export function usePrecargaPanel(slug: string) {
           pedir(['panel', slug, 'bookings', 'mes', primerDiaMes(), actual], () =>
             api.panelBookings(slug, { from: primerDiaMes(), to: ultimoDiaMes(), local: actual }),
           )
+          break
+        case 'negocio/resenas':
+          pedir(['panel', slug, 'reviews'], () => api.panelReviews(slug))
           break
         case 'facturacion':
           pedir(['panel', slug, 'cuenta'], () => api.panelCuenta(slug))

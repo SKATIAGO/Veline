@@ -140,7 +140,7 @@ export async function panelRoutes(app: FastifyInstance) {
           startsAt: { gte: today, lt: in7 },
           ...delLocal,
         },
-        select: { priceCents: true, commissionCents: true, isFirstFromMarketplace: true },
+        select: { priceCents: true, isFirstFromMarketplace: true },
       }),
       // Las de ese local y las que atienden en todos.
       prisma.staff.count({
@@ -184,10 +184,6 @@ export async function panelRoutes(app: FastifyInstance) {
          enseñaba. */
       weekRevenueCents:
         user.role === 'EMPLEADO' ? null : weekBookings.reduce((acc, b) => acc + b.priceCents, 0),
-      weekCommissionCents:
-        user.role === 'EMPLEADO'
-          ? null
-          : weekBookings.reduce((acc, b) => acc + b.commissionCents, 0),
       newFromMarketplace: weekBookings.filter((b) => b.isFirstFromMarketplace).length,
       staffCount,
       serviceCount,

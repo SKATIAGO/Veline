@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { enlacesDeOrigen } from '../../lib/origen'
 import { Button, Card, PageHeader } from '../../components/ui'
-import { Texto, useIdioma } from '../../i18n/idioma'
+import { useIdioma } from '../../i18n/idioma'
 
 /**
- * Los enlaces que evitan la comisión del marketplace, en su propia pantalla.
+ * Los enlaces con origen (Instagram, Google, web), en su propia pantalla. Con
+ * ellos cada cita dice de dónde vino el cliente. Antes servían además para no
+ * pagar la comisión del marketplace, que se quitó el 19 oct 2026.
  *
  * Antes vivían dentro de «Facturación», como una tarjeta más al lado de lo
  * que se paga ese mes. Ahí eran fáciles de perder: quien entraba a mirar el
@@ -27,16 +29,7 @@ export function PanelEnlaces() {
       <PageHeader title={t('panel.enlaces')} hint={t('enl.pista')} />
 
       <Card padded className="max-w-[640px]">
-        <p className="text-body text-muted">
-          <Texto
-            clave="enl.texto"
-            partes={{
-              sinComision: (
-                <strong className="font-semibold text-body-2">{t('enl.sinComision')}</strong>
-              ),
-            }}
-          />
-        </p>
+        <p className="text-body text-muted">{t('enl.texto')}</p>
 
         <ul className="mt-4 flex flex-col gap-2.5">
           {enlaces.map((e) => (

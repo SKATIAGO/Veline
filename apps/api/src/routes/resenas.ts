@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { aceptaReservas } from '@veline/shared'
 import { prisma } from '../prisma.js'
 import { requireUser } from '../auth/sessions.js'
 import { authorizeBusiness as authorize } from '../auth/business-scope.js'
@@ -160,6 +161,79 @@ export async function resenaRoutes(app: FastifyInstance) {
       return { ok: true }
     },
   )
+
+  /* ── Lo que ve cualquiera en la ficha del negocio ────────── */
+
+  /**
+   * Las reseñas contestadas, de la más nueva a la más antigua, de 10 en 10
+   * (`antes` es la fecha de la última recibida). La primera página trae
+   * además cuántas hay de cada nota, para las barras del resumen.
+   *
+   * Del cliente solo sale el nombre de pila: es lo que se le dice al
+   * escribirla, y basta para que se lea como una persona y no como un dato.
+   */
+  app.get('/api/businesses/:slug/reviews', async (req, reply) => {
+    const { slug } = req.params as { slug: string }
+    const q = z.object({ antes: z.string().datetime().optional() }).safeParse(req.query)
+    if (!q.success) return reply.code(400).send({ error: 'Parámetros inválidos' })
+
+    const negocio = await prisma.business.findUnique({
+      where: { slug },
+      select: { id: true, approvedAt: true, subStatus: true, trialEndsAt: true },
+    })
+    // Igual que la ficha: lo que no se publica no existe.
+    if (
+      !negocio ||
+      !negocio.approvedAt ||
+      !aceptaReservas(negocio.subStatus, negocio.trialEndsAt)
+    ) {
+      return reply.code(404).send({ error: 'Negocio no encontrado' })
+    }
+
+    const contestadas = { businessId: negocio.id, answeredAt: { not: null }, rating: { gt: 0 } }
+    const POR_PAGINA = 10
+    const filas = await prisma.review.findMany({
+      where: {
+        ...contestadas,
+        ...(q.data.antes ? { answeredAt: { lt: new Date(q.data.antes) } } : {}),
+      },
+      orderBy: { answeredAt: 'desc' },
+      take: POR_PAGINA + 1,
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        answeredAt: true,
+        customer: { select: { name: true } },
+        booking: { select: { service: { select: { name: true } } } },
+      },
+    })
+
+    const reparto = q.data.antes
+      ? null
+      : await prisma.review.groupBy({
+          by: ['rating'],
+          where: contestadas,
+          _count: true,
+        })
+
+    return {
+      reviews: filas.slice(0, POR_PAGINA).map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        name: r.customer.name.trim().split(/\s+/)[0] ?? '',
+        serviceName: r.booking.service.name,
+        date: r.answeredAt!.toISOString(),
+      })),
+      hasMore: filas.length > POR_PAGINA,
+      distribution: reparto
+        ? Object.fromEntries(
+            [5, 4, 3, 2, 1].map((n) => [n, reparto.find((x) => x.rating === n)?._count ?? 0]),
+          )
+        : null,
+    }
+  })
 
   /* ── Lo que ve el negocio ───────────────────────────────── */
 

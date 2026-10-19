@@ -141,7 +141,8 @@ function Fila({ c, onDone }: { c: Charge; onDone: () => void }) {
         <dl className="flex flex-wrap gap-5 text-meta text-muted">
           {[
             [t('cob.cuota'), c.subscriptionCents],
-            [t('cob.comision'), c.commissionCents],
+            // Ya no se cobra comisión: solo sale en los cobros antiguos que la llevaban.
+            ...(c.commissionCents > 0 ? [[t('cob.comision'), c.commissionCents]] : []),
             [
               c.extraMessages ? t('cob.mensajesCon', { n: c.extraMessages }) : t('cob.mensajes'),
               c.messagesCents,

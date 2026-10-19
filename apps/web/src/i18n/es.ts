@@ -35,7 +35,6 @@ export const es = {
 
   // ── Cabecera y pie ────────────────────────────────────────
   'nav.comoFunciona': 'Cómo funciona',
-  'nav.servicios': 'Servicios',
   'nav.precios': 'Precios',
   'nav.marketplace': 'Marketplace',
   'nav.entrar': 'Iniciar sesión',
@@ -54,7 +53,6 @@ export const es = {
   'pie.cookies': 'Cookies',
   'pie.panel': 'Panel de gestión',
   'pie.red': '{red} de Veline',
-  'pie.serviciosEmpresas': 'Servicios para empresas',
 
   // ── Aviso de cookies ──────────────────────────────────────
   'cookies.aviso':
@@ -98,8 +96,15 @@ export const es = {
   'ficha.hoy': 'Hoy',
   'ficha.reservarCita': 'Reservar cita',
   'ficha.verHuecos': 'Ver huecos disponibles',
-  'ficha.mediaResenas': '{nota} ★ de media en {n} reseñas',
-  'ficha.resenasProxima': 'El detalle de las reseñas llega en la próxima versión.',
+  'ficha.sinResenas': 'Todavía no hay reseñas',
+  'ficha.sinResenasPista': 'Las escriben los clientes después de su cita.',
+  'ficha.unaResena': '1 reseña',
+  'ficha.nResenas': '{n} reseñas',
+  'ficha.estrellas': '{n} de 5 estrellas',
+  'ficha.verMasResenas': 'Ver más reseñas',
+  'ficha.repartoNotas': 'Reparto de las notas',
+  'ficha.conNota': '{n} estrellas: {c}',
+  'ficha.resenasNoCargan': 'No se han podido cargar las reseñas.',
   'ficha.fotosDe': 'Fotos de {nombre}',
   'ficha.fotoNegocio': 'Foto del negocio',
   'ficha.cerrarGaleria': 'Cerrar galería',
@@ -197,6 +202,7 @@ export const es = {
   'resena.eligePuntuacion': 'Elige una puntuación',
   'resena.enviar': 'Enviar mi opinión',
   'resena.noEnviada': 'No se ha podido enviar',
+  'resena.sePublica': 'Tu opinión saldrá en la ficha de {negocio} con tu nombre de pila.',
   'resena.mal': 'Mal',
   'resena.regular': 'Regular',
   'resena.bien': 'Bien',
@@ -262,8 +268,6 @@ export const es = {
   'agenda.citasHoy': 'Citas hoy',
   'agenda.proximos7': 'Próximos 7 días',
   'agenda.ingresos7': 'Ingresos 7 días',
-  'agenda.comision': 'Comisión Veline: {importe}',
-  'agenda.sinComision': 'Sin comisión en estos 7 días',
   'agenda.clientesNuevos': 'Clientes nuevos',
   'agenda.viaMarketplace': 'Descubiertos vía marketplace',
   'agenda.proximasCitas': 'Próximas citas',
@@ -347,9 +351,6 @@ export const es = {
   'agenda.email': 'Email',
   'agenda.emailPista': 'Si lo pones, también recibe la confirmación por correo',
   'agenda.faltaNombre': 'Escribe el nombre del cliente.',
-  'agenda.esDirecta': 'directa',
-  'agenda.avisoDirecta':
-    'Una cita apuntada desde aquí cuenta como {directa}: la trajiste tú, así que no genera comisión de marketplace.',
 
   // ── Panel · clientes ──────────────────────────────────────
   'clientes.enTotal': '{n} en total',
@@ -555,6 +556,13 @@ export const es = {
   'neg.direccionWeb':
     'La dirección web de tu ficha ({slug}) no cambia aunque cambies el nombre: si cambiara, se romperían todos los enlaces que ya hayas compartido.',
   'neg.fotos': 'Fotos de la ficha',
+  'neg.resenasPista':
+    'Lo que opinan tus clientes después de su cita. En tu ficha salen con su nombre de pila.',
+  'neg.resenasComoLlegan':
+    'Al marcar una cita como «Vino», el cliente recibe por correo un enlace para puntuarla.',
+  'neg.resenasUnaPendiente': '1 cliente tiene la reseña pedida y aún no la ha escrito.',
+  'neg.resenasPendientes': '{n} clientes tienen la reseña pedida y aún no la han escrito.',
+  'neg.resenaSinTexto': 'Puntuó sin escribir nada.',
   'neg.fotosPista':
     'Las que ve quien mira tu negocio en el marketplace, antes de reservar. La primera es la que sale en el buscador.',
   'neg.subirFoto': 'Subir foto',
@@ -696,11 +704,10 @@ export const es = {
   'cta.fuerzaBien': 'Bien',
   'cta.fuerzaMuyBien': 'Muy bien',
 
-  // ── Panel · enlaces sin comisión ──────────────────────────
-  'enl.pista': 'Comparte tu negocio sin que la reserva pase por el marketplace.',
+  // ── Panel · enlaces con origen ─────────────────────────────
+  'enl.pista': 'Enlaces para tu Instagram, Google y web: así sabes de dónde llegan tus clientes.',
   'enl.texto':
-    'Comparte estos enlaces en vez del normal. Los clientes que entren por ellos cuentan como tuyos, no del marketplace, y {sinComision}.',
-  'enl.sinComision': 'no generan comisión',
+    'Comparte estos enlaces en vez del normal. Cada reserva que entre por ellos queda marcada con su origen, y lo verás en cada cita de la agenda.',
   'enl.tuWeb': 'Tu web',
   'enl.copiado': 'Copiado',
   'enl.copiar': 'Copiar',
@@ -713,13 +720,11 @@ export const es = {
   'fac.unaPersona': '{n} empleado',
   'fac.variasPersonas': '{n} empleados',
   'fac.incluidas': '{n} incluidas',
-  'fac.comision': 'Comisión del marketplace',
-  'fac.comisionPista': '15 % del primer cliente que te descubre en Veline',
   'fac.mensajesDeMas': 'Mensajes de más',
   'fac.mensajesPista': '{enviados} enviados · {incluidos} incluidos',
   'fac.totalMes': 'Total del mes',
   'fac.mesCorriendo':
-    'El mes todavía está corriendo: esta cifra sube si entran más citas del marketplace o se pasan los mensajes incluidos.',
+    'El mes todavía está corriendo: esta cifra sube si das de alta a más personas o se pasan los mensajes incluidos.',
   'fac.nadaQueCobrar': 'Todavía no hay nada que cobrar este mes.',
   'fac.mesesAnteriores': 'Meses anteriores',
   'fac.sinMeses': 'Todavía no hay meses cerrados',
@@ -1001,7 +1006,7 @@ export const es = {
   'home.eslogan': 'Donde cada cita encuentra su lugar',
   'home.esloganNegocio': 'Gestiona tu negocio de forma inteligente',
   'home.entradilla':
-    'Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te dediques a atender. Sin conocimientos técnicos y sin comisiones ocultas.',
+    'Veline se encarga de las citas, los recordatorios y las estadísticas para que tú te dediques a atender. Sin conocimientos técnicos y sin comisiones por reserva.',
   'home.preBadge': 'Pre-lanzamiento · Gratis',
   'home.preIntro':
     'Tu próxima herramienta favorita empieza aquí. Estamos en pre-lanzamiento: úsala gratis, con 200 mensajes al mes incluidos, y cuéntanos qué mejorarías.',
@@ -1047,14 +1052,8 @@ export const es = {
   'home.calendario': 'Calendario adaptable',
   'home.calendarioTexto':
     'Gestión de calendario que se ajusta a cómo trabaja cada negocio, no al revés.',
-  'home.gestionAdmin': 'Gestión de redes',
-  'home.gestionAdminTexto':
-    'Publicamos, respondemos y cuidamos tus redes sociales para quien prefiera delegarlo.',
   'home.soporte': 'Soporte y atención',
   'home.soporteTexto': 'Un equipo disponible para ayudarte cuando lo necesites.',
-  'home.webPersonalizada': 'Web personalizada',
-  'home.webPersonalizadaTexto':
-    'Creamos la web de tu empresa, con tu marca y tu propio motor de reservas.',
   'home.appLocal': 'Aplicación para tu local',
   'home.appLocalTexto':
     'Tu propia aplicación personalizada para reforzar tu marca y facilitar a tus clientes el acceso a todos tus servicios.',
@@ -1077,7 +1076,7 @@ export const es = {
   // La pestaña del navegador y lo que sale en Google.
   'meta.titulo': 'Veline — Gestiona tu negocio de forma inteligente',
   'meta.descripcion':
-    'Reservas 24/7, recordatorios automáticos y gestión de clientes, empleados y métricas para tu negocio. Sin conocimientos técnicos y sin comisiones ocultas.',
+    'Reservas 24/7, recordatorios automáticos y gestión de clientes, empleados y métricas para tu negocio. Sin conocimientos técnicos y sin comisiones por reserva.',
 
   // ── Precios ───────────────────────────────────────────────
   'pre.titulo': 'Gratis durante el pre-lanzamiento',
@@ -1125,34 +1124,13 @@ export const es = {
   'pre.equipoF3': 'Panel multi-sucursal',
   'pre.equipoF4': 'Soporte dedicado',
 
-  // Comisión
-  'pre.soloPrimeraVez': '15 % solo la primera vez',
-  'pre.comision':
-    'Sobre el marketplace: cobramos {soloPrimeraVez} que un cliente nuevo te descubre y reserva a través de la plataforma. Si ya lo conocías, o llega por tu Instagram, Google o boca a boca — es gratis, siempre.',
+  // Sin comisión
 
   // Extras
   'pre.serviciosAparte': 'Servicios aparte',
-  'pre.siQuieresMas': 'Si quieres que hagamos más',
   'pre.extrasTexto':
     'Se contratan cuando los necesitas y se quitan cuando no. Nada de esto es obligatorio para empezar a recibir reservas.',
-  'pre.webNombre': 'Creación de web',
-  'pre.webPrecio': 'Desde 350 €',
-  'pre.pagoUnico': 'pago único',
-  'pre.webI1': 'Imagen propia de tu negocio',
-  'pre.webI2': 'Motor de reservas integrado',
-  'pre.webI3': 'Administrador propio',
-  'pre.webI4': 'Gestión de varios locales',
-  'pre.webI5': 'Correo corporativo — a consultar',
-  'pre.gestionNombre': 'Gestión de redes',
-  'pre.gestionAsunto': 'Gestión de redes',
-  'pre.gestionI1': 'Estrategia y planificación de contenido',
-  'pre.gestionI2': 'Creación de publicaciones e historias',
-  'pre.gestionI3': 'Gestión de perfiles',
-  'pre.gestionI4': 'Diseño y redacción de contenido',
-  'pre.gestionI5': 'Calendario editorial',
-  'pre.gestionI6': 'Análisis y seguimiento de resultados',
   'pre.resenasNombre': 'Reseñas',
-  'pre.incluidoSiempre': 'incluido siempre',
   'pre.resenasI1': 'Recogida y publicación de las reseñas de tus clientes',
   'pre.recordatoriosNombre': 'Recordatorios',
   'pre.recordatoriosPrecio': '200 msj/mes gratis',
@@ -1176,15 +1154,15 @@ export const es = {
   'pre.q4': '¿Cuántos empleados entran en el precio?',
   'pre.a4':
     'El plan Negocio incluye 2 empleados en el calendario: el administrador —que también puede atender citas— y 1 empleado más. A partir de ahí, cada empleado de más son 10,95 € al mes.',
-  'pre.q5': '¿Cómo funciona la comisión del 15 %?',
+  'pre.q5': '¿Cobráis comisión por las reservas?',
   'pre.a5':
-    'Solo se cobra la primera vez que un cliente nuevo te descubre en el marketplace de Veline y reserva contigo. Si ese cliente ya era tuyo, o llega por tu Instagram, por Google o por el boca a boca, no pagas comisión nunca.',
+    'No. Ni por las que llegan por el marketplace ni por las que traes tú. Pagas el plan y, si te pasas del cupo, los mensajes de más; nada por cita.',
   'pre.q6': '¿Los recordatorios por SMS tienen coste extra?',
   'pre.a6':
     'Los primeros 200 mensajes de cada mes están incluidos, sean SMS o email, y los que no gastes se acumulan para el mes siguiente. Durante el pre-lanzamiento no pagas nada; tras el lanzamiento, cada mensaje adicional costará 0,06 €.',
   'pre.q7': '¿Puedo usar Veline sin salir en el marketplace?',
   'pre.a7':
-    'Sí. Puedes usarlo solo como motor de reservas en tu web y tus redes. En ese caso no hay comisión, porque los clientes no llegan por nosotros.',
+    'Sí. Puedes usarlo solo como motor de reservas en tu web y tus redes, con la misma agenda para todo.',
   'pre.q8': '¿Qué pasa con la agenda que ya tengo?',
   'pre.a8':
     'Puedes seguir apuntando citas a mano en el panel mientras te acostumbras: la agenda es la misma para las reservas online y las de siempre, así que no acabas con dos calendarios.',
@@ -1221,7 +1199,7 @@ export const es = {
   'leg.ademasGuardamos':
     'Además guardamos una cosa en el navegador que no es una cookie, pero se cuenta igual:',
   'leg.origenPara':
-    'Recordar si has llegado a un negocio desde su Instagram, su Google o su web, para no cobrarle comisión por un cliente que ya era suyo.',
+    'Recordar si has llegado a un negocio desde su Instagram, su Google o su web, para que el negocio sepa de dónde llegan sus clientes.',
   'leg.origenDura': 'Hasta que cierras la pestaña',
   'leg.puedesBorrarlas':
     'Puedes borrar unas y otra desde los ajustes de tu navegador. Si borras la de sesión, simplemente tendrás que volver a entrar en el panel.',
@@ -2040,12 +2018,22 @@ export const es = {
   'home.precioLinea':
     'Ahora es gratis. Cuando Veline se lance, el plan costará {precio} al mes con dos personas incluidas y 200 mensajes al mes.',
   'home.precioBoton': 'Ver los precios del lanzamiento',
-  'home.masServicios': '¿Web propia, gestión de redes o un equipo grande?',
-  'home.verServicios': 'Ver los servicios aparte',
   'pre.compara': 'Qué incluye',
-  'pre.noIncluye': 'Qué va aparte',
-  'pre.noIncluyeTexto': 'Se contratan por separado, solo si los quieres:',
-  'pre.calcTitulo': '¿Cuántas personas atienden?',
+  'pre.calcEyebrow': 'Calcula tu precio',
+  'pre.calcDesglose': '{plan} ({incluidas} personas) + {n} × {extra}',
+  'pre.calcSoloPlan': '{plan}, hasta {incluidas} personas',
+  'pre.calcAhora': 'Durante el pre-lanzamiento pagas 0 €',
+  'pre.calcMenos': 'Una persona menos',
+  'pre.calcMas': 'Una persona más',
+  'pre.incluidoEyebrow': 'Incluido en todos los planes',
+  'pre.incluidoTitulo': 'Sin comisiones ni letra pequeña',
+  'pre.incluidoTexto': 'Lo que reservan tus clientes es tuyo. Esto va con cualquier plan:',
+  'pre.incluido': 'Incluido',
+  'pre.sinComisionNombre': 'Sin comisiones',
+  'pre.sinComisionPrecio': '0 % por reserva',
+  'pre.sinComisionI1': 'Ni por las reservas del marketplace ni por las que traes tú',
+  'pre.sinComisionI2': 'Pagas el plan, no cada cita',
+  'pre.calcTitulo': '¿Cuántas personas atienden en tu negocio?',
   'pre.calcPista': 'Dos van incluidas; cada una de más, {extra} al mes.',
   'pre.calcTotal': 'al mes',
   'pre.calcPersonas': '{n} personas',

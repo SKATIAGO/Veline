@@ -155,11 +155,15 @@ export function Resena() {
               </div>
             )}
 
+            <p className="mt-4 text-meta text-muted">
+              {t('resena.sePublica', { negocio: data.businessName })}
+            </p>
+
             <Button
               type="submit"
               size="lg"
               block
-              className="mt-6"
+              className="mt-4"
               loading={enviar.isPending}
               disabled={rating === 0}
             >

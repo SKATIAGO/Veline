@@ -84,9 +84,6 @@ export const planLabel = (plan: string, idioma: Idioma = 'es') => {
 /** Cada mensaje que pasa del cupo mensual. */
 export const MENSAJE_EXTRA_CENTS = 6
 
-/** 15 % del primer cliente que llega por el marketplace. */
-export const COMMISSION_RATE = 0.15
-
 export const SUB_STATUS_LABEL = {
   PRUEBA: 'En prueba',
   ACTIVA: 'Activa',

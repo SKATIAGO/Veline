@@ -54,18 +54,11 @@ export async function calcularMes(businessId: string, period: Date): Promise<Des
   const desde = period
   const hasta = new Date(Date.UTC(period.getUTCFullYear(), period.getUTCMonth() + 1, 1))
 
-  const [empleados, comision, mensajes] = await Promise.all([
+  /* Sin comisión de marketplace desde el 19 oct 2026: el mes es la cuota y
+     los mensajes de más. El campo sigue en el desglose (a 0) porque los
+     cobros ya cerrados lo llevan y el panel los enseña igual. */
+  const [empleados, mensajes] = await Promise.all([
     prisma.staff.count({ where: { businessId, active: true } }),
-    prisma.booking.aggregate({
-      where: {
-        businessId,
-        // Las canceladas ya llevan la comisión a 0, pero se excluyen igual:
-        // no se cobra comisión por una cita que no ocurrió.
-        status: { in: ['CONFIRMADA', 'COMPLETADA'] },
-        createdAt: { gte: desde, lt: hasta },
-      },
-      _sum: { commissionCents: true },
-    }),
     prisma.messageLog.count({
       where: {
         businessId,
@@ -79,7 +72,7 @@ export async function calcularMes(businessId: string, period: Date): Promise<Des
   const plan = negocio.plan as PlanKey
   const seats = plazasDelNegocio(empleados)
   const subscriptionCents = cuotaMensualCents(plan, seats)
-  const commissionCents = comision._sum.commissionCents ?? 0
+  const commissionCents = 0
   const messagesCents = mensajes * MENSAJE_EXTRA_CENTS
 
   return {

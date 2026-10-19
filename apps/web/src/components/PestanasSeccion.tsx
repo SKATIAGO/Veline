@@ -34,6 +34,7 @@ export const PESTANAS: Record<SeccionConPestanas, { ruta: string; clave: Clave }
   negocio: [
     { ruta: 'negocio', clave: 'secc.fichaPublica' },
     { ruta: 'negocio/fotos', clave: 'secc.fotos' },
+    { ruta: 'negocio/resenas', clave: 'ficha.resenas' },
   ],
   fichaje: [
     { ruta: 'fichaje', clave: 'fic.fichar' },

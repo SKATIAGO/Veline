@@ -43,6 +43,7 @@ const PanelServices = perezoso(() => import('./pages/panel/PanelServices'), 'Pan
 const PanelHours = perezoso(() => import('./pages/panel/PanelHours'), 'PanelHours')
 const PanelEquipo = perezoso(() => import('./pages/panel/PanelEquipo'), 'PanelEquipo')
 const PanelFotos = perezoso(() => import('./pages/panel/PanelNegocio'), 'PanelFotos')
+const PanelResenas = perezoso(() => import('./pages/panel/PanelResenas'), 'PanelResenas')
 const PanelNegocio = perezoso(() => import('./pages/panel/PanelNegocio'), 'PanelNegocio')
 const PanelCierres = perezoso(() => import('./pages/panel/PanelCierres'), 'PanelCierres')
 const PanelExtras = perezoso(() => import('./pages/panel/PanelExtras'), 'PanelExtras')
@@ -143,6 +144,7 @@ function AppRoutes() {
             <Route path="equipo" element={<PanelEquipo />} />
             <Route path="negocio" element={<PanelNegocio />} />
             <Route path="negocio/fotos" element={<PanelFotos />} />
+            <Route path="negocio/resenas" element={<PanelResenas />} />
             <Route path="enlaces" element={<PanelEnlaces />} />
             <Route path="facturacion" element={<PanelMiCuenta />} />
             <Route path="actividad" element={<PanelActividad />} />

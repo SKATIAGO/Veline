@@ -205,13 +205,6 @@ export function PanelAgenda() {
               <Stat
                 label={t('agenda.ingresos7')}
                 value={formatPrice(summary?.weekRevenueCents ?? 0, idioma)}
-                hint={
-                  summary?.weekCommissionCents
-                    ? t('agenda.comision', {
-                        importe: formatPrice(summary.weekCommissionCents, idioma),
-                      })
-                    : t('agenda.sinComision')
-                }
               />
             )}
             <Stat

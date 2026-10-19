@@ -41,9 +41,7 @@ export const DESTACADOS = [
 export const SERVICIOS_EMPRESA = [
   { titulo: 'home.areaAdmin', texto: 'home.areaAdminTexto' },
   { titulo: 'home.calendario', texto: 'home.calendarioTexto' },
-  { titulo: 'home.gestionAdmin', texto: 'home.gestionAdminTexto', plus: true },
   { titulo: 'home.soporte', texto: 'home.soporteTexto' },
-  { titulo: 'home.webPersonalizada', texto: 'home.webPersonalizadaTexto', plus: true },
   { titulo: 'home.appLocal', texto: 'home.appLocalTexto', plus: true },
   { titulo: 'home.analisis', texto: 'home.analisisTexto' },
 ] as const satisfies readonly { titulo: Clave; texto: Clave; plus?: boolean }[]

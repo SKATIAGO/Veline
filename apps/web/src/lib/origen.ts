@@ -3,18 +3,15 @@ import type { BookingSource } from '@veline/shared'
 /**
  * De dónde viene el cliente, y por qué importa.
  *
- * La comisión del 15 % solo se cobra la primera vez que un cliente NUEVO
- * descubre un negocio a través del marketplace. Si el negocio lo trajo de su
- * Instagram, de Google o de su propia web, es suyo y no se cobra nada.
- *
- * Hasta ahora eso era imposible de cumplir: toda reserva se marcaba como
- * marketplace, así que se habría cobrado comisión de clientes que traía el
- * propio negocio — justo lo contrario de lo que promete la página de precios.
+ * Cada cita dice si el cliente llegó por el marketplace o lo trajo el propio
+ * negocio desde su Instagram, Google o web. Nació para cobrar la comisión del
+ * 15 % solo por los clientes que traía Veline; la comisión se quitó el 19 oct
+ * 2026, y el origen se queda porque al negocio le sirve saber de dónde vienen.
  *
  * La atribución va por enlace: el negocio comparte `/su-negocio?origen=instagram`
  * en su perfil, y ese origen viaja con la reserva. Es un dato que manda el
  * navegador, así que no es a prueba de manipulación; pero quien lo manipularía
- * sería el propio negocio para pagar menos, y eso se ve en sus números.
+ * sería el propio negocio, y solo se engañaría a sí mismo.
  */
 
 const POR_PARAMETRO: Record<string, BookingSource> = {

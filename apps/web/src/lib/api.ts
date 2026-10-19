@@ -530,6 +530,12 @@ export const api = {
       body: JSON.stringify({ rating, comment }),
     }),
 
+  /** Las reseñas públicas de un negocio, de 10 en 10. */
+  businessReviews: (slug: string, antes?: string) =>
+    request<ResenasPublicas>(
+      `/businesses/${slug}/reviews${antes ? `?antes=${encodeURIComponent(antes)}` : ''}`,
+    ),
+
   panelReviews: (slug: string) =>
     request<{ pending: number; reviews: PanelReview[] }>(`/panel/${slug}/reviews`),
 
@@ -648,7 +654,6 @@ export interface PanelSummary {
   weekCount: number
   /** Null para el empleado: los ingresos los ve quien administra. */
   weekRevenueCents: number | null
-  weekCommissionCents: number | null
   newFromMarketplace: number
   staffCount: number
   serviceCount: number
@@ -920,6 +925,23 @@ export interface CuentaNegocio {
     status: 'PENDIENTE' | 'COBRADO' | 'ANULADO'
     paidAt: string | null
   })[]
+}
+
+/** Una reseña tal y como sale en la ficha: del cliente, solo el nombre de pila. */
+export interface ResenaPublica {
+  id: string
+  rating: number
+  comment: string | null
+  name: string
+  serviceName: string
+  date: string
+}
+
+export interface ResenasPublicas {
+  reviews: ResenaPublica[]
+  hasMore: boolean
+  /** Cuántas hay de cada nota (5 a 1). Solo en la primera página. */
+  distribution: Record<'1' | '2' | '3' | '4' | '5', number> | null
 }
 
 export interface PanelReview {

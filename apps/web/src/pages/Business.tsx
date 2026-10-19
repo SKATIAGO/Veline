@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   categoryLabel,
   formatDuration,
@@ -17,6 +17,7 @@ import { FotoAmpliable, Galeria } from '../components/Galeria'
 import { useFotosNegocio, useVisor } from '../lib/galeria'
 import { recordarOrigen } from '../lib/origen'
 import { Segmentado } from '../components/Segmentado'
+import { ResenasNegocio } from '../components/ResenasNegocio'
 import { useIdioma, type Clave } from '../i18n/idioma'
 
 /** La pestaña se identifica por su nombre interno, no por lo que pone en
@@ -96,12 +97,12 @@ function GalleryTile({
 }
 
 export function Business() {
-  const { t, idioma, locale } = useIdioma()
+  const { t, idioma } = useIdioma()
   const { slug = '' } = useParams()
   const { search } = useLocation()
 
   // Si el cliente llega por el enlace que el negocio comparte en Instagram o
-  // en Google, se recuerda: de eso depende que no se le cobre comisión.
+  // en Google, se recuerda: así la cita dice de dónde vino.
   useEffect(() => {
     recordarOrigen(search)
   }, [search])
@@ -118,6 +119,19 @@ export function Business() {
   })
 
   const fotosDe = useFotosNegocio()
+
+  /* Las reseñas se piden en cuanto se sabe que las hay: al abrir la pestaña
+     ya están, sin esqueleto de por medio. */
+  const qc = useQueryClient()
+  const conResenas = (business?.reviewCount ?? 0) > 0
+  useEffect(() => {
+    if (!conResenas) return
+    void qc.prefetchInfiniteQuery({
+      queryKey: ['business', slug, 'reviews'],
+      queryFn: () => api.businessReviews(slug),
+      initialPageParam: undefined,
+    })
+  }, [conResenas, slug, qc])
 
   if (isLoading) {
     return (
@@ -325,12 +339,10 @@ export function Business() {
 
           {tab === 'resenas' && (
             <div key="resenas" className="rise py-8">
-              <EmptyState
-                title={t('ficha.mediaResenas', {
-                  nota: business.rating.toLocaleString(locale, { minimumFractionDigits: 1 }),
-                  n: business.reviewCount,
-                })}
-                hint={t('ficha.resenasProxima')}
+              <ResenasNegocio
+                slug={business.slug}
+                rating={business.rating}
+                count={business.reviewCount}
               />
             </div>
           )}

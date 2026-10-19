@@ -36,7 +36,6 @@ export const en: Record<keyof typeof es, string> = {
 
   // ── Header and footer ─────────────────────────────────────
   'nav.comoFunciona': 'How it works',
-  'nav.servicios': 'Services',
   'nav.precios': 'Pricing',
   'nav.marketplace': 'Marketplace',
   'nav.entrar': 'Log in',
@@ -55,7 +54,6 @@ export const en: Record<keyof typeof es, string> = {
   'pie.cookies': 'Cookies',
   'pie.panel': 'Business dashboard',
   'pie.red': 'Veline on {red}',
-  'pie.serviciosEmpresas': 'Services for companies',
 
   // ── Cookie notice ─────────────────────────────────────────
   'cookies.aviso':
@@ -99,8 +97,15 @@ export const en: Record<keyof typeof es, string> = {
   'ficha.hoy': 'Today',
   'ficha.reservarCita': 'Book an appointment',
   'ficha.verHuecos': 'See available times',
-  'ficha.mediaResenas': '{nota} ★ average from {n} reviews',
-  'ficha.resenasProxima': 'Full reviews are coming in the next release.',
+  'ficha.sinResenas': 'No reviews yet',
+  'ficha.sinResenasPista': 'Customers write them after their appointment.',
+  'ficha.unaResena': '1 review',
+  'ficha.nResenas': '{n} reviews',
+  'ficha.estrellas': '{n} out of 5 stars',
+  'ficha.verMasResenas': 'Show more reviews',
+  'ficha.repartoNotas': 'How the ratings break down',
+  'ficha.conNota': '{n} stars: {c}',
+  'ficha.resenasNoCargan': 'The reviews could not be loaded.',
   'ficha.fotosDe': 'Photos of {nombre}',
   'ficha.fotoNegocio': 'Business photo',
   'ficha.cerrarGaleria': 'Close gallery',
@@ -197,6 +202,7 @@ export const en: Record<keyof typeof es, string> = {
   'resena.eligePuntuacion': 'Pick a rating',
   'resena.enviar': 'Send my review',
   'resena.noEnviada': 'It couldn’t be sent',
+  'resena.sePublica': 'Your review will appear on the {negocio} page with your first name.',
   'resena.mal': 'Bad',
   'resena.regular': 'Poor',
   'resena.bien': 'Good',
@@ -262,8 +268,6 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.citasHoy': 'Appointments today',
   'agenda.proximos7': 'Next 7 days',
   'agenda.ingresos7': 'Revenue, 7 days',
-  'agenda.comision': 'Veline commission: {importe}',
-  'agenda.sinComision': 'No commission in these 7 days',
   'agenda.clientesNuevos': 'New customers',
   'agenda.viaMarketplace': 'Found you through the marketplace',
   'agenda.proximasCitas': 'Upcoming appointments',
@@ -348,9 +352,6 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.email': 'Email',
   'agenda.emailPista': 'If you add it, they also get the confirmation by email',
   'agenda.faltaNombre': 'Write the customer’s name.',
-  'agenda.esDirecta': 'direct',
-  'agenda.avisoDirecta':
-    'An appointment added here counts as {directa}: you brought them in, so it earns no marketplace commission.',
 
   // ── Dashboard · customers ─────────────────────────────────
   'clientes.enTotal': '{n} in total',
@@ -556,6 +557,14 @@ export const en: Record<keyof typeof es, string> = {
   'neg.direccionWeb':
     'The web address of your page ({slug}) doesn’t change when you change the name: if it did, every link you’ve already shared would break.',
   'neg.fotos': 'Listing photos',
+  'neg.resenasPista':
+    'What your customers think after their appointment. On your page they appear with their first name.',
+  'neg.resenasComoLlegan':
+    'When you mark an appointment as “Turned up”, the customer gets an email link to rate it.',
+  'neg.resenasUnaPendiente': '1 customer has been asked for a review and has not written it yet.',
+  'neg.resenasPendientes':
+    '{n} customers have been asked for a review and have not written it yet.',
+  'neg.resenaSinTexto': 'Rated without writing anything.',
   'neg.fotosPista':
     'What people see when they look at your business on the marketplace, before booking. The first one is the one shown in search.',
   'neg.subirFoto': 'Upload photo',
@@ -694,11 +703,11 @@ export const en: Record<keyof typeof es, string> = {
   'cta.fuerzaBien': 'Good',
   'cta.fuerzaMuyBien': 'Very good',
 
-  // ── Dashboard · no-commission links ───────────────────────
-  'enl.pista': 'Share your business without the booking going through the marketplace.',
+  // ── Dashboard · links with source ─────────────────────────
+  'enl.pista':
+    'Links for your Instagram, Google and website, so you know where your customers come from.',
   'enl.texto':
-    'Share these links instead of the normal one. Customers who arrive through them count as yours, not the marketplace’s, and {sinComision}.',
-  'enl.sinComision': 'earn no commission',
+    'Share these links instead of the normal one. Every booking made through them is tagged with where it came from, and you will see it on each appointment in the diary.',
   'enl.tuWeb': 'Your website',
   'enl.copiado': 'Copied',
   'enl.copiar': 'Copy',
@@ -711,13 +720,11 @@ export const en: Record<keyof typeof es, string> = {
   'fac.unaPersona': '{n} employee',
   'fac.variasPersonas': '{n} employees',
   'fac.incluidas': '{n} included',
-  'fac.comision': 'Marketplace commission',
-  'fac.comisionPista': '15% of the first customer who finds you on Veline',
   'fac.mensajesDeMas': 'Messages over the allowance',
   'fac.mensajesPista': '{enviados} sent · {incluidos} included',
   'fac.totalMes': 'Total for the month',
   'fac.mesCorriendo':
-    'The month is still running: this figure goes up if more marketplace appointments come in, or you go over the included messages.',
+    'The month is still running: this figure goes up if you add more people or go over the included messages.',
   'fac.nadaQueCobrar': 'Nothing to charge this month yet.',
   'fac.mesesAnteriores': 'Previous months',
   'fac.sinMeses': 'No months closed yet',
@@ -1000,7 +1007,7 @@ export const en: Record<keyof typeof es, string> = {
   'home.eslogan': 'Where every appointment finds its place',
   'home.esloganNegocio': 'Run your business the easy way',
   'home.entradilla':
-    'Veline handles the bookings, the reminders and the numbers so you can get on with the work. No technical know-how, no hidden fees.',
+    'Veline handles the bookings, the reminders and the numbers so you can get on with the work. No technical know-how, no commission on bookings.',
   'home.preBadge': 'Pre-launch · Free',
   'home.preIntro':
     'Your next favourite tool starts here. We are in pre-launch: use it for free, with 200 messages a month included, and tell us what you would improve.',
@@ -1045,14 +1052,8 @@ export const en: Record<keyof typeof es, string> = {
   'home.calendario': 'A calendar that adapts',
   'home.calendarioTexto':
     'Calendar management that fits how each business works, not the other way round.',
-  'home.gestionAdmin': 'Social media managed for you',
-  'home.gestionAdminTexto':
-    'We post, reply and look after your social media for anyone who would rather not.',
   'home.soporte': 'Support when you need it',
   'home.soporteTexto': 'A team on hand to help whenever you need them.',
-  'home.webPersonalizada': 'Your own website',
-  'home.webPersonalizadaTexto':
-    'We build your company’s website, with your branding and its own booking engine.',
   'home.appLocal': 'An app for your business',
   'home.appLocalTexto':
     'Your own branded app, so your customers reach everything you offer from one place.',
@@ -1075,7 +1076,7 @@ export const en: Record<keyof typeof es, string> = {
   // The browser tab and what shows up in Google.
   'meta.titulo': 'Veline — Run your business the easy way',
   'meta.descripcion':
-    'Round-the-clock bookings, automatic reminders and one place for customers, staff and figures. No technical know-how, no hidden fees.',
+    'Round-the-clock bookings, automatic reminders and one place for customers, staff and figures. No technical know-how, no commission on bookings.',
 
   // ── Pricing ───────────────────────────────────────────────
   'pre.titulo': 'Free during the pre-launch',
@@ -1123,34 +1124,13 @@ export const en: Record<keyof typeof es, string> = {
   'pre.equipoF3': 'Multi-branch dashboard',
   'pre.equipoF4': 'Dedicated support',
 
-  // Commission
-  'pre.soloPrimeraVez': '15% only the first time',
-  'pre.comision':
-    'About the marketplace: we charge {soloPrimeraVez} a new customer finds you and books through the platform. If you already knew them, or they come via your Instagram, Google or word of mouth — it’s free, always.',
+  // No commission
 
   // Extras
   'pre.serviciosAparte': 'Extra services',
-  'pre.siQuieresMas': 'If you want us to do more',
   'pre.extrasTexto':
     'You take them on when you need them and drop them when you don’t. None of this is required to start taking bookings.',
-  'pre.webNombre': 'Website creation',
-  'pre.webPrecio': 'From €350',
-  'pre.pagoUnico': 'one-off payment',
-  'pre.webI1': 'Your business’s own look',
-  'pre.webI2': 'Booking engine built in',
-  'pre.webI3': 'Your own dashboard',
-  'pre.webI4': 'Several locations handled',
-  'pre.webI5': 'Company email — ask us',
-  'pre.gestionNombre': 'Social media management',
-  'pre.gestionAsunto': 'Social media management',
-  'pre.gestionI1': 'Content strategy and planning',
-  'pre.gestionI2': 'Creating posts and stories',
-  'pre.gestionI3': 'Profile management',
-  'pre.gestionI4': 'Content design and copywriting',
-  'pre.gestionI5': 'Editorial calendar',
-  'pre.gestionI6': 'Results tracking and analysis',
   'pre.resenasNombre': 'Reviews',
-  'pre.incluidoSiempre': 'always included',
   'pre.resenasI1': 'Collecting and publishing your customers’ reviews',
   'pre.recordatoriosNombre': 'Reminders',
   'pre.recordatoriosPrecio': '200 msgs/month free',
@@ -1173,15 +1153,15 @@ export const en: Record<keyof typeof es, string> = {
   'pre.q4': 'How many employees does the price cover?',
   'pre.a4':
     'The Business plan includes 2 employees in the diary: the admin —who can take appointments too— and 1 more employee. Beyond that, each extra employee is €10.95 a month.',
-  'pre.q5': 'How does the 15% commission work?',
+  'pre.q5': 'Do you charge a commission on bookings?',
   'pre.a5':
-    'It is charged only the first time a new customer finds you on the Veline marketplace and books with you. If that customer was already yours, or comes via your Instagram, Google or word of mouth, you never pay commission.',
+    'No. Not on bookings that come through the marketplace, nor on the ones you bring yourself. You pay for the plan and, if you go over the allowance, the extra messages; nothing per appointment.',
   'pre.q6': 'Do SMS reminders cost extra?',
   'pre.a6':
     'The first 200 messages each month are included, whether SMS or email, and whatever you don’t use rolls over to next month. You pay nothing during the pre-launch; after launch, each extra message will cost €0.06.',
   'pre.q7': 'Can I use Veline without appearing on the marketplace?',
   'pre.a7':
-    'Yes. You can use it purely as a booking engine on your website and your social media. In that case there is no commission, because the customers do not come through us.',
+    'Yes. You can use it purely as a booking engine on your website and your social media, with the same diary for everything.',
   'pre.q8': 'What about the diary I already have?',
   'pre.a8':
     'You can carry on writing appointments in by hand while you get used to it: the diary is the same one for online bookings and the usual ones, so you do not end up with two calendars.',
@@ -1218,7 +1198,7 @@ export const en: Record<keyof typeof es, string> = {
   'leg.ademasGuardamos':
     'We also keep one thing in your browser that is not a cookie, but counts just the same:',
   'leg.origenPara':
-    'Remembering whether you reached a business through its Instagram, its Google listing or its website, so we do not charge it commission for a customer who was already theirs.',
+    'Remembering whether you reached a business from its Instagram, its Google listing or its website, so the business knows where its customers come from.',
   'leg.origenDura': 'Until you close the tab',
   'leg.puedesBorrarlas':
     'You can delete either of them from your browser settings. If you delete the session one, you will simply have to log in to the dashboard again.',
@@ -2042,12 +2022,22 @@ export const en: Record<keyof typeof es, string> = {
   'home.precioLinea':
     'It is free for now. Once Veline launches, the plan will cost {precio} a month with two people and 200 messages a month included.',
   'home.precioBoton': 'See the launch pricing',
-  'home.masServicios': 'Your own website, social media management or a big team?',
-  'home.verServicios': 'See the add-on services',
   'pre.compara': "What's included",
-  'pre.noIncluye': "What's separate",
-  'pre.noIncluyeTexto': 'Contracted separately, only if you want them:',
-  'pre.calcTitulo': 'How many people serve customers?',
+  'pre.calcEyebrow': 'Work out your price',
+  'pre.calcDesglose': '{plan} ({incluidas} people) + {n} × {extra}',
+  'pre.calcSoloPlan': '{plan}, up to {incluidas} people',
+  'pre.calcAhora': 'During pre-launch you pay €0',
+  'pre.calcMenos': 'One person fewer',
+  'pre.calcMas': 'One more person',
+  'pre.incluidoEyebrow': 'Included in every plan',
+  'pre.incluidoTitulo': 'No commission, no small print',
+  'pre.incluidoTexto': 'What your customers book is yours. This comes with any plan:',
+  'pre.incluido': 'Included',
+  'pre.sinComisionNombre': 'No commission',
+  'pre.sinComisionPrecio': '0% per booking',
+  'pre.sinComisionI1': 'Not on marketplace bookings, nor on the ones you bring',
+  'pre.sinComisionI2': 'You pay for the plan, not for each appointment',
+  'pre.calcTitulo': 'How many people serve customers in your business?',
   'pre.calcPista': 'Two are included; each extra one is {extra} a month.',
   'pre.calcTotal': 'a month',
   'pre.calcPersonas': '{n} people',

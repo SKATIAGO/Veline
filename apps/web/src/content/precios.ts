@@ -4,8 +4,8 @@
  * resto del producto.
  *
  * Aquí viven las CLAVES, los importes y el orden; el texto está en i18n. Los
- * precios que no son un número —«Gratis», «Desde 350 €»— también son clave,
- * porque en inglés se escriben distinto: «From €350», con el símbolo delante.
+ * precios que no son un número —«Gratis», «0 % por reserva»— también son
+ * clave, porque en inglés se escriben distinto.
  */
 import { PRUEBA_DIAS_DEFECTO } from '@veline/shared'
 import type { Clave } from '../i18n/idioma'
@@ -100,33 +100,21 @@ export const PLANES: readonly Plan[] = [
   },
 ]
 
-/** Servicios que se contratan aparte del plan. */
-export const EXTRAS = [
+/**
+ * Lo que va con cualquier plan. Antes esta sección era «Qué va aparte»: web a
+ * medida desde 350 € y gestión de redes. Veline no va a ofrecer ninguno de los
+ * dos (decidido el 19 oct 2026), y con la comisión del marketplace quitada lo
+ * que queda es lo que va incluido.
+ */
+export const INCLUIDO = [
   {
-    nombre: 'pre.webNombre',
-    precio: 'pre.webPrecio',
-    nota: 'pre.pagoUnico',
-    items: ['pre.webI1', 'pre.webI2', 'pre.webI3', 'pre.webI4', 'pre.webI5'],
-  },
-  {
-    nombre: 'pre.gestionNombre',
-    /* Sin precio de tarifa: esto se habla por correo, así que en vez del
-       precio la tarjeta enseña un enlace de contacto. */
-    contacto: true,
-    asunto: 'pre.gestionAsunto',
-    items: [
-      'pre.gestionI1',
-      'pre.gestionI2',
-      'pre.gestionI3',
-      'pre.gestionI4',
-      'pre.gestionI5',
-      'pre.gestionI6',
-    ],
+    nombre: 'pre.sinComisionNombre',
+    precio: 'pre.sinComisionPrecio',
+    items: ['pre.sinComisionI1', 'pre.sinComisionI2'],
   },
   {
     nombre: 'pre.resenasNombre',
-    precio: 'pre.gratis',
-    nota: 'pre.incluidoSiempre',
+    precio: 'pre.incluido',
     items: ['pre.resenasI1'],
   },
   {
@@ -137,12 +125,7 @@ export const EXTRAS = [
   },
 ] as const satisfies readonly {
   nombre: Clave
-  /** Cuando se contrata por correo y no hay tarifa fija que enseñar. */
-  contacto?: boolean
-  /** El asunto del correo, si se contrata así. Traducido: se escribe en el
-      idioma de quien lo manda. */
-  asunto?: Clave
-  precio?: Clave
+  precio: Clave
   nota?: Clave
   items: readonly Clave[]
 }[]

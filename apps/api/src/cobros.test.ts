@@ -4,7 +4,6 @@ vi.mock('./prisma.js', () => ({
   prisma: {
     business: { findUnique: vi.fn(), update: vi.fn() },
     staff: { count: vi.fn() },
-    booking: { aggregate: vi.fn() },
     messageLog: { count: vi.fn() },
     charge: { findUnique: vi.fn(), create: vi.fn() },
   },
@@ -32,9 +31,6 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({} as never)
   vi.mocked(prisma.staff.count).mockReset().mockResolvedValue(0)
-  vi.mocked(prisma.booking.aggregate)
-    .mockReset()
-    .mockResolvedValue({ _sum: { commissionCents: 0 } } as never)
   vi.mocked(prisma.messageLog.count).mockReset()
 })
 

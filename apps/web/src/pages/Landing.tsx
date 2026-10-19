@@ -188,12 +188,6 @@ export function Landing() {
                   n: PRUEBA_DIAS,
                 })}
               </p>
-              <p className="mt-2 text-meta text-muted">
-                {t('home.masServicios')}{' '}
-                <a href="/precios#extras" className="font-semibold text-brand-text hover:underline">
-                  {t('home.verServicios')}
-                </a>
-              </p>
             </div>
             <ButtonLink to="/precios" variant="secondary" size="lg" className="shrink-0">
               {t('home.precioBoton')}

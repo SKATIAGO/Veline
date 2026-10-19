@@ -1,14 +1,21 @@
 import { useState } from 'react'
-import { CONTACT_EMAIL, PLAN_INFO, formatPrice } from '@veline/shared'
+import { CONTACT_EMAIL, PLAN_INFO, formatPrice, planLabel } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { DoorMotif, Glow } from '../components/Ornaments'
 import { Texto, useIdioma, type Clave } from '../i18n/idioma'
-import { EXTRAS, FAQ, PLANES, PRUEBA_DIAS } from '../content/precios'
+import { FAQ, INCLUIDO, PLANES, PRUEBA_DIAS } from '../content/precios'
 
 /**
- * Precios: tres tarjetas —pre-lanzamiento gratis, Negocio y Equipo (10,95 € por
- * empleado de más)—, una calculadora, lo que va aparte y las preguntas.
+ * Precios, en el orden en que se decide: primero cuánto te costaría a ti
+ * (la calculadora, según cuántas personas atienden), luego los tres planes
+ * —pre-lanzamiento gratis, Negocio y Equipo—, lo que va incluido en todos y
+ * las preguntas.
+ *
+ * La calculadora iba debajo de los planes, pequeña, y casi nadie llegaba a
+ * ella: es lo primero que pregunta quien tiene equipo. Lo que iba aparte (web
+ * a medida, gestión de redes) ya no se ofrece, y la comisión del 15 % del
+ * marketplace se quitó el 19 oct 2026.
  */
 
 function Feature({ children }: { children: string }) {
@@ -58,45 +65,86 @@ function FaqRow({ q, a }: { q: Clave; a: Clave }) {
   )
 }
 
-/** Cuántas personas atienden → cuánto es al mes. */
+const MAX_PERSONAS = 12
+
+/** Cuántas personas atienden → cuánto es al mes, con su desglose. */
 function Calculadora() {
   const { t, idioma } = useIdioma()
   const { priceCents, seatsIncluded, extraSeatCents } = PLAN_INFO.NEGOCIO
   const [personas, setPersonas] = useState<number>(seatsIncluded)
-  const total = priceCents + Math.max(0, personas - seatsIncluded) * extraSeatCents
+  const deMas = Math.max(0, personas - seatsIncluded)
+  const total = priceCents + deMas * extraSeatCents
   const precioExtra = formatPrice(extraSeatCents, idioma)
+  const plan = planLabel('NEGOCIO', idioma)
+  const texto = personas === 1 ? t('pre.calcUnaPersona') : t('pre.calcPersonas', { n: personas })
+  const poner = (n: number) => setPersonas(Math.max(1, Math.min(MAX_PERSONAS, n)))
+
+  const paso = (delta: -1 | 1) => (
+    <button
+      type="button"
+      aria-label={delta < 0 ? t('pre.calcMenos') : t('pre.calcMas')}
+      disabled={delta < 0 ? personas <= 1 : personas >= MAX_PERSONAS}
+      onClick={() => poner(personas + delta)}
+      className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-surface text-heading-sm leading-none text-ink transition-colors duration-200 hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line disabled:hover:text-ink"
+    >
+      <span aria-hidden>{delta < 0 ? '−' : '+'}</span>
+    </button>
+  )
 
   return (
-    <Card className="flex flex-col gap-4 p-6 sm:p-8">
-      <div>
-        <h3 className="font-display text-subheading font-semibold text-ink">
-          {t('pre.calcTitulo')}
-        </h3>
-        <p className="mt-1 text-meta text-muted">{t('pre.calcPista', { extra: precioExtra })}</p>
-      </div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <label className="flex min-w-0 flex-1 flex-col gap-2">
-          <span className="text-body font-semibold text-ink tabular-nums">
-            {personas === 1 ? t('pre.calcUnaPersona') : t('pre.calcPersonas', { n: personas })}
-          </span>
+    <Card className="relative overflow-hidden border-2 border-brand! p-6 shadow-pop sm:p-10">
+      <Eyebrow>{t('pre.calcEyebrow')}</Eyebrow>
+      <h2
+        id="calculadora"
+        className="max-w-[560px] text-heading leading-tight font-semibold text-ink sm:text-display-sm"
+      >
+        {t('pre.calcTitulo')}
+      </h2>
+      <p className="mt-2 text-body text-muted">{t('pre.calcPista', { extra: precioExtra })}</p>
+
+      <div className="mt-8 grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            {paso(-1)}
+            <p
+              className="min-w-0 flex-1 text-center font-display text-heading-sm font-semibold text-ink tabular-nums"
+              aria-live="polite"
+            >
+              {texto}
+            </p>
+            {paso(1)}
+          </div>
           <input
             type="range"
             min={1}
-            max={12}
+            max={MAX_PERSONAS}
             value={personas}
-            onChange={(e) => setPersonas(Number(e.target.value))}
-            aria-valuetext={
-              personas === 1 ? t('pre.calcUnaPersona') : t('pre.calcPersonas', { n: personas })
-            }
+            onChange={(e) => poner(Number(e.target.value))}
+            aria-labelledby="calculadora"
+            aria-valuetext={texto}
             className="h-11 w-full accent-brand"
           />
-        </label>
-        <p className="shrink-0 text-right">
-          <span className="font-display text-display-sm font-semibold text-ink tabular-nums">
-            {formatPrice(total, idioma)}
-          </span>{' '}
-          <span className="text-body text-muted">{t('pre.calcTotal')}</span>
-        </p>
+        </div>
+
+        <div className="rounded-xl bg-cream px-6 py-5 md:min-w-[280px] md:text-right">
+          <p>
+            <span className="font-display text-display font-semibold text-ink tabular-nums">
+              {formatPrice(total, idioma)}
+            </span>{' '}
+            <span className="text-body text-muted">{t('pre.calcTotal')}</span>
+          </p>
+          <p className="mt-1 text-meta text-body-2 tabular-nums">
+            {deMas > 0
+              ? t('pre.calcDesglose', {
+                  plan,
+                  incluidas: seatsIncluded,
+                  n: deMas,
+                  extra: precioExtra,
+                })
+              : t('pre.calcSoloPlan', { plan, incluidas: seatsIncluded })}
+          </p>
+          <p className="mt-3 text-meta font-semibold text-brand-text">{t('pre.calcAhora')}</p>
+        </div>
       </div>
     </Card>
   )
@@ -125,6 +173,11 @@ export function Pricing() {
         </p>
       </Reveal>
 
+      {/* CALCULADORA: lo primero que pregunta quien tiene equipo */}
+      <Reveal delay={60} className="relative mx-auto mt-12 max-w-[1040px]">
+        <Calculadora />
+      </Reveal>
+
       {/* PLANES */}
       <div className="relative mt-14 flex flex-col items-stretch gap-6 lg:flex-row">
         {PLANES.map((plan, i) => (
@@ -137,7 +190,7 @@ export function Pricing() {
             <Card
               className={cx(
                 'lift relative flex h-full flex-col p-7 sm:p-8',
-                plan.popular && 'border-2 border-brand shadow-pop',
+                plan.popular && 'border-2 border-brand! shadow-pop',
               )}
             >
               {plan.popular && (
@@ -198,75 +251,37 @@ export function Pricing() {
         ))}
       </div>
 
-      {/* CALCULADORA */}
-      <Reveal delay={80} className="mx-auto mt-6 max-w-[920px]">
-        <Calculadora />
-      </Reveal>
-
-      {/* COMISIÓN */}
-      <Reveal delay={80} className="mx-auto mt-6 max-w-[920px]">
-        <Card className="flex items-center gap-5 p-6 sm:p-8">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink font-display text-subheading font-semibold text-accent">
-            %
-          </div>
-          <p className="text-body leading-relaxed text-body-2">
-            <Texto
-              clave="pre.comision"
-              partes={{
-                soloPrimeraVez: <strong className="text-ink">{t('pre.soloPrimeraVez')}</strong>,
-              }}
-            />
-          </p>
-        </Card>
-      </Reveal>
-
-      {/* QUÉ VA APARTE */}
-      <section id="extras" className="relative mt-20 scroll-mt-24">
+      {/* INCLUIDO EN TODOS LOS PLANES */}
+      <section id="incluido" className="relative mt-20 scroll-mt-24">
         <Reveal>
-          <Eyebrow>{t('pre.noIncluye')}</Eyebrow>
+          <Eyebrow>{t('pre.incluidoEyebrow')}</Eyebrow>
           <h2 className="quill mb-3 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
-            {t('pre.siQuieresMas')}
+            {t('pre.incluidoTitulo')}
           </h2>
           <p className="mb-8 max-w-[560px] text-ui leading-relaxed text-body">
-            {t('pre.noIncluyeTexto')}
+            {t('pre.incluidoTexto')}
           </p>
         </Reveal>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          {EXTRAS.map((extra, i) => (
-            <Reveal key={extra.nombre} delay={i * 90} variant={i % 2 === 0 ? 'left' : 'right'}>
+        <div className="grid gap-5 md:grid-cols-3">
+          {INCLUIDO.map((bloque, i) => (
+            <Reveal key={bloque.nombre} delay={i * 90}>
               <Card className="flex h-full flex-col p-6 sm:p-7">
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-display text-subheading font-semibold text-ink">
-                    {t(extra.nombre)}
+                    {t(bloque.nombre)}
                   </span>
-                  {'contacto' in extra && extra.contacto ? (
-                    <a
-                      href={`mailto:${CONTACT_EMAIL}${
-                        'asunto' in extra && extra.asunto
-                          ? `?subject=${encodeURIComponent(t(extra.asunto))}`
-                          : ''
-                      }`}
-                      className="inline-flex min-h-10 items-center rounded-full bg-cream px-3 text-meta font-semibold text-brand-text hover:text-ink"
-                    >
-                      {t('pre.escribenos')}
-                    </a>
-                  ) : (
-                    'precio' in extra &&
-                    extra.precio && (
-                      <span className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text">
-                        {t(extra.precio)}
-                      </span>
-                    )
-                  )}
+                  <span className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text">
+                    {t(bloque.precio)}
+                  </span>
                 </div>
                 <ul className="flex flex-col gap-2.5">
-                  {extra.items.map((item) => (
+                  {bloque.items.map((item) => (
                     <Feature key={item}>{t(item)}</Feature>
                   ))}
                 </ul>
-                {'nota' in extra && extra.nota && (
-                  <p className="mt-4 text-meta text-subtle">{t(extra.nota)}</p>
+                {'nota' in bloque && bloque.nota && (
+                  <p className="mt-4 text-meta text-subtle">{t(bloque.nota)}</p>
                 )}
               </Card>
             </Reveal>
