@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
@@ -56,7 +56,7 @@ export function BookingDate() {
   const hoy = useMemo(() => hoyMadrid(), [])
   const maximo = addDaysKey(hoy, DIAS_VISTA)
   const [mes, setMes] = useState(() => primerDiaDelMes(hoy))
-  const [dia, setDia] = useState<string | null>(null)
+  const [diaElegido, setDia] = useState<string | null>(null)
   const [slot, setSlot] = useState<SlotDTO | null>(null)
 
   const { data: business } = useQuery({
@@ -128,12 +128,11 @@ export function BookingDate() {
   }, [availability])
   const conHueco = (key: string) => porDia.get(key)?.slots.some((s) => s.available) ?? false
 
-  // Al llegar, el primer día con hueco del mes; si no lo hay, nada.
-  useEffect(() => {
-    if (!availability || dia) return
-    const primero = availability.find((d) => d.slots.some((s) => s.available))
-    if (primero) setDia(primero.date)
-  }, [availability, dia])
+  /* El día a la vista: el elegido o, si no, el primero con hueco del mes.
+     Se calcula aquí y no en un efecto: con el efecto había un instante sin
+     día («Elige un día») y la página saltaba dos veces al llegar las horas. */
+  const dia =
+    diaElegido ?? availability?.find((d) => d.slots.some((x) => x.available))?.date ?? null
 
   if (!business) {
     return (

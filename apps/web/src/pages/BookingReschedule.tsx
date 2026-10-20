@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -40,7 +40,7 @@ export function BookingReschedule() {
   const hoy = useMemo(() => hoyMadrid(), [])
   const maximo = addDaysKey(hoy, DIAS_VISTA)
   const [mes, setMes] = useState(() => primerDiaDelMes(hoy))
-  const [dia, setDia] = useState<string | null>(null)
+  const [diaElegido, setDia] = useState<string | null>(null)
   const [slot, setSlot] = useState<SlotDTO | null>(null)
 
   const { data: booking, isLoading: cargandoReserva } = useQuery({
@@ -73,11 +73,11 @@ export function BookingReschedule() {
     return map
   }, [availability])
 
-  useEffect(() => {
-    if (!availability || dia) return
-    const primero = availability.find((d) => d.slots.some((s) => s.available))
-    if (primero) setDia(primero.date)
-  }, [availability, dia])
+  /* El día a la vista: el elegido o, si no, el primero con hueco del mes.
+     Se calcula aquí y no en un efecto: con el efecto había un instante sin
+     día («Elige un día») y la página saltaba dos veces al llegar las horas. */
+  const dia =
+    diaElegido ?? availability?.find((d) => d.slots.some((x) => x.available))?.date ?? null
 
   const mover = useMutation({
     mutationFn: () => api.rescheduleMyBooking(code, slot!.startsAt),

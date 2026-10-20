@@ -35,8 +35,15 @@ test('la reserva no pierde el calendario al cambiar de mes', async ({ page }) =>
   await expect(page.getByRole('grid')).toBeVisible()
 
   await page.getByRole('button', { name: /mes siguiente/i }).click()
-  const vistos = await muestrear(page, 900, () => document.querySelectorAll('[role=grid]').length)
-  expect(vistos.every((n) => n === 1)).toBe(true)
+  const vistos = (await muestrear(page, 1200, () => [
+    document.querySelectorAll('[role=grid]').length,
+    Math.round(document.querySelector('main')!.getBoundingClientRect().height),
+  ])) as [number, number][]
+  expect(vistos.every(([n]) => n === 1)).toBe(true)
+  /* Y la página no se encoge mientras llegan las horas. Antes, al llegar,
+     había un instante sin día elegido y bajaba unos 300 px antes de crecer. */
+  const altos = vistos.map(([, h]) => h)
+  expect(Math.max(...altos) - Math.min(...altos)).toBeLessThanOrEqual(40)
 })
 
 test('el panel cambia de sección sin pasar por un esqueleto', async ({ page }) => {

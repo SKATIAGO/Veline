@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useId, useMemo, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LocalProvider, useLocal } from '../../lib/local'
-import { precargarCodigoPanel, usePrecargaPanel } from '../../lib/precarga'
+import { alReposo, precargarCodigoPanel, usePrecargaPanel } from '../../lib/precarga'
 import { CentroCabeceraMovil, SelectorLocal } from '../../components/SelectorLocal'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -357,6 +357,24 @@ function useIntencion(to: string) {
   return { onPointerEnter: hacer, onFocus: hacer, onTouchStart: hacer }
 }
 
+/**
+ * Pide en reposo los datos (y el código) de unas secciones. Va como
+ * componente y no como efecto del layout porque este tiene salidas tempranas
+ * antes de saber quién ha entrado, y la precarga necesita el local elegido.
+ */
+function PrecargaEnReposo({ rutas, ya }: { rutas: string[]; ya?: boolean }) {
+  const { slug = '' } = useParams()
+  const precargar = usePrecargaPanel(slug)
+  const clave = rutas.join('|')
+  useEffect(() => {
+    const pedir = () => clave.split('|').forEach((r) => precargar(r))
+    // «Más» recién abierta: el dedo va a tocar algo enseguida, no hay reposo que esperar.
+    if (!ya) return alReposo(pedir)
+    pedir()
+  }, [clave, precargar, ya])
+  return null
+}
+
 /** Un destino de la barra inferior. 56 px de alto: se acierta sin mirar. */
 function BotonBarra({ seccion }: { seccion: Seccion }) {
   const { t } = useIdioma()
@@ -691,6 +709,7 @@ export function PanelLayout() {
   const grupos = [...new Set(secciones.map((s) => s.grupo))]
 
   const enBarra = secciones.filter((s) => s.enBarra)
+  const rutaDe = (to: string) => to.replace(`/panel/${slug}`, '').replace(/^\//, '')
   /* «Tu perfil» —nombre y contraseña— en el móvil solo tenía como puerta el
      círculo con la inicial de la cabecera, sin texto. Va también en «Más»,
      que es donde se busca. En el menú lateral no: allí ya está a la vista,
@@ -971,6 +990,13 @@ export function PanelLayout() {
         </nav>
 
         <DescartarCambios />
+
+        {/* En el móvil, lo de la barra se pide en reposo y lo de «Más» al
+            abrirla: con el dedo no hay «pasar por encima» que dé tiempo. */}
+        {!esPlataforma && <PrecargaEnReposo rutas={enBarra.map((s) => rutaDe(s.to))} />}
+        {!esPlataforma && masAbierto && (
+          <PrecargaEnReposo ya rutas={enMas.map((s) => rutaDe(s.to))} />
+        )}
 
         <Sheet
           open={masAbierto}

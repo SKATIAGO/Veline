@@ -74,7 +74,7 @@ export function SlotPicker({
   const [mes, setMes] = useState(() =>
     primerDiaDelMes(diaInicial && diaInicial > hoy ? diaInicial : hoy),
   )
-  const [dia, setDia] = useState<string | null>(diaInicial ?? null)
+  const [diaElegido, setDia] = useState<string | null>(diaInicial ?? null)
   const [aMano, setAMano] = useState(false)
   // Se pide el mes a la vista, sin lo que ya ha pasado.
   const desde = mes > hoy ? mes : hoy
@@ -100,13 +100,14 @@ export function SlotPicker({
   const porDia = useMemo(() => new Map((data ?? []).map((d) => [d.date, d])), [data])
   const libre = (key: string) => porDia.get(key)?.slots.some((s) => s.available) ?? false
 
-  /* Al abrir, y al pasar de mes, se coloca en el primer día con sitio.
-     Un día elegido a propósito (el del calendario) no se cambia aunque esté
-     lleno: se dice que lo está, que saltar a otro sin avisar despista. */
-  useEffect(() => {
-    if (!data || (dia && dia >= desde && dia <= hasta)) return
-    setDia(data.find((d) => d.slots.some((s) => s.available))?.date ?? null)
-  }, [data])
+  /* El día a la vista: el elegido si es de este mes (el del calendario desde
+     el que se abrió, aunque esté lleno: se dice que lo está, que saltar a otro
+     sin avisar despista) o, si no, el primero con sitio. Calculado aquí y no
+     en un efecto, que dejaba un instante sin día y el diálogo daba un salto. */
+  const dia =
+    diaElegido && diaElegido >= desde && diaElegido <= hasta
+      ? diaElegido
+      : (data?.find((d) => d.slots.some((x) => x.available))?.date ?? null)
 
   // La hora elegida deja de valer si ya no está libre con lo nuevo. Solo se
   // puede saber con su mes a la vista.

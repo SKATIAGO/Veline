@@ -75,6 +75,13 @@ export function usePrecargaPanel(slug: string) {
               local: actual,
             }),
           )
+          // La vista Calendario: el mes en curso y sus notas.
+          pedir(['panel', slug, 'bookings', 'mes', primerDiaMes(), actual], () =>
+            api.panelBookings(slug, { from: primerDiaMes(), to: ultimoDiaMes(), local: actual }),
+          )
+          pedir(['panel', slug, 'notes', 'mes', primerDiaMes()], () =>
+            api.panelNotes(slug, { from: primerDiaMes(), to: ultimoDiaMes() }),
+          )
           break
         }
         case 'clientes':
@@ -131,6 +138,24 @@ export function usePrecargaPanel(slug: string) {
     },
     [qc, slug, actual, paraEditar],
   )
+}
+
+/**
+ * Hace algo cuando el navegador está libre (o a los 2 s como mucho).
+ *
+ * En el móvil no hay «pasar el ratón por encima»: la precarga por intención
+ * llega con el dedo, unos milisegundos antes de cambiar de pantalla, y con
+ * una red de teléfono no da tiempo. Por eso allí lo probable se pide antes,
+ * en reposo: las secciones de la barra, las de «Más» al abrirla y las
+ * pestañas hermanas de la sección en la que se está.
+ */
+export function alReposo(hacer: () => void): () => void {
+  if ('requestIdleCallback' in window) {
+    const id = window.requestIdleCallback(hacer, { timeout: 2000 })
+    return () => window.cancelIdleCallback(id)
+  }
+  const id = setTimeout(hacer, 600)
+  return () => clearTimeout(id)
 }
 
 /** Descarga en segundo plano el código de todas las secciones, una vez. */

@@ -1,8 +1,9 @@
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Segmentado } from './Segmentado'
 import { useIdioma, type Clave } from '../i18n/idioma'
 import { siDescarta } from '../lib/cambios'
-import { usePrecargaPanel } from '../lib/precarga'
+import { alReposo, usePrecargaPanel } from '../lib/precarga'
 
 /**
  * Las partes de una sección del menú: «Horario · Cierres y vacaciones ·
@@ -47,6 +48,12 @@ export function PestanasSeccion({ seccion }: { seccion: SeccionConPestanas }) {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const precargar = usePrecargaPanel(slug)
+
+  // Las pestañas hermanas, en reposo: al tocarlas ya están.
+  useEffect(
+    () => alReposo(() => PESTANAS[seccion].forEach((p) => precargar(p.ruta))),
+    [seccion, precargar],
+  )
 
   return (
     <Segmentado
