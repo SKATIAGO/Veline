@@ -57,7 +57,7 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
             la tarjeta: así no hay dos destinos iguales en el orden de tabulación. */}
         <span
           aria-hidden
-          className="relative mt-auto inline-flex min-h-9 w-full items-center justify-center rounded-full border border-line bg-surface text-meta font-semibold text-ink transition-colors duration-200 group-hover:border-line-strong max-sm:min-h-11"
+          className="pointer-events-none relative mt-auto inline-flex min-h-9 w-full items-center justify-center rounded-full border border-line bg-surface text-meta font-semibold text-ink transition-colors duration-200 group-hover:border-line-strong max-sm:min-h-11"
         >
           {t('ficha.reservar')}
         </span>
