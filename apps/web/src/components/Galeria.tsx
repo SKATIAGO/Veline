@@ -82,7 +82,7 @@ export function FotoAmpliable({
       onClick={onOpen}
       aria-label={t('galeria.verFotoDe', { nombre })}
       className={cx(
-        'group relative shrink-0 cursor-zoom-in overflow-hidden rounded-lg',
+        'group relative z-10 shrink-0 cursor-zoom-in overflow-hidden rounded-lg',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
         className,
       )}
