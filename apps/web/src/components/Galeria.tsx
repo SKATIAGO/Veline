@@ -138,26 +138,19 @@ export function FotoAmpliable({
 
 /**
  * Lo que se enseña en el resumen de la reserva para ver cómo es lo que se
- * reserva: las fotos del servicio y un enlace a las del local. Mientras se
- * elige fecha o se confirma, es justo cuando más se quiere comprobar que es lo
- * que se esperaba.
+ * reserva: las fotos del servicio. Mientras se elige fecha o se confirma, es
+ * justo cuando más se quiere comprobar que es lo que se esperaba.
  */
 export function AtajoFotos({
   fotosServicio,
   nombreServicio,
-  fotosLocal,
   onVerServicio,
-  onVerLocal,
 }: {
   fotosServicio: string[]
   nombreServicio: string
-  /** Cuántas fotos tiene el local. */
-  fotosLocal: number
   onVerServicio: () => void
-  onVerLocal: () => void
 }) {
-  const { t } = useIdioma()
-  if (fotosServicio.length === 0 && fotosLocal === 0) return null
+  if (fotosServicio.length === 0) return null
   return (
     <div className="mb-4 flex items-center gap-3">
       {fotosServicio[0] && (
@@ -169,15 +162,6 @@ export function AtajoFotos({
           className="size-16 rounded-xl"
           onOpen={onVerServicio}
         />
-      )}
-      {fotosLocal > 0 && (
-        <button
-          type="button"
-          onClick={onVerLocal}
-          className="inline-flex min-h-10 items-center text-meta font-semibold text-brand-text hover:underline"
-        >
-          {t('galeria.verFotosLocal', { n: fotosLocal })}
-        </button>
       )}
     </div>
   )

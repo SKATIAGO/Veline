@@ -1894,7 +1894,6 @@ export const es = {
   'galeria.reducir': 'Reducir',
   'galeria.miniaturas': 'Miniaturas',
   'galeria.xDeN': 'Foto {index} de {total}',
-  'galeria.verFotosLocal': 'Ver las {n} fotos del local',
   'fotos.titulo': 'Fotos',
   'fotos.cuantas': '{n} de {max}',
   'fotos.principal': 'Principal',

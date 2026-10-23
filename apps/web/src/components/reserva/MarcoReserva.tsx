@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { formatPrice, type BusinessDTO, type ServiceDTO } from '@veline/shared'
+import { formatPrice, type ServiceDTO } from '@veline/shared'
 import { Link } from 'react-router-dom'
 import { Card, cx } from '../ui'
 import { Stepper } from '../Stepper'
@@ -64,10 +64,8 @@ export function MarcoReserva({
     <AtajoFotos
       fotosServicio={servicio.photos}
       nombreServicio={servicio.name}
-      fotosLocal={negocio.photos.length}
       // Con galería, la pantalla pasa los DTO completos; reprogramar no la trae.
       onVerServicio={() => fotos.visor.abrir(fotos.fotosDe.deServicio(servicio as ServiceDTO))}
-      onVerLocal={() => fotos.visor.abrir(fotos.fotosDe.deLocal(negocio as BusinessDTO))}
     />
   )
 
