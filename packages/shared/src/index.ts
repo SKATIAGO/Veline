@@ -37,7 +37,7 @@ export const PRUEBA_DIAS_DEFECTO = 15
 
 /** Cuántas fotos puede tener cada servicio y cada extra. Las del negocio tienen
     su propio tope. La primera es la que sale en la lista. */
-export const MAX_FOTOS_POR_ITEM = 6
+export const MAX_FOTOS_POR_ITEM = 50
 
 export const PLAN_INFO = {
   GRATIS: {
