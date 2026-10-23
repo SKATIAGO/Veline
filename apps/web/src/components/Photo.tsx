@@ -52,7 +52,7 @@ export function Photo({ src, alt, width, height, className, fallback, priority }
   }
 
   return (
-    <div className={cx('relative overflow-hidden bg-ph-bg', className)}>
+    <div className={cx('relative isolate overflow-hidden bg-ph-bg', className)}>
       <img
         ref={ref}
         src={photoSrc(src, width, height)}
@@ -62,7 +62,7 @@ export function Photo({ src, alt, width, height, className, fallback, priority }
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
         className={cx(
-          'size-full object-cover transition-opacity duration-500',
+          'block size-full object-cover transition-opacity duration-500',
           loaded ? 'opacity-100' : 'opacity-0',
         )}
       />
