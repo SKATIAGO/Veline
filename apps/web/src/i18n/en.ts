@@ -1116,6 +1116,13 @@ export const en: Record<keyof typeof es, string> = {
   'pre.equipoPeriodo': '/month per extra employee',
   'pre.hablarVentas': 'Talk to sales',
   'pre.equipoAsunto': 'Question about the Team plan',
+  'pre.medidaEyebrow': 'Tailor-made',
+  'pre.medidaTitulo': 'Want your own website or your own booking system?',
+  'pre.medidaTexto':
+    'We build a custom website for your business, or a booking system made to measure. Tell us what you need and we will send you a quote.',
+  'pre.medidaBoton': 'Request a quote',
+  'pre.medidaPie': 'No commitment. We reply by email.',
+  'pre.medidaAsunto': 'Quote: custom website or booking system',
   'pre.equipoF1': 'Everything in Business',
   'pre.equipoF2': 'Unlimited employees and locations',
   'pre.equipoExplicacion':

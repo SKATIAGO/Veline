@@ -251,6 +251,41 @@ export function Pricing() {
         ))}
       </div>
 
+      {/* A MEDIDA: web o agenda propia, con presupuesto */}
+      <Reveal as="section" className="mt-20">
+        <div className="relative overflow-hidden rounded-[26px] border border-accent/50 bg-gradient-to-br from-ink-2 via-ink to-[#241811] p-8 text-cream shadow-[0_40px_70px_-35px_rgba(46,33,25,.7),0_0_0_6px_rgba(205,174,116,.12)] sm:p-12">
+          <Glow className="top-[-160px] right-[-120px]" color="rgba(205,174,116,.28)" size={480} />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-3.5 rounded-2xl border border-accent/25"
+          />
+          <div className="relative grid items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
+            <div>
+              <p className="text-meta font-semibold tracking-[0.22em] text-accent uppercase">
+                {t('pre.medidaEyebrow')}
+              </p>
+              <h2 className="mt-3 mb-3 font-display text-heading leading-tight font-semibold text-cream sm:text-display-sm">
+                {t('pre.medidaTitulo')}
+              </h2>
+              <p className="max-w-[520px] text-ui leading-relaxed text-ondark-muted-2">
+                {t('pre.medidaTexto')}
+              </p>
+            </div>
+            <div className="lg:text-right">
+              <ButtonLink
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t('pre.medidaAsunto'))}`}
+                variant="accent"
+                size="lg"
+                className="sheen"
+              >
+                {t('pre.medidaBoton')}
+              </ButtonLink>
+              <p className="mt-3 text-meta text-ondark-muted">{t('pre.medidaPie')}</p>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+
       {/* INCLUIDO EN TODOS LOS PLANES */}
       <section id="incluido" className="relative mt-20 scroll-mt-24">
         <Reveal>

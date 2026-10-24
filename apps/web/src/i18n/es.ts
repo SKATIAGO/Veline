@@ -1116,6 +1116,13 @@ export const es = {
   'pre.equipoPeriodo': '/mes por empleado de más',
   'pre.hablarVentas': 'Hablar con ventas',
   'pre.equipoAsunto': 'Consulta sobre el plan Equipo',
+  'pre.medidaEyebrow': 'A tu medida',
+  'pre.medidaTitulo': '¿Quieres tu propia web o tu propia agenda?',
+  'pre.medidaTexto':
+    'Te creamos una web personalizada para tu negocio, o una agenda hecha a tu medida. Cuéntanos qué necesitas y te enviamos un presupuesto.',
+  'pre.medidaBoton': 'Pedir presupuesto',
+  'pre.medidaPie': 'Sin compromiso. Te respondemos por correo.',
+  'pre.medidaAsunto': 'Presupuesto: web o agenda personalizada',
   'pre.equipoF1': 'Todo lo de Negocio',
   'pre.equipoF2': 'Empleados y locales ilimitados',
   'pre.equipoExplicacion':
