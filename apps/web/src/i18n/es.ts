@@ -1080,8 +1080,11 @@ export const es = {
 
   // ── Precios ───────────────────────────────────────────────
   'pre.titulo': 'Gratis durante el pre-lanzamiento',
-  'pre.entradilla':
-    'Ahora mismo Veline es totalmente gratis. Estos son los precios que se pagarían una vez se lance Veline, para que sepas de antemano qué te esperará, sin letra pequeña.',
+  'pre.entradilla': 'Ahora mismo Veline es totalmente gratis.',
+  'pre.entradilla2':
+    'Estos son los precios que se pagarían tras el lanzamiento, para que sepas de antemano qué te espera.',
+  'pre.tituloOro': 'Gratis',
+  'pre.tituloResto': 'durante el pre-lanzamiento',
   'pre.masElegido': 'Más elegido',
   'pre.precioFuturo': 'Precio tras el lanzamiento',
   'pre.ahoraGratis': 'Ahora gratis',

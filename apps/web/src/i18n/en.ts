@@ -1080,8 +1080,11 @@ export const en: Record<keyof typeof es, string> = {
 
   // ── Pricing ───────────────────────────────────────────────
   'pre.titulo': 'Free during the pre-launch',
-  'pre.entradilla':
-    'Right now Veline is completely free. These are the prices you would pay once Veline launches, so you know what to expect up front, no small print.',
+  'pre.entradilla': 'Right now Veline is completely free.',
+  'pre.entradilla2':
+    'These are the prices you would pay after launch, so you know what to expect up front.',
+  'pre.tituloOro': 'Free',
+  'pre.tituloResto': 'during the pre-launch',
   'pre.masElegido': 'Most popular',
   'pre.precioFuturo': 'Price after launch',
   'pre.ahoraGratis': 'Free for now',

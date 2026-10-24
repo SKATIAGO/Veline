@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CONTACT_EMAIL, PLAN_INFO, formatPrice, planLabel } from '@veline/shared'
 import { ButtonLink, Card, Eyebrow, cx } from '../components/ui'
 import { Reveal } from '../components/Reveal'
-import { DoorMotif, Glow } from '../components/Ornaments'
+import { DoorMotif, Filete, Glow } from '../components/Ornaments'
 import { Texto, useIdioma, type Clave } from '../i18n/idioma'
 import { FAQ, INCLUIDO, PLANES, PRUEBA_DIAS } from '../content/precios'
 
@@ -165,11 +165,22 @@ export function Pricing() {
 
       {/* HERO */}
       <Reveal className="relative text-center">
-        <h1 className="text-display-sm leading-tight font-semibold text-ink sm:text-display">
-          {t('pre.titulo')}
+        <p className="text-meta font-semibold tracking-[0.22em] text-brand-text uppercase">
+          {t('pre.pruebaNombre')}
+        </p>
+        <h1 className="mt-3 font-display text-display-sm leading-tight font-semibold text-ink sm:text-display-lg">
+          <span className="bg-gradient-to-b from-[#d4aa5e] via-[#b98a42] to-[#8f5a2c] bg-clip-text text-transparent">
+            {t('pre.tituloOro')}
+          </span>{' '}
+          {t('pre.tituloResto')}
         </h1>
-        <p className="mx-auto mt-4 max-w-[560px] text-ui leading-relaxed text-body">
+        <div className="mt-5">
+          <Filete />
+        </div>
+        <p className="mx-auto max-w-[560px] text-ui leading-relaxed text-body">
           {t('pre.entradilla', { n: PRUEBA_DIAS })}
+          <br />
+          {t('pre.entradilla2')}
         </p>
       </Reveal>
 
