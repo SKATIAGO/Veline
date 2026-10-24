@@ -210,7 +210,7 @@ function IconoSocial({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="grid size-11 shrink-0 place-items-center rounded-full text-subtle transition-colors duration-200 hover:bg-canvas hover:text-brand"
+      className="grid size-11 shrink-0 place-items-center rounded-full border border-accent/40 text-accent transition-colors duration-200 hover:bg-accent/15 hover:text-cream"
     >
       <span className="size-[19px]">{children}</span>
     </a>
@@ -250,12 +250,14 @@ function Footer() {
   ]
 
   return (
-    <footer className="relative border-t border-line">
+    <footer className="relative border-t border-accent/50 bg-ink text-cream">
       <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-10 px-6 pt-20 pb-14 sm:flex-row lg:px-16">
         <div className="max-w-[280px]">
-          <div className="mb-2.5 font-display text-subheading font-semibold text-ink">Veline</div>
-          <p className="text-body leading-relaxed text-subtle">{t('pie.eslogan')}</p>
-          <div className="-ml-1.5 mt-4 flex items-center gap-1">
+          <div className="mb-2.5 font-display text-subheading font-semibold text-accent">
+            Veline
+          </div>
+          <p className="text-body leading-relaxed text-ondark-muted-2">{t('pie.eslogan')}</p>
+          <div className="mt-4 flex items-center gap-2">
             <IconoSocial href={SOCIAL.instagram.url} label={t('pie.red', { red: 'Instagram' })}>
               <IconoInstagram />
             </IconoSocial>
@@ -267,17 +269,27 @@ function Footer() {
         <div className="flex flex-wrap gap-10 sm:gap-16">
           {columns.map((col) => (
             <div key={col.title}>
-              <div className="mb-3.5 text-meta font-semibold text-ink">{t(col.title)}</div>
+              <div className="mb-3.5 border-b border-accent/30 pb-2 text-meta font-semibold tracking-[0.12em] text-accent uppercase">
+                {t(col.title)}
+              </div>
               {/* -my-2.5 compensa el padding: el blanco pulsable llega a 44 px
                   sin que la lista se vea más separada de lo que estaba. */}
-              <div className="-my-2.5 flex flex-col text-body text-subtle">
+              <div className="-my-2.5 flex flex-col text-body text-ondark-muted-2">
                 {col.links.map((l) =>
                   l.href ? (
-                    <a key={l.label} href={l.href} className="py-2.5 hover:text-brand">
+                    <a
+                      key={l.label}
+                      href={l.href}
+                      className="py-2.5 transition-colors hover:text-accent"
+                    >
                       {t(l.label)}
                     </a>
                   ) : (
-                    <Link key={l.label} to={l.to!} className="py-2.5 hover:text-brand">
+                    <Link
+                      key={l.label}
+                      to={l.to!}
+                      className="py-2.5 transition-colors hover:text-accent"
+                    >
                       {t(l.label)}
                     </Link>
                   ),
