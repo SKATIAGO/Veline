@@ -40,6 +40,8 @@ interface Plan {
   /** Por qué merece la pena lo que se paga, si el precio solo no lo cuenta. */
   explicacion?: Clave
   popular?: boolean
+  /** Tarjeta crema con marco dorado, como una invitación. */
+  invitacion?: boolean
   cta: Clave
   /** Adónde lleva el botón, si es una pantalla de Veline. */
   to?: string
@@ -54,6 +56,7 @@ export const PLANES: readonly Plan[] = [
     nombre: 'pre.pruebaNombre',
     tagline: 'pre.pruebaTagline',
     precio: 'pre.gratis',
+    invitacion: true,
     periodo: 'pre.pruebaPeriodo',
     cta: 'pre.empezarPrueba',
     to: '/alta',

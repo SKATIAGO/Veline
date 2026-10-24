@@ -191,14 +191,32 @@ export function Pricing() {
               className={cx(
                 'lift relative flex h-full flex-col p-7 sm:p-8',
                 plan.popular && 'border-2 border-brand! shadow-pop',
+                plan.invitacion &&
+                  'border-accent/70! bg-gradient-to-b from-cream to-canvas shadow-pop',
               )}
             >
+              {plan.invitacion && (
+                <>
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-2.5 rounded-[14px] border border-accent/60"
+                  />
+                  <span className="absolute -top-3 left-7 z-10 rounded-full bg-ink px-3 py-1 text-caption font-semibold text-accent">
+                    {t('pre.pruebaNombre')}
+                  </span>
+                </>
+              )}
               {plan.popular && (
                 <span className="absolute -top-3 left-7 rounded-full bg-brand px-3 py-1 text-caption font-semibold text-white">
                   {t('pre.masElegido')}
                 </span>
               )}
-              <div className="font-display text-subheading font-semibold text-ink">
+              <div
+                className={cx(
+                  'font-display text-subheading font-semibold text-ink',
+                  plan.invitacion && 'mt-2',
+                )}
+              >
                 {t(plan.nombre)}
               </div>
               <div className="mt-1 mb-6 text-body text-muted">{t(plan.tagline)}</div>
@@ -208,7 +226,12 @@ export function Pricing() {
                 </p>
               )}
               <div className="mb-6 flex items-baseline gap-1.5">
-                <span className="font-display text-display font-semibold text-ink">
+                <span
+                  className={cx(
+                    'font-display text-display font-semibold text-ink',
+                    plan.invitacion && 'text-brand-text',
+                  )}
+                >
                   {plan.priceCents !== undefined
                     ? `${plan.pricePrefix ?? ''}${formatPrice(plan.priceCents, idioma)}`
                     : plan.precio
@@ -241,7 +264,12 @@ export function Pricing() {
               >
                 {t(plan.cta)}
               </ButtonLink>
-              <ul className="flex flex-col gap-2.5">
+              <ul
+                className={cx(
+                  'flex flex-col gap-2.5',
+                  plan.invitacion && 'divide-y divide-accent/40 *:py-2.5 *:first:pt-0 *:last:pb-0',
+                )}
+              >
                 {plan.features.map((f) => (
                   <Feature key={f}>{t(f)}</Feature>
                 ))}
