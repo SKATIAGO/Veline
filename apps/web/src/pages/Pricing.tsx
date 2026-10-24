@@ -271,7 +271,7 @@ export function Pricing() {
                 {t('pre.medidaTexto')}
               </p>
             </div>
-            <div className="lg:text-right">
+            <div className="flex flex-col items-center text-center">
               <ButtonLink
                 href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t('pre.medidaAsunto'))}`}
                 variant="accent"
