@@ -208,3 +208,14 @@ export function SectorMarquee({ items }: { items: readonly string[] }) {
     </div>
   )
 }
+
+/** Filete dorado con un rombo en el centro, para abrir una sección. */
+export function Filete() {
+  return (
+    <div aria-hidden className="mb-5 flex items-center justify-center gap-3.5">
+      <i className="h-px w-14 bg-gradient-to-r from-transparent to-accent" />
+      <b className="size-[7px] rotate-45 bg-accent" />
+      <i className="h-px w-14 bg-gradient-to-l from-transparent to-accent" />
+    </div>
+  )
+}

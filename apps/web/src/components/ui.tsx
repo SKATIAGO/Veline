@@ -70,7 +70,8 @@ export function Logo({
  * redondo se pulsa y lo recto se escribe.
  */
 
-type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'accent' | 'danger' | 'dark' | 'destroy'
+type ButtonVariant =
+  'primary' | 'secondary' | 'quiet' | 'accent' | 'danger' | 'dark' | 'destroy' | 'ghost-dark'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const buttonBase =
@@ -98,6 +99,9 @@ const buttonVariants: Record<ButtonVariant, string> = {
      el marrón de «danger» se confundía con el de la marca, y lo irreversible
      tiene que distinguirse de un vistazo. */
   destroy: 'bg-danger text-white hover:brightness-90',
+  // Contorno dorado sobre fondo marrón oscuro.
+  'ghost-dark':
+    'border border-accent/65 text-accent hover:border-accent hover:bg-accent hover:text-ink',
 }
 
 /* Alto mínimo garantizado + padding horizontal proporcionado.

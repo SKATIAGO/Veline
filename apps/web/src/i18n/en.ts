@@ -1093,7 +1093,7 @@ export const en: Record<keyof typeof es, string> = {
   'pre.pruebaPeriodo': 'during the pre-launch',
   'pre.empezarPrueba': 'Join the pre-launch',
   'pre.pruebaF1': 'Everything in the Business plan',
-  'pre.pruebaF2': 'No tie-in, no card',
+  'pre.pruebaF2': 'No tie-in',
   'pre.pruebaF3': 'Your page on the marketplace from day one',
   'pre.pruebaF4': 'Includes 200 messages a month',
 
@@ -2019,10 +2019,15 @@ export const en: Record<keyof typeof es, string> = {
   'home.empezarGratis': 'Join the pre-launch',
   'home.verComoFunciona': 'See how it works',
   'home.tresCosas': 'Three things that change from day one',
-  'home.precioEyebrow': 'Pricing after launch',
-  'home.precioLinea':
-    'It is free for now. Once Veline launches, the plan will cost {precio} a month with two people and 200 messages a month included.',
   'home.precioBoton': 'See the launch pricing',
+  'home.ahoraGratis': 'Free, right now',
+  'home.ahoraTexto':
+    'Join now and use it at no cost, with 200 messages a month included. No tie-in.',
+  'home.despuesLanzamiento': 'After launch',
+  'home.alMes': 'a month',
+  'home.despuesF1': 'Two people included',
+  'home.despuesF2': '200 messages a month',
+  'home.despuesF3': '+{extra} per extra employee',
   'pre.compara': "What's included",
   'pre.calcEyebrow': 'Work out your price',
   'pre.calcDesglose': '{plan} ({incluidas} people) + {n} × {extra}',

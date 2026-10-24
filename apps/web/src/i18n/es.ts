@@ -1093,7 +1093,7 @@ export const es = {
   'pre.pruebaPeriodo': 'durante el pre-lanzamiento',
   'pre.empezarPrueba': 'Unirme al pre-lanzamiento',
   'pre.pruebaF1': 'Todo lo del plan Negocio',
-  'pre.pruebaF2': 'Sin permanencia ni tarjeta',
+  'pre.pruebaF2': 'Sin permanencia',
   'pre.pruebaF3': 'Tu perfil en el marketplace desde el primer día',
   'pre.pruebaF4': 'Incluye 200 mensajes al mes',
 
@@ -2015,10 +2015,15 @@ export const es = {
   'home.empezarGratis': 'Unirme al pre-lanzamiento',
   'home.verComoFunciona': 'Ver cómo funciona',
   'home.tresCosas': 'Tres cosas que cambian desde el primer día',
-  'home.precioEyebrow': 'Precios tras el lanzamiento',
-  'home.precioLinea':
-    'Ahora es gratis. Cuando Veline se lance, el plan costará {precio} al mes con dos personas incluidas y 200 mensajes al mes.',
   'home.precioBoton': 'Ver los precios del lanzamiento',
+  'home.ahoraGratis': 'Ahora, gratis',
+  'home.ahoraTexto':
+    'Entra ahora y úsalo sin pagar nada, con 200 mensajes al mes incluidos. Sin permanencia.',
+  'home.despuesLanzamiento': 'Después del lanzamiento',
+  'home.alMes': 'al mes',
+  'home.despuesF1': 'Dos personas incluidas',
+  'home.despuesF2': '200 mensajes al mes',
+  'home.despuesF3': '+{extra} por empleado extra',
   'pre.compara': 'Qué incluye',
   'pre.calcEyebrow': 'Calcula tu precio',
   'pre.calcDesglose': '{plan} ({incluidas} personas) + {n} × {extra}',
