@@ -2026,11 +2026,6 @@ export const es = {
   'home.ahoraGratis': 'Ahora, gratis',
   'home.ahoraTexto':
     'Entra ahora y úsalo sin pagar nada, con 200 mensajes al mes incluidos. Sin permanencia.',
-  'home.despuesLanzamiento': 'Después del lanzamiento',
-  'home.alMes': 'al mes',
-  'home.despuesF1': 'Dos personas incluidas',
-  'home.despuesF2': '200 mensajes al mes',
-  'home.despuesF3': '+{extra} por empleado extra',
   'pre.compara': 'Qué incluye',
   'pre.calcEyebrow': 'Calcula tu precio',
   'pre.calcDesglose': '{plan} ({incluidas} personas) + {n} × {extra}',

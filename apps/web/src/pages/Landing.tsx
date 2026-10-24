@@ -1,4 +1,4 @@
-import { CATEGORIES, PLAN_INFO, formatPrice } from '@veline/shared'
+import { CATEGORIES } from '@veline/shared'
 import { ButtonLink } from '../components/ui'
 import { Reveal } from '../components/Reveal'
 import { DoorMotif, Filete, Glow, SectorMarquee } from '../components/Ornaments'
@@ -228,7 +228,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* PRECIO: AHORA GRATIS, Y LO QUE COSTARÁ DESPUÉS */}
+      {/* PRECIO: AHORA GRATIS (los precios se ven en Precios) */}
       <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16 lg:py-24">
         <Reveal>
           <div className="relative overflow-hidden rounded-[26px] border border-accent/50 bg-gradient-to-br from-ink-2 via-ink to-[#241811] p-8 text-cream shadow-[0_40px_70px_-35px_rgba(46,33,25,.7),0_0_0_6px_rgba(205,174,116,.12)] sm:p-14">
@@ -241,42 +241,23 @@ export function Landing() {
               aria-hidden
               className="pointer-events-none absolute inset-3.5 rounded-2xl border border-accent/25"
             />
-            <div className="relative grid items-center gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
-              <div>
-                <p className="text-meta font-semibold tracking-[0.22em] text-accent uppercase">
-                  {t('pre.pruebaNombre')}
-                </p>
-                <h2 className="mt-3 mb-4 bg-gradient-to-b from-[#f3dfb2] via-accent to-[#b89150] bg-clip-text font-display text-[48px] leading-none font-semibold text-transparent sm:text-[64px]">
-                  {t('home.ahoraGratis')}
-                </h2>
-                <p className="max-w-[470px] text-ui leading-relaxed text-ondark-muted-2">
-                  {t('home.ahoraTexto')}
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <ButtonLink to="/alta" variant="accent" size="lg" className="sheen">
-                    {t('home.empezarGratis')}
-                  </ButtonLink>
-                  <ButtonLink to="/precios" variant="ghost-dark" size="lg">
-                    {t('home.precioBoton')}
-                  </ButtonLink>
-                </div>
-              </div>
-              <div className="border-t border-accent/40 pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
-                <p className="mb-2 text-meta tracking-[0.18em] text-ondark-muted uppercase">
-                  {t('home.despuesLanzamiento')}
-                </p>
-                <p className="font-display text-[46px] leading-none text-cream">
-                  {formatPrice(PLAN_INFO.NEGOCIO.priceCents, idioma)}{' '}
-                  <span className="text-ui text-ondark-muted">{t('home.alMes')}</span>
-                </p>
-                <ul className="mt-4 flex flex-col gap-1.5 text-body text-ondark-muted-2">
-                  {(['home.despuesF1', 'home.despuesF2', 'home.despuesF3'] as const).map((k) => (
-                    <li key={k} className="flex items-center gap-2.5">
-                      <span aria-hidden className="size-1.5 rotate-45 bg-accent" />
-                      {t(k, { extra: formatPrice(PLAN_INFO.NEGOCIO.extraSeatCents, idioma) })}
-                    </li>
-                  ))}
-                </ul>
+            <div className="relative text-center">
+              <p className="text-meta font-semibold tracking-[0.22em] text-accent uppercase">
+                {t('pre.pruebaNombre')}
+              </p>
+              <h2 className="mt-3 mb-4 bg-gradient-to-b from-[#f3dfb2] via-accent to-[#b89150] bg-clip-text font-display text-[48px] leading-none font-semibold text-transparent sm:text-[64px]">
+                {t('home.ahoraGratis')}
+              </h2>
+              <p className="mx-auto max-w-[520px] text-ui leading-relaxed text-ondark-muted-2">
+                {t('home.ahoraTexto')}
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <ButtonLink to="/alta" variant="accent" size="lg" className="sheen">
+                  {t('home.empezarGratis')}
+                </ButtonLink>
+                <ButtonLink to="/precios" variant="ghost-dark" size="lg">
+                  {t('home.precioBoton')}
+                </ButtonLink>
               </div>
             </div>
           </div>

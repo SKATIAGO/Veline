@@ -2030,11 +2030,6 @@ export const en: Record<keyof typeof es, string> = {
   'home.ahoraGratis': 'Free, right now',
   'home.ahoraTexto':
     'Join now and use it at no cost, with 200 messages a month included. No tie-in.',
-  'home.despuesLanzamiento': 'After launch',
-  'home.alMes': 'a month',
-  'home.despuesF1': 'Two people included',
-  'home.despuesF2': '200 messages a month',
-  'home.despuesF3': '+{extra} per extra employee',
   'pre.compara': "What's included",
   'pre.calcEyebrow': 'Work out your price',
   'pre.calcDesglose': '{plan} ({incluidas} people) + {n} × {extra}',
