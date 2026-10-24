@@ -307,6 +307,21 @@
   }
 }
 
+@keyframes veline-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes veline-destello {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
 /* Halo que se desplaza despacio por un fondo oscuro */
 @keyframes veline-aurora {
   0%,
@@ -363,6 +378,40 @@
 
   .aurora {
     animation: veline-aurora 14s ease-in-out infinite;
+  }
+
+  /* Sello que gira despacio y destello que cruza la entrada */
+  .gira {
+    animation: veline-gira 28s linear infinite;
+  }
+  .destello::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(243, 223, 178, 0.14) 50%,
+      transparent 60%
+    );
+    transform: translateX(-120%);
+    animation: veline-destello 7s ease-in-out infinite;
+  }
+
+  /* Entrada: dos muescas redondas en el corte, solo cuando va en horizontal */
+  @media (min-width: 768px) {
+    .entrada {
+      --corte: 300px;
+      -webkit-mask:
+        radial-gradient(circle 15px at calc(100% - var(--corte)) 0, #0000 97%, #000),
+        radial-gradient(circle 15px at calc(100% - var(--corte)) 100%, #0000 97%, #000);
+      -webkit-mask-composite: source-in;
+      mask:
+        radial-gradient(circle 15px at calc(100% - var(--corte)) 0, #0000 97%, #000),
+        radial-gradient(circle 15px at calc(100% - var(--corte)) 100%, #0000 97%, #000);
+      mask-composite: intersect;
+    }
   }
 
   /* Tarjetas que se levantan al pasar por encima */
@@ -491,6 +540,8 @@
     .rise,
     .float,
     .aurora,
+    .gira,
+    .destello::after,
     .marquee-track,
     .veline-success,
     .veline-success::after {
