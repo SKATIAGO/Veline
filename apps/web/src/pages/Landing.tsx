@@ -301,38 +301,6 @@ export function Landing() {
           </div>
         </Reveal>
       </section>
-
-      {/* CIERRE */}
-      <section className="relative overflow-hidden border-t border-accent/40 bg-gradient-to-br from-ink-2 via-ink to-[#241811] text-cream">
-        <div className="aurora pointer-events-none absolute top-[-220px] left-[-120px]">
-          <Glow color="rgba(205,174,116,.22)" size={560} />
-        </div>
-        <div
-          className="aurora pointer-events-none absolute right-[-160px] bottom-[-260px]"
-          style={{ animationDelay: '-7s' }}
-        >
-          <Glow color="rgba(164,102,57,.35)" size={620} />
-        </div>
-        <div className="relative mx-auto max-w-[1440px] px-6 py-24 text-center lg:px-16">
-          <Reveal variant="zoom">
-            <Filete />
-            <p className="bg-gradient-to-b from-[#f3dfb2] via-accent to-[#b89150] bg-clip-text font-display text-display-sm leading-tight font-semibold text-transparent sm:text-display-lg">
-              {t(ESLOGAN)}
-            </p>
-            <p className="mx-auto mt-5 mb-9 max-w-[480px] text-ui leading-relaxed text-ondark-muted-2">
-              {t('home.pruebaloYDecide', { n: PRUEBA_DIAS })}
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <ButtonLink to="/alta" variant="accent" size="lg" className="sheen">
-                {t('home.empezarGratis', { n: PRUEBA_DIAS })}
-              </ButtonLink>
-              <ButtonLink to="/panel" variant="ghost-dark" size="lg">
-                {t('home.verPanel')}
-              </ButtonLink>
-            </div>
-          </Reveal>
-        </div>
-      </section>
     </>
   )
 }
