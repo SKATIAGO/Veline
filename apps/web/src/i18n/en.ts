@@ -2027,6 +2027,12 @@ export const en: Record<keyof typeof es, string> = {
   'home.verComoFunciona': 'See how it works',
   'home.tresCosas': 'Three things that change from day one',
   'home.precioBoton': 'See the launch pricing',
+  'home.ventaja1': '€0',
+  'home.ventaja1Texto': 'right now, nothing to pay',
+  'home.ventaja2': '200',
+  'home.ventaja2Texto': 'messages a month included',
+  'home.ventaja3': 'Free',
+  'home.ventaja3Texto': 'to leave anytime, no tie-in',
   'home.ahoraGratis': 'Free, right now',
   'home.ahoraTexto':
     'Join now and use it at no cost, with 200 messages a month included. No tie-in.',

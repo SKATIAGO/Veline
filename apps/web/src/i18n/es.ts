@@ -2023,6 +2023,12 @@ export const es = {
   'home.verComoFunciona': 'Ver cómo funciona',
   'home.tresCosas': 'Tres cosas que cambian desde el primer día',
   'home.precioBoton': 'Ver los precios del lanzamiento',
+  'home.ventaja1': '0 €',
+  'home.ventaja1Texto': 'ahora, sin pagar nada',
+  'home.ventaja2': '200',
+  'home.ventaja2Texto': 'mensajes al mes incluidos',
+  'home.ventaja3': 'Libre',
+  'home.ventaja3Texto': 'sin permanencia, te vas cuando quieras',
   'home.ahoraGratis': 'Ahora, gratis',
   'home.ahoraTexto':
     'Entra ahora y úsalo sin pagar nada, con 200 mensajes al mes incluidos. Sin permanencia.',

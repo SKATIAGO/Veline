@@ -26,6 +26,12 @@ const PASOS = [
 /** Los tres beneficios que más pesan del brief; el resto está en el vídeo y en Precios. */
 const BENEFICIOS = DESTACADOS.slice(0, 3)
 
+const VENTAJAS = [
+  { cifra: 'home.ventaja1', texto: 'home.ventaja1Texto' },
+  { cifra: 'home.ventaja2', texto: 'home.ventaja2Texto' },
+  { cifra: 'home.ventaja3', texto: 'home.ventaja3Texto' },
+] as const satisfies readonly { cifra: Clave; texto: Clave }[]
+
 const ICONOS = [
   <svg
     key="a"
@@ -231,17 +237,21 @@ export function Landing() {
       {/* PRECIO: AHORA GRATIS (los precios se ven en Precios) */}
       <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16 lg:py-24">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[26px] border border-accent/50 bg-gradient-to-br from-ink-2 via-ink to-[#241811] p-8 text-cream shadow-[0_40px_70px_-35px_rgba(46,33,25,.7),0_0_0_6px_rgba(205,174,116,.12)] sm:p-14">
-            <Glow
-              className="top-[-160px] right-[-120px]"
-              color="rgba(205,174,116,.28)"
-              size={520}
-            />
+          <div className="relative overflow-hidden rounded-[26px] border border-accent/50 bg-gradient-to-br from-ink-2 via-ink to-[#241811] px-6 py-14 text-center text-cream shadow-[0_40px_70px_-35px_rgba(46,33,25,.7),0_0_0_6px_rgba(205,174,116,.12)] sm:px-14 sm:py-16">
+            <div className="aurora pointer-events-none absolute top-[-200px] left-[-120px]">
+              <Glow color="rgba(205,174,116,.30)" size={560} />
+            </div>
+            <div
+              className="aurora pointer-events-none absolute right-[-160px] bottom-[-240px]"
+              style={{ animationDelay: '-7s' }}
+            >
+              <Glow color="rgba(164,102,57,.40)" size={620} />
+            </div>
             <div
               aria-hidden
               className="pointer-events-none absolute inset-3.5 rounded-2xl border border-accent/25"
             />
-            <div className="relative text-center">
+            <div className="relative">
               <p className="text-meta font-semibold tracking-[0.22em] text-accent uppercase">
                 {t('pre.pruebaNombre')}
               </p>
@@ -251,7 +261,28 @@ export function Landing() {
               <p className="mx-auto max-w-[520px] text-ui leading-relaxed text-ondark-muted-2">
                 {t('home.ahoraTexto')}
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
+
+              <div className="mx-auto mt-10 grid max-w-[860px] gap-5 sm:grid-cols-3">
+                {VENTAJAS.map((v, i) => (
+                  <div
+                    key={v.cifra}
+                    className="float rounded-2xl border border-accent/35 bg-white/[0.06] px-5 py-6 shadow-[0_20px_40px_-24px_rgba(0,0,0,.7),0_1px_0_rgba(255,255,255,.12)_inset] backdrop-blur-md"
+                    style={
+                      {
+                        '--tilt': ['-1.5deg', '0deg', '1.5deg'][i],
+                        animationDelay: `${-i * 2.3}s`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <p className="font-display text-[40px] leading-none font-semibold text-cream">
+                      {t(v.cifra)}
+                    </p>
+                    <p className="mt-2 text-body text-ondark-muted-2">{t(v.texto)}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10 flex flex-wrap justify-center gap-3">
                 <ButtonLink to="/alta" variant="accent" size="lg" className="sheen">
                   {t('home.empezarGratis')}
                 </ButtonLink>

@@ -307,6 +307,17 @@
   }
 }
 
+/* Halo que se desplaza despacio por un fondo oscuro */
+@keyframes veline-aurora {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(60px, 30px) scale(1.15);
+  }
+}
+
 /* Brillo que recorre un elemento de izquierda a derecha */
 @keyframes veline-sheen {
   from {
@@ -348,6 +359,10 @@
 
   .float {
     animation: veline-float 7s ease-in-out infinite;
+  }
+
+  .aurora {
+    animation: veline-aurora 14s ease-in-out infinite;
   }
 
   /* Tarjetas que se levantan al pasar por encima */
@@ -475,6 +490,7 @@
     .section-enter,
     .rise,
     .float,
+    .aurora,
     .marquee-track,
     .veline-success,
     .veline-success::after {
