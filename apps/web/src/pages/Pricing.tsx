@@ -35,7 +35,7 @@ function FaqRow({ q, a }: { q: Clave; a: Clave }) {
   const { t } = useIdioma()
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-line last:border-b-0">
+    <div className="border-b border-accent/40 last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -340,16 +340,20 @@ export function Pricing() {
         <div className="grid gap-5 md:grid-cols-3">
           {INCLUIDO.map((bloque, i) => (
             <Reveal key={bloque.nombre} delay={i * 90}>
-              <Card className="flex h-full flex-col p-6 sm:p-7">
+              <Card className="lift relative flex h-full flex-col border-accent/70! bg-gradient-to-b from-cream to-canvas p-6 sm:p-7">
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-2 rounded-[14px] border border-accent/50"
+                />
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-display text-subheading font-semibold text-ink">
                     {t(bloque.nombre)}
                   </span>
-                  <span className="rounded-full bg-cream px-3 py-1 text-meta font-semibold text-brand-text">
+                  <span className="rounded-full bg-ink px-3 py-1 text-meta font-semibold text-accent">
                     {t(bloque.precio)}
                   </span>
                 </div>
-                <ul className="flex flex-col gap-2.5">
+                <ul className="flex flex-col divide-y divide-accent/40 *:py-2.5 *:first:pt-0 *:last:pb-0">
                   {bloque.items.map((item) => (
                     <Feature key={item}>{t(item)}</Feature>
                   ))}
@@ -364,36 +368,36 @@ export function Pricing() {
       </section>
 
       {/* PREGUNTAS */}
-      <section className="mt-20">
-        <Reveal>
+      <section className="mt-20 grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
+        <Reveal className="lg:sticky lg:top-28 lg:self-start">
           <Eyebrow>{t('pre.preguntas')}</Eyebrow>
-          <h2 className="quill mb-8 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
+          <h2 className="quill mb-5 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
             {t('pre.loQuePreguntan')}
           </h2>
+          <p className="text-body text-muted">
+            <Texto
+              clave="pre.algunaDuda"
+              partes={{
+                escribenos: (
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}`}
+                    className="inline-flex min-h-10 items-center px-1 font-semibold text-brand-text hover:text-ink"
+                  >
+                    {t('pre.escribenos')}
+                  </a>
+                ),
+              }}
+            />
+          </p>
         </Reveal>
         <Reveal
           delay={80}
-          className="mx-auto max-w-[820px] overflow-hidden rounded-xl border border-line bg-surface"
+          className="overflow-hidden rounded-xl border border-accent/70 bg-gradient-to-b from-cream to-canvas"
         >
           {FAQ.map((item) => (
             <FaqRow key={item.q} q={item.q} a={item.a} />
           ))}
         </Reveal>
-        <p className="mt-6 text-center text-body text-muted">
-          <Texto
-            clave="pre.algunaDuda"
-            partes={{
-              escribenos: (
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="inline-flex min-h-10 items-center px-1 font-semibold text-brand-text hover:text-ink"
-                >
-                  {t('pre.escribenos')}
-                </a>
-              ),
-            }}
-          />
-        </p>
       </section>
 
       {/* CIERRE */}
