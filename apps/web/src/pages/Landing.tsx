@@ -26,12 +26,6 @@ const PASOS = [
 /** Los tres beneficios que más pesan del brief; el resto está en el vídeo y en Precios. */
 const BENEFICIOS = DESTACADOS.slice(0, 3)
 
-const VENTAJAS = [
-  { cifra: 'home.ventaja1', texto: 'home.ventaja1Texto' },
-  { cifra: 'home.ventaja2', texto: 'home.ventaja2Texto' },
-  { cifra: 'home.ventaja3', texto: 'home.ventaja3Texto' },
-] as const satisfies readonly { cifra: Clave; texto: Clave }[]
-
 const ICONOS = [
   <svg
     key="a"
@@ -232,74 +226,6 @@ export function Landing() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* PRECIO: AHORA GRATIS (los precios se ven en Precios) */}
-      <section className="relative mx-auto max-w-[1440px] px-6 py-20 lg:px-16 lg:py-24">
-        <Reveal>
-          <div className="mx-auto max-w-[1040px] drop-shadow-[0_30px_40px_rgba(46,33,25,.35)]">
-            <div className="entrada destello relative overflow-hidden rounded-[26px] border border-accent/60 bg-gradient-to-br from-ink-2 via-ink to-[#241811] text-cream md:flex">
-              <div className="aurora pointer-events-none absolute top-[-200px] left-[-120px]">
-                <Glow color="rgba(205,174,116,.26)" size={520} />
-              </div>
-              <div className="relative flex-1 px-7 py-12 text-center sm:px-12 md:text-left">
-                <p className="text-meta font-semibold tracking-[0.22em] text-accent uppercase">
-                  {t('pre.pruebaNombre')}
-                </p>
-                <h2 className="mt-3 mb-4 bg-gradient-to-b from-[#f3dfb2] via-accent to-[#b89150] bg-clip-text font-display text-[48px] leading-none font-semibold text-transparent sm:text-[64px]">
-                  {t('home.ahoraGratis')}
-                </h2>
-                <p className="max-w-[460px] text-ui leading-relaxed text-ondark-muted-2 md:mr-auto">
-                  {t('home.ahoraTexto')}
-                </p>
-                <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-                  <ButtonLink to="/alta" variant="accent" size="lg" className="sheen">
-                    {t('home.empezarGratis')}
-                  </ButtonLink>
-                  <ButtonLink to="/precios" variant="ghost-dark" size="lg">
-                    {t('home.precioBoton')}
-                  </ButtonLink>
-                </div>
-              </div>
-
-              <div
-                aria-hidden
-                className="relative mx-7 border-t-2 border-dashed border-accent/40 md:mx-0 md:border-t-0 md:border-l-2"
-              />
-              <div className="relative flex flex-col items-center px-7 py-10 md:w-[300px] md:shrink-0">
-                <svg viewBox="0 0 100 100" className="gira mb-5 size-24 text-accent" aria-hidden>
-                  <defs>
-                    <path id="sello" d="M50 50 m-38 0 a38 38 0 1 1 76 0 a38 38 0 1 1 -76 0" />
-                  </defs>
-                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" opacity=".5" />
-                  <circle cx="50" cy="50" r="26" fill="none" stroke="currentColor" opacity=".35" />
-                  <text
-                    fill="currentColor"
-                    fontSize="9"
-                    fontWeight="600"
-                    letterSpacing="1.5"
-                    style={{ textTransform: 'uppercase' }}
-                  >
-                    <textPath href="#sello" textLength="236" lengthAdjust="spacing">
-                      {`${t('home.ahoraGratis')} · ${t('pre.pruebaNombre')} · `}
-                    </textPath>
-                  </text>
-                  <path d="M50 40 L54 50 L50 60 L46 50 Z" fill="currentColor" />
-                </svg>
-                <ul className="w-full divide-y divide-accent/30 text-center">
-                  {VENTAJAS.map((v) => (
-                    <li key={v.cifra} className="py-3 first:pt-0 last:pb-0">
-                      <p className="font-display text-[30px] leading-none font-semibold text-accent">
-                        {t(v.cifra)}
-                      </p>
-                      <p className="mt-1.5 text-body text-ondark-muted-2">{t(v.texto)}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </Reveal>
       </section>
     </>
   )
