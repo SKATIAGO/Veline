@@ -156,47 +156,6 @@ export function Landing() {
         )}
       />
 
-      {/* TRES BENEFICIOS */}
-      <section className="relative overflow-hidden bg-[radial-gradient(900px_400px_at_50%_0,#f7eedf,transparent)] py-20 lg:py-24">
-        <div className="relative mx-auto max-w-[1440px] px-6 text-center lg:px-16">
-          <Reveal>
-            <Filete />
-            <p className="mb-3 text-meta font-semibold tracking-[0.22em] text-brand-text uppercase">
-              {t('home.todoLoQueNecesitas')}
-            </p>
-            <h2 className="mx-auto mb-12 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
-              {t('home.tresCosas')}
-            </h2>
-          </Reveal>
-          <div className="grid gap-6 text-left sm:grid-cols-3">
-            {BENEFICIOS.map((d, i) => (
-              <Reveal key={d.titulo} delay={i * 80} variant="zoom">
-                <div className="lift group relative h-full rounded-2xl border border-[#d9c299] bg-gradient-to-br from-[#f8f0e2] to-[#efe2cb] p-7 shadow-[0_1px_0_#fff_inset,0_24px_40px_-26px_rgba(46,33,25,.45)]">
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute top-2.5 left-2.5 size-5 rounded-tl-lg border-t border-l border-accent"
-                  />
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute right-2.5 bottom-2.5 size-5 rounded-br-lg border-r border-b border-accent"
-                  />
-                  <div
-                    aria-hidden
-                    className="mb-5 grid size-11 place-items-center rounded-full bg-ink text-accent ring-4 ring-accent/30"
-                  >
-                    {ICONOS[i]}
-                  </div>
-                  <div className="mb-2 font-display text-subheading font-semibold text-ink transition-colors duration-300 group-hover:text-brand">
-                    {t(d.titulo)}
-                  </div>
-                  <p className="text-body leading-relaxed text-muted">{t(d.texto)}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CÓMO FUNCIONA */}
       <section id="como-funciona" className="relative scroll-mt-24 overflow-hidden bg-ink">
         <Glow className="top-[-160px] left-[-120px]" color="rgba(205,174,116,.18)" size={700} />
@@ -215,13 +174,49 @@ export function Landing() {
             />
             {PASOS.map((paso, i) => (
               <Reveal key={paso.titulo} delay={i * 140} className="relative flex-1 text-center">
-                <div className="mx-auto mb-5 grid size-[68px] place-items-center rounded-full border border-accent bg-ink font-display text-2xl text-accent shadow-[0_0_0_6px_#2e2119,0_0_30px_rgba(205,174,116,.25)]">
+                <div className="mx-auto mb-5 grid size-[68px] place-items-center rounded-full border border-accent bg-ink font-display text-title text-accent ring-[6px] ring-ink">
                   {i + 1}
                 </div>
                 <div className="mb-2 text-ui font-semibold text-cream">{t(paso.titulo)}</div>
                 <p className="mx-auto max-w-[290px] text-body leading-relaxed text-ondark-muted">
                   {t(paso.texto)}
                 </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TRES BENEFICIOS */}
+      <section className="relative overflow-hidden bg-canvas py-20 lg:py-24">
+        <div className="relative mx-auto max-w-[1440px] px-6 text-center lg:px-16">
+          <Reveal>
+            <Filete />
+            <p className="mb-3 text-meta font-semibold tracking-[0.22em] text-brand-text uppercase">
+              {t('home.todoLoQueNecesitas')}
+            </p>
+            <h2 className="mx-auto mb-12 max-w-[620px] text-heading leading-tight font-semibold text-ink sm:text-display-sm">
+              {t('home.tresCosas')}
+            </h2>
+          </Reveal>
+          <div className="grid gap-6 text-left sm:grid-cols-3">
+            {BENEFICIOS.map((d, i) => (
+              <Reveal key={d.titulo} delay={i * 80} variant="zoom">
+                {/* Tarjeta de marca: surface sobre canvas con borde line, sin
+                    sombra ni degradados inventados. El acento mostaza solo
+                    sobre ink (el icono), como dice el libro de marca. */}
+                <div className="lift group relative h-full rounded-xl border border-line bg-surface p-7">
+                  <div
+                    aria-hidden
+                    className="mb-5 grid size-11 place-items-center rounded-full bg-ink text-accent"
+                  >
+                    {ICONOS[i]}
+                  </div>
+                  <div className="mb-2 font-display text-subheading font-semibold text-ink transition-colors duration-300 group-hover:text-brand">
+                    {t(d.titulo)}
+                  </div>
+                  <p className="text-body leading-relaxed text-muted">{t(d.texto)}</p>
+                </div>
               </Reveal>
             ))}
           </div>

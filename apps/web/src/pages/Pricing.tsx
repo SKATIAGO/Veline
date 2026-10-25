@@ -35,7 +35,7 @@ function FaqRow({ q, a }: { q: Clave; a: Clave }) {
   const { t } = useIdioma()
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-accent/40 last:border-b-0">
+    <div className="border-b border-line last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -92,7 +92,7 @@ function Calculadora() {
   )
 
   return (
-    <Card className="relative overflow-hidden border-2 border-brand! p-6 shadow-pop sm:p-10">
+    <Card className="relative overflow-hidden border-2 border-brand! p-6 sm:p-10">
       <Eyebrow>{t('pre.calcEyebrow')}</Eyebrow>
       <h2
         id="calculadora"
@@ -169,10 +169,7 @@ export function Pricing() {
           {t('pre.pruebaNombre')}
         </p>
         <h1 className="mt-3 font-display text-display-sm leading-tight font-semibold text-ink sm:text-display-lg">
-          <span className="bg-gradient-to-b from-[#d4aa5e] via-[#b98a42] to-[#8f5a2c] bg-clip-text text-transparent">
-            {t('pre.tituloOro')}
-          </span>{' '}
-          {t('pre.tituloResto')}
+          <span className="text-brand-text">{t('pre.tituloOro')}</span> {t('pre.tituloResto')}
         </h1>
         <div className="mt-5">
           <Filete />
@@ -202,15 +199,15 @@ export function Pricing() {
               className={cx(
                 'lift relative flex h-full flex-col p-7 sm:p-8',
                 plan.popular && 'border-2 border-brand! shadow-pop',
-                plan.invitacion &&
-                  'border-accent/70! bg-gradient-to-b from-cream to-canvas shadow-pop',
+                // Invitación en crema con marco fino; el dorado va solo en la etiqueta sobre ink.
+                plan.invitacion && 'border-line-strong! bg-cream',
               )}
             >
               {plan.invitacion && (
                 <>
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute inset-2.5 rounded-[14px] border border-accent/60"
+                    className="pointer-events-none absolute inset-2.5 rounded-[14px] border border-line-strong"
                   />
                   <span className="absolute -top-3 left-7 z-10 rounded-full bg-ink px-3 py-1 text-caption font-semibold text-accent">
                     {t('pre.pruebaNombre')}
@@ -278,7 +275,8 @@ export function Pricing() {
               <ul
                 className={cx(
                   'flex flex-col gap-2.5',
-                  plan.invitacion && 'divide-y divide-accent/40 *:py-2.5 *:first:pt-0 *:last:pb-0',
+                  plan.invitacion &&
+                    'divide-y divide-line-strong *:py-2.5 *:first:pt-0 *:last:pb-0',
                 )}
               >
                 {plan.features.map((f) => (
@@ -292,7 +290,7 @@ export function Pricing() {
 
       {/* A MEDIDA: web o agenda propia, con presupuesto */}
       <Reveal as="section" className="mt-20">
-        <div className="relative overflow-hidden rounded-[26px] border border-accent/50 bg-gradient-to-br from-ink-2 via-ink to-[#241811] p-8 text-cream shadow-[0_40px_70px_-35px_rgba(46,33,25,.7),0_0_0_6px_rgba(205,174,116,.12)] sm:p-12">
+        <div className="relative overflow-hidden rounded-2xl border border-line-dark bg-ink p-8 text-cream sm:p-12">
           <Glow className="top-[-160px] right-[-120px]" color="rgba(205,174,116,.28)" size={480} />
           <div
             aria-hidden
@@ -340,11 +338,7 @@ export function Pricing() {
         <div className="grid gap-5 md:grid-cols-3">
           {INCLUIDO.map((bloque, i) => (
             <Reveal key={bloque.nombre} delay={i * 90}>
-              <Card className="lift relative flex h-full flex-col border-accent/70! bg-gradient-to-b from-cream to-canvas p-6 sm:p-7">
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-2 rounded-[14px] border border-accent/50"
-                />
+              <Card className="lift relative flex h-full flex-col p-6 sm:p-7">
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-display text-subheading font-semibold text-ink">
                     {t(bloque.nombre)}
@@ -353,7 +347,7 @@ export function Pricing() {
                     {t(bloque.precio)}
                   </span>
                 </div>
-                <ul className="flex flex-col divide-y divide-accent/40 *:py-2.5 *:first:pt-0 *:last:pb-0">
+                <ul className="flex flex-col divide-y divide-line *:py-2.5 *:first:pt-0 *:last:pb-0">
                   {bloque.items.map((item) => (
                     <Feature key={item}>{t(item)}</Feature>
                   ))}
@@ -390,10 +384,7 @@ export function Pricing() {
             />
           </p>
         </Reveal>
-        <Reveal
-          delay={80}
-          className="overflow-hidden rounded-xl border border-accent/70 bg-gradient-to-b from-cream to-canvas"
-        >
+        <Reveal delay={80} className="overflow-hidden rounded-xl border border-line bg-surface">
           {FAQ.map((item) => (
             <FaqRow key={item.q} q={item.q} a={item.a} />
           ))}

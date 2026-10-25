@@ -40,10 +40,16 @@ test('la reserva no pierde el calendario al cambiar de mes', async ({ page }) =>
     Math.round(document.querySelector('main')!.getBoundingClientRect().height),
   ])) as [number, number][]
   expect(vistos.every(([n]) => n === 1)).toBe(true)
-  /* Y la página no se encoge mientras llegan las horas. Antes, al llegar,
-     había un instante sin día elegido y bajaba unos 300 px antes de crecer. */
+  /* Y la página no se encoge mientras llegan las horas: el esqueleto guarda
+     el alto anterior y, al llegar, crece hasta el suyo (en el móvil las horas
+     van a tres columnas y un mes con más huecos es más alto; eso no es un
+     salto). Antes había un instante sin día elegido y bajaba unos 300 px
+     antes de crecer. */
   const altos = vistos.map(([, h]) => h)
-  expect(Math.max(...altos) - Math.min(...altos)).toBeLessThanOrEqual(40)
+  const inicial = altos[0]!
+  expect(Math.min(...altos), `bajó de ${inicial} a ${Math.min(...altos)}`).toBeGreaterThanOrEqual(
+    inicial - 24,
+  )
 })
 
 test('el panel cambia de sección sin pasar por un esqueleto', async ({ page }) => {
