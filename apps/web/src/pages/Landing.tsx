@@ -24,6 +24,9 @@ const PASOS = [
 ] as const satisfies readonly { titulo: Clave; texto: Clave }[]
 
 /** Los tres beneficios que más pesan del brief; el resto está en el vídeo y en Precios. */
+/** Sectores que no salen en el carrusel de la portada (siguen en el buscador). */
+const SIN_CARRUSEL: readonly string[] = ['tiendas', 'autoescuelas', 'asesorias', 'profesionales']
+
 const BENEFICIOS = DESTACADOS.slice(0, 3)
 
 const ICONOS = [
@@ -151,7 +154,7 @@ export function Landing() {
       </section>
 
       <SectorMarquee
-        items={CATEGORIES.filter((c) => c.slug !== 'tiendas').map((c) =>
+        items={CATEGORIES.filter((c) => !SIN_CARRUSEL.includes(c.slug)).map((c) =>
           idioma === 'en' ? c.labelEn : c.label,
         )}
       />
