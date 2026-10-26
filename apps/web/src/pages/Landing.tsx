@@ -154,9 +154,12 @@ export function Landing() {
       </section>
 
       <SectorMarquee
-        items={CATEGORIES.filter((c) => !SIN_CARRUSEL.includes(c.slug)).map((c) =>
-          idioma === 'en' ? c.labelEn : c.label,
-        )}
+        items={[
+          ...CATEGORIES.filter((c) => !SIN_CARRUSEL.includes(c.slug)).map((c) =>
+            idioma === 'en' ? c.labelEn : c.label,
+          ),
+          t('home.carruselTatuajes'),
+        ]}
       />
 
       {/* CÓMO FUNCIONA */}

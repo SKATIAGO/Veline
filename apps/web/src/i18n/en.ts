@@ -1032,6 +1032,7 @@ export const en: Record<keyof typeof es, string> = {
   'home.echasAlgoEnFaltaTexto': 'Tell us and we’ll look into it. The list is open on purpose.',
 
   // How it works
+  'home.carruselTatuajes': 'Tattoo studios',
   'home.comoFunciona': 'How it works',
   'home.paso1': 'Set up your business page',
   'home.paso1Texto': 'Services, prices and hours in a few minutes. No technical know-how.',

@@ -1031,6 +1031,7 @@ export const es = {
   'home.echasAlgoEnFaltaTexto': 'Cuéntanoslo y lo estudiamos. La lista está abierta a propósito.',
 
   // Cómo funciona
+  'home.carruselTatuajes': 'Estudios de tatuajes',
   'home.comoFunciona': 'Cómo funciona',
   'home.paso1': 'Crea el perfil de tu negocio',
   'home.paso1Texto': 'Servicios, precios y horarios en unos minutos. Sin conocimientos técnicos.',
