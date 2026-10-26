@@ -158,6 +158,7 @@ export function Landing() {
           ...CATEGORIES.filter((c) => !SIN_CARRUSEL.includes(c.slug)).map((c) =>
             idioma === 'en' ? c.labelEn : c.label,
           ),
+          t('home.carruselMasajes'),
           t('home.carruselTatuajes'),
         ]}
       />
