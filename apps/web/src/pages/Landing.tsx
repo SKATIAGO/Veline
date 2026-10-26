@@ -25,7 +25,13 @@ const PASOS = [
 
 /** Los tres beneficios que más pesan del brief; el resto está en el vídeo y en Precios. */
 /** Sectores que no salen en el carrusel de la portada (siguen en el buscador). */
-const SIN_CARRUSEL: readonly string[] = ['tiendas', 'autoescuelas', 'asesorias', 'veterinarias']
+const SIN_CARRUSEL: readonly string[] = [
+  'tiendas',
+  'autoescuelas',
+  'asesorias',
+  'veterinarias',
+  'academias',
+]
 
 const BENEFICIOS = DESTACADOS.slice(0, 3)
 
