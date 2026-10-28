@@ -31,6 +31,7 @@ const SIN_CARRUSEL: readonly string[] = [
   'asesorias',
   'veterinarias',
   'academias',
+  'talleres',
 ]
 
 const BENEFICIOS = DESTACADOS.slice(0, 3)
