@@ -1,7 +1,7 @@
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { CATEGORIES, CONTACT_EMAIL, categoryLabel } from '@veline/shared'
+import { CATEGORIES_ALTA, CONTACT_EMAIL, categoryLabel } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { Button, ErrorNote, Field, Input, Logo, PasswordInput, Select } from '../components/ui'
 import { Stepper } from '../components/Stepper'
@@ -25,7 +25,7 @@ import { Texto, useIdioma } from '../i18n/idioma'
 
 const vacio = {
   negocio: '',
-  categoria: CATEGORIES[0].slug as string,
+  categoria: CATEGORIES_ALTA[0].slug as string,
   email: '',
   telefono: '',
   calle: '',
@@ -249,7 +249,7 @@ export function Alta() {
                 value={form.categoria}
                 onChange={(e) => set('categoria', e.target.value)}
               >
-                {CATEGORIES.map((c) => (
+                {CATEGORIES_ALTA.map((c) => (
                   <option key={c.slug} value={c.slug}>
                     {idioma === 'en' ? c.labelEn : c.label}
                   </option>

@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  CATEGORIES,
+  CATEGORIES_ALTA,
   PLAN_INFO,
   PRUEBA_DIAS_DEFECTO,
   categoryLabel,
@@ -32,7 +32,7 @@ const esEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim())
 
 const vacio = {
   name: '',
-  category: CATEGORIES[0].slug as string,
+  category: CATEGORIES_ALTA[0].slug as string,
   email: '',
   phone: '',
   street: '',
@@ -154,7 +154,7 @@ export function AltaNegocio({ open, onClose }: { open: boolean; onClose: () => v
               value={negocio.category}
               onChange={(e) => cambiar('category', e.target.value)}
             >
-              {CATEGORIES.map((c) => (
+              {CATEGORIES_ALTA.map((c) => (
                 <option key={c.slug} value={c.slug}>
                   {idioma === 'en' ? c.labelEn : c.label}
                 </option>

@@ -234,6 +234,16 @@ export const CATEGORIES = [
   },
 ] as const
 
+/** Sectores que se ofrecen al dar de alta un negocio nuevo: Veline se centra en belleza y
+    bienestar. Los demás siguen existiendo para los negocios que ya los tienen. */
+const SECTORES_FUERA_DEL_ALTA: readonly string[] = [
+  'talleres',
+  'veterinarias',
+  'tiendas',
+  'autoescuelas',
+]
+export const CATEGORIES_ALTA = CATEGORIES.filter((c) => !SECTORES_FUERA_DEL_ALTA.includes(c.slug))
+
 export type CategorySlug = (typeof CATEGORIES)[number]['slug']
 
 export const categoryLabel = (slug: string, idioma: Idioma = 'es') => {

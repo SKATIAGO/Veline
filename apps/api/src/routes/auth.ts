@@ -15,7 +15,7 @@ import { audit } from '../audit/log.js'
 import { mailMode, sendMail } from '../mail/enviar.js'
 import { passwordResetMail, signupNotifyTeamMail, signupVerifyMail } from '../mail/templates.js'
 import { consumirVerificacion, crearAlta } from '../auth/alta.js'
-import { CATEGORIES, CONTACT_EMAIL, phoneES } from '@veline/shared'
+import { CATEGORIES_ALTA, CONTACT_EMAIL, phoneES } from '@veline/shared'
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -34,7 +34,7 @@ const resetSchema = z.object({ token: z.string().min(10), password: nuevaContras
 
 const altaSchema = z.object({
   negocio: z.string().trim().min(2, 'Escribe el nombre del negocio').max(120),
-  categoria: z.enum(CATEGORIES.map((c) => c.slug) as [string, ...string[]]),
+  categoria: z.enum(CATEGORIES_ALTA.map((c) => c.slug) as [string, ...string[]]),
   email: z.string().trim().toLowerCase().email('Revisa el email'),
   telefono: phoneES.optional().or(z.literal('')),
   calle: z.string().trim().min(3, 'Falta la calle').max(160),

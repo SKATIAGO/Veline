@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { GestorFotos } from '../../components/GestorFotos'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CATEGORIES } from '@veline/shared'
+import { CATEGORIES, CATEGORIES_ALTA } from '@veline/shared'
 import { api, ApiError, type PanelProfile } from '../../lib/api'
 import {
   BarraGuardar,
@@ -225,7 +225,9 @@ export function PanelNegocio() {
               value={form.category}
               onChange={(e) => set('category', e.target.value)}
             >
-              {CATEGORIES.map((c) => (
+              {CATEGORIES.filter(
+                (c) => CATEGORIES_ALTA.includes(c) || c.slug === form.category,
+              ).map((c) => (
                 <option key={c.slug} value={c.slug}>
                   {idioma === 'en' ? c.labelEn : c.label}
                 </option>
