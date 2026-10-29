@@ -238,7 +238,6 @@ export function Alta() {
               <Input
                 id={`${id}-n`}
                 autoFocus
-                placeholder={t('alta.nombreEjemplo')}
                 value={form.negocio}
                 onChange={(e) => set('negocio', e.target.value)}
               />
@@ -262,7 +261,6 @@ export function Alta() {
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="600 000 000"
                 value={form.telefono}
                 onChange={(e) => set('telefono', e.target.value)}
               />
@@ -277,7 +275,6 @@ export function Alta() {
                 id={`${id}-ca`}
                 autoFocus
                 autoComplete="street-address"
-                placeholder={t('alta.calleEjemplo')}
                 value={form.calle}
                 onChange={(e) => set('calle', e.target.value)}
               />
@@ -286,7 +283,6 @@ export function Alta() {
               <Input
                 id={`${id}-ci`}
                 autoComplete="address-level2"
-                placeholder={t('alta.ciudadEjemplo')}
                 value={form.ciudad}
                 onChange={(e) => set('ciudad', e.target.value)}
               />
@@ -297,7 +293,6 @@ export function Alta() {
                 inputMode="numeric"
                 autoComplete="postal-code"
                 maxLength={5}
-                placeholder="28013"
                 value={form.codigoPostal}
                 onChange={(e) => set('codigoPostal', e.target.value)}
               />
@@ -312,7 +307,6 @@ export function Alta() {
                 id={`${id}-r`}
                 autoFocus
                 autoComplete="name"
-                placeholder={t('alta.tuNombreEjemplo')}
                 value={form.responsable}
                 onChange={(e) => set('responsable', e.target.value)}
               />
@@ -323,7 +317,6 @@ export function Alta() {
                 type="email"
                 inputMode="email"
                 autoComplete="email"
-                placeholder={t('alta.emailEjemplo')}
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
               />
