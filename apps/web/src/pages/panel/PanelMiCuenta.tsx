@@ -1,8 +1,20 @@
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CONTACT_EMAIL, formatPrice, planLabel, PLAN_INFO, subStatusLabel } from '@veline/shared'
 import { api } from '../../lib/api'
-import { Badge, ButtonLink, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  EmptyState,
+  PageHeader,
+  Skeleton,
+  cx,
+} from '../../components/ui'
+import { ConfirmDialog } from '../../components/Confirmar'
+import { aviso, textoDeError } from '../../components/Avisos'
 import { useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 
 /** Lo que el negocio paga cada mes y por qué: la cuota y los mensajes de más.
@@ -80,6 +92,18 @@ export function PanelMiCuenta() {
   })
 
   const sub = summary?.subscription
+
+  const queryClient = useQueryClient()
+  const [preguntando, setPreguntando] = useState(false)
+  const baja = useMutation({
+    mutationFn: () => api.darseDeBaja(slug),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['panel'] })
+      setPreguntando(false)
+      aviso.ok(t('fac.bajaHecha'))
+    },
+  })
+  const yaDeBaja = sub?.status === 'CANCELADA' || sub?.status === 'SUSPENDIDA'
 
   return (
     <div className="flex flex-col gap-6">
@@ -196,7 +220,36 @@ export function PanelMiCuenta() {
         </ButtonLink>
       </Card>
 
+      {sub && !yaDeBaja && (
+        <Card padded className="flex flex-wrap items-center justify-between gap-4">
+          <div className="max-w-xl">
+            <h2 className="font-display text-subheading font-semibold text-ink">
+              {t('fac.bajaTitulo')}
+            </h2>
+            <p className="mt-1 text-meta text-subtle">{t('fac.bajaPista')}</p>
+          </div>
+          <Button variant="secondary" onClick={() => setPreguntando(true)}>
+            {t('fac.bajaBoton')}
+          </Button>
+        </Card>
+      )}
+
       <p className="text-meta text-subtle">{t('fac.avisoCobro')}</p>
+
+      <ConfirmDialog
+        open={preguntando}
+        onClose={() => {
+          baja.reset()
+          setPreguntando(false)
+        }}
+        title={t('fac.bajaPregunta')}
+        consecuencias={[t('fac.bajaC1'), t('fac.bajaC2'), t('fac.bajaC3')]}
+        confirmLabel={t('fac.bajaConfirmar')}
+        tono="destruir"
+        onConfirm={() => baja.mutate()}
+        loading={baja.isPending}
+        error={baja.isError ? textoDeError(baja.error, t('fac.bajaError')) : null}
+      />
     </div>
   )
 }

@@ -735,6 +735,17 @@ export const es = {
   'fac.mensajesDeMasCuenta': '{n} mensajes de más',
   'fac.avisoCobro':
     'El cobro es por transferencia o recibo: no te pedimos tarjeta ni se te cobra nada automáticamente. Si algo no cuadra, escríbenos antes de pagar.',
+  'fac.bajaTitulo': 'Darme de baja',
+  'fac.bajaPista':
+    'Si ya no quieres seguir con Veline, puedes darte de baja cuando quieras. No se borra nada.',
+  'fac.bajaBoton': 'Darme de baja',
+  'fac.bajaPregunta': '¿Quieres darte de baja de Veline?',
+  'fac.bajaC1': 'Tu negocio dejará de aceptar reservas nuevas.',
+  'fac.bajaC2': 'No se borra nada: tus clientes, servicios y citas se quedan guardados.',
+  'fac.bajaC3': 'Si más adelante quieres volver, escríbenos y lo reactivamos.',
+  'fac.bajaConfirmar': 'Sí, darme de baja',
+  'fac.bajaHecha': 'Te has dado de baja. Gracias por haber confiado en Veline.',
+  'fac.bajaError': 'No se ha podido dar de baja. Inténtalo de nuevo o escríbenos.',
   'fac.personalizarAgenda': 'Personaliza tu propia agenda',
   'fac.personalizarAgendaPista':
     'Si quieres una agenda hecha a medida de tu negocio, escríbenos y lo hablamos.',

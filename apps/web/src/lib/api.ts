@@ -295,6 +295,9 @@ export const api = {
   cerrarLocal: (slug: string, id: string) =>
     request<{ ok: true }>(`/panel/${slug}/locations/${id}`, { method: 'DELETE' }),
 
+  darseDeBaja: (slug: string) =>
+    request<{ ok: true }>(`/panel/${slug}/darse-de-baja`, { method: 'POST' }),
+
   // ── Fichaje (registro de jornada) ──────────────────────────
   fichajeAbierto: (slug: string) =>
     request<{ fichaje: Fichaje | null }>(`/panel/${slug}/fichajes/abierto`),

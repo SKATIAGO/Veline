@@ -735,6 +735,17 @@ export const en: Record<keyof typeof es, string> = {
   'fac.mensajesDeMasCuenta': '{n} messages over',
   'fac.avisoCobro':
     'We charge by transfer or direct debit: we never ask for a card and nothing is taken automatically. If something doesn’t add up, write to us before paying.',
+  'fac.bajaTitulo': 'Cancel my subscription',
+  'fac.bajaPista':
+    'If you no longer want to use Veline, you can cancel whenever you like. Nothing is deleted.',
+  'fac.bajaBoton': 'Cancel subscription',
+  'fac.bajaPregunta': 'Do you want to cancel your Veline subscription?',
+  'fac.bajaC1': 'Your business will stop accepting new bookings.',
+  'fac.bajaC2': 'Nothing is deleted: your clients, services and appointments stay saved.',
+  'fac.bajaC3': 'If you want to come back later, write to us and we will reactivate it.',
+  'fac.bajaConfirmar': 'Yes, cancel my subscription',
+  'fac.bajaHecha': 'Your subscription has been cancelled. Thank you for trusting Veline.',
+  'fac.bajaError': 'Could not cancel. Please try again or write to us.',
   'fac.personalizarAgenda': 'Customise your own diary',
   'fac.personalizarAgendaPista':
     'If you want a diary built around your business, write to us and let’s talk.',

@@ -240,6 +240,34 @@ export async function panelRoutes(app: FastifyInstance) {
     }))
   })
 
+  app.post('/api/panel/:slug/darse-de-baja', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const auth = await authorize(user, (req.params as { slug: string }).slug, 'configuracion')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const actual = await prisma.business.findUnique({
+      where: { id: auth.business.id },
+      select: { subStatus: true },
+    })
+    if (actual?.subStatus === 'CANCELADA') return { ok: true }
+    await prisma.business.update({
+      where: { id: auth.business.id },
+      data: { subStatus: 'CANCELADA', endedAt: new Date() },
+    })
+
+    audit(req, {
+      action: 'NEGOCIO_SUSPENDIDO',
+      summary: `Se ha dado de baja: ${auth.business.name}`,
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'Business',
+      entityId: auth.business.id,
+    })
+
+    return { ok: true }
+  })
+
   app.get('/api/panel/:slug/services', async (req, reply) => {
     const user = await requireUser(req, reply)
     if (!user) return
