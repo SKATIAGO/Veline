@@ -295,8 +295,11 @@ export const api = {
   cerrarLocal: (slug: string, id: string) =>
     request<{ ok: true }>(`/panel/${slug}/locations/${id}`, { method: 'DELETE' }),
 
-  darseDeBaja: (slug: string) =>
-    request<{ ok: true }>(`/panel/${slug}/darse-de-baja`, { method: 'POST' }),
+  darseDeBaja: (slug: string, motivo: string) =>
+    request<{ ok: true }>(`/panel/${slug}/darse-de-baja`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    }),
 
   // ── Fichaje (registro de jornada) ──────────────────────────
   fichajeAbierto: (slug: string) =>

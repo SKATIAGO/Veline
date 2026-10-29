@@ -743,6 +743,8 @@ export const en: Record<keyof typeof es, string> = {
   'fac.bajaC1': 'Your business will stop accepting new bookings.',
   'fac.bajaC2': 'Nothing is deleted: your clients, services and appointments stay saved.',
   'fac.bajaC3': 'If you want to come back later, write to us and we will reactivate it.',
+  'fac.bajaMotivo': 'Why are you leaving? (optional)',
+  'fac.bajaMotivoPista': 'It helps us improve. Only our team reads it.',
   'fac.bajaConfirmar': 'Yes, cancel my subscription',
   'fac.bajaHecha': 'Your subscription has been cancelled. Thank you for trusting Veline.',
   'fac.bajaError': 'Could not cancel. Please try again or write to us.',

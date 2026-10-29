@@ -246,14 +246,26 @@ export async function panelRoutes(app: FastifyInstance) {
     const auth = await authorize(user, (req.params as { slug: string }).slug, 'configuracion')
     if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
 
+    const { motivo } = z
+      .object({ motivo: z.string().trim().max(200).optional() })
+      .parse(req.body ?? {})
     const actual = await prisma.business.findUnique({
       where: { id: auth.business.id },
-      select: { subStatus: true },
+      select: { subStatus: true, adminNotes: true },
     })
     if (actual?.subStatus === 'CANCELADA') return { ok: true }
+    const nota = motivo
+      ? [
+          actual?.adminNotes,
+          `${new Date().toISOString().slice(0, 10)}: se dio de baja él. ${motivo}`,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+          .slice(0, 600)
+      : undefined
     await prisma.business.update({
       where: { id: auth.business.id },
-      data: { subStatus: 'CANCELADA', endedAt: new Date() },
+      data: { subStatus: 'CANCELADA', endedAt: new Date(), ...(nota ? { adminNotes: nota } : {}) },
     })
 
     audit(req, {

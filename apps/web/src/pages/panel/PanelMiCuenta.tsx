@@ -9,6 +9,8 @@ import {
   ButtonLink,
   Card,
   EmptyState,
+  Field,
+  Input,
   PageHeader,
   Skeleton,
   cx,
@@ -95,11 +97,13 @@ export function PanelMiCuenta() {
 
   const queryClient = useQueryClient()
   const [preguntando, setPreguntando] = useState(false)
+  const [motivo, setMotivo] = useState('')
   const baja = useMutation({
-    mutationFn: () => api.darseDeBaja(slug),
+    mutationFn: () => api.darseDeBaja(slug, motivo.trim()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['panel'] })
       setPreguntando(false)
+      setMotivo('')
       aviso.ok(t('fac.bajaHecha'))
     },
   })
@@ -249,7 +253,16 @@ export function PanelMiCuenta() {
         onConfirm={() => baja.mutate()}
         loading={baja.isPending}
         error={baja.isError ? textoDeError(baja.error, t('fac.bajaError')) : null}
-      />
+      >
+        <Field label={t('fac.bajaMotivo')} htmlFor="baja-motivo" hint={t('fac.bajaMotivoPista')}>
+          <Input
+            id="baja-motivo"
+            value={motivo}
+            maxLength={200}
+            onChange={(e) => setMotivo(e.target.value)}
+          />
+        </Field>
+      </ConfirmDialog>
     </div>
   )
 }

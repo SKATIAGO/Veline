@@ -743,6 +743,8 @@ export const es = {
   'fac.bajaC1': 'Tu negocio dejará de aceptar reservas nuevas.',
   'fac.bajaC2': 'No se borra nada: tus clientes, servicios y citas se quedan guardados.',
   'fac.bajaC3': 'Si más adelante quieres volver, escríbenos y lo reactivamos.',
+  'fac.bajaMotivo': '¿Por qué te vas? (opcional)',
+  'fac.bajaMotivoPista': 'Nos ayuda a mejorar. Solo lo leemos nosotros.',
   'fac.bajaConfirmar': 'Sí, darme de baja',
   'fac.bajaHecha': 'Te has dado de baja. Gracias por haber confiado en Veline.',
   'fac.bajaError': 'No se ha podido dar de baja. Inténtalo de nuevo o escríbenos.',
