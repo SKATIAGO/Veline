@@ -38,8 +38,9 @@ const FILTROS = [
   {
     key: 'todos',
     clave: 'fneg.filtroTodos',
-    // Los dados de baja no hace falta atenderlos a diario: tienen su cifra.
-    cumple: (b: AdminBusiness) => b.subStatus !== 'CANCELADA',
+    // Los suspendidos y los dados de baja no hace falta atenderlos a diario:
+    // cada uno tiene su cifra.
+    cumple: (b: AdminBusiness) => b.subStatus !== 'CANCELADA' && b.subStatus !== 'SUSPENDIDA',
   },
   {
     key: 'revisar',
