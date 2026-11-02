@@ -7,6 +7,7 @@ import {
   parseExtrasParam,
   type BusinessDTO,
   type BusinessSummaryDTO,
+  type CierreDTO,
 } from '@veline/shared'
 import { SubStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../prisma.js'
@@ -42,6 +43,23 @@ const availabilityQuery = z.object({
   /** Con quién, si el cliente ya ha elegido una persona concreta. */
   staffId: z.string().min(1).optional(),
 })
+
+/** El modelo guarda un día por fila; al público se le dice «del 3 al 17», no quince días. */
+function juntarCierres(dias: { date: Date; reason: string | null }[]): CierreDTO[] {
+  const tramos: CierreDTO[] = []
+  for (const d of dias) {
+    const key = d.date.toISOString().slice(0, 10)
+    const ultimo = tramos[tramos.length - 1]
+    const siguiente =
+      ultimo &&
+      new Date(new Date(`${ultimo.to}T00:00:00Z`).getTime() + 86_400_000)
+        .toISOString()
+        .slice(0, 10) === key
+    if (ultimo && siguiente && ultimo.reason === d.reason) ultimo.to = key
+    else if (!ultimo || ultimo.to !== key) tramos.push({ from: key, to: key, reason: d.reason })
+  }
+  return tramos
+}
 
 export async function businessRoutes(app: FastifyInstance) {
   app.get('/api/categories', async () => CATEGORIES)
@@ -92,12 +110,21 @@ export async function businessRoutes(app: FastifyInstance) {
 
   app.get('/api/businesses/:slug', async (req, reply) => {
     const { slug } = req.params as { slug: string }
+    const desdeHoy = new Date()
+    desdeHoy.setUTCHours(0, 0, 0, 0)
     const b = await prisma.business.findUnique({
       where: { slug },
       include: {
         locations: {
           where: { approved: true },
-          include: { openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] } },
+          include: {
+            openingHours: { orderBy: [{ weekday: 'asc' }, { startMin: 'asc' }] },
+            closures: {
+              where: { startMin: null, date: { gte: desdeHoy } },
+              orderBy: { date: 'asc' },
+              take: 200,
+            },
+          },
         },
         services: { where: { active: true }, orderBy: { position: 'asc' } },
         extras: { where: { active: true }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }] },
@@ -143,6 +170,7 @@ export async function businessRoutes(app: FastifyInstance) {
           startMin: w.startMin,
           endMin: w.endMin,
         })),
+        cierres: juntarCierres(l.closures),
       })),
       services: b.services.map((s) => ({
         id: s.id,
@@ -166,6 +194,7 @@ export async function businessRoutes(app: FastifyInstance) {
         startMin: w.startMin,
         endMin: w.endMin,
       })),
+      cierres: juntarCierres(main?.closures ?? []),
     }
     return dto
   })

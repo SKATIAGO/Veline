@@ -657,6 +657,17 @@ export interface LocationDTO {
   lng: number | null
   /** El horario de este local. Cada uno tiene el suyo. */
   openingHours: OpeningHourDTO[]
+  /** Los días de cierre que vienen (vacaciones, festivos), ya juntados en tramos. */
+  cierres: CierreDTO[]
+}
+
+/** Un tramo de días seguidos sin abrir, con el motivo que puso el negocio. */
+export interface CierreDTO {
+  /** Primer día, AAAA-MM-DD. */
+  from: string
+  /** Último día, AAAA-MM-DD (igual que `from` si es uno solo). */
+  to: string
+  reason: string | null
 }
 
 export interface OpeningHourDTO {
@@ -688,6 +699,8 @@ export interface BusinessDTO extends BusinessSummaryDTO {
   extras: ExtraDTO[]
   staff: StaffDTO[]
   openingHours: OpeningHourDTO[]
+  /** Cierres del local principal; cada local lleva los suyos en `locations`. */
+  cierres: CierreDTO[]
 }
 
 export interface SlotDTO {

@@ -1,3 +1,4 @@
+import { AvisoCierres } from '../components/AvisoCierres'
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
@@ -226,6 +227,8 @@ export function BookingDate() {
       }
     >
       <h1 className="mb-5 text-title font-semibold text-ink">{t('fecha.titulo')}</h1>
+
+      <AvisoCierres cierres={local?.cierres ?? []} className="mb-5 max-w-[640px]" />
 
       <div className="flex max-w-[640px] flex-col gap-5">
         {varios && (

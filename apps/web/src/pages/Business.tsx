@@ -1,3 +1,4 @@
+import { AvisoCierres } from '../components/AvisoCierres'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -248,6 +249,7 @@ export function Business() {
             <div key="servicios" className="rise">
               {/* Tocar un servicio arranca la reserva con él ya elegido: la
                   lista informa y, a la vez, es el atajo al asistente. */}
+              <AvisoCierres cierres={business.cierres} className="mt-4" />
               <p className="mt-4 mb-1 text-meta text-muted">{t('ficha.serviciosPista')}</p>
               {business.services.map((s) => (
                 <div
