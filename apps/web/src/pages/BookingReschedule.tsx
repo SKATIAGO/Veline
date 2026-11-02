@@ -142,17 +142,21 @@ export function BookingReschedule() {
       resumen={
         <dl className="flex flex-col gap-2">
           <div className={fila}>
-            <dt className="text-muted">{t('confirmar.servicio')}</dt>
-            <dd className="text-right font-semibold text-ink">{booking.service.name}</dd>
+            <dt className="shrink-0 text-muted">{t('confirmar.servicio')}</dt>
+            <dd className="min-w-0 text-right font-semibold break-words text-ink">
+              {booking.service.name}
+            </dd>
           </div>
           <div className={fila}>
-            <dt className="text-muted">{t('confirmar.fecha')}</dt>
-            <dd className="text-right font-semibold text-ink first-letter:uppercase">{ahora}</dd>
+            <dt className="shrink-0 text-muted">{t('confirmar.fecha')}</dt>
+            <dd className="min-w-0 text-right font-semibold break-words text-ink first-letter:uppercase">
+              {ahora}
+            </dd>
           </div>
           {slot && dia && (
             <div className={fila}>
-              <dt className="text-muted">{t('reprog.titulo')}</dt>
-              <dd className="text-right font-semibold text-brand-text first-letter:uppercase">
+              <dt className="shrink-0 text-muted">{t('reprog.titulo')}</dt>
+              <dd className="min-w-0 text-right font-semibold break-words text-brand-text first-letter:uppercase">
                 {formatLongDate(fromDateKey(dia), idioma)}, {slot.label}
               </dd>
             </div>

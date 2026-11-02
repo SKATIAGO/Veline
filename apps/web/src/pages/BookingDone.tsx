@@ -191,7 +191,7 @@ export function BookingDone() {
             ).map(([clave, value]) => (
               <div key={clave} className="mb-2.5 flex justify-between gap-4 text-meta">
                 <span className="shrink-0 text-muted">{t(clave)}</span>
-                <span className="text-right font-semibold text-ink first-letter:uppercase">
+                <span className="min-w-0 text-right font-semibold break-words text-ink first-letter:uppercase">
                   {value}
                 </span>
               </div>

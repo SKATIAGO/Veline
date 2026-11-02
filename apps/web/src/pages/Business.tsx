@@ -377,7 +377,7 @@ export function Business() {
                       const rows = business.openingHours.filter((h) => h.weekday === wd)
                       return (
                         <li key={wd} className="flex justify-between gap-4">
-                          <span className="capitalize">{weekdayLong(wd, idioma)}</span>
+                          <span className="shrink-0 capitalize">{weekdayLong(wd, idioma)}</span>
                           <span className={rows.length ? '' : 'text-disabled'}>
                             {rows.length
                               ? rows
