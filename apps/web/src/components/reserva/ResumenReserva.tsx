@@ -48,7 +48,7 @@ export function ResumenReserva({
     <Link
       to={to}
       aria-label={label}
-      className="inline-flex min-h-9 items-center px-1.5 text-meta font-semibold text-brand-text hover:underline"
+      className="inline-flex min-h-9 shrink-0 items-center px-1.5 text-meta font-semibold text-brand-text hover:underline"
     >
       {t('reserva.cambiar')}
     </Link>
@@ -58,7 +58,7 @@ export function ResumenReserva({
   return (
     <dl className="flex flex-col gap-2">
       <div className={fila}>
-        <dt className="min-w-0 text-muted">{servicio.name}</dt>
+        <dt className="min-w-0 break-words text-muted">{servicio.name}</dt>
         <dd className="flex shrink-0 items-center gap-1 font-semibold text-ink tabular-nums">
           {formatPrice(servicio.priceCents, idioma)}
           {cambiar(urlServicio, `${t('reserva.cambiar')}: ${t('reserva.pasoServicio')}`)}
@@ -67,7 +67,7 @@ export function ResumenReserva({
 
       {elegidos.map(({ extra, cantidad }) => (
         <div key={extra.id} className={fila}>
-          <dt className="min-w-0 text-muted">
+          <dt className="min-w-0 break-words text-muted">
             + {extra.name}
             {cantidad > 1 && ` ×${cantidad}`}
           </dt>
@@ -89,22 +89,22 @@ export function ResumenReserva({
 
       {local && (
         <div className={fila}>
-          <dt className="text-muted">{t('fecha.local')}</dt>
-          <dd className="text-right font-semibold text-ink">{local.name}</dd>
+          <dt className="shrink-0 text-muted">{t('fecha.local')}</dt>
+          <dd className="min-w-0 text-right font-semibold break-words text-ink">{local.name}</dd>
         </div>
       )}
 
       {persona && (
         <div className={fila}>
-          <dt className="text-muted">{t('fecha.conQuien')}</dt>
-          <dd className="text-right font-semibold text-ink">{persona.name}</dd>
+          <dt className="shrink-0 text-muted">{t('fecha.conQuien')}</dt>
+          <dd className="min-w-0 text-right font-semibold break-words text-ink">{persona.name}</dd>
         </div>
       )}
 
       {cuando && (
         <div className={fila}>
-          <dt className="text-muted">{t('confirmar.fecha')}</dt>
-          <dd className="flex shrink-0 items-center gap-1 text-right font-semibold text-ink first-letter:uppercase">
+          <dt className="shrink-0 text-muted">{t('confirmar.fecha')}</dt>
+          <dd className="flex min-w-0 flex-wrap items-center justify-end gap-x-1 text-right font-semibold text-ink">
             <span className="first-letter:uppercase">
               {formatLongDate(madridDay(cuando), idioma)}, {formatTimeMadrid(cuando, locale)}
             </span>
@@ -114,7 +114,7 @@ export function ResumenReserva({
       )}
 
       <div className={fila}>
-        <dt className="text-muted">{t('confirmar.duracion')}</dt>
+        <dt className="shrink-0 text-muted">{t('confirmar.duracion')}</dt>
         <dd className="font-semibold text-ink tabular-nums">
           {formatDuration(duracionMin, idioma)}
         </dd>
