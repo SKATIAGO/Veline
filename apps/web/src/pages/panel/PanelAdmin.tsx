@@ -185,12 +185,63 @@ export function PanelAdmin() {
 
   const filtroActivo = FILTROS.find((f) => f.key === filtro)!
 
+  /** Se abre con Excel: separador «;», acentos con BOM, y nada que empiece por
+      =, +, - o @ para que una celda no se ejecute como fórmula. */
+  const descargarLista = () => {
+    const celda = (v: string | number | null) => {
+      const x = String(v ?? '').replace(/\r?\n/g, ' ')
+      return `"${(/^[=+\-@]/.test(x) ? `'${x}` : x).replace(/"/g, '""')}"`
+    }
+    const filas = [
+      [
+        t('adm.csvNegocio'),
+        t('adm.csvSector'),
+        t('adm.csvPlan'),
+        t('adm.csvEstado'),
+        t('adm.csvCorreo'),
+        t('adm.csvAlta'),
+        t('adm.citas'),
+        t('adm.servicios'),
+        t('adm.equipo'),
+        t('adm.csvCuota'),
+        t('adm.csvNotas'),
+      ],
+      ...filtrados.map((b) => [
+        b.name,
+        categoryLabel(b.category, idioma),
+        planLabel(b.plan, idioma),
+        subStatusLabel(b.subStatus, idioma),
+        b.email,
+        b.createdAt.slice(0, 10),
+        b.counts.bookings,
+        b.counts.services,
+        b.counts.users,
+        (b.monthlyCents / 100).toFixed(2).replace('.', ','),
+        b.adminNotes,
+      ]),
+    ]
+    const texto = '\ufeff' + filas.map((f) => f.map(celda).join(';')).join('\r\n')
+    const url = URL.createObjectURL(new Blob([texto], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `veline-negocios-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t('panel.negocios')}
         hint={t('adm.pista')}
-        actions={<Button onClick={() => setDandoDeAlta(true)}>{t('adm.darDeAlta')}</Button>}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={descargarLista} disabled={!filtrados.length}>
+              {t('adm.descargarLista')}
+            </Button>
+            <Button onClick={() => setDandoDeAlta(true)}>{t('adm.darDeAlta')}</Button>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-6">
@@ -293,6 +344,11 @@ export function PanelAdmin() {
                       {t('adm.alMes', { importe: formatPrice(b.monthlyCents, idioma) })}
                       {b.email && ` · ${b.email}`}
                     </p>
+                    {b.subStatus === 'CANCELADA' && b.adminNotes && (
+                      <p className="mt-1 text-meta text-subtle">
+                        {t('adm.motivoBaja')} {b.adminNotes}
+                      </p>
+                    )}
                   </div>
 
                   <dl className="flex gap-5 text-meta text-muted">
