@@ -640,7 +640,9 @@ export function PageHeader({
         <h1 className="font-display text-heading-sm font-semibold text-ink">{title}</h1>
         {hint && <p className="mt-1 text-body text-muted">{hint}</p>}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2">{actions}</div>
+      )}
     </header>
   )
 }

@@ -263,7 +263,7 @@ export function PanelAdmin() {
         placeholder={t('fneg.buscar')}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
-        className="max-w-sm"
+        className="w-full max-w-sm"
       />
 
       {isLoading ? (
@@ -339,7 +339,7 @@ export function PanelAdmin() {
                       )}
                       {b.counts.users === 0 && <Badge tone="off">{t('adm.sinAcceso')}</Badge>}
                     </div>
-                    <p className="mt-0.5 text-meta text-muted">
+                    <p className="mt-0.5 text-meta break-words text-muted">
                       {categoryLabel(b.category, idioma)} · {planLabel(b.plan, idioma)} ·{' '}
                       {t('adm.alMes', { importe: formatPrice(b.monthlyCents, idioma) })}
                       {b.email && ` · ${b.email}`}
