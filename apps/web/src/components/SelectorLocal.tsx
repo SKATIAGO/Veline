@@ -59,7 +59,7 @@ export function SelectorLocal({ compacto }: { compacto?: boolean }) {
       <label htmlFor={id} className="sr-only">
         {t('local.selector')}
       </label>
-      <Alfiler className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-brand" />
+      <Alfiler className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-brand" />
       <Select
         id={id}
         value={actual ?? ''}
@@ -68,7 +68,8 @@ export function SelectorLocal({ compacto }: { compacto?: boolean }) {
           const elegido = e.target.value || null
           siDescarta(() => elegir(elegido))
         }}
-        className={cx('pl-9 font-semibold', compacto && 'min-h-9 text-meta')}
+        title={nombreActual}
+        className={cx('pr-7 pl-8 text-meta font-semibold', compacto && 'min-h-9')}
       >
         {verTodos && <option value="">{t('local.todos')}</option>}
         {locales.map((l) => (
