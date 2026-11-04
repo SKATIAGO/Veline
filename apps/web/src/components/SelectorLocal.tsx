@@ -68,7 +68,7 @@ export function SelectorLocal({ compacto }: { compacto?: boolean }) {
           const elegido = e.target.value || null
           siDescarta(() => elegir(elegido))
         }}
-        title={nombreActual}
+        title={nombreActual ?? undefined}
         className={cx('pr-7 pl-8 text-meta font-semibold', compacto && 'min-h-9')}
       >
         {verTodos && <option value="">{t('local.todos')}</option>}
