@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   formatLongDate,
@@ -65,6 +65,11 @@ export function CalendarioAgenda({
       if (m.getTime() !== mes.getTime()) setMes(m)
     }
   }
+
+  const detalle = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (diaSeleccionado) detalle.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [diaSeleccionado])
 
   const cambiarMes = (nuevoMes: Date) => {
     setMes(nuevoMes)
@@ -193,9 +198,10 @@ export function CalendarioAgenda({
                   const citas = porDia.get(key) ?? []
                   const notas = notasPorDia.get(key) ?? []
                   const activo = key === diaSeleccionado
-                  // Hoy se marca igual que un día elegido: un tono más no se
-                  // distingue de nada, y esto no hay forma de perderlo de vista.
-                  const marcado = activo || key === hoyKey
+                  // El día elegido va relleno y con aro; hoy, solo con borde: si
+                  // se marcaran igual no se sabría cuál se ha tocado.
+                  const marcado = activo
+                  const esHoy = key === hoyKey
                   const partesEtiqueta = [formatLongDate(d, idioma)]
                   if (citas.length) {
                     partesEtiqueta.push(
@@ -216,8 +222,10 @@ export function CalendarioAgenda({
                       className={cx(
                         'relative flex min-h-[60px] flex-col items-start gap-1 rounded-lg border p-1 text-left transition-colors sm:min-h-[92px] sm:p-1.5',
                         marcado
-                          ? 'border-brand bg-brand text-white'
-                          : 'border-line bg-surface hover:border-brand',
+                          ? 'border-brand bg-brand text-white ring-2 ring-ink ring-offset-1'
+                          : esHoy
+                            ? 'border-brand bg-cream ring-1 ring-brand hover:bg-cream'
+                            : 'border-line bg-surface hover:border-brand',
                       )}
                     >
                       {notas.length > 0 && (
@@ -272,10 +280,10 @@ export function CalendarioAgenda({
 
         {!isLoading &&
           (diaSeleccionado ? (
-            <div className="flex flex-col gap-5">
+            <div ref={detalle} className="flex scroll-mt-20 flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-meta font-semibold tracking-[0.04em] text-muted uppercase">
+                  <h3 className="text-body font-semibold text-ink">
                     {formatLongDate(fromDateKey(diaSeleccionado), idioma)}
                   </h3>
                 </div>
