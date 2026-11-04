@@ -1,8 +1,8 @@
 import { useEffect, useId, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatLongDate, formatPrice, madridDay, TIMEZONE } from '@veline/shared'
-import { api, type PanelCustomer } from '../../lib/api'
+import { api, type NotaDeCliente, type PanelCustomer } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import {
   Badge,
@@ -10,6 +10,8 @@ import {
   Card,
   EmptyState,
   ErrorNote,
+  Field,
+  Textarea,
   Input,
   PageHeader,
   Sheet,
@@ -19,6 +21,8 @@ import {
 import { Texto, useIdioma, usePlural, type Clave } from '../../i18n/idioma'
 import { Tabs, panelProps } from '../../components/Tabs'
 import { Segmentado } from '../../components/Segmentado'
+import { aviso, textoDeError } from '../../components/Avisos'
+import { ConfirmDialog } from '../../components/Confirmar'
 
 /**
  * Los clientes del negocio y su historial.
@@ -110,6 +114,146 @@ function Historial({ slug, cliente }: { slug: string; cliente: PanelCustomer }) 
   )
 }
 
+/** Lo que el negocio apunta de esta persona, por ejemplo la mezcla de tinte. */
+function Notas({ slug, cliente }: { slug: string; cliente: PanelCustomer }) {
+  const { t, locale } = useIdioma()
+  const queryClient = useQueryClient()
+  const clave = ['panel', slug, 'customers', cliente.id, 'notas']
+  const { data, isLoading, isError } = useQuery({
+    queryKey: clave,
+    queryFn: () => api.customerNotes(slug, cliente.id),
+  })
+  const [texto, setTexto] = useState('')
+  const [editando, setEditando] = useState<NotaDeCliente | null>(null)
+  const [aBorrar, setABorrar] = useState<NotaDeCliente | null>(null)
+  const idTexto = useId()
+  useEffect(() => {
+    setTexto('')
+    setEditando(null)
+    setABorrar(null)
+  }, [cliente.id])
+
+  const refrescar = () => queryClient.invalidateQueries({ queryKey: clave })
+
+  const guardar = useMutation({
+    mutationFn: async () => {
+      if (editando) await api.updateCustomerNote(slug, cliente.id, editando.id, texto)
+      else await api.addCustomerNote(slug, cliente.id, texto)
+    },
+    onSuccess: () => {
+      aviso.ok(t('fcli.notaGuardada'))
+      setTexto('')
+      setEditando(null)
+      refrescar()
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('fcli.notaError'))),
+  })
+
+  const borrar = useMutation({
+    mutationFn: (n: NotaDeCliente) => api.deleteCustomerNote(slug, cliente.id, n.id),
+    onSuccess: () => {
+      aviso.ok(t('fcli.notaBorrada'))
+      setABorrar(null)
+      refrescar()
+    },
+    onError: (err) => aviso.error(textoDeError(err, t('fcli.notaError'))),
+  })
+
+  return (
+    <div className="flex flex-col gap-5">
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (texto.trim()) guardar.mutate()
+        }}
+      >
+        <Field
+          label={editando ? t('fcli.notaEditar') : t('fcli.notaNueva')}
+          htmlFor={idTexto}
+          hint={t('fcli.notaPista')}
+        >
+          <Textarea
+            id={idTexto}
+            value={texto}
+            maxLength={2000}
+            onChange={(e) => setTexto(e.target.value)}
+          />
+        </Field>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" size="sm" loading={guardar.isPending} disabled={!texto.trim()}>
+            {editando ? t('fcli.notaGuardarCambios') : t('fcli.notaGuardar')}
+          </Button>
+          {editando && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setEditando(null)
+                setTexto('')
+              }}
+            >
+              {t('fcli.notaCancelar')}
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {isLoading ? (
+        <Skeleton className="h-16" />
+      ) : isError ? (
+        <ErrorNote>{t('fcli.notaNoCarga')}</ErrorNote>
+      ) : !data?.length ? (
+        <p className="text-body text-body-2">{t('fcli.notaSin')}</p>
+      ) : (
+        <ul className="flex flex-col">
+          {data.map((n) => (
+            <li key={n.id} className="border-t border-line py-3 first:border-t-0">
+              <p className="text-body break-words whitespace-pre-wrap text-ink">{n.texto}</p>
+              <p className="mt-1 text-meta text-muted">
+                {n.autor} ·{' '}
+                {new Date(n.createdAt).toLocaleDateString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  timeZone: TIMEZONE,
+                })}
+                {n.editada && ` · ${t('fcli.notaEditada')}`}
+              </p>
+              <div className="mt-1 flex gap-1">
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => {
+                    setEditando(n)
+                    setTexto(n.texto)
+                  }}
+                >
+                  {t('fcli.notaEditar')}
+                </Button>
+                <Button variant="quiet" size="sm" onClick={() => setABorrar(n)}>
+                  {t('fcli.notaBorrar')}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ConfirmDialog
+        open={!!aBorrar}
+        onClose={() => setABorrar(null)}
+        title={t('fcli.notaBorrarTitulo')}
+        consecuencias={[t('fcli.notaBorrarAviso')]}
+        confirmLabel={t('fcli.notaBorrarSi')}
+        tono="destruir"
+        loading={borrar.isPending}
+        onConfirm={() => aBorrar && borrar.mutate(aBorrar)}
+      />
+    </div>
+  )
+}
+
 /**
  * La ficha de un cliente: cómo localizarle, cómo le va con el negocio y su
  * historial, al lado de la lista. Antes la lista era todo lo que había, y
@@ -127,7 +271,7 @@ function FichaCliente({
   const { t, idioma, locale } = useIdioma()
   const navigate = useNavigate()
   const idBase = useId()
-  const [pestana, setPestana] = useState<'resumen' | 'historial'>('resumen')
+  const [pestana, setPestana] = useState<'resumen' | 'historial' | 'notas'>('resumen')
   useEffect(() => setPestana('resumen'), [cliente?.id])
 
   const fecha = (iso: string | null) =>
@@ -180,6 +324,7 @@ function FichaCliente({
               tabs={[
                 { id: 'resumen', label: t('fneg.resumen') },
                 { id: 'historial', label: t('fcli.historial'), contador: cliente.total },
+                { id: 'notas', label: t('fcli.notas') },
               ]}
               activa={pestana}
               onCambiar={setPestana}
@@ -231,8 +376,10 @@ function FichaCliente({
                   {formatPrice(cliente.gastadoCents, idioma)}
                 </dd>
               </dl>
-            ) : (
+            ) : pestana === 'historial' ? (
               <Historial slug={slug} cliente={cliente} />
+            ) : (
+              <Notas slug={slug} cliente={cliente} />
             )}
           </div>
 

@@ -10,6 +10,7 @@ import {
 } from '../auth/business-scope.js'
 import { MAX_RANGE_DAYS, getAvailability, getAvailabilityForReschedule } from '../availability.js'
 import { duracionConExtras } from '../extras.js'
+import { audit } from '../audit/log.js'
 
 /**
  * Lo que necesita el mostrador para apuntar y mover citas con huecos de
@@ -201,5 +202,109 @@ export async function agendaRoutes(app: FastifyInstance) {
       persona: c.staff?.name ?? null,
       extras: c.extras,
     }))
+  })
+
+  const cuerpoNota = z.object({ texto: z.string().trim().min(1).max(2000) })
+
+  /** Las notas que el negocio tiene de un cliente, la última primero. */
+  app.get('/api/panel/:slug/customers/:id/notas', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const notas = await prisma.notaDeCliente.findMany({
+      where: { businessId: auth.business.id, customerId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    })
+    return notas.map((n) => ({
+      id: n.id,
+      texto: n.texto,
+      autor: n.autor,
+      createdAt: n.createdAt.toISOString(),
+      editada: n.updatedAt.getTime() - n.createdAt.getTime() > 1000,
+    }))
+  })
+
+  app.post('/api/panel/:slug/customers/:id/notas', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id } = req.params as { slug: string; id: string }
+    const auth = await authorize(user, slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+    const parsed = cuerpoNota.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: 'Escribe la nota' })
+
+    // Solo de clientes que han reservado en este negocio.
+    const esSuyo = await prisma.booking.findFirst({
+      where: { businessId: auth.business.id, customerId: id },
+      select: { id: true },
+    })
+    if (!esSuyo) return reply.code(404).send({ error: 'Cliente no encontrado' })
+
+    const nota = await prisma.notaDeCliente.create({
+      data: {
+        businessId: auth.business.id,
+        customerId: id,
+        texto: parsed.data.texto,
+        autor: user.name,
+      },
+    })
+    audit(req, {
+      action: 'NOTA_CREADA',
+      summary: 'Ha apuntado una nota de un cliente',
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'NotaDeCliente',
+      entityId: nota.id,
+    })
+    return {
+      id: nota.id,
+      texto: nota.texto,
+      autor: nota.autor,
+      createdAt: nota.createdAt.toISOString(),
+      editada: false,
+    }
+  })
+
+  app.patch('/api/panel/:slug/customers/:id/notas/:notaId', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id, notaId } = req.params as { slug: string; id: string; notaId: string }
+    const auth = await authorize(user, slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+    const parsed = cuerpoNota.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: 'Escribe la nota' })
+
+    const { count } = await prisma.notaDeCliente.updateMany({
+      where: { id: notaId, businessId: auth.business.id, customerId: id },
+      data: { texto: parsed.data.texto },
+    })
+    if (!count) return reply.code(404).send({ error: 'Nota no encontrada' })
+    return { ok: true }
+  })
+
+  app.delete('/api/panel/:slug/customers/:id/notas/:notaId', async (req, reply) => {
+    const user = await requireUser(req, reply)
+    if (!user) return
+    const { slug, id, notaId } = req.params as { slug: string; id: string; notaId: string }
+    const auth = await authorize(user, slug, 'agenda')
+    if (!auth.ok) return reply.code(auth.status).send({ error: auth.error })
+
+    const { count } = await prisma.notaDeCliente.deleteMany({
+      where: { id: notaId, businessId: auth.business.id, customerId: id },
+    })
+    if (!count) return reply.code(404).send({ error: 'Nota no encontrada' })
+    audit(req, {
+      action: 'NOTA_ELIMINADA',
+      summary: 'Ha borrado una nota de un cliente',
+      actor: user,
+      businessId: auth.business.id,
+      entity: 'NotaDeCliente',
+      entityId: notaId,
+    })
+    return { ok: true }
   })
 }

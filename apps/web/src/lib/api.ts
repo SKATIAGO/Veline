@@ -499,6 +499,24 @@ export const api = {
       `/panel/${slug}/customers/${id}/bookings${qs({ local: local ?? undefined })}`,
     ),
 
+  customerNotes: (slug: string, id: string) =>
+    request<NotaDeCliente[]>(`/panel/${slug}/customers/${id}/notas`),
+
+  addCustomerNote: (slug: string, id: string, texto: string) =>
+    request<NotaDeCliente>(`/panel/${slug}/customers/${id}/notas`, {
+      method: 'POST',
+      body: JSON.stringify({ texto }),
+    }),
+
+  updateCustomerNote: (slug: string, id: string, notaId: string, texto: string) =>
+    request<{ ok: true }>(`/panel/${slug}/customers/${id}/notas/${notaId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ texto }),
+    }),
+
+  deleteCustomerNote: (slug: string, id: string, notaId: string) =>
+    request<{ ok: true }>(`/panel/${slug}/customers/${id}/notas/${notaId}`, { method: 'DELETE' }),
+
   /** Con qué se apunta una cita: servicios, extras, personas y locales. */
   agendaCarta: (slug: string) => request<CartaAgenda>(`/panel/${slug}/agenda/carta`),
 
@@ -965,6 +983,14 @@ export interface CartaAgenda {
   /** Null = atiende en cualquier local. */
   personas: { id: string; name: string; locationId: string | null }[]
   locales: { id: string; name: string }[]
+}
+
+export interface NotaDeCliente {
+  id: string
+  texto: string
+  autor: string
+  createdAt: string
+  editada: boolean
 }
 
 export interface CitaDeCliente {

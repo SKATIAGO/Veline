@@ -99,19 +99,20 @@ model Business {
   photos         String[]
   createdAt      DateTime  @default(now())
 
-  locations Location[]
-  services  Service[]
-  staff     Staff[]
-  bookings  Booking[]
-  users     User[]
-  auditLogs AuditLog[]
-  messages  MessageLog[]
-  charges   Charge[]
-  reviews   Review[]
-  fichajes  Fichaje[]
-  extras    Extra[]
-  imagenes  Imagen[]
-  notes     CalendarNote[]
+  locations      Location[]
+  services       Service[]
+  staff          Staff[]
+  bookings       Booking[]
+  notasDeCliente NotaDeCliente[]
+  users          User[]
+  auditLogs      AuditLog[]
+  messages       MessageLog[]
+  charges        Charge[]
+  reviews        Review[]
+  fichajes       Fichaje[]
+  extras         Extra[]
+  imagenes       Imagen[]
+  notes          CalendarNote[]
 
   @@index([category])
 }
@@ -142,20 +143,20 @@ model Location {
 }
 
 model Service {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   businessId  String
   name        String
   description String?
   /// Duración de la cita en minutos
   durationMin Int
   /// Margen posterior reservado para el negocio (limpieza, papeleo…)
-  bufferMin   Int     @default(0)
+  bufferMin   Int      @default(0)
   priceCents  Int
   /// Direcciones de las fotos (/api/imagenes/…), la primera es la principal.
   /// En belleza o estética, ver cómo queda el servicio es lo que decide.
   photos      String[]
-  active      Boolean @default(true)
-  position    Int     @default(0)
+  active      Boolean  @default(true)
+  position    Int      @default(0)
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   bookings Booking[]
@@ -343,6 +344,25 @@ model Customer {
 
   bookings Booking[]
   reviews  Review[]
+  notas    NotaDeCliente[]
+}
+
+/// Lo que un negocio apunta de uno de sus clientes (por ejemplo la mezcla de
+/// tinte). Es del negocio: otro negocio con la misma clienta no lo ve.
+model NotaDeCliente {
+  id         String   @id @default(cuid())
+  businessId String
+  customerId String
+  texto      String
+  /// Quién la escribió, tal como se llamaba entonces.
+  autor      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, customerId, createdAt])
 }
 
 model Booking {
@@ -751,9 +771,9 @@ model Fichaje {
 
   createdAt DateTime @default(now())
 
-  user         User     @relation("FichajesPropios", fields: [userId], references: [id], onDelete: Cascade)
-  corregidoPor User?    @relation("FichajesCorregidos", fields: [corregidoPorId], references: [id], onDelete: SetNull)
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user         User                @relation("FichajesPropios", fields: [userId], references: [id], onDelete: Cascade)
+  corregidoPor User?               @relation("FichajesCorregidos", fields: [corregidoPorId], references: [id], onDelete: SetNull)
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
   pausas       FichajePausa[]
   correcciones FichajeCorreccion[]
 
@@ -780,13 +800,13 @@ model FichajePausa {
 /// y por qué. Las columnas *Original de Fichaje guardaban solo la primera; un
 /// registro inalterable necesita todas, en orden.
 model FichajeCorreccion {
-  id            String    @id @default(cuid())
-  fichajeId     String
-  porId         String?
-  en            DateTime  @default(now())
-  motivo        String
-  entradaAntes  DateTime?
-  salidaAntes   DateTime?
+  id             String    @id @default(cuid())
+  fichajeId      String
+  porId          String?
+  en             DateTime  @default(now())
+  motivo         String
+  entradaAntes   DateTime?
+  salidaAntes    DateTime?
   entradaDespues DateTime
   salidaDespues  DateTime?
 
