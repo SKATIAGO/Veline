@@ -763,10 +763,11 @@ export function PanelLayout() {
     <LocalProvider slug={esPlataforma ? undefined : slug}>
       <div className="min-h-screen bg-canvas md:grid md:grid-cols-[248px_1fr]">
         {/* ── Menú lateral (escritorio) ──
-          Se queda quieto mientras la página baja, y se desplaza por su cuenta
-          si algún día no cabe. */}
-        <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col">
-          <div className="flex flex-col gap-3 px-4 pt-5 pb-4">
+          Se queda quieto mientras la página baja. Si la pantalla es baja se
+          desplaza entero, cabecera y pie incluidos, en vez de dejar el menú
+          encajonado entre los dos. */}
+        <aside className="hidden border-r border-line bg-cream md:sticky md:top-0 md:flex md:h-screen md:flex-col md:overflow-y-auto">
+          <div className="flex shrink-0 flex-col gap-3 px-4 pt-5 pb-4">
             <div className="flex items-center gap-2">
               <Logo size={19} />
               <span className="rounded-full bg-ink px-2 py-0.5 text-caption font-semibold tracking-wide text-cream uppercase">
@@ -792,7 +793,7 @@ export function PanelLayout() {
             )}
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-2 pb-4" aria-label={t('panel.secciones')}>
+          <nav className="flex-1 px-2 pb-4" aria-label={t('panel.secciones')}>
             {grupos.map((grupo) => (
               <div key={grupo} className="mb-1">
                 <p className="px-3 pt-3 pb-1 text-caption font-bold tracking-[0.1em] text-subtle uppercase">
@@ -811,7 +812,7 @@ export function PanelLayout() {
             ))}
           </nav>
 
-          <div className="flex flex-col gap-1 border-t border-line px-2 py-3">
+          <div className="flex shrink-0 flex-col gap-1 border-t border-line px-2 py-3">
             {esSuperadmin && (
               <button
                 type="button"
