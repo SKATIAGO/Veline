@@ -292,9 +292,17 @@ export const en: Record<keyof typeof es, string> = {
   'agenda.anioSiguiente': 'Next year',
 
   // ── Accounting ─────────────────────────────────────────────
-  'cont.pista':
-    'What gets billed each day, based on bookings: cancellations and no-shows don’t count.',
+  'cont.pista': 'What gets billed each week and month: only bookings you mark as attended count.',
   'cont.totalMes': 'Total for the month',
+  'cont.totalSemana': "This week's total",
+  'cont.soloVenidos': 'Only appointments where the client came are counted.',
+  'cont.pendientesLinea':
+    'Not marked yet: {n} ({importe}). They count once you mark that they came.',
+  'cont.semana': 'Week of {desde} to {hasta}',
+  'cont.estaSemana': 'This week',
+  'cont.sinMarcarSemana': '{n} not marked',
+  'cont.pendiente': 'Not marked',
+  'cont.haVenido': 'Did they come?',
   'cont.sinCitasMes': 'No bookings this month',
   'cont.sinCitasMesPista': 'Once there are confirmed bookings, they’ll show up here day by day.',
   'cont.unaCita': '{n} booking',
@@ -310,7 +318,7 @@ export const en: Record<keyof typeof es, string> = {
   'cont.csvAtendio': 'Attended by',
   'cont.csvEstado': 'Status',
   'cont.csvImporte': 'Amount (€)',
-  'cont.csvTotalMes': 'Total for the month (excluding cancellations and no-shows)',
+  'cont.csvTotalMes': 'Total for the month (attended bookings only)',
 
   // One appointment
   'agenda.citaDe': '{nombre}’s appointment',

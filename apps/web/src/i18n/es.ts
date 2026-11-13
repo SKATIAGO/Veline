@@ -293,8 +293,16 @@ export const es = {
 
   // ── Contabilidad ───────────────────────────────────────────
   'cont.pista':
-    'Lo que se factura cada día, según las citas: lo cancelado y las citas a las que no vino el cliente no cuentan.',
+    'Lo que se factura por semana y por mes: solo suman las citas en las que marques que el cliente ha venido.',
   'cont.totalMes': 'Total del mes',
+  'cont.totalSemana': 'Total de la semana',
+  'cont.soloVenidos': 'Solo suman las citas en las que el cliente ha venido.',
+  'cont.pendientesLinea': 'Sin marcar: {n} ({importe}). Suman cuando indiques que han venido.',
+  'cont.semana': 'Semana del {desde} al {hasta}',
+  'cont.estaSemana': 'Esta semana',
+  'cont.sinMarcarSemana': '{n} sin marcar',
+  'cont.pendiente': 'Sin marcar',
+  'cont.haVenido': '¿Ha venido?',
   'cont.sinCitasMes': 'Sin citas este mes',
   'cont.sinCitasMesPista': 'Cuando haya citas confirmadas, aparecerán aquí día a día.',
   'cont.unaCita': '{n} cita',
@@ -310,7 +318,7 @@ export const es = {
   'cont.csvAtendio': 'Atendió',
   'cont.csvEstado': 'Estado',
   'cont.csvImporte': 'Importe (€)',
-  'cont.csvTotalMes': 'Total del mes (sin canceladas ni ausencias)',
+  'cont.csvTotalMes': 'Total del mes (solo citas en las que ha venido)',
 
   // Una cita
   'agenda.citaDe': 'Cita de {nombre}',

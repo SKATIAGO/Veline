@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   TIMEZONE,
   formatLongDate,
@@ -13,15 +13,28 @@ import { api, type PanelBooking } from '../../lib/api'
 import { useLocal } from '../../lib/local'
 import { CabeceraMes } from '../../components/CabeceraMes'
 import { Button, Card, EmptyState, PageHeader, Skeleton, cx } from '../../components/ui'
+import { aviso, textoDeError } from '../../components/Avisos'
 import { useIdioma, type Clave } from '../../i18n/idioma'
 
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
 const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0)
 
+/** El lunes de la semana de un día, como clave AAAA-MM-DD. */
+function lunesDe(d: Date) {
+  const lunes = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7))
+  return lunes
+}
+
+const sumarDias = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+
 interface ResumenDia {
   fecha: string
   facturadoCents: number
   citas: number
+  /** Citas sin marcar si vinieron: todavía no suman. */
+  pendienteCents: number
+  pendientes: number
   canceladoCents: number
   canceladas: number
   /** Quien no vino: no se cobra, así que tampoco suma. */
@@ -55,6 +68,14 @@ export function PanelContabilidad() {
   const { actual: local } = useLocal()
   const { t, idioma } = useIdioma()
   const [mes, setMes] = useState(() => startOfMonth(new Date()))
+  const queryClient = useQueryClient()
+  /* Se piden las semanas enteras: la del día 1 y la del último día pueden
+     empezar o acabar en el mes de al lado, y su total tiene que ser el de la
+     semana completa. El total del mes, en cambio, solo cuenta sus días. */
+  const desde = lunesDe(mes)
+  const hasta = sumarDias(lunesDe(endOfMonth(mes)), 6)
+  const claveMes = toDateKey(mes).slice(0, 7)
+  const hoy = madridDateKey(new Date())
 
   const {
     data: bookings,
@@ -62,8 +83,7 @@ export function PanelContabilidad() {
     isPlaceholderData,
   } = useQuery({
     queryKey: ['panel', slug, 'bookings', 'mes', toDateKey(mes), local],
-    queryFn: () =>
-      api.panelBookings(slug, { from: toDateKey(mes), to: toDateKey(endOfMonth(mes)), local }),
+    queryFn: () => api.panelBookings(slug, { from: toDateKey(desde), to: toDateKey(hasta), local }),
     // Al cambiar de mes o de filtro se queda lo anterior, atenuado, hasta que
     // llega lo nuevo: la pantalla no se vacía ni cambia de alto.
     placeholderData: keepPreviousData,
@@ -77,6 +97,8 @@ export function PanelContabilidad() {
         fecha: key,
         facturadoCents: 0,
         citas: 0,
+        pendienteCents: 0,
+        pendientes: 0,
         canceladoCents: 0,
         canceladas: 0,
         noVinoCents: 0,
@@ -92,16 +114,21 @@ export function PanelContabilidad() {
            citas a las que el cliente no vino y que nadie cobró. */
         fila.noVinoCents += b.priceCents
         fila.noVino += 1
-      } else {
+      } else if (b.status === 'COMPLETADA') {
         fila.facturadoCents += b.priceCents
         fila.citas += 1
+      } else {
+        /* Confirmada pero sin marcar: ni suma ni se pierde, queda a la vista
+           hasta que alguien diga si el cliente vino. */
+        fila.pendienteCents += b.priceCents
+        fila.pendientes += 1
       }
       map.set(key, fila)
     }
     return (
       [...map.values()]
         // Los días sin nada de nada —ni facturado ni cancelado— no aportan.
-        .filter((d) => d.citas > 0 || d.canceladas > 0 || d.noVino > 0)
+        .filter((d) => d.citas > 0 || d.canceladas > 0 || d.noVino > 0 || d.pendientes > 0)
         .sort((a, b) => b.fecha.localeCompare(a.fecha))
         .map((d) => ({
           ...d,
@@ -117,7 +144,62 @@ export function PanelContabilidad() {
       timeZone: TIMEZONE,
     })
 
-  const totalMesCents = dias.reduce((n, d) => n + d.facturadoCents, 0)
+  const delMes = dias.filter((d) => d.fecha.startsWith(claveMes))
+  const totalMesCents = delMes.reduce((n, d) => n + d.facturadoCents, 0)
+  const pendientesMes = delMes.reduce((n, d) => n + d.pendientes, 0)
+  const pendienteMesCents = delMes.reduce((n, d) => n + d.pendienteCents, 0)
+
+  const semanas = useMemo(() => {
+    const map = new Map<
+      string,
+      { lunes: string; dias: ResumenDia[]; totalCents: number; pendientes: number }
+    >()
+    for (const d of dias) {
+      const lunes = toDateKey(lunesDe(fromDateKey(d.fecha)))
+      const w = map.get(lunes) ?? { lunes, dias: [], totalCents: 0, pendientes: 0 }
+      w.dias.push(d)
+      w.totalCents += d.facturadoCents
+      w.pendientes += d.pendientes
+      map.set(lunes, w)
+    }
+    return [...map.values()].sort((a, b) => b.lunes.localeCompare(a.lunes))
+  }, [dias])
+  const semanaActual = toDateKey(lunesDe(fromDateKey(hoy)))
+  const totalSemanaActual = semanas.find((w) => w.lunes === semanaActual)?.totalCents ?? 0
+
+  const marcar = useMutation({
+    mutationFn: ({
+      b,
+      status,
+    }: {
+      b: PanelBooking
+      status: 'COMPLETADA' | 'NO_ASISTIO' | 'CONFIRMADA'
+    }) => api.setBookingOutcome(slug, b.id, status),
+    onSuccess: (_r, { b, status }) => {
+      const refrescar = () => queryClient.invalidateQueries({ queryKey: ['panel', slug] })
+      refrescar()
+      aviso.ok(
+        t(status === 'COMPLETADA' ? 'agenda.marcadaVino' : 'agenda.marcadaNoVino', {
+          nombre: b.customer.name,
+        }),
+        {
+          texto: t('avisos.deshacer'),
+          onClick: () =>
+            api
+              .setBookingOutcome(slug, b.id, 'CONFIRMADA')
+              .then(refrescar)
+              .catch((e) => aviso.error(textoDeError(e, t('avisos.error')))),
+        },
+      )
+    },
+    onError: (e) => aviso.error(textoDeError(e, t('avisos.error'))),
+  })
+
+  const fechaCorta = (clave: string) =>
+    fromDateKey(clave).toLocaleDateString(idioma === 'en' ? 'en-GB' : 'es-ES', {
+      day: 'numeric',
+      month: 'short',
+    })
 
   /**
    * El desglose de verdad, cita a cita, no solo el resumen por día que ya se
@@ -137,7 +219,9 @@ export function PanelContabilidad() {
       return idioma === 'en' ? valor : valor.replace('.', ',')
     }
 
-    const filas = [...(bookings ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    const filas = (bookings ?? [])
+      .filter((b) => madridDateKey(b.startsAt).startsWith(claveMes))
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
     const cabecera = [
       t('cont.csvFecha'),
       t('cont.csvHora'),
@@ -210,73 +294,153 @@ export function PanelContabilidad() {
               isPlaceholderData && 'opacity-60',
             )}
           >
-            <Card padded className="flex items-baseline justify-between gap-4">
-              <span className="text-ui font-semibold text-ink">{t('cont.totalMes')}</span>
-              <span className="font-display text-heading font-semibold text-ink tabular-nums">
-                {formatPrice(totalMesCents, idioma)}
-              </span>
+            <Card padded className="flex flex-col gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-meta font-semibold text-muted">{t('cont.totalMes')}</p>
+                  <p className="font-display text-heading font-semibold text-ink tabular-nums">
+                    {formatPrice(totalMesCents, idioma)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-meta font-semibold text-muted">{t('cont.totalSemana')}</p>
+                  <p className="font-display text-heading font-semibold text-ink tabular-nums">
+                    {formatPrice(totalSemanaActual, idioma)}
+                  </p>
+                </div>
+              </div>
+              <p className="text-meta text-muted">{t('cont.soloVenidos')}</p>
+              {pendientesMes > 0 && (
+                <p className="rounded-lg bg-cream px-3 py-2 text-meta font-semibold text-ink">
+                  {t('cont.pendientesLinea', {
+                    n: pendientesMes,
+                    importe: formatPrice(pendienteMesCents, idioma),
+                  })}
+                </p>
+              )}
             </Card>
 
             {dias.length === 0 ? (
               <EmptyState title={t('cont.sinCitasMes')} hint={t('cont.sinCitasMesPista')} />
             ) : (
-              <Card className="overflow-hidden">
-                <ul>
-                  {dias.map((d) => (
-                    <li
-                      key={d.fecha}
-                      className="flex flex-col gap-3 border-b border-line px-4 py-3.5 last:border-b-0 sm:px-5"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                        <div className="min-w-0">
-                          <p className="text-ui font-semibold text-ink capitalize">
-                            {formatLongDate(fromDateKey(d.fecha), idioma)}
-                          </p>
-                          <p className="mt-0.5 text-meta text-muted">
-                            {t(d.citas === 1 ? 'cont.unaCita' : 'cont.variasCitas', { n: d.citas })}
-                            {d.canceladas > 0 &&
-                              ` · ${t(d.canceladas === 1 ? 'cont.unaCancelada' : 'cont.variasCanceladas', { n: d.canceladas, importe: formatPrice(d.canceladoCents, idioma) })}`}
-                            {d.noVino > 0 &&
-                              ` · ${t(d.noVino === 1 ? 'cont.unNoVino' : 'cont.variosNoVino', { n: d.noVino, importe: formatPrice(d.noVinoCents, idioma) })}`}
-                          </p>
-                        </div>
-                        <span className="text-ui font-semibold text-ink tabular-nums">
-                          {formatPrice(d.facturadoCents, idioma)}
-                        </span>
-                      </div>
-                      <ul className="flex flex-col gap-2">
-                        {d.lista.map((b) => {
-                          const sinCobro = b.status === 'CANCELADA' || b.status === 'NO_ASISTIO'
-                          return (
-                            <li
-                              key={b.id}
-                              className="flex items-start justify-between gap-3 text-meta"
-                            >
-                              <div className="min-w-0">
-                                <p className="font-semibold text-ink">
-                                  {horaDe(b.startsAt)} · {b.customer.name}
-                                </p>
-                                <p className="text-muted">
-                                  {b.service.name} · {b.staff?.name ?? t('agenda.sinAsignar')}
-                                  {sinCobro && ` · ${t(ESTADO_CLAVE[b.status])}`}
-                                </p>
-                              </div>
-                              <span
-                                className={cx(
-                                  'tabular-nums',
-                                  sinCobro ? 'text-muted line-through' : 'text-ink',
-                                )}
-                              >
-                                {formatPrice(b.priceCents, idioma)}
-                              </span>
-                            </li>
-                          )
+              semanas.map((w) => (
+                <Card key={w.lunes} className="overflow-hidden">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line bg-cream px-4 py-3 sm:px-5">
+                    <div className="min-w-0">
+                      <p className="text-ui font-semibold text-ink">
+                        {t('cont.semana', {
+                          desde: fechaCorta(w.lunes),
+                          hasta: fechaCorta(toDateKey(sumarDias(fromDateKey(w.lunes), 6))),
                         })}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+                        {w.lunes === semanaActual && (
+                          <span className="ml-2 text-meta font-semibold text-brand-text">
+                            {t('cont.estaSemana')}
+                          </span>
+                        )}
+                      </p>
+                      {w.pendientes > 0 && (
+                        <p className="text-meta text-muted">
+                          {t('cont.sinMarcarSemana', { n: w.pendientes })}
+                        </p>
+                      )}
+                    </div>
+                    <span className="font-display text-subheading font-semibold text-ink tabular-nums">
+                      {formatPrice(w.totalCents, idioma)}
+                    </span>
+                  </div>
+                  <ul>
+                    {w.dias.map((d) => (
+                      <li
+                        key={d.fecha}
+                        className="flex flex-col gap-3 border-b border-line px-4 py-3.5 last:border-b-0 sm:px-5"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                          <div className="min-w-0">
+                            <p className="text-ui font-semibold text-ink capitalize">
+                              {formatLongDate(fromDateKey(d.fecha), idioma)}
+                            </p>
+                            <p className="mt-0.5 text-meta text-muted">
+                              {t(d.citas === 1 ? 'cont.unaCita' : 'cont.variasCitas', {
+                                n: d.citas,
+                              })}
+                              {d.canceladas > 0 &&
+                                ` · ${t(d.canceladas === 1 ? 'cont.unaCancelada' : 'cont.variasCanceladas', { n: d.canceladas, importe: formatPrice(d.canceladoCents, idioma) })}`}
+                              {d.noVino > 0 &&
+                                ` · ${t(d.noVino === 1 ? 'cont.unNoVino' : 'cont.variosNoVino', { n: d.noVino, importe: formatPrice(d.noVinoCents, idioma) })}`}
+                            </p>
+                          </div>
+                          <span className="text-ui font-semibold text-ink tabular-nums">
+                            {formatPrice(d.facturadoCents, idioma)}
+                          </span>
+                        </div>
+                        <ul className="flex flex-col gap-3">
+                          {d.lista.map((b) => {
+                            const sinCobro = b.status === 'CANCELADA' || b.status === 'NO_ASISTIO'
+                            const porMarcar = b.status === 'CONFIRMADA'
+                            const sePuedeMarcar = porMarcar && d.fecha <= hoy
+                            const enviando = marcar.isPending && marcar.variables?.b.id === b.id
+                            return (
+                              <li key={b.id} className="flex flex-col gap-2 text-meta">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="font-semibold break-words text-ink">
+                                      {horaDe(b.startsAt)} · {b.customer.name}
+                                    </p>
+                                    <p className="break-words text-muted">
+                                      {b.service.name} · {b.staff?.name ?? t('agenda.sinAsignar')}
+                                      {` · ${porMarcar ? t('cont.pendiente') : t(ESTADO_CLAVE[b.status])}`}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className={cx(
+                                      'shrink-0 tabular-nums',
+                                      sinCobro
+                                        ? 'text-muted line-through'
+                                        : porMarcar
+                                          ? 'text-muted'
+                                          : 'text-ink',
+                                    )}
+                                  >
+                                    {formatPrice(b.priceCents, idioma)}
+                                  </span>
+                                </div>
+                                {sePuedeMarcar && (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-semibold text-body-2">
+                                      {t('cont.haVenido')}
+                                    </span>
+                                    <Button
+                                      size="sm"
+                                      loading={
+                                        enviando && marcar.variables?.status === 'COMPLETADA'
+                                      }
+                                      disabled={enviando}
+                                      onClick={() => marcar.mutate({ b, status: 'COMPLETADA' })}
+                                    >
+                                      {t('agenda.vino')}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      loading={
+                                        enviando && marcar.variables?.status === 'NO_ASISTIO'
+                                      }
+                                      disabled={enviando}
+                                      onClick={() => marcar.mutate({ b, status: 'NO_ASISTIO' })}
+                                    >
+                                      {t('agenda.noVino')}
+                                    </Button>
+                                  </div>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              ))
             )}
           </div>
         )}
