@@ -294,6 +294,7 @@ export const en: Record<keyof typeof es, string> = {
   // ── Accounting ─────────────────────────────────────────────
   'cont.pista': 'What gets billed each week and month: only bookings you mark as attended count.',
   'cont.totalMes': 'Total for the month',
+  'cont.deLocal': 'Location: {nombre}',
   'cont.totalSemana': "This week's total",
   'cont.soloVenidos': 'Only appointments where the client came are counted.',
   'cont.pendientesLinea':

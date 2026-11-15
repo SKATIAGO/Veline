@@ -65,7 +65,7 @@ function celdaCsv(valor: string) {
  */
 export function PanelContabilidad() {
   const { slug = '' } = useParams()
-  const { actual: local } = useLocal()
+  const { actual: local, varios, nombreActual } = useLocal()
   const { t, idioma } = useIdioma()
   const [mes, setMes] = useState(() => startOfMonth(new Date()))
   const queryClient = useQueryClient()
@@ -295,6 +295,11 @@ export function PanelContabilidad() {
             )}
           >
             <Card padded className="flex flex-col gap-4">
+              {varios && (
+                <p className="text-meta font-semibold text-body-2">
+                  {t('cont.deLocal', { nombre: nombreActual ?? t('local.todos') })}
+                </p>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-meta font-semibold text-muted">{t('cont.totalMes')}</p>

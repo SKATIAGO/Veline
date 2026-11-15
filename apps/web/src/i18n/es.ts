@@ -295,6 +295,7 @@ export const es = {
   'cont.pista':
     'Lo que se factura por semana y por mes: solo suman las citas en las que marques que el cliente ha venido.',
   'cont.totalMes': 'Total del mes',
+  'cont.deLocal': 'Local: {nombre}',
   'cont.totalSemana': 'Total de la semana',
   'cont.soloVenidos': 'Solo suman las citas en las que el cliente ha venido.',
   'cont.pendientesLinea': 'Sin marcar: {n} ({importe}). Suman cuando indiques que han venido.',
