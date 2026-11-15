@@ -274,13 +274,13 @@ export function Business() {
                       )
                     )}
                     <div className="min-w-0">
-                      <div className="font-semibold text-ink">{s.name}</div>
+                      <div className="font-semibold break-words text-ink">{s.name}</div>
                       <div className="mt-1 text-meta text-subtle">
                         {formatDuration(s.durationMin, idioma)}
                       </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-4">
+                  <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
                     <span className="font-semibold text-ink tabular-nums">
                       {formatPrice(s.priceCents, idioma)}
                     </span>
