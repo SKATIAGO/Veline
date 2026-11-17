@@ -6,7 +6,7 @@ import { api } from '../lib/api'
 import { Button, Card, Chip, EmptyState, Skeleton } from '../components/ui'
 import { BusinessCard } from '../components/BusinessCard'
 import { Reveal } from '../components/Reveal'
-import { useIdioma, usePlural } from '../i18n/idioma'
+import { useIdioma } from '../i18n/idioma'
 
 /** Misma silueta que una tarjeta real, para que la carga no dé un salto. */
 function CardSkeleton() {
@@ -28,7 +28,6 @@ function CardSkeleton() {
 
 export function Search() {
   const { t, idioma } = useIdioma()
-  const plural = usePlural()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const city = params.get('donde') ?? ''
@@ -98,9 +97,7 @@ export function Search() {
       </div>
 
       <h1 className="mt-10 mb-6 text-heading font-semibold text-ink">
-        {isLoading
-          ? t('buscar.buscando')
-          : plural(data?.length ?? 0, 'buscar.unNegocio', 'buscar.variosNegocios')}
+        {isLoading ? t('buscar.buscando') : t('buscar.titulo')}
         {q && <span className="text-subtle"> {t('buscar.para', { q })}</span>}
       </h1>
 
