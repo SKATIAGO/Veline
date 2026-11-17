@@ -115,9 +115,9 @@ export function Search() {
             </Reveal>
           ))}
         </div>
-      ) : (
+      ) : q || city || category ? (
         <EmptyState title={t('buscar.sinResultados')} hint={t('buscar.sinResultadosPista')} />
-      )}
+      ) : null}
 
       <p className="mt-10 text-body text-muted">
         {t('buscar.tuNegocioNoEsta')}{' '}
