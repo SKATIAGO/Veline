@@ -66,6 +66,7 @@ export const en: Record<keyof typeof es, string> = {
   'buscar.donde': 'Your area or city',
   'buscar.dondeEtiqueta': 'Where',
   'buscar.buscando': 'Searching…',
+  'buscar.muyPronto': 'Coming soon: businesses near you',
   'buscar.titulo': 'Businesses',
   'buscar.para': 'for “{q}”',
   'buscar.sinResultados': 'Nothing found around here',

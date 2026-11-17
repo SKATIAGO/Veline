@@ -117,7 +117,11 @@ export function Search() {
         </div>
       ) : q || city || category ? (
         <EmptyState title={t('buscar.sinResultados')} hint={t('buscar.sinResultadosPista')} />
-      ) : null}
+      ) : (
+        <p className="py-10 text-center text-subheading font-semibold text-muted">
+          {t('buscar.muyPronto')}
+        </p>
+      )}
 
       <p className="mt-10 text-body text-muted">
         {t('buscar.tuNegocioNoEsta')}{' '}

@@ -65,6 +65,7 @@ export const es = {
   'buscar.donde': 'Tu barrio o ciudad',
   'buscar.dondeEtiqueta': 'Dónde',
   'buscar.buscando': 'Buscando…',
+  'buscar.muyPronto': 'Muy pronto, negocios por aquí',
   'buscar.titulo': 'Negocios',
   'buscar.para': 'para “{q}”',
   'buscar.sinResultados': 'No hemos encontrado nada por aquí',
