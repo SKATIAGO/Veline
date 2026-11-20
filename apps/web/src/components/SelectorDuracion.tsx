@@ -98,6 +98,7 @@ function Columna({
     <div
       ref={caja}
       role="group"
+      data-gesto-propio
       aria-label={etiqueta}
       onScroll={alMover}
       onKeyDown={alTeclear}

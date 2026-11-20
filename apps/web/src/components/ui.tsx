@@ -1086,7 +1086,10 @@ export function Sheet({
     let arrastrando = false
 
     const alTocar = (e: TouchEvent) => {
-      posible = el.scrollTop <= 0
+      /* Lo que se desplaza por su cuenta (la rueda de la duración) se queda
+         con el gesto: si no, arrastrarla hacia abajo cerraba la ficha. */
+      const propio = (e.target as Element | null)?.closest('[data-gesto-propio]')
+      posible = el.scrollTop <= 0 && !propio
       arrastrando = false
       inicioY = e.touches[0]!.clientY
       inicioT = performance.now()
