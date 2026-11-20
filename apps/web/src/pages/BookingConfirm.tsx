@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createBookingSchema, formatLongDate, formatTimeMadrid, madridDay } from '@veline/shared'
 import { api, ApiError } from '../lib/api'
 import { CLAVES_PASO, extrasDeUrl, pasosReserva, tramoExtras } from '../lib/reserva'
@@ -139,10 +139,16 @@ export function BookingConfirm() {
     ...(staffId ? { staffId } : {}),
   })
 
+  const queryClient = useQueryClient()
   const mutation = useMutation({
     mutationFn: () => api.createBooking(slug, datos()),
-    onSuccess: (booking) =>
-      navigate(`/reserva/${booking.code}`, { replace: true, state: { recien: true } }),
+    onSuccess: (booking) => {
+      /* La pantalla de después pide esta misma reserva: se le da ya hecha.
+         Si no, pasaba un instante de «Cargando…» con la página vacía y el
+         pie de la web a la vista, y todo saltaba. */
+      queryClient.setQueryData(['booking', booking.code], booking)
+      navigate(`/reserva/${booking.code}`, { replace: true, state: { recien: true } })
+    },
   })
 
   if (!business) {

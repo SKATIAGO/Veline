@@ -68,7 +68,7 @@ export function BookingDone() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-[1440px] px-6 lg:px-16">
+      <div className="mx-auto max-w-[1440px] min-h-[60vh] px-6 lg:px-16">
         <Spinner />
       </div>
     )
